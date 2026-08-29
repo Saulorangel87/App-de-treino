@@ -1,0 +1,19 @@
+openapi: 3.1.0
+info:
+  title: Cadência API
+  version: 0.1.0
+  description: API do MVP de planejamento adaptativo de ciclismo.
+servers:
+  - url: http://localhost:8080
+paths:
+  /health:
+    get:
+      summary: Verifica se o processo da API está ativo
+      responses:
+        '200': { description: API ativa }
+  /ready:
+    get:
+      summary: Verifica se a API consegue acessar o PostgreSQL
+      responses:
+        '200': { description: API e banco disponíveis }
+        '503': { description: Banco indisponível }

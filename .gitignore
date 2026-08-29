@@ -1,5 +1,5 @@
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -9,16 +9,22 @@
 !.yarn/versions
 
 # testing
-/coverage
+coverage/
 
-# next.js
-/.next/
-/.vinext/
-/out/
+# generated frontend files
+.next/
+.vinext/
+out/
+dist/
+.wrangler/
+outputs/
+work/
+next-env.d.ts
 
 # misc
 .DS_Store
 *.pem
+*.tar.gz
 
 # debug
 npm-debug.log*
@@ -26,15 +32,11 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# local environment
+# local environment and database data
 .env*
 !.env.example
+.postgres-data/
+.gotmp/
 
-# deployment and generated files
+# deployment
 .vercel
-next-env.d.ts
-/dist/
-/.wrangler/
-/outputs/
-/work/
-*.tar.gz

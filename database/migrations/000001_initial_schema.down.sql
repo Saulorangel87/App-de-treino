@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS feedback;
+DROP TABLE IF EXISTS workout_sessions;
+DROP TABLE IF EXISTS workouts;
+DROP TABLE IF EXISTS training_plans;
+DROP TABLE IF EXISTS injuries_or_limitations;
+DROP TABLE IF EXISTS recovery_data;
+DROP TABLE IF EXISTS availability;
+DROP TABLE IF EXISTS goals;
+DROP TABLE IF EXISTS athlete_profiles;
+DROP TABLE IF EXISTS users;
