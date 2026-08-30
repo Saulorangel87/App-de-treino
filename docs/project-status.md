@@ -161,3 +161,4 @@ As alterações de autenticação e perfil ainda aparecem como modificadas ou no
 ## Como retomar em uma conversa nova
 
 Em uma nova conversa, informar que o projeto está em `C:\Users\saulo\Documents\App de treino` e pedir para ler este arquivo e `docs/architecture-decisions.md` antes de continuar. Esses dois documentos, junto com o código e o histórico do Git, fornecem o contexto necessário sem depender do histórico completo da conversa anterior.
+ 
