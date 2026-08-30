@@ -138,16 +138,15 @@ Os valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exa
 
 ## Pedidos já registrados
 
-- Footer escuro e minimalista semelhante à referência enviada — implementado com autoria, versão, GitHub e ação de instalação. Links pessoais de LinkedIn e e-mail aguardam os endereços corretos do proprietário.
+- Footer verde-escuro e minimalista semelhante à referência enviada — implementado com autoria, versão, GitHub, LinkedIn, e-mail e ação de instalação.
 - PWA instalável — implementado com manifesto, ícones de 192/512 px, ícone maskable, suporte a iOS, service worker e tela offline básica.
 - Preservar o idioma do HTML como português do Brasil.
 
 ## Próximas etapas recomendadas
 
-1. Informar os endereços pessoais de LinkedIn e e-mail para ativar os dois ícones restantes do footer.
-2. Testar a instalação do PWA em um celular usando uma origem HTTPS acessível pelo aparelho.
-3. Conectar os dados concluídos do onboarding à geração inicial do plano de treino.
-4. Preparar produção na VPS: TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups e teste de restauração.
+1. Testar a instalação do PWA em um celular usando uma origem HTTPS acessível pelo aparelho.
+2. Conectar os dados concluídos do onboarding à geração inicial do plano de treino.
+3. Preparar produção na VPS: TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups e teste de restauração.
 
 ## Estado do Git no momento deste registro
 
