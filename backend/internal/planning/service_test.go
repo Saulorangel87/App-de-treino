@@ -7,8 +7,10 @@ import (
 )
 
 type planStore struct {
-	input Context
-	saved Plan
+	input       Context
+	saved       Plan
+	activatedID string
+	activateErr error
 }
 
 func (s *planStore) PlanningContextByUserID(context.Context, string) (Context, error) {
@@ -19,6 +21,14 @@ func (s *planStore) SaveDraftPlan(_ context.Context, _ string, plan Plan) (Plan,
 	return plan, nil
 }
 func (s *planStore) CurrentPlanByUserID(context.Context, string) (Plan, error) { return s.saved, nil }
+func (s *planStore) ActivatePlanByUserID(_ context.Context, _ string, planID string) error {
+	s.activatedID = planID
+	if s.activateErr != nil {
+		return s.activateErr
+	}
+	s.saved.Status = "active"
+	return nil
+}
 
 func TestGenerateBuildsFourWeeksAndRespectsAvailability(t *testing.T) {
 	store := &planStore{input: Context{
@@ -69,5 +79,28 @@ func TestGenerateRequiresCompletedOnboarding(t *testing.T) {
 	_, err := buildPlan(Context{ProfileID: "profile-1", ExperienceLevel: "beginner"}, time.Now())
 	if err != ErrIncompleteOnboarding {
 		t.Fatalf("expected incomplete onboarding, got %v", err)
+	}
+}
+
+func TestActivateReturnsTheActivePlan(t *testing.T) {
+	store := &planStore{saved: Plan{ID: "9a1eead7-6168-4d50-8c7c-451301e29d85", Status: "draft"}}
+	service := NewService(store)
+	plan, err := service.Activate(context.Background(), "user-1", store.saved.ID)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if store.activatedID != store.saved.ID || plan.Status != "active" {
+		t.Fatalf("plan was not activated: %#v", plan)
+	}
+}
+
+func TestActivateRejectsInvalidPlanID(t *testing.T) {
+	store := &planStore{}
+	_, err := NewService(store).Activate(context.Background(), "user-1", "not-a-uuid")
+	if err != ErrInvalidPlanID {
+		t.Fatalf("expected invalid plan id, got %v", err)
+	}
+	if store.activatedID != "" {
+		t.Fatal("store must not be called with an invalid id")
 	}
 }

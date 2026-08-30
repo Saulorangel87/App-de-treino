@@ -163,3 +163,42 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 	}
 	return plan, rows.Err()
 }
+
+func (s *Store) ActivatePlanByUserID(ctx context.Context, userID, planID string) error {
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	var profileID string
+	err = tx.QueryRow(ctx, `
+		SELECT ap.id::text
+		FROM athlete_profiles ap
+		JOIN training_plans tp ON tp.athlete_profile_id = ap.id
+		WHERE ap.user_id = $1 AND tp.id = $2 AND tp.status = 'draft'
+		FOR UPDATE OF ap, tp`, userID, planID,
+	).Scan(&profileID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return planning.ErrPlanMissing
+	}
+	if err != nil {
+		return err
+	}
+
+	if _, err := tx.Exec(ctx, `
+		UPDATE training_plans SET status = 'cancelled'
+		WHERE athlete_profile_id = $1 AND status = 'active'`, profileID); err != nil {
+		return err
+	}
+	result, err := tx.Exec(ctx, `
+		UPDATE training_plans SET status = 'active'
+		WHERE id = $1 AND athlete_profile_id = $2 AND status = 'draft'`, planID, profileID)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() != 1 {
+		return planning.ErrPlanMissing
+	}
+	return tx.Commit(ctx)
+}

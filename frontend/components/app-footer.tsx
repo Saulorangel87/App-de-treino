@@ -13,13 +13,39 @@ export function AppFooter() {
   const [installed, setInstalled] = useState(false);
 
   useEffect(() => {
-    if ('serviceWorker' in navigator && import.meta.env.PROD) {
-      navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+    if ('serviceWorker' in navigator) {
+      if (import.meta.env.PROD) {
+        navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+      } else {
+        // A preview PWA may have registered a worker for localhost earlier.
+        // Development must always use the current Vite modules, not that cache.
+        navigator.serviceWorker
+          .getRegistrations()
+          .then((registrations) =>
+            Promise.all(
+              registrations.map((registration) => registration.unregister()),
+            ),
+          )
+          .catch(() => undefined);
+
+        if ('caches' in window) {
+          window.caches
+            .keys()
+            .then((keys) =>
+              Promise.all(
+                keys
+                  .filter((key) => key.startsWith('cadencia-static-'))
+                  .map((key) => window.caches.delete(key)),
+              ),
+            )
+            .catch(() => undefined);
+        }
+      }
     }
 
     const standalone = window.matchMedia('(display-mode: standalone)').matches || Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
     const rememberedInstall = window.localStorage.getItem('cadencia:pwa-installed') === 'true';
-    setInstalled(standalone || rememberedInstall);
+    queueMicrotask(() => setInstalled(standalone || rememberedInstall));
 
     const captureInstallPrompt = (event: Event) => {
       event.preventDefault();

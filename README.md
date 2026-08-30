@@ -15,7 +15,7 @@ Aplicação de planejamento adaptativo de treinos de ciclismo.
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique `database/migrations/000001_initial_schema.up.sql` no banco local.
+3. Aplique os arquivos `database/migrations/*.up.sql` em ordem numérica no banco local.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -35,12 +35,13 @@ O frontend nunca se conecta diretamente ao PostgreSQL. Todo acesso passa pela AP
 - `PUT /v1/onboarding/availability`: salva a disponibilidade semanal.
 - `POST /v1/plans/generate`: gera e substitui o rascunho atual de quatro semanas.
 - `GET /v1/plans/current`: consulta o plano ativo ou rascunho mais recente.
+- `POST /v1/plans/{planID}/activate`: aprova um rascunho e mantém somente um plano ativo por atleta.
 
 As sessões são opacas, armazenadas no PostgreSQL apenas como hash e enviadas ao navegador em cookie `HttpOnly`. Em produção, `APP_ENV=production` ativa também a exigência de HTTPS no cookie.
 
 As telas locais ficam em `/entrar` e `/perfil`. O perfil possui quatro etapas e retoma dados já salvos. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
 
-A tela `/plano` gera e apresenta o primeiro ciclo de quatro semanas. O motor `rules-v1` é determinístico: considera experiência, objetivo, limitações e disponibilidade, limita cada sessão ao tempo informado e reduz a intensidade quando há uma condição de segurança ativa.
+A tela `/plano` gera, apresenta e ativa o primeiro ciclo de quatro semanas. O motor `rules-v1` é determinístico: considera experiência, objetivo, limitações e disponibilidade, limita cada sessão ao tempo informado e reduz a intensidade quando há uma condição de segurança ativa. O dashboard usa o plano aprovado e explica a escala RPE na própria interface.
 
 ## PWA
 

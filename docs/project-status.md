@@ -76,6 +76,9 @@ A API Go possui:
 - `PUT /v1/onboarding/limitations`: substitui as limitações ativas.
 - `PUT /v1/onboarding/goals`: salva os objetivos priorizados.
 - `PUT /v1/onboarding/availability`: salva os sete dias da semana.
+- `POST /v1/plans/generate`: gera um rascunho explicável de quatro semanas.
+- `GET /v1/plans/current`: consulta o plano ativo ou rascunho disponível.
+- `POST /v1/plans/{planID}/activate`: ativa o rascunho escolhido de forma transacional.
 
 Segurança já aplicada:
 
@@ -85,6 +88,7 @@ Segurança já aplicada:
 - Em produção, o cookie também exige HTTPS.
 - CORS configurado por variável de ambiente.
 - PostgreSQL local exposto somente no endereço de loopback.
+- Índice parcial no PostgreSQL garante no máximo um plano ativo por atleta.
 
 ## Frontend implementado
 
@@ -94,6 +98,9 @@ Segurança já aplicada:
 - Rota `/entrar` para cadastro e login.
 - Rota `/perfil` com quatro etapas persistentes do cadastro do atleta.
 - Rota `/plano` para gerar e revisar um rascunho de quatro semanas.
+- Aprovação do rascunho e substituição segura de um plano ativo anterior.
+- Dashboard conectado ao usuário autenticado e às sessões reais do plano ativo.
+- Ajuda contextual de RPE com escala de percepção de esforço de 1 a 10.
 - Integração do frontend com a API por `VITE_API_URL`.
 - O documento HTML está configurado com `lang="pt-BR"`.
 - Acesso ao perfil pelo dashboard.
@@ -125,6 +132,10 @@ Etapas planejadas:
 - Testes Go executados com sucesso em container Linux.
 - Build do frontend concluído com as rotas `/`, `/entrar` e `/perfil`.
 - Motor `rules-v1` testado com geração e leitura de 12 sessões em quatro semanas, sem ultrapassar a disponibilidade informada.
+- Fluxo de integração validado no PostgreSQL local: cadastro temporário, onboarding, geração de 12 sessões, ativação, leitura do plano ativo e remoção dos dados de teste.
+- Build do frontend concluído com o dashboard real, aprovação do plano e ajuda de RPE.
+- Fluxo visual validado em Chrome isolado: aprovação do rascunho, abertura do painel e atualização direta sem erros de runtime.
+- Cache do PWA atualizado para priorizar a rede em scripts e estilos; no desenvolvimento, workers e caches antigos do Cadência são removidos antes de carregar os módulos.
 
 Observação: o Windows App Control bloqueia executáveis temporários sem assinatura produzidos pelo `go test`. Por isso, os testes são executados no container oficial do Go, sem reduzir a segurança do Windows.
 
@@ -143,22 +154,22 @@ Os valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exa
 - Footer verde-escuro e minimalista semelhante à referência enviada — implementado com autoria, versão, GitHub, LinkedIn, e-mail e ação de instalação.
 - PWA instalável — implementado com manifesto, ícones de 192/512 px, ícone maskable, suporte a iOS, service worker e tela offline básica.
 - Preservar o idioma do HTML como português do Brasil.
+- Explicar RPE dentro do aplicativo para atletas iniciantes — implementado com ajuda contextual acessível.
 
 ## Próximas etapas recomendadas
 
-1. Permitir que o atleta ative ou rejeite o rascunho gerado.
-2. Substituir os treinos demonstrativos do dashboard pelo plano ativo real.
-3. Implementar execução e conclusão de treino com feedback pós-sessão.
+1. Implementar início, conclusão e cancelamento de uma sessão de treino.
+2. Registrar RPE realizado, dificuldade, fadiga e eventual dor no feedback pós-sessão.
+3. Usar conclusão e feedback para adaptar com segurança os próximos treinos.
 4. Testar a instalação do PWA em um celular usando uma origem HTTPS acessível pelo aparelho.
 5. Preparar produção na VPS: TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups e teste de restauração.
 
 ## Estado do Git no momento deste registro
 
-As alterações de autenticação e perfil ainda aparecem como modificadas ou novas no diretório de trabalho. Antes de iniciar uma nova grande etapa, revisar `git status`, testar e criar um commit. Sugestão de mensagem:
+A etapa de ativação do plano, dashboard real e ajuda de RPE foi implementada e validada localmente. Antes da próxima grande etapa, revisar `git status` e criar um commit. Sugestão de mensagem:
 
-`Implementa autenticação e perfil básico do atleta`
+`Ativa planos e integra treinos reais ao dashboard`
 
 ## Como retomar em uma conversa nova
 
 Em uma nova conversa, informar que o projeto está em `C:\Users\saulo\Documents\App de treino` e pedir para ler este arquivo e `docs/architecture-decisions.md` antes de continuar. Esses dois documentos, junto com o código e o histórico do Git, fornecem o contexto necessário sem depender do histórico completo da conversa anterior.
- 

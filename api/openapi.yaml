@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Cadência API
-  version: 0.4.0
+  version: 0.5.0
   description: API do MVP de planejamento adaptativo de ciclismo.
 servers:
   - url: http://localhost:8080
@@ -147,6 +147,19 @@ paths:
       responses:
         '200': { description: Plano encontrado ou nulo }
         '401': { description: Sessão ausente ou expirada }
+  /v1/plans/{planID}/activate:
+    post:
+      summary: Ativa um rascunho e cancela o plano ativo anterior do atleta
+      parameters:
+        - in: path
+          name: planID
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Plano ativado }
+        '400': { description: Identificador inválido }
+        '401': { description: Sessão ausente ou expirada }
+        '404': { description: Rascunho não encontrado ou pertencente a outro atleta }
 components:
   schemas:
     RegisterRequest:

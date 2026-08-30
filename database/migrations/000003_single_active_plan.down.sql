@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS idx_training_plans_one_active_per_athlete;

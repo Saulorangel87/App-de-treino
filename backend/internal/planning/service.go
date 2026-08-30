@@ -4,14 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"sort"
 	"time"
 )
 
 var (
 	ErrIncompleteOnboarding = errors.New("incomplete onboarding")
+	ErrInvalidPlanID        = errors.New("invalid plan id")
 	ErrPlanMissing          = errors.New("plan not found")
 )
+
+var planIDPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
 
 type LimitationContext struct {
 	Kind                             string
@@ -57,6 +61,7 @@ type Store interface {
 	PlanningContextByUserID(context.Context, string) (Context, error)
 	SaveDraftPlan(context.Context, string, Plan) (Plan, error)
 	CurrentPlanByUserID(context.Context, string) (Plan, error)
+	ActivatePlanByUserID(context.Context, string, string) error
 }
 
 type Service struct {
@@ -81,6 +86,16 @@ func (s *Service) Generate(ctx context.Context, userID string) (Plan, error) {
 }
 
 func (s *Service) Current(ctx context.Context, userID string) (Plan, error) {
+	return s.store.CurrentPlanByUserID(ctx, userID)
+}
+
+func (s *Service) Activate(ctx context.Context, userID, planID string) (Plan, error) {
+	if !planIDPattern.MatchString(planID) {
+		return Plan{}, ErrInvalidPlanID
+	}
+	if err := s.store.ActivatePlanByUserID(ctx, userID, planID); err != nil {
+		return Plan{}, err
+	}
 	return s.store.CurrentPlanByUserID(ctx, userID)
 }
 

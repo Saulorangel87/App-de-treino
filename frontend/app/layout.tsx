@@ -31,6 +31,35 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: '#102d24', colorScheme: 'light' };
 
+const devPwaResetScript = `
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations()
+      .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+      .catch(() => undefined);
+  }
+  if ('caches' in window) {
+    caches.keys()
+      .then((keys) => Promise.all(
+        keys
+          .filter((key) => key.startsWith('cadencia-static-'))
+          .map((key) => caches.delete(key)),
+      ))
+      .catch(() => undefined);
+  }
+`;
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="pt-BR"><body className={`${geist.variable} ${newsreader.variable}`}>{children}<AppFooter /></body></html>;
+  return (
+    <html lang="pt-BR">
+      {!import.meta.env.PROD && (
+        <head>
+          <script dangerouslySetInnerHTML={{ __html: devPwaResetScript }} />
+        </head>
+      )}
+      <body className={`${geist.variable} ${newsreader.variable}`}>
+        {children}
+        <AppFooter />
+      </body>
+    </html>
+  );
 }

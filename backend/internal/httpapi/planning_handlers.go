@@ -40,3 +40,24 @@ func (s *Server) currentPlan(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"plan": plan})
 }
+
+func (s *Server) activatePlan(w http.ResponseWriter, r *http.Request) {
+	user, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	plan, err := s.planning.Activate(r.Context(), user.ID, r.PathValue("planID"))
+	if errors.Is(err, planning.ErrInvalidPlanID) {
+		writeError(w, http.StatusBadRequest, "invalid_plan_id", "O identificador do plano é inválido.")
+		return
+	}
+	if errors.Is(err, planning.ErrPlanMissing) {
+		writeError(w, http.StatusNotFound, "plan_not_found", "O rascunho não foi encontrado ou já foi ativado.")
+		return
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "internal_error", "Não foi possível ativar o plano.")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"plan": plan})
+}

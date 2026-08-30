@@ -1,60 +1,534 @@
 'use client';
 
-import { useState } from 'react';
-import { Activity, ArrowRight, Bike, CalendarDays, Check, ChevronRight, CircleHelp, Clock3, Gauge, Home, LineChart, Play, Settings, Sparkles, Zap } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Activity,
+  ArrowRight,
+  Bike,
+  CalendarDays,
+  Check,
+  ChevronRight,
+  Clock3,
+  Gauge,
+  Home,
+  LineChart,
+  ListTree,
+  LoaderCircle,
+  Settings,
+  Sparkles,
+} from 'lucide-react';
+import { RpeHelp } from '@/components/rpe-help';
+import { apiRequest } from '@/lib/api';
+import {
+  parseTrainingDate,
+  type TrainingPlan,
+  type Workout,
+} from '@/lib/planning';
 
-const week = [
-  { day: 'SEG', date: '24', kind: 'Endurance', tone: 'mint', done: true },
-  { day: 'TER', date: '25', kind: 'Descanso', tone: 'rest' },
-  { day: 'QUA', date: '26', kind: 'Sweet spot', tone: 'lime', active: true },
-  { day: 'QUI', date: '27', kind: 'Mobilidade', tone: 'blue' },
-  { day: 'SEX', date: '28', kind: 'Descanso', tone: 'rest' },
-  { day: 'SÁB', date: '29', kind: 'Longo', tone: 'orange' },
-  { day: 'DOM', date: '30', kind: 'Recuperação', tone: 'mint' },
-];
+type User = { display_name: string; email: string };
+
+const dayFormatter = new Intl.DateTimeFormat('pt-BR', { weekday: 'short' });
+const fullDateFormatter = new Intl.DateTimeFormat('pt-BR', {
+  day: '2-digit',
+  month: 'long',
+  year: 'numeric',
+});
+const headerFormatter = new Intl.DateTimeFormat('pt-BR', {
+  weekday: 'long',
+  day: '2-digit',
+  month: 'long',
+});
+
+function dateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function initials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('');
+}
+
+function experienceLabel(value?: string) {
+  return (
+    {
+      beginner: 'Iniciante',
+      intermediate: 'Intermediário',
+      advanced: 'Avançado',
+    }[value || ''] || 'Ciclista'
+  );
+}
+
+function Sidebar({ user, plan }: { user: User; plan: TrainingPlan | null }) {
+  return (
+    <aside className="sidebar">
+      <div className="brand" aria-label="Cadência">
+        <span className="brand-mark">
+          <Bike size={21} strokeWidth={2.4} />
+        </span>
+        <span>cadência</span>
+      </div>
+      <nav className="main-nav" aria-label="Navegação principal">
+        <a className="nav-item active" href="/">
+          <Home size={18} />
+          Visão geral
+        </a>
+        <a className="nav-item" href="/plano">
+          <CalendarDays size={18} />
+          Meu plano
+        </a>
+        <button className="nav-item" disabled>
+          <Activity size={18} />
+          Atividades
+        </button>
+        <button className="nav-item" disabled>
+          <LineChart size={18} />
+          Evolução
+        </button>
+      </nav>
+      <div className="sidebar-bottom">
+        <div className="coach-note">
+          <span className="coach-icon">
+            <Sparkles size={15} />
+          </span>
+          <p>
+            <strong>Plano explicável</strong>Cada sessão mostra as regras usadas
+            na decisão.
+          </p>
+        </div>
+        <button className="nav-item" disabled>
+          <Settings size={18} />
+          Configurações
+        </button>
+        <button
+          className="profile-mini"
+          onClick={() => {
+            window.location.href = '/perfil';
+          }}
+        >
+          <span className="avatar">{initials(user.display_name)}</span>
+          <span>
+            <strong>{user.display_name}</strong>
+            <small>
+              Ciclismo ·{' '}
+              {experienceLabel(plan?.prescription_snapshot.experience_level)}
+            </small>
+          </span>
+          <ChevronRight size={15} />
+        </button>
+      </div>
+    </aside>
+  );
+}
 
 export default function HomePage() {
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [checkinOpen, setCheckinOpen] = useState(false);
-  const [readiness, setReadiness] = useState(82);
-  const [message, setMessage] = useState('');
-  function startWorkout() {
-    setMessage('Treino iniciado — o cronômetro está valendo. Bom pedal!');
-    window.setTimeout(() => setMessage(''), 4200);
+  const [user, setUser] = useState<User | null>(null);
+  const [plan, setPlan] = useState<TrainingPlan | null>(null);
+  const [selected, setSelected] = useState<Workout | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      apiRequest<{ user: User }>('/v1/me'),
+      apiRequest<{ plan: TrainingPlan | null }>('/v1/plans/current'),
+    ])
+      .then(([account, current]) => {
+        setUser(account.user);
+        setPlan(current.plan);
+      })
+      .catch(() => {
+        window.location.href = '/entrar';
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const activePlan = plan?.status === 'active' ? plan : null;
+  const today = useMemo(() => new Date(), []);
+  const todayKey = dateKey(today);
+  const focusWorkout = useMemo(() => {
+    if (!activePlan?.workouts.length) return null;
+    return (
+      activePlan.workouts.find(
+        (workout) =>
+          workout.status === 'planned' && workout.scheduled_on >= todayKey,
+      ) ||
+      activePlan.workouts.find((workout) => workout.status === 'planned') ||
+      activePlan.workouts[activePlan.workouts.length - 1]
+    );
+  }, [activePlan, todayKey]);
+
+  const displayedWeek = useMemo(() => {
+    if (!focusWorkout || !activePlan) return [];
+    const focusDate = parseTrainingDate(focusWorkout.scheduled_on);
+    const monday = new Date(focusDate);
+    monday.setDate(focusDate.getDate() - ((focusDate.getDay() + 6) % 7));
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + index);
+      const key = dateKey(date);
+      return {
+        key,
+        date,
+        workout:
+          activePlan.workouts.find((item) => item.scheduled_on === key) || null,
+      };
+    });
+  }, [activePlan, focusWorkout]);
+
+  if (loading || !user) {
+    return (
+      <main className="profile-loading">
+        <LoaderCircle className="spin" />
+        Carregando seu painel…
+      </main>
+    );
   }
+
+  if (!activePlan || !focusWorkout) {
+    return (
+      <main className="app-shell">
+        <Sidebar user={user} plan={plan} />
+        <section className="workspace">
+          <header className="topbar">
+            <div>
+              <p className="eyebrow">SEU TREINO, NO SEU RITMO</p>
+              <h1>Olá, {user.display_name.split(' ')[0]}.</h1>
+            </div>
+          </header>
+          <section className="dashboard-empty">
+            <span>
+              <CalendarDays size={25} />
+            </span>
+            <p>
+              {plan?.status === 'draft'
+                ? 'PLANO PRONTO PARA REVISÃO'
+                : 'PLANEJAMENTO'}
+            </p>
+            <h2>
+              {plan?.status === 'draft'
+                ? 'Seu rascunho está esperando aprovação.'
+                : 'Crie seu primeiro ciclo de treinos.'}
+            </h2>
+            <div>
+              {plan?.status === 'draft'
+                ? 'Revise as quatro semanas e aceite o plano para mostrar as sessões reais neste painel.'
+                : 'Conclua seu perfil para gerar um plano compatível com sua experiência e disponibilidade.'}
+            </div>
+            <a href="/plano">
+              {plan?.status === 'draft'
+                ? 'Revisar e aceitar plano'
+                : 'Criar meu plano'}
+              <ArrowRight size={15} />
+            </a>
+          </section>
+        </section>
+      </main>
+    );
+  }
+
+  const isToday = focusWorkout.scheduled_on === todayKey;
+  const completedInWeek = displayedWeek.filter(
+    (item) => item.workout?.status === 'completed',
+  ).length;
+  const sessionsInWeek = displayedWeek.filter((item) => item.workout).length;
+  const weekMinutes = displayedWeek.reduce(
+    (total, item) => total + (item.workout?.duration_minutes || 0),
+    0,
+  );
+  const rules = focusWorkout.explanation.rules || [];
+  const effortHeight = Math.max(34, Math.min(82, focusWorkout.target_rpe * 10));
+  const effortBars = [
+    25,
+    30,
+    36,
+    effortHeight,
+    effortHeight,
+    effortHeight,
+    34,
+    effortHeight,
+    effortHeight,
+    effortHeight,
+    30,
+    24,
+  ];
 
   return (
     <main className="app-shell">
-      <aside className="sidebar">
-        <div className="brand" aria-label="Cadência"><span className="brand-mark"><Bike size={21} strokeWidth={2.4} /></span><span>cadência</span></div>
-        <nav className="main-nav" aria-label="Navegação principal">
-          <a className="nav-item active" href="/"><Home size={18} />Visão geral</a>
-          <a className="nav-item" href="/plano"><CalendarDays size={18} />Meu plano</a>
-          <button className="nav-item"><Activity size={18} />Atividades</button>
-          <button className="nav-item"><LineChart size={18} />Evolução</button>
-        </nav>
-        <div className="sidebar-bottom">
-          <div className="coach-note"><span className="coach-icon"><Sparkles size={15} /></span><p><strong>Plano adaptativo</strong>Seu feedback ajusta a próxima semana.</p></div>
-          <button className="nav-item"><Settings size={18} />Configurações</button>
-          <button className="profile-mini" onClick={() => { window.location.href = '/perfil'; }}><span className="avatar">SR</span><span><strong>Saulo Ribeiro</strong><small>Ciclismo · Intermediário</small></span><ChevronRight size={15} /></button>
-        </div>
-      </aside>
-
+      <Sidebar user={user} plan={activePlan} />
       <section className="workspace">
-        <header className="topbar"><div><p className="eyebrow">QUARTA, 26 DE AGOSTO</p><h1>Bom dia, Saulo.</h1></div><div className="top-actions"><button className="help-button" aria-label="Ajuda"><CircleHelp size={19} /></button><button className="recovery-pill" onClick={() => setCheckinOpen(true)}><span className="status-dot" />Recuperação boa <strong>{readiness}%</strong></button></div></header>
+        <header className="topbar">
+          <div>
+            <p className="eyebrow">
+              {headerFormatter.format(today).toUpperCase()}
+            </p>
+            <h1>Olá, {user.display_name.split(' ')[0]}.</h1>
+          </div>
+          <a className="active-plan-pill" href="/plano">
+            <span className="status-dot" />
+            Plano ativo<strong>4 semanas</strong>
+          </a>
+        </header>
         <div className="dashboard-grid">
           <section className="today-card">
-            <div className="today-copy"><div className="section-label"><span>HOJE</span><i>•</i> BIKE INDOOR</div><h2>Sweet spot<br />progressivo</h2><p>Blocos sustentados para construir potência sem comprometer sua recuperação.</p><div className="metric-row"><span><Clock3 size={17} /><b>60</b> min</span><span><Gauge size={17} /><b>RPE 7</b> / 10</span><span><Zap size={17} /><b>72</b> pts</span></div><button className="start-button" onClick={startWorkout}><Play size={16} fill="currentColor" />Iniciar treino</button><button className="details-button" onClick={() => setFeedbackOpen(true)}>Ver estrutura <ArrowRight size={15} /></button></div>
-            <div className="effort-visual" aria-label="Perfil de esforço do treino"><div className="effort-label"><span>PERFIL DE ESFORÇO</span><strong>3 blocos</strong></div><div className="bars">{[28,36,44,54,54,54,30,64,64,64,30,74,74,74,38,26].map((height,i) => <span key={i} style={{ height }} className={i > 3 && i < 15 && ![6,10].includes(i) ? 'work' : ''} />)}</div><div className="zone-scale"><span>Z1</span><span>Z2</span><span>Z3</span><span>Z4</span></div><div className="coach-tip"><Sparkles size={16} /><p><strong>Ajuste inteligente</strong>Volume reduzido em 8% devido ao sono abaixo da sua média.</p></div></div>
+            <div className="today-copy">
+              <div className="section-label">
+                <span>{isToday ? 'HOJE' : 'PRÓXIMA SESSÃO'}</span>
+                <i>•</i>
+                {fullDateFormatter
+                  .format(parseTrainingDate(focusWorkout.scheduled_on))
+                  .toUpperCase()}
+              </div>
+              <h2>{focusWorkout.name}</h2>
+              <p>{focusWorkout.objective}</p>
+              <div className="metric-row">
+                <span>
+                  <Clock3 size={17} />
+                  <b>{focusWorkout.duration_minutes}</b> min
+                </span>
+                <span>
+                  <Gauge size={17} />
+                  <b>RPE {focusWorkout.target_rpe}</b> / 10 <RpeHelp compact />
+                </span>
+              </div>
+              <button
+                className="start-button"
+                onClick={() => setSelected(focusWorkout)}
+              >
+                <ListTree size={16} />
+                Ver estrutura
+              </button>
+              <a className="details-button" href="/plano">
+                Ver plano completo <ArrowRight size={15} />
+              </a>
+            </div>
+            <div
+              className="effort-visual"
+              aria-label="Representação da percepção de esforço da sessão"
+            >
+              <div className="effort-label">
+                <span>PERFIL DE ESFORÇO</span>
+                <strong>alvo RPE {focusWorkout.target_rpe}</strong>
+              </div>
+              <div className="bars">
+                {effortBars.map((height, index) => (
+                  <span
+                    key={index}
+                    style={{ height }}
+                    className={index >= 3 && index <= 9 ? 'work' : ''}
+                  />
+                ))}
+              </div>
+              <div className="zone-scale">
+                <span>LEVE</span>
+                <span>MODERADO</span>
+                <span>FORTE</span>
+              </div>
+              <div className="coach-tip">
+                <Sparkles size={16} />
+                <p>
+                  <strong>Por que este treino?</strong>
+                  {focusWorkout.explanation.summary}
+                </p>
+              </div>
+            </div>
           </section>
-          <aside className="readiness-card"><div className="card-heading"><div><span>PRONTIDÃO</span><h3>Você está bem.</h3></div><button aria-label="Mais informações">•••</button></div><div className="score-wrap"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="48" className="score-bg" /><circle cx="60" cy="60" r="48" className="score-ring" /></svg><div><strong>{readiness}</strong><span>/100</span></div></div><div className="readiness-list"><div><span>Sono</span><b>6h42</b><i className="warn">Abaixo</i></div><div><span>Fadiga</span><b>Baixa</b><i>Boa</i></div><div><span>Estresse</span><b>Moderado</b><i>Normal</i></div></div><button className="checkin-button" onClick={() => setCheckinOpen(true)}>Atualizar check-in <ArrowRight size={15} /></button></aside>
-          <section className="week-card"><div className="week-header"><div><span className="section-kicker">SUA SEMANA</span><h3>Consistência vence intensidade isolada.</h3></div><div className="week-progress"><strong>3 de 5</strong><span>sessões concluídas</span></div></div><div className="week-days">{week.map((item) => <article key={item.day} className={`day-card ${item.active ? 'selected' : ''}`}><div><span>{item.day}</span><strong>{item.date}</strong></div><i className={`workout-dot ${item.tone}`}>{item.done ? <Check size={13} /> : item.active ? <Bike size={14} /> : ''}</i><p>{item.kind}</p>{item.active && <small>60 min</small>}</article>)}</div><div className="load-summary"><span>CARGA SEMANAL</span><div className="load-track"><i /></div><strong>218 <small>/ 340 pts</small></strong><em>Dentro da meta</em></div></section>
-          <section className="insight-card"><div className="insight-icon"><Sparkles size={18} /></div><div><span>POR QUE ESTE TREINO?</span><h3>O estímulo certo, no momento certo.</h3><p>Seu histórico mostra boa resposta a blocos sustentados. Como a fadiga está baixa e você tem 60 minutos disponíveis, o sweet spot entrega o melhor equilíbrio entre estímulo e recuperação hoje.</p><button>Entender a decisão <ArrowRight size={15} /></button></div><div className="evidence-tag"><span>BASEADO EM</span><strong>3 regras do seu perfil</strong><small>+ 2 referências científicas</small></div></section>
+
+          <aside className="readiness-card plan-summary-card">
+            <div className="card-heading">
+              <div>
+                <span>PLANO ATIVO</span>
+                <h3>Seu ciclo atual.</h3>
+              </div>
+              <Check size={18} />
+            </div>
+            <div className="plan-summary-number">
+              <strong>{activePlan.workouts.length}</strong>
+              <span>sessões em quatro semanas</span>
+            </div>
+            <div className="readiness-list">
+              <div>
+                <span>Início</span>
+                <b>
+                  {fullDateFormatter.format(
+                    parseTrainingDate(activePlan.starts_on),
+                  )}
+                </b>
+              </div>
+              <div>
+                <span>Término</span>
+                <b>
+                  {fullDateFormatter.format(
+                    parseTrainingDate(activePlan.ends_on),
+                  )}
+                </b>
+              </div>
+              <div>
+                <span>Motor</span>
+                <b>
+                  {activePlan.prescription_snapshot.engine_version ||
+                    'rules-v1'}
+                </b>
+              </div>
+            </div>
+            <a className="checkin-button" href="/plano">
+              Revisar plano <ArrowRight size={15} />
+            </a>
+          </aside>
+
+          <section className="week-card">
+            <div className="week-header">
+              <div>
+                <span className="section-kicker">SEMANA EM FOCO</span>
+                <h3>Consistência vence intensidade isolada.</h3>
+              </div>
+              <div className="week-progress">
+                <strong>
+                  {completedInWeek} de {sessionsInWeek}
+                </strong>
+                <span>sessões concluídas</span>
+              </div>
+            </div>
+            <div className="week-days">
+              {displayedWeek.map((item) => (
+                <article
+                  key={item.key}
+                  className={`day-card ${item.key === focusWorkout.scheduled_on ? 'selected' : ''}`}
+                >
+                  <div>
+                    <span>
+                      {dayFormatter
+                        .format(item.date)
+                        .replace('.', '')
+                        .toUpperCase()}
+                    </span>
+                    <strong>
+                      {String(item.date.getDate()).padStart(2, '0')}
+                    </strong>
+                  </div>
+                  <i
+                    className={`workout-dot ${item.workout ? (item.workout.status === 'completed' ? 'mint' : 'lime') : ''}`}
+                  >
+                    {item.workout?.status === 'completed' ? (
+                      <Check size={13} />
+                    ) : item.workout ? (
+                      <Bike size={14} />
+                    ) : (
+                      ''
+                    )}
+                  </i>
+                  <p>{item.workout?.name || 'Descanso'}</p>
+                  {item.workout && (
+                    <small>
+                      {item.workout.duration_minutes} min · RPE{' '}
+                      {item.workout.target_rpe}
+                    </small>
+                  )}
+                </article>
+              ))}
+            </div>
+            <div className="load-summary">
+              <span>VOLUME PLANEJADO</span>
+              <div className="load-track">
+                <i
+                  style={{
+                    width: `${Math.min(100, (weekMinutes / 360) * 100)}%`,
+                  }}
+                />
+              </div>
+              <strong>
+                {Math.floor(weekMinutes / 60)}h {weekMinutes % 60}min
+              </strong>
+              <em>{sessionsInWeek} sessões</em>
+            </div>
+          </section>
+
+          <section className="insight-card">
+            <div className="insight-icon">
+              <Sparkles size={18} />
+            </div>
+            <div>
+              <span>DECISÃO EXPLICÁVEL</span>
+              <h3>O plano mostra por que cada sessão foi escolhida.</h3>
+              <p>
+                {focusWorkout.explanation.summary} As regras abaixo foram
+                calculadas com os dados preenchidos no seu perfil.
+              </p>
+              <button onClick={() => setSelected(focusWorkout)}>
+                Entender a decisão <ArrowRight size={15} />
+              </button>
+            </div>
+            <div className="evidence-tag">
+              <span>BASEADO EM</span>
+              <strong>{rules.length} regras do seu perfil</strong>
+              <small>
+                Motor{' '}
+                {activePlan.prescription_snapshot.engine_version || 'rules-v1'}
+              </small>
+            </div>
+          </section>
         </div>
       </section>
-      {feedbackOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setFeedbackOpen(false)}><section className="workout-modal" role="dialog" aria-modal="true" aria-labelledby="workout-title" onMouseDown={(e) => e.stopPropagation()}><button className="modal-close" onClick={() => setFeedbackOpen(false)} aria-label="Fechar">×</button><span className="modal-kicker">TREINO DE HOJE · 60 MIN</span><h2 id="workout-title">Sweet spot progressivo</h2><p>Use a percepção de esforço como guia principal. Você deve conseguir sustentar o bloco com foco, sem chegar à exaustão.</p><ol className="workout-steps"><li><b>01</b><span><strong>Aquecimento</strong><small>12 min · RPE 2–4</small></span><em>Cadência livre</em></li><li><b>02</b><span><strong>Bloco principal</strong><small>3 × 10 min · RPE 7</small></span><em>3 min leves entre blocos</em></li><li><b>03</b><span><strong>Desaquecimento</strong><small>9 min · RPE 2</small></span><em>Giro confortável</em></li></ol><button className="modal-start" onClick={() => { setFeedbackOpen(false); startWorkout(); }}><Play size={16} fill="currentColor" />Começar agora</button></section></div>}
-      {checkinOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setCheckinOpen(false)}><section className="workout-modal checkin-modal" role="dialog" aria-modal="true" aria-labelledby="checkin-title" onMouseDown={(e) => e.stopPropagation()}><button className="modal-close" onClick={() => setCheckinOpen(false)} aria-label="Fechar">×</button><span className="modal-kicker">CHECK-IN DIÁRIO</span><h2 id="checkin-title">Como você acordou?</h2><p>Leva menos de um minuto. Suas respostas ajudam o plano a respeitar sua recuperação.</p><div className="checkin-question"><strong>Qualidade do sono</strong><div><button>Ruim</button><button className="chosen">Razoável</button><button>Boa</button></div></div><div className="checkin-question"><strong>Fadiga percebida</strong><div><button>Alta</button><button>Moderada</button><button className="chosen">Baixa</button></div></div><div className="checkin-question"><strong>Nível de estresse</strong><div><button>Alto</button><button className="chosen">Moderado</button><button>Baixo</button></div></div><button className="modal-start" onClick={() => { setReadiness(84); setCheckinOpen(false); setMessage('Check-in salvo. Seu treino de hoje continua adequado.'); window.setTimeout(() => setMessage(''), 4200); }}><Check size={16} />Salvar check-in</button><small className="safety-note">Se houver dor ou lesão, interrompa o treino e procure um profissional habilitado.</small></section></div>}
-      {message && <div className="toast" role="status"><span><Check size={15} /></span>{message}</div>}
+
+      {selected && (
+        <dialog open className="modal-backdrop" aria-labelledby="workout-title">
+          <section className="workout-modal">
+            <button
+              className="modal-close"
+              onClick={() => setSelected(null)}
+              aria-label="Fechar"
+            >
+              ×
+            </button>
+            <span className="modal-kicker">
+              SESSÃO PLANEJADA · {selected.duration_minutes} MIN
+            </span>
+            <h2 id="workout-title">{selected.name}</h2>
+            <p>{selected.explanation.summary}</p>
+            <ol className="workout-steps">
+              <li>
+                <b>01</b>
+                <span>
+                  <strong>Aquecimento</strong>
+                  <small>
+                    {selected.structure.warmup_minutes} min · esforço
+                    progressivo
+                  </small>
+                </span>
+                <em>Cadência confortável</em>
+              </li>
+              <li>
+                <b>02</b>
+                <span>
+                  <strong>Bloco principal</strong>
+                  <small>
+                    RPE {selected.target_rpe} <RpeHelp compact />
+                  </small>
+                </span>
+                <em>{selected.structure.main}</em>
+              </li>
+              <li>
+                <b>03</b>
+                <span>
+                  <strong>Desaquecimento</strong>
+                  <small>
+                    {selected.structure.cooldown_minutes} min · esforço leve
+                  </small>
+                </span>
+                <em>Giro confortável</em>
+              </li>
+            </ol>
+            <a className="modal-plan-link" href="/plano">
+              Abrir plano completo <ArrowRight size={15} />
+            </a>
+          </section>
+        </dialog>
+      )}
     </main>
   );
 }

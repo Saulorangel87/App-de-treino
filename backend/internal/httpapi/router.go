@@ -40,6 +40,7 @@ func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Ser
 	mux.HandleFunc("PUT /v1/onboarding/availability", server.putAvailability)
 	mux.HandleFunc("POST /v1/plans/generate", server.generatePlan)
 	mux.HandleFunc("GET /v1/plans/current", server.currentPlan)
+	mux.HandleFunc("POST /v1/plans/{planID}/activate", server.activatePlan)
 	return cors(allowedOrigin, mux)
 }
 

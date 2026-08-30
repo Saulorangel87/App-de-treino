@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cadencia-static-v1';
+const CACHE_NAME = 'cadencia-static-v2';
 const OFFLINE_URL = '/offline';
 const PRECACHE = [
   OFFLINE_URL,
@@ -34,12 +34,27 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (!['style', 'script', 'font', 'image'].includes(request.destination)) return;
+  if (['style', 'script'].includes(request.destination)) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            void caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request)),
+    );
+    return;
+  }
+
+  if (!['font', 'image'].includes(request.destination)) return;
   event.respondWith(
     caches.match(request).then((cached) => cached || fetch(request).then((response) => {
       if (response.ok) {
         const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        void caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
       }
       return response;
     })),
