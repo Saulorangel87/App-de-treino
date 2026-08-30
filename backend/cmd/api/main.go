@@ -10,9 +10,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Saulorangel87/App-de-treino/backend/internal/athlete"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/auth"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/config"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/database"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/httpapi"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/repository"
 )
 
 func main() {
@@ -31,10 +34,13 @@ func main() {
 		os.Exit(1)
 	}
 	defer db.Close()
+	store := repository.New(db)
+	authService := auth.NewService(store, cfg.SessionTTL)
+	athleteService := athlete.NewService(store)
 
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           httpapi.NewRouter(db, cfg.AllowedOrigin),
+		Handler:           httpapi.NewRouter(db, authService, athleteService, cfg.AllowedOrigin, cfg.SecureCookies, cfg.SessionTTL),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      30 * time.Second,

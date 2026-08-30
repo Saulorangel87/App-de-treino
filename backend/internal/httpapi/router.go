@@ -5,12 +5,16 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+
+	"github.com/Saulorangel87/App-de-treino/backend/internal/athlete"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/auth"
 )
 
 type Pinger interface{ Ping(context.Context) error }
 
-func NewRouter(db Pinger, allowedOrigin string) http.Handler {
+func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Service, allowedOrigin string, secureCookies bool, sessionTTL time.Duration) http.Handler {
 	mux := http.NewServeMux()
+	server := &Server{auth: authService, athlete: athleteService, secureCookies: secureCookies, sessionTTL: sessionTTL}
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "service": "cadencia-api"})
 	})
@@ -23,6 +27,12 @@ func NewRouter(db Pinger, allowedOrigin string) http.Handler {
 		}
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ready"})
 	})
+	mux.HandleFunc("POST /v1/auth/register", server.register)
+	mux.HandleFunc("POST /v1/auth/login", server.login)
+	mux.HandleFunc("POST /v1/auth/logout", server.logout)
+	mux.HandleFunc("GET /v1/me", server.me)
+	mux.HandleFunc("GET /v1/profile", server.getProfile)
+	mux.HandleFunc("PUT /v1/profile", server.putProfile)
 	return cors(allowedOrigin, mux)
 }
 
@@ -35,6 +45,7 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 func cors(origin string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", origin)
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		w.Header().Set("Vary", "Origin")
 		if r.Method == http.MethodOptions {
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")

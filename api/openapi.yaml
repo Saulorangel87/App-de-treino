@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Cadência API
-  version: 0.1.0
+  version: 0.2.0
   description: API do MVP de planejamento adaptativo de ciclismo.
 servers:
   - url: http://localhost:8080
@@ -17,3 +17,82 @@ paths:
       responses:
         '200': { description: API e banco disponíveis }
         '503': { description: Banco indisponível }
+  /v1/auth/register:
+    post:
+      summary: Cria uma conta e inicia uma sessão
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201': { description: Conta criada }
+        '400': { description: Dados inválidos }
+        '409': { description: E-mail já cadastrado }
+  /v1/auth/login:
+    post:
+      summary: Autentica por e-mail e senha
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200': { description: Sessão iniciada }
+        '401': { description: Credenciais inválidas }
+  /v1/auth/logout:
+    post:
+      summary: Encerra a sessão atual
+      responses:
+        '204': { description: Sessão encerrada }
+  /v1/me:
+    get:
+      summary: Retorna o usuário da sessão
+      responses:
+        '200': { description: Usuário autenticado }
+        '401': { description: Sessão ausente ou expirada }
+  /v1/profile:
+    get:
+      summary: Retorna o perfil do atleta autenticado
+      responses:
+        '200': { description: Perfil encontrado }
+        '401': { description: Sessão ausente ou expirada }
+        '404': { description: Perfil ainda não preenchido }
+    put:
+      summary: Cria ou atualiza o perfil básico de ciclismo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AthleteProfile' }
+      responses:
+        '200': { description: Perfil salvo }
+        '400': { description: Dados inválidos }
+        '401': { description: Sessão ausente ou expirada }
+components:
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [email, password, display_name]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 10, maxLength: 72 }
+        display_name: { type: string, minLength: 2, maxLength: 100 }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+    AthleteProfile:
+      type: object
+      required: [experience_level]
+      properties:
+        birth_date: { type: [string, 'null'], format: date }
+        sex:
+          type: [string, 'null']
+          enum: [female, male, other, prefer_not_to_say, null]
+        height_cm: { type: [number, 'null'], minimum: 100, maximum: 250 }
+        weight_kg: { type: [number, 'null'], minimum: 30, maximum: 350 }
+        experience_level: { type: string, enum: [beginner, intermediate, advanced] }
+        activity_level: { type: [string, 'null'] }

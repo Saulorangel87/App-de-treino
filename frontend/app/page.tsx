@@ -36,7 +36,7 @@ export default function HomePage() {
         <div className="sidebar-bottom">
           <div className="coach-note"><span className="coach-icon"><Sparkles size={15} /></span><p><strong>Plano adaptativo</strong>Seu feedback ajusta a próxima semana.</p></div>
           <button className="nav-item"><Settings size={18} />Configurações</button>
-          <button className="profile-mini"><span className="avatar">SR</span><span><strong>Saulo Ribeiro</strong><small>Ciclismo · Intermediário</small></span><ChevronRight size={15} /></button>
+          <button className="profile-mini" onClick={() => { window.location.href = '/perfil'; }}><span className="avatar">SR</span><span><strong>Saulo Ribeiro</strong><small>Ciclismo · Intermediário</small></span><ChevronRight size={15} /></button>
         </div>
       </aside>
 
