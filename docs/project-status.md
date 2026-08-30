@@ -72,6 +72,10 @@ A API Go possui:
 - `GET /v1/me`: retorna o usuário autenticado.
 - `GET /v1/profile`: consulta o perfil básico do atleta.
 - `PUT /v1/profile`: cria ou atualiza o perfil básico.
+- `GET /v1/onboarding`: consulta limitações, objetivos e disponibilidade.
+- `PUT /v1/onboarding/limitations`: substitui as limitações ativas.
+- `PUT /v1/onboarding/goals`: salva os objetivos priorizados.
+- `PUT /v1/onboarding/availability`: salva os sete dias da semana.
 
 Segurança já aplicada:
 
@@ -88,27 +92,27 @@ Segurança já aplicada:
 - Modal de detalhes do treino.
 - Indicadores de prontidão, carga semanal e explicabilidade.
 - Rota `/entrar` para cadastro e login.
-- Rota `/perfil` para a etapa 1 do cadastro do atleta.
+- Rota `/perfil` com quatro etapas persistentes do cadastro do atleta.
 - Integração do frontend com a API por `VITE_API_URL`.
 - O documento HTML está configurado com `lang="pt-BR"`.
 - Acesso ao perfil pelo dashboard.
 
 ### Situação do fluxo de perfil
 
-A etapa 1 salva corretamente os dados básicos no PostgreSQL. O botão diz “Salvar e continuar”, mas ainda permanece na mesma tela porque as etapas seguintes não foram implementadas. Portanto, isso não indica perda dos dados.
+O onboarding salva cada etapa no PostgreSQL e permite avançar e voltar sem perder o que já foi gravado.
 
 Etapas planejadas:
 
 1. Dados básicos e experiência — implementada.
-2. Lesões, dores e limitações — pendente.
-3. Objetivos esportivos — pendente.
-4. Disponibilidade semanal e revisão — pendente.
+2. Lesões, dores e limitações — implementada.
+3. Objetivos esportivos — implementada.
+4. Disponibilidade semanal e revisão — implementada.
 
 ## Avisos observados no console
 
-- `GET /v1/profile 404`: esperado na primeira entrada de um usuário que ainda não possui perfil. A interface trata o retorno e permite criar o perfil. É inofensivo, mas poderá ser tratado de forma mais silenciosa posteriormente.
+- O perfil inexistente agora retorna `200` com valor nulo, evitando o antigo erro `404` no console durante o primeiro acesso.
 - Avisos de recursos carregados por `preload` e não usados imediatamente: relacionados ao ambiente de desenvolvimento/empacotamento; não bloqueiam o funcionamento.
-- Aviso do Base UI sobre mudança de estado não controlado para controlado: não bloqueou o formulário, mas deve ser eliminado em uma etapa de refinamento para manter o console limpo.
+- Os campos do perfil agora usam estado controlado desde a inicialização para eliminar o aviso do Base UI sobre mudança de estado não controlado para controlado.
 - Mensagem para instalar React DevTools: somente uma recomendação do React durante o desenvolvimento.
 
 ## Validações já realizadas
@@ -140,13 +144,10 @@ Os valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exa
 
 ## Próximas etapas recomendadas
 
-1. Implementar as etapas 2 a 4 do onboarding e a navegação após salvar.
-2. Tratar o perfil inexistente sem registrar um erro 404 visualmente ruidoso no console.
-3. Corrigir o aviso de estado controlado/não controlado do Base UI.
-4. Adicionar o footer solicitado.
-5. Implementar e testar o PWA no celular.
-6. Conectar os dados concluídos do onboarding à geração inicial do plano de treino.
-7. Preparar produção na VPS: TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups e teste de restauração.
+1. Adicionar o footer solicitado.
+2. Implementar e testar o PWA no celular.
+3. Conectar os dados concluídos do onboarding à geração inicial do plano de treino.
+4. Preparar produção na VPS: TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups e teste de restauração.
 
 ## Estado do Git no momento deste registro
 

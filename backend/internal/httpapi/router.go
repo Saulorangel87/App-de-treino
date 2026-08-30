@@ -12,9 +12,9 @@ import (
 
 type Pinger interface{ Ping(context.Context) error }
 
-func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Service, allowedOrigin string, secureCookies bool, sessionTTL time.Duration) http.Handler {
+func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Service, onboardingService *athlete.OnboardingService, allowedOrigin string, secureCookies bool, sessionTTL time.Duration) http.Handler {
 	mux := http.NewServeMux()
-	server := &Server{auth: authService, athlete: athleteService, secureCookies: secureCookies, sessionTTL: sessionTTL}
+	server := &Server{auth: authService, athlete: athleteService, onboarding: onboardingService, secureCookies: secureCookies, sessionTTL: sessionTTL}
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "service": "cadencia-api"})
 	})
@@ -33,6 +33,10 @@ func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Ser
 	mux.HandleFunc("GET /v1/me", server.me)
 	mux.HandleFunc("GET /v1/profile", server.getProfile)
 	mux.HandleFunc("PUT /v1/profile", server.putProfile)
+	mux.HandleFunc("GET /v1/onboarding", server.getOnboarding)
+	mux.HandleFunc("PUT /v1/onboarding/limitations", server.putLimitations)
+	mux.HandleFunc("PUT /v1/onboarding/goals", server.putGoals)
+	mux.HandleFunc("PUT /v1/onboarding/availability", server.putAvailability)
 	return cors(allowedOrigin, mux)
 }
 

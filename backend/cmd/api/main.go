@@ -37,10 +37,11 @@ func main() {
 	store := repository.New(db)
 	authService := auth.NewService(store, cfg.SessionTTL)
 	athleteService := athlete.NewService(store)
+	onboardingService := athlete.NewOnboardingService(store)
 
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           httpapi.NewRouter(db, authService, athleteService, cfg.AllowedOrigin, cfg.SecureCookies, cfg.SessionTTL),
+		Handler:           httpapi.NewRouter(db, authService, athleteService, onboardingService, cfg.AllowedOrigin, cfg.SecureCookies, cfg.SessionTTL),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      30 * time.Second,

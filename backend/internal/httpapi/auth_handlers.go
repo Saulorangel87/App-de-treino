@@ -15,6 +15,7 @@ const sessionCookieName = "cadencia_session"
 type Server struct {
 	auth          *auth.Service
 	athlete       *athlete.Service
+	onboarding    *athlete.OnboardingService
 	secureCookies bool
 	sessionTTL    time.Duration
 }
@@ -85,7 +86,7 @@ func (s *Server) getProfile(w http.ResponseWriter, r *http.Request) {
 	}
 	profile, err := s.athlete.Get(r.Context(), user.ID)
 	if errors.Is(err, athlete.ErrProfileMissing) {
-		writeError(w, http.StatusNotFound, "profile_missing", "O perfil do atleta ainda não foi preenchido.")
+		writeJSON(w, http.StatusOK, map[string]any{"profile": nil})
 		return
 	}
 	if err != nil {

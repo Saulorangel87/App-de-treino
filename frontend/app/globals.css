@@ -252,6 +252,56 @@ button { font:inherit; }
 .profile-aside p { margin:0; color:#aac0b7; font-size:9px; line-height:1.6; }
 .profile-aside hr { margin:20px 0; border:0; border-top:1px solid rgba(255,255,255,.1); }
 .profile-aside > span { color:#c7d7d0; font-size:8px; line-height:1.5; }
+.onboarding-progress { display:grid; grid-template-columns:repeat(4,1fr); gap:0; margin:28px 0 -14px; }
+.onboarding-progress span { position:relative; height:20px; display:flex; align-items:center; }
+.onboarding-progress span::before { content:''; position:absolute; left:0; right:0; height:2px; background:#dfe5df; }
+.onboarding-progress span:first-child::before { left:10px; }
+.onboarding-progress span:last-child::before { right:calc(100% - 10px); }
+.onboarding-progress span.active::before { background:#4b9978; }
+.onboarding-progress i { position:relative; z-index:1; width:20px; height:20px; display:grid; place-items:center; border:2px solid #dfe5df; border-radius:50%; background:#f5f7f2; color:#93a098; font-size:8px; font-style:normal; font-weight:800; }
+.onboarding-progress span.active i { border-color:#34795d; background:#34795d; color:white; }
+.binary-choice { display:grid; grid-template-columns:1fr 1fr; gap:11px; }
+.binary-choice label { cursor:pointer; }
+.binary-choice input { position:absolute; opacity:0; }
+.binary-choice label > span { min-height:105px; padding:18px; display:flex; flex-direction:column; justify-content:center; border:1px solid #dce3dc; border-radius:12px; transition:.18s ease; }
+.binary-choice input:focus-visible + span { outline:3px solid rgba(47,105,82,.16); outline-offset:2px; }
+.binary-choice input:checked + span { border-color:#2d6952; background:#eff6ef; box-shadow:inset 0 0 0 1px #2d6952; }
+.binary-choice strong,.binary-choice small { display:block; }
+.binary-choice strong { color:#31483d; font-size:11px; }
+.binary-choice small { color:#829087; font-size:9px; line-height:1.45; margin-top:5px; }
+.clearance-check { min-height:43px; padding:9px 11px; display:flex!important; align-items:center; gap:9px!important; border:1px solid #d8e0d8; border-radius:8px; cursor:pointer; }
+.clearance-check input { width:15px; height:15px; accent-color:#285f49; }
+.clearance-check span { min-width:0; }
+.clearance-check strong,.clearance-check small { display:block; }
+.clearance-check strong { font-size:9px; }
+.clearance-check small { margin-top:2px; color:#839087; font-size:7px; line-height:1.3; }
+.textarea-field { display:grid; gap:7px; margin-top:18px; }
+.textarea-field textarea { min-height:104px; padding:11px; resize:vertical; border:1px solid #d8e0d8; border-radius:8px; background:white; color:#394a41; font:inherit; font-size:10px; line-height:1.55; outline:none; }
+.textarea-field textarea:focus { border-color:#6b947f; box-shadow:0 0 0 3px rgba(47,105,82,.1); }
+.profile-message.error { color:#a34332; background:#fff0ec; }
+.form-actions { display:grid; grid-template-columns:auto minmax(210px,1fr); gap:10px; align-items:center; }
+.form-actions .profile-submit { margin:0; }
+.fieldset-intro { margin:-9px 0 18px; color:#7e8b83; font-size:9px; }
+.availability-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; }
+.availability-day { min-width:0; overflow:hidden; border:1px solid #dfe5df; border-radius:11px; background:#fafbf8; transition:.18s ease; }
+.availability-day.active { grid-column:span 2; border-color:#4a8a6f; background:#f1f7f1; }
+.availability-day > button { width:100%; min-height:48px; padding:9px 10px; display:flex; align-items:center; justify-content:space-between; border:0; background:transparent; color:#68776f; cursor:pointer; }
+.availability-day > button span { font-size:9px; font-weight:800; }
+.availability-day > button i { width:18px; height:18px; display:grid; place-items:center; border:1px solid #d3ddd5; border-radius:50%; background:white; color:#287156; font-style:normal; }
+.availability-day.active > button { color:#1e5c44; }
+.availability-day.active > button i { border-color:#4b9876; background:#dff1e6; }
+.availability-day > div { display:grid; gap:6px; padding:0 8px 9px; }
+.availability-day select { height:32px; padding:0 7px; font-size:8px; }
+.availability-summary { padding:15px 17px; display:grid; grid-template-columns:auto auto 1fr; gap:20px; align-items:center; border:1px solid #dbe6dc; border-radius:12px; background:#f1f7ef; }
+.availability-summary > div { padding-right:20px; border-right:1px solid #d6e1d7; }
+.availability-summary strong,.availability-summary span { display:block; }
+.availability-summary strong { color:#1e5c44; font-family:var(--font-newsreader),Georgia,serif; font-size:22px; font-weight:500; }
+.availability-summary span { color:#74837a; font-size:7px; text-transform:uppercase; letter-spacing:.7px; }
+.availability-summary p { margin:0; color:#75837b; font-size:8px; line-height:1.45; }
+.completion-card { margin:15px 0; padding:15px; display:flex; gap:12px; align-items:center; border:1px solid #bee0c9; border-radius:11px; background:#e9f6ed; }
+.completion-card > span { flex:0 0 36px; height:36px; display:grid; place-items:center; border-radius:50%; background:#34795d; color:white; }
+.completion-card strong { color:#205c45; font-size:10px; }
+.completion-card p { margin:3px 0 0; color:#658174; font-size:8px; }
 
 @media (max-width:800px) {
   .account-shell { grid-template-columns:1fr; }
@@ -264,9 +314,16 @@ button { font:inherit; }
   .profile-heading h1 { font-size:32px; }
   .profile-layout { grid-template-columns:1fr; }
   .profile-aside { order:-1; }
+  .availability-grid { grid-template-columns:repeat(4,1fr); }
 }
 @media (max-width:560px) {
-  .form-grid,.choice-cards { grid-template-columns:1fr; }
+  .form-grid,.choice-cards,.binary-choice { grid-template-columns:1fr; }
   .profile-form { padding:22px 18px; }
   .step-indicator { display:none; }
+  .onboarding-progress { margin-top:20px; }
+  .availability-grid { grid-template-columns:1fr 1fr; }
+  .availability-day.active { grid-column:span 2; }
+  .availability-summary { grid-template-columns:1fr 1fr; }
+  .availability-summary p { grid-column:1/-1; }
+  .form-actions { grid-template-columns:1fr; }
 }

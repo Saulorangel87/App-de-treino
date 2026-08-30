@@ -29,7 +29,11 @@ O frontend nunca se conecta diretamente ao PostgreSQL. Todo acesso passa pela AP
 - `GET /v1/me`: retorna o usuário autenticado.
 - `GET /v1/profile`: consulta o perfil básico do ciclista.
 - `PUT /v1/profile`: cria ou atualiza o perfil básico.
+- `GET /v1/onboarding`: consulta limitações, objetivos e disponibilidade.
+- `PUT /v1/onboarding/limitations`: salva informações de segurança.
+- `PUT /v1/onboarding/goals`: salva até dois objetivos priorizados.
+- `PUT /v1/onboarding/availability`: salva a disponibilidade semanal.
 
 As sessões são opacas, armazenadas no PostgreSQL apenas como hash e enviadas ao navegador em cookie `HttpOnly`. Em produção, `APP_ENV=production` ativa também a exigência de HTTPS no cookie.
 
-As telas locais ficam em `/entrar` e `/perfil`. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
+As telas locais ficam em `/entrar` e `/perfil`. O perfil possui quatro etapas e retoma dados já salvos. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
