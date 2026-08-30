@@ -327,3 +327,19 @@ button { font:inherit; }
   .availability-summary p { grid-column:1/-1; }
   .form-actions { grid-template-columns:1fr; }
 }
+
+/* Shared footer and PWA install action */
+.site-footer { min-height:58px; padding:15px clamp(22px,5vw,70px); display:flex; align-items:center; justify-content:center; gap:22px; border-top:1px solid #30373d; background:#171c22; color:#9da9b1; }
+.site-footer p { margin:0; font-family:Consolas,'Courier New',monospace; font-size:9px; letter-spacing:1px; text-transform:uppercase; }
+.site-footer p span { color:#85939d; }
+.footer-actions { display:flex; align-items:center; gap:12px; }
+.footer-icon { width:28px; height:28px; display:grid; place-items:center; border-radius:7px; color:#9da9b1; text-decoration:none; transition:.18s ease; }
+a.footer-icon:hover { color:var(--lime); background:rgba(255,255,255,.06); }
+.footer-icon.pending { opacity:.45; cursor:not-allowed; }
+.install-app { height:30px; padding:0 11px; display:flex; align-items:center; gap:6px; border:1px solid #3a464d; border-radius:8px; background:transparent; color:#b7c2c8; font:700 8px var(--font-geist-sans),Arial,sans-serif; text-transform:uppercase; letter-spacing:.6px; cursor:pointer; }
+.install-app:hover { border-color:#789547; color:var(--lime); }
+.installed-label { display:flex; align-items:center; gap:6px; color:#91a099; font-size:8px; text-transform:uppercase; letter-spacing:.5px; }
+.installed-label > span { width:6px; height:6px; border-radius:50%; background:#55bd85; }
+@media (max-width:720px) {
+  .site-footer { padding:18px 18px 86px; flex-direction:column; gap:10px; text-align:center; }
+}

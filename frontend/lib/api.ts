@@ -10,7 +10,7 @@ export async function apiRequest<T>(path: string, options?: RequestInit): Promis
     },
   });
   if (!response.ok) {
-    const body = await response.json().catch(() => null);
+    const body = await response.json().catch(() => null) as { error?: { message?: string } } | null;
     throw new Error(body?.error?.message || 'Não foi possível concluir a solicitação.');
   }
   if (response.status === 204) return undefined as T;

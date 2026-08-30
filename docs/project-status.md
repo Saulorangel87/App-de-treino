@@ -138,14 +138,14 @@ Os valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exa
 
 ## Pedidos já registrados
 
-- Adicionar um footer escuro e minimalista semelhante à referência enviada, com copyright, versão e links sociais/contato.
-- Transformar o frontend em PWA instalável no celular, com manifesto, ícones, service worker, configuração de instalação e comportamento offline básico.
+- Footer escuro e minimalista semelhante à referência enviada — implementado com autoria, versão, GitHub e ação de instalação. Links pessoais de LinkedIn e e-mail aguardam os endereços corretos do proprietário.
+- PWA instalável — implementado com manifesto, ícones de 192/512 px, ícone maskable, suporte a iOS, service worker e tela offline básica.
 - Preservar o idioma do HTML como português do Brasil.
 
 ## Próximas etapas recomendadas
 
-1. Adicionar o footer solicitado.
-2. Implementar e testar o PWA no celular.
+1. Informar os endereços pessoais de LinkedIn e e-mail para ativar os dois ícones restantes do footer.
+2. Testar a instalação do PWA em um celular usando uma origem HTTPS acessível pelo aparelho.
 3. Conectar os dados concluídos do onboarding à geração inicial do plano de treino.
 4. Preparar produção na VPS: TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups e teste de restauração.
 
