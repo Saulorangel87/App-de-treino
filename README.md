@@ -33,10 +33,14 @@ O frontend nunca se conecta diretamente ao PostgreSQL. Todo acesso passa pela AP
 - `PUT /v1/onboarding/limitations`: salva informações de segurança.
 - `PUT /v1/onboarding/goals`: salva até dois objetivos priorizados.
 - `PUT /v1/onboarding/availability`: salva a disponibilidade semanal.
+- `POST /v1/plans/generate`: gera e substitui o rascunho atual de quatro semanas.
+- `GET /v1/plans/current`: consulta o plano ativo ou rascunho mais recente.
 
 As sessões são opacas, armazenadas no PostgreSQL apenas como hash e enviadas ao navegador em cookie `HttpOnly`. Em produção, `APP_ENV=production` ativa também a exigência de HTTPS no cookie.
 
 As telas locais ficam em `/entrar` e `/perfil`. O perfil possui quatro etapas e retoma dados já salvos. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
+
+A tela `/plano` gera e apresenta o primeiro ciclo de quatro semanas. O motor `rules-v1` é determinístico: considera experiência, objetivo, limitações e disponibilidade, limita cada sessão ao tempo informado e reduz a intensidade quando há uma condição de segurança ativa.
 
 ## PWA
 

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Cadência API
-  version: 0.3.0
+  version: 0.4.0
   description: API do MVP de planejamento adaptativo de ciclismo.
 servers:
   - url: http://localhost:8080
@@ -134,6 +134,19 @@ paths:
         '200': { description: Disponibilidade salva }
         '400': { description: Dados inválidos }
         '401': { description: Sessão ausente ou expirada }
+  /v1/plans/generate:
+    post:
+      summary: Gera e salva um rascunho de quatro semanas usando regras explicáveis
+      responses:
+        '201': { description: Plano gerado }
+        '401': { description: Sessão ausente ou expirada }
+        '409': { description: Onboarding incompleto }
+  /v1/plans/current:
+    get:
+      summary: Retorna o plano ativo ou rascunho mais recente
+      responses:
+        '200': { description: Plano encontrado ou nulo }
+        '401': { description: Sessão ausente ou expirada }
 components:
   schemas:
     RegisterRequest:
@@ -185,3 +198,28 @@ components:
         available_minutes: { type: integer, minimum: 0, maximum: 360 }
         preferred_time: { type: [string, 'null'], pattern: '^([01]\\d|2[0-3]):[0-5]\\d$' }
         location: { type: [string, 'null'], maxLength: 80 }
+    TrainingPlan:
+      type: object
+      required: [id, starts_on, ends_on, status, prescription_snapshot, workouts]
+      properties:
+        id: { type: string, format: uuid }
+        starts_on: { type: string, format: date }
+        ends_on: { type: string, format: date }
+        status: { type: string, enum: [draft, active, completed, cancelled] }
+        prescription_snapshot: { type: object, additionalProperties: true }
+        workouts:
+          type: array
+          items: { $ref: '#/components/schemas/Workout' }
+    Workout:
+      type: object
+      required: [id, scheduled_on, name, objective, duration_minutes, target_rpe, structure, explanation, status]
+      properties:
+        id: { type: string, format: uuid }
+        scheduled_on: { type: string, format: date }
+        name: { type: string }
+        objective: { type: string }
+        duration_minutes: { type: integer, minimum: 1 }
+        target_rpe: { type: number, minimum: 0, maximum: 10 }
+        structure: { type: object, additionalProperties: true }
+        explanation: { type: object, additionalProperties: true }
+        status: { type: string, enum: [planned, completed, skipped, adapted] }

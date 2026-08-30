@@ -93,6 +93,7 @@ Segurança já aplicada:
 - Indicadores de prontidão, carga semanal e explicabilidade.
 - Rota `/entrar` para cadastro e login.
 - Rota `/perfil` com quatro etapas persistentes do cadastro do atleta.
+- Rota `/plano` para gerar e revisar um rascunho de quatro semanas.
 - Integração do frontend com a API por `VITE_API_URL`.
 - O documento HTML está configurado com `lang="pt-BR"`.
 - Acesso ao perfil pelo dashboard.
@@ -123,6 +124,7 @@ Etapas planejadas:
 - Compilação e análise do backend concluídas.
 - Testes Go executados com sucesso em container Linux.
 - Build do frontend concluído com as rotas `/`, `/entrar` e `/perfil`.
+- Motor `rules-v1` testado com geração e leitura de 12 sessões em quatro semanas, sem ultrapassar a disponibilidade informada.
 
 Observação: o Windows App Control bloqueia executáveis temporários sem assinatura produzidos pelo `go test`. Por isso, os testes são executados no container oficial do Go, sem reduzir a segurança do Windows.
 
@@ -144,9 +146,11 @@ Os valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exa
 
 ## Próximas etapas recomendadas
 
-1. Testar a instalação do PWA em um celular usando uma origem HTTPS acessível pelo aparelho.
-2. Conectar os dados concluídos do onboarding à geração inicial do plano de treino.
-3. Preparar produção na VPS: TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups e teste de restauração.
+1. Permitir que o atleta ative ou rejeite o rascunho gerado.
+2. Substituir os treinos demonstrativos do dashboard pelo plano ativo real.
+3. Implementar execução e conclusão de treino com feedback pós-sessão.
+4. Testar a instalação do PWA em um celular usando uma origem HTTPS acessível pelo aparelho.
+5. Preparar produção na VPS: TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups e teste de restauração.
 
 ## Estado do Git no momento deste registro
 

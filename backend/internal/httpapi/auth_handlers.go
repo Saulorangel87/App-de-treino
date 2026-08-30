@@ -8,6 +8,7 @@ import (
 
 	"github.com/Saulorangel87/App-de-treino/backend/internal/athlete"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/auth"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
 )
 
 const sessionCookieName = "cadencia_session"
@@ -16,6 +17,7 @@ type Server struct {
 	auth          *auth.Service
 	athlete       *athlete.Service
 	onboarding    *athlete.OnboardingService
+	planning      *planning.Service
 	secureCookies bool
 	sessionTTL    time.Duration
 }

@@ -17,16 +17,22 @@ export function AppFooter() {
       navigator.serviceWorker.register('/sw.js').catch(() => undefined);
     }
 
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+    const rememberedInstall = window.localStorage.getItem('cadencia:pwa-installed') === 'true';
+    setInstalled(standalone || rememberedInstall);
+
     const captureInstallPrompt = (event: Event) => {
       event.preventDefault();
+      window.localStorage.removeItem('cadencia:pwa-installed');
+      setInstalled(false);
       setInstallPrompt(event as InstallPromptEvent);
     };
     const markInstalled = () => {
+      window.localStorage.setItem('cadencia:pwa-installed', 'true');
       setInstalled(true);
       setInstallPrompt(null);
     };
 
-    setInstalled(window.matchMedia('(display-mode: standalone)').matches);
     window.addEventListener('beforeinstallprompt', captureInstallPrompt);
     window.addEventListener('appinstalled', markInstalled);
     return () => {
@@ -39,14 +45,18 @@ export function AppFooter() {
     if (!installPrompt) return;
     await installPrompt.prompt();
     const choice = await installPrompt.userChoice;
-    if (choice.outcome === 'accepted') setInstallPrompt(null);
+    if (choice.outcome === 'accepted') {
+      window.localStorage.setItem('cadencia:pwa-installed', 'true');
+      setInstalled(true);
+      setInstallPrompt(null);
+    }
   }
 
   return (
     <footer className="site-footer">
-      <p>© 2026 DESENVOLVIDO POR SAULO RANGEL <span>— V0.3.0</span></p>
+      <p>© 2026 DESENVOLVIDO POR SAULO RANGEL <span>— V0.4.0</span></p>
       <div className="footer-actions">
-        {installPrompt && <button type="button" className="install-app" onClick={installApp}><Download size={14} />Instalar app</button>}
+        {installPrompt && !installed && <button type="button" className="install-app" onClick={installApp}><Download size={14} />Instalar app</button>}
         {installed && <span className="installed-label"><span />App instalado</span>}
         <a className="footer-icon" href="https://www.linkedin.com/in/saulorangel87" target="_blank" rel="noreferrer" aria-label="LinkedIn de Saulo Rangel"><ContactRound size={15} /></a>
         <a className="footer-icon" href="https://github.com/Saulorangel87" target="_blank" rel="noreferrer" aria-label="GitHub de Saulo Rangel"><Code2 size={16} /></a>

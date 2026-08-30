@@ -1,0 +1,165 @@
+package repository
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+
+	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
+	"github.com/jackc/pgx/v5"
+)
+
+func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (planning.Context, error) {
+	var input planning.Context
+	err := s.pool.QueryRow(ctx, `
+		SELECT id::text, experience_level FROM athlete_profiles WHERE user_id = $1`, userID,
+	).Scan(&input.ProfileID, &input.ExperienceLevel)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return planning.Context{}, planning.ErrIncompleteOnboarding
+	}
+	if err != nil {
+		return planning.Context{}, err
+	}
+
+	err = s.pool.QueryRow(ctx, `
+		SELECT goal_type FROM goals WHERE athlete_profile_id = $1 AND priority = 1`, input.ProfileID,
+	).Scan(&input.PrimaryGoal)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return planning.Context{}, planning.ErrIncompleteOnboarding
+	}
+	if err != nil {
+		return planning.Context{}, err
+	}
+
+	limitationRows, err := s.pool.Query(ctx, `
+		SELECT kind, professional_clearance_recommended FROM injuries_or_limitations
+		WHERE athlete_profile_id = $1 AND is_active = true`, input.ProfileID)
+	if err != nil {
+		return planning.Context{}, err
+	}
+	for limitationRows.Next() {
+		var item planning.LimitationContext
+		if err := limitationRows.Scan(&item.Kind, &item.ProfessionalClearanceRecommended); err != nil {
+			limitationRows.Close()
+			return planning.Context{}, err
+		}
+		input.Limitations = append(input.Limitations, item)
+	}
+	if err := limitationRows.Err(); err != nil {
+		limitationRows.Close()
+		return planning.Context{}, err
+	}
+	limitationRows.Close()
+
+	availabilityRows, err := s.pool.Query(ctx, `
+		SELECT weekday, available_minutes, location FROM availability
+		WHERE athlete_profile_id = $1 AND available_minutes > 0 ORDER BY weekday`, input.ProfileID)
+	if err != nil {
+		return planning.Context{}, err
+	}
+	defer availabilityRows.Close()
+	for availabilityRows.Next() {
+		var item planning.AvailabilitySlot
+		if err := availabilityRows.Scan(&item.Weekday, &item.AvailableMinutes, &item.Location); err != nil {
+			return planning.Context{}, err
+		}
+		input.Availability = append(input.Availability, item)
+	}
+	if err := availabilityRows.Err(); err != nil {
+		return planning.Context{}, err
+	}
+	if len(input.Availability) == 0 {
+		return planning.Context{}, planning.ErrIncompleteOnboarding
+	}
+	return input, nil
+}
+
+func (s *Store) SaveDraftPlan(ctx context.Context, profileID string, plan planning.Plan) (planning.Plan, error) {
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return planning.Plan{}, err
+	}
+	defer tx.Rollback(ctx)
+	if _, err := tx.Exec(ctx, `DELETE FROM training_plans WHERE athlete_profile_id = $1 AND status = 'draft'`, profileID); err != nil {
+		return planning.Plan{}, err
+	}
+	snapshot, err := json.Marshal(plan.PrescriptionSnapshot)
+	if err != nil {
+		return planning.Plan{}, err
+	}
+	err = tx.QueryRow(ctx, `
+		INSERT INTO training_plans (athlete_profile_id, starts_on, ends_on, status, prescription_snapshot)
+		VALUES ($1, $2::date, $3::date, 'draft', $4::jsonb) RETURNING id::text`,
+		profileID, plan.StartsOn, plan.EndsOn, snapshot,
+	).Scan(&plan.ID)
+	if err != nil {
+		return planning.Plan{}, err
+	}
+	for index := range plan.Workouts {
+		structure, err := json.Marshal(plan.Workouts[index].Structure)
+		if err != nil {
+			return planning.Plan{}, err
+		}
+		explanation, err := json.Marshal(plan.Workouts[index].Explanation)
+		if err != nil {
+			return planning.Plan{}, err
+		}
+		err = tx.QueryRow(ctx, `
+			INSERT INTO workouts (training_plan_id, scheduled_on, name, objective, duration_minutes, target_rpe, structure, explanation, status)
+			VALUES ($1, $2::date, $3, $4, $5, $6, $7::jsonb, $8::jsonb, $9) RETURNING id::text`,
+			plan.ID, plan.Workouts[index].ScheduledOn, plan.Workouts[index].Name, plan.Workouts[index].Objective,
+			plan.Workouts[index].DurationMinutes, plan.Workouts[index].TargetRPE, structure, explanation, plan.Workouts[index].Status,
+		).Scan(&plan.Workouts[index].ID)
+		if err != nil {
+			return planning.Plan{}, err
+		}
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return planning.Plan{}, err
+	}
+	return plan, nil
+}
+
+func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (planning.Plan, error) {
+	var plan planning.Plan
+	var snapshot []byte
+	err := s.pool.QueryRow(ctx, `
+		SELECT tp.id::text, tp.starts_on::text, tp.ends_on::text, tp.status, tp.prescription_snapshot
+		FROM training_plans tp JOIN athlete_profiles ap ON ap.id = tp.athlete_profile_id
+		WHERE ap.user_id = $1 AND tp.status IN ('active', 'draft')
+		ORDER BY CASE tp.status WHEN 'active' THEN 0 ELSE 1 END, tp.created_at DESC LIMIT 1`, userID,
+	).Scan(&plan.ID, &plan.StartsOn, &plan.EndsOn, &plan.Status, &snapshot)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return planning.Plan{}, planning.ErrPlanMissing
+	}
+	if err != nil {
+		return planning.Plan{}, err
+	}
+	if err := json.Unmarshal(snapshot, &plan.PrescriptionSnapshot); err != nil {
+		return planning.Plan{}, err
+	}
+	plan.Workouts = []planning.Workout{}
+	rows, err := s.pool.Query(ctx, `
+		SELECT id::text, scheduled_on::text, name, objective, duration_minutes,
+			target_rpe::double precision, structure, explanation, status
+		FROM workouts WHERE training_plan_id = $1 ORDER BY scheduled_on, created_at`, plan.ID)
+	if err != nil {
+		return planning.Plan{}, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var workout planning.Workout
+		var structure, explanation []byte
+		if err := rows.Scan(&workout.ID, &workout.ScheduledOn, &workout.Name, &workout.Objective, &workout.DurationMinutes, &workout.TargetRPE, &structure, &explanation, &workout.Status); err != nil {
+			return planning.Plan{}, err
+		}
+		if err := json.Unmarshal(structure, &workout.Structure); err != nil {
+			return planning.Plan{}, err
+		}
+		if err := json.Unmarshal(explanation, &workout.Explanation); err != nil {
+			return planning.Plan{}, err
+		}
+		plan.Workouts = append(plan.Workouts, workout)
+	}
+	return plan, rows.Err()
+}

@@ -28,8 +28,8 @@ export default function HomePage() {
       <aside className="sidebar">
         <div className="brand" aria-label="Cadência"><span className="brand-mark"><Bike size={21} strokeWidth={2.4} /></span><span>cadência</span></div>
         <nav className="main-nav" aria-label="Navegação principal">
-          <button className="nav-item active"><Home size={18} />Visão geral</button>
-          <button className="nav-item"><CalendarDays size={18} />Meu plano</button>
+          <a className="nav-item active" href="/"><Home size={18} />Visão geral</a>
+          <a className="nav-item" href="/plano"><CalendarDays size={18} />Meu plano</a>
           <button className="nav-item"><Activity size={18} />Atividades</button>
           <button className="nav-item"><LineChart size={18} />Evolução</button>
         </nav>
