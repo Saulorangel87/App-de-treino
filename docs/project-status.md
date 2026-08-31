@@ -62,7 +62,7 @@ ou PostgreSQL próprio na VPS Oracle (produção)
 - O pgAdmin foi configurado e as tabelas foram visualizadas com sucesso.
 - A senha local existe somente no `.env` ignorado e não deve ser copiada para documentos ou commits.
 
-O esquema contém usuários, perfis, objetivos, disponibilidade, recuperação, limitações, planos, treinos, sessões, feedback e sessões de autenticação. As migrações atuais vão de `000001` a `000006`.
+O esquema contém usuários, perfis, objetivos, disponibilidade, recuperação, limitações, planos, treinos, sessões, feedback e sessões de autenticação. O perfil também possui um contexto opcional de ciclismo em JSONB. As migrações atuais vão de `000001` a `000008`.
 
 ## Backend implementado
 
@@ -76,10 +76,11 @@ A API Go possui:
 - `GET /v1/me`: retorna o usuário autenticado.
 - `GET /v1/profile`: consulta o perfil básico.
 - `PUT /v1/profile`: cria ou atualiza o perfil básico.
-- `GET /v1/onboarding`: consulta limitações, objetivos e disponibilidade.
+- `GET /v1/onboarding`: consulta limitações, objetivos, disponibilidade e contexto opcional de ciclismo.
 - `PUT /v1/onboarding/limitations`: substitui as limitações ativas.
 - `PUT /v1/onboarding/goals`: salva até dois objetivos priorizados.
 - `PUT /v1/onboarding/availability`: salva os sete dias da semana.
+- `PUT /v1/onboarding/cycling-context`: salva volume semanal, maior pedal, bicicleta, terreno, sensores, FTP e meta de prova opcionais.
 - `POST /v1/plans/generate`: gera um rascunho explicável de quatro semanas.
 - `GET /v1/plans/current`: consulta plano ativo, rascunho ou ciclo concluído mais recente.
 - `POST /v1/plans/{planID}/activate`: ativa um rascunho de forma transacional.
@@ -112,6 +113,7 @@ Segurança aplicada:
 - Rotas `/entrar`, `/perfil` e `/plano`.
 - Rota `/atividades` com histórico de sessões concluídas e canceladas.
 - Perfil com quatro etapas persistentes: dados básicos, limitações, objetivos e disponibilidade.
+- Questionário de ciclismo opcional e condicional no fim do perfil: o FTP só aparece para quem usa medidor de potência e distância/data só aparecem quando existe meta de prova.
 - Geração, revisão e ativação do plano de quatro semanas.
 - Estado de ciclo concluído com ação para gerar o próximo ciclo.
 - Modal de detalhes e estrutura do treino.
@@ -137,6 +139,7 @@ Segurança aplicada:
 - Migração `000004` validada para estados transacionais das sessões.
 - Migração `000005` implementada para adaptação por feedback e coberta por testes das decisões.
 - Migração `000006` implementada para conclusão automática e correção de planos antigos sem sessões pendentes.
+- Migrações `000007` e `000008` aplicadas localmente para fontes científicas e contexto de ciclismo, respectivamente.
 - Geração do próximo ciclo validada sem sobreposição.
 - Build do frontend concluído após os ajustes de contraste, modal e responsividade.
 - Meta viewport servida confirmada como `width=device-width, initial-scale=1, viewport-fit=cover`.
@@ -165,14 +168,15 @@ Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exampl
 
 ## Próximas etapas recomendadas
 
-1. Testar a instalação do PWA em um celular por uma origem HTTPS acessível pelo aparelho.
-2. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração. Integrar o Cloudflare Tunnel já utilizado à exposição HTTPS, mantendo o PostgreSQL inacessível publicamente.
+1. Evoluir o motor `rules-v1` para usar o contexto persistido e liberar, por níveis, prescrições específicas de ciclismo — sem abandonar as proteções de disponibilidade, recuperação e segurança.
+2. Testar a instalação do PWA em um celular por uma origem HTTPS acessível pelo aparelho.
+3. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração. Integrar o Cloudflare Tunnel já utilizado à exposição HTTPS, mantendo o PostgreSQL inacessível publicamente.
 
 ## Estado do Git no momento deste registro
 
 O commit mais recente confirmado localmente e no remoto antes desta atualização documental é:
 
-`fca0a77 fix: corrige responsividade, tipografia e scroll do modal`
+`c5bd6a0 feat: coleta histórico, terreno e sensores no perfil do ciclista`
 
 A árvore de trabalho estava limpa antes da atualização dos documentos. As alterações documentais devem ser revisadas e commitadas antes de iniciar a próxima etapa funcional.
 
@@ -183,6 +187,6 @@ Em uma nova conversa, informar que o projeto está em `C:\Users\saulo\Documents\
 1. ler `README.md`, este arquivo, `docs/architecture-decisions.md`, `docs/training-cycle-lifecycle.md` e `docs/training-adaptation-rules.md`;
 2. conferir `git status` e os commits recentes;
 3. resumir o estado encontrado antes de alterar arquivos;
-4. retomar pela implementação do histórico de atividades.
+4. conferir o estado do Git e retomar pela evolução do motor com o contexto de ciclismo.
 
 Esses documentos, o código e o histórico do Git fornecem o contexto necessário sem depender da conversa anterior.

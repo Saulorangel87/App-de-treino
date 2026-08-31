@@ -62,7 +62,7 @@ func (s *OnboardingService) SaveCyclingContext(ctx context.Context, userID strin
 	if value.WeeklyHours < 0 || value.WeeklyHours > 80 || value.LongestRideMinutes < 0 || value.LongestRideMinutes > 1440 || (value.FTP != nil && (*value.FTP < 50 || *value.FTP > 600)) || (value.EventDistanceKM != nil && (*value.EventDistanceKM < 1 || *value.EventDistanceKM > 2000)) {
 		return CyclingContext{}, ErrInvalidOnboarding
 	}
-	if value.UsesPower != (value.FTP != nil) && value.FTP != nil {
+	if value.FTP != nil && !value.UsesPower {
 		return CyclingContext{}, ErrInvalidOnboarding
 	}
 	if value.EventGoal {

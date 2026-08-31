@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Cadência API
-  version: 0.5.0
+  version: 0.6.0
   description: API do MVP de planejamento adaptativo de ciclismo.
 servers:
   - url: http://localhost:8080
@@ -70,7 +70,7 @@ paths:
         '401': { description: Sessão ausente ou expirada }
   /v1/onboarding:
     get:
-      summary: Retorna limitações, objetivos e disponibilidade do atleta
+      summary: Retorna limitações, objetivos, disponibilidade e contexto de ciclismo do atleta
       responses:
         '200': { description: Dados do onboarding }
         '401': { description: Sessão ausente ou expirada }
@@ -132,6 +132,22 @@ paths:
                   items: { $ref: '#/components/schemas/Availability' }
       responses:
         '200': { description: Disponibilidade salva }
+        '400': { description: Dados inválidos }
+        '401': { description: Sessão ausente ou expirada }
+  /v1/onboarding/cycling-context:
+    put:
+      summary: Salva dados opcionais do contexto de ciclismo do atleta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cycling_context]
+              properties:
+                cycling_context: { $ref: '#/components/schemas/CyclingContext' }
+      responses:
+        '200': { description: Contexto de ciclismo salvo }
         '400': { description: Dados inválidos }
         '401': { description: Sessão ausente ou expirada }
   /v1/plans/generate:
@@ -261,6 +277,20 @@ components:
         available_minutes: { type: integer, minimum: 0, maximum: 480 }
         preferred_time: { type: [string, 'null'], pattern: '^([01]\\d|2[0-3]):[0-5]\\d$' }
         location: { type: [string, 'null'], maxLength: 80 }
+    CyclingContext:
+      type: object
+      required: [weekly_hours, longest_ride_minutes, bike_type, terrain, uses_heart_rate, uses_power, event_goal]
+      properties:
+        weekly_hours: { type: number, minimum: 0, maximum: 80 }
+        longest_ride_minutes: { type: integer, minimum: 0, maximum: 1440 }
+        bike_type: { type: string, enum: ['', road, mtb, gravel, indoor] }
+        terrain: { type: string, enum: ['', flat, rolling, hilly] }
+        uses_heart_rate: { type: boolean }
+        uses_power: { type: boolean }
+        ftp: { type: [integer, 'null'], minimum: 50, maximum: 600 }
+        event_goal: { type: boolean }
+        event_distance_km: { type: [integer, 'null'], minimum: 1, maximum: 2000 }
+        event_date: { type: [string, 'null'], format: date }
     TrainingPlan:
       type: object
       required: [id, starts_on, ends_on, status, prescription_snapshot, workouts]

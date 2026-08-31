@@ -63,4 +63,30 @@ func TestSaveAvailabilityAllowsUpToEightHoursPerDay(t *testing.T) {
 	}
 }
 
+func TestSaveCyclingContextRequiresPowerMeterForFTP(t *testing.T) {
+	ftp := 220
+	_, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", CyclingContext{FTP: &ftp})
+	if !errorsIs(err, ErrInvalidOnboarding) {
+		t.Fatalf("expected FTP without power meter to be rejected, got %v", err)
+	}
+}
+
+func TestSaveCyclingContextRequiresCompleteEventGoal(t *testing.T) {
+	_, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", CyclingContext{EventGoal: true})
+	if !errorsIs(err, ErrInvalidOnboarding) {
+		t.Fatalf("expected incomplete event goal to be rejected, got %v", err)
+	}
+}
+
+func TestSaveCyclingContextAcceptsOptionalContext(t *testing.T) {
+	ftp := 220
+	distance := 100
+	date := "2026-11-15"
+	input := CyclingContext{WeeklyHours: 6.5, LongestRideMinutes: 180, BikeType: "road", Terrain: "hilly", UsesHeartRate: true, UsesPower: true, FTP: &ftp, EventGoal: true, EventDistanceKM: &distance, EventDate: &date}
+	result, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", input)
+	if err != nil || result.FTP == nil || *result.FTP != ftp || result.EventDate == nil || *result.EventDate != date {
+		t.Fatalf("expected valid cycling context, got %#v, %v", result, err)
+	}
+}
+
 func errorsIs(err, target error) bool { return err == target }

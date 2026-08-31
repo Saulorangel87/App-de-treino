@@ -15,7 +15,7 @@ Aplicação de planejamento adaptativo de treinos de ciclismo.
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema atual chega à migração `000006`.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema atual chega à migração `000008`.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -30,10 +30,11 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `GET /v1/me`: retorna o usuário autenticado.
 - `GET /v1/profile`: consulta o perfil básico do ciclista.
 - `PUT /v1/profile`: cria ou atualiza o perfil básico.
-- `GET /v1/onboarding`: consulta limitações, objetivos e disponibilidade.
+- `GET /v1/onboarding`: consulta limitações, objetivos, disponibilidade e contexto opcional de ciclismo.
 - `PUT /v1/onboarding/limitations`: salva informações de segurança.
 - `PUT /v1/onboarding/goals`: salva até dois objetivos priorizados.
 - `PUT /v1/onboarding/availability`: salva a disponibilidade semanal.
+- `PUT /v1/onboarding/cycling-context`: salva histórico resumido, equipamento, terreno e meta opcional de prova.
 - `POST /v1/plans/generate`: gera e substitui o rascunho atual de quatro semanas.
 - `GET /v1/plans/current`: consulta o plano ativo ou rascunho mais recente.
 - `POST /v1/plans/{planID}/activate`: aprova um rascunho e mantém somente um plano ativo por atleta.
@@ -56,7 +57,7 @@ Quando não existem mais sessões planejadas ou em andamento, o PostgreSQL marca
 
 O fluxo completo de cadastro, onboarding, geração e ativação do plano, execução da sessão, feedback, adaptação e geração do próximo ciclo está implementado localmente. O frontend possui layout responsivo, PWA, rodapé com contatos, ajuda de RPE e bloqueio correto do scroll de fundo nos modais.
 
-O histórico de atividades realizadas e canceladas está implementado localmente. A próxima etapa é testar o PWA em celular por HTTPS e preparar a VPS Oracle com TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups, restauração e Cloudflare Tunnel para expor somente o frontend e/ou a API — nunca o PostgreSQL.
+O histórico de atividades realizadas e canceladas está implementado localmente. O perfil também coleta, de forma opcional e condicional, contexto de ciclismo (volume, maior pedal, bicicleta, terreno, sensores, FTP e meta de prova). Esses dados já são persistidos; a próxima evolução do motor é usá-los para liberar prescrições específicas com regras conservadoras e explicáveis. Em paralelo, permanece a preparação da VPS Oracle com TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups, restauração e Cloudflare Tunnel para expor somente o frontend e/ou a API — nunca o PostgreSQL.
 
 ## PWA
 
