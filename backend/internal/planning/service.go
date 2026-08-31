@@ -94,13 +94,25 @@ type Activity struct {
 	Feedback        *Feedback  `json:"feedback,omitempty"`
 }
 
+type ScientificSource struct {
+	SourceKey     string `json:"source_key"`
+	Title         string `json:"title"`
+	Authors       string `json:"authors"`
+	PublishedYear int    `json:"published_year"`
+	URL           string `json:"url"`
+	TrainingFocus string `json:"training_focus"`
+	EvidenceLevel string `json:"evidence_level"`
+	Summary       string `json:"summary"`
+}
+
 type Plan struct {
-	ID                   string         `json:"id,omitempty"`
-	StartsOn             string         `json:"starts_on"`
-	EndsOn               string         `json:"ends_on"`
-	Status               string         `json:"status"`
-	PrescriptionSnapshot map[string]any `json:"prescription_snapshot"`
-	Workouts             []Workout      `json:"workouts"`
+	ID                   string             `json:"id,omitempty"`
+	StartsOn             string             `json:"starts_on"`
+	EndsOn               string             `json:"ends_on"`
+	Status               string             `json:"status"`
+	PrescriptionSnapshot map[string]any     `json:"prescription_snapshot"`
+	Workouts             []Workout          `json:"workouts"`
+	Evidence             []ScientificSource `json:"evidence,omitempty"`
 }
 
 type Store interface {
@@ -314,7 +326,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 			"main":             mainBlock,
 			"cooldown_minutes": minInt(10, maxInt(5, duration/8)),
 		},
-		Explanation: map[string]any{"summary": explanationFor(kind, restricted), "rules": rules},
+		Explanation: map[string]any{"summary": explanationFor(kind, restricted), "rules": rules, "evidence_keys": []string{"acsm-1998"}},
 		Status:      "planned",
 	}
 }

@@ -115,6 +115,21 @@ func (s *Store) SaveDraftPlan(ctx context.Context, profileID string, plan planni
 			return planning.Plan{}, err
 		}
 	}
+	evidenceRows, err := tx.Query(ctx, `SELECT source_key, title, authors, published_year, url, training_focus, evidence_level, summary FROM scientific_sources ORDER BY source_key`)
+	if err != nil {
+		return planning.Plan{}, err
+	}
+	defer evidenceRows.Close()
+	for evidenceRows.Next() {
+		var source planning.ScientificSource
+		if err := evidenceRows.Scan(&source.SourceKey, &source.Title, &source.Authors, &source.PublishedYear, &source.URL, &source.TrainingFocus, &source.EvidenceLevel, &source.Summary); err != nil {
+			return planning.Plan{}, err
+		}
+		plan.Evidence = append(plan.Evidence, source)
+	}
+	if err := evidenceRows.Err(); err != nil {
+		return planning.Plan{}, err
+	}
 	if err := tx.Commit(ctx); err != nil {
 		return planning.Plan{}, err
 	}
@@ -128,7 +143,7 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 		SELECT tp.id::text, tp.starts_on::text, tp.ends_on::text, tp.status, tp.prescription_snapshot
 		FROM training_plans tp JOIN athlete_profiles ap ON ap.id = tp.athlete_profile_id
 		WHERE ap.user_id = $1 AND tp.status IN ('active', 'draft', 'completed')
-		ORDER BY CASE tp.status WHEN 'active' THEN 0 WHEN 'draft' THEN 1 ELSE 2 END, tp.created_at DESC LIMIT 1`, userID,
+		ORDER BY CASE tp.status WHEN 'draft' THEN 0 WHEN 'active' THEN 1 ELSE 2 END, tp.created_at DESC LIMIT 1`, userID,
 	).Scan(&plan.ID, &plan.StartsOn, &plan.EndsOn, &plan.Status, &snapshot)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return planning.Plan{}, planning.ErrPlanMissing
@@ -201,7 +216,25 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 		}
 		plan.Workouts = append(plan.Workouts, workout)
 	}
-	return plan, rows.Err()
+	if err := rows.Err(); err != nil {
+		return planning.Plan{}, err
+	}
+	evidenceRows, err := s.pool.Query(ctx, `SELECT source_key, title, authors, published_year, url, training_focus, evidence_level, summary FROM scientific_sources ORDER BY source_key`)
+	if err != nil {
+		return planning.Plan{}, err
+	}
+	defer evidenceRows.Close()
+	for evidenceRows.Next() {
+		var source planning.ScientificSource
+		if err := evidenceRows.Scan(&source.SourceKey, &source.Title, &source.Authors, &source.PublishedYear, &source.URL, &source.TrainingFocus, &source.EvidenceLevel, &source.Summary); err != nil {
+			return planning.Plan{}, err
+		}
+		plan.Evidence = append(plan.Evidence, source)
+	}
+	if err := evidenceRows.Err(); err != nil {
+		return planning.Plan{}, err
+	}
+	return plan, nil
 }
 
 func (s *Store) ActivatePlanByUserID(ctx context.Context, userID, planID string) error {

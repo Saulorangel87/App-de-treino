@@ -13,6 +13,7 @@ export type Workout = {
   explanation: {
     summary?: string;
     rules?: string[];
+    evidence_keys?: string[];
     adaptation?: {
       kind: 'safety' | 'recovery' | 'progression';
       reason: string;
@@ -72,6 +73,12 @@ export type TrainingPlan = {
     sessions_per_week?: number;
   };
   workouts: Workout[];
+  evidence?: ScientificSource[];
+};
+
+export type ScientificSource = {
+  source_key: string; title: string; authors: string; published_year: number;
+  url: string; training_focus: string; evidence_level: string; summary: string;
 };
 
 export function parseTrainingDate(value: string) {

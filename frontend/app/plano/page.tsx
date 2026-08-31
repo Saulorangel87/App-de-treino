@@ -84,6 +84,10 @@ export default function PlanPage() {
       ) || 0,
     [plan],
   );
+  const evidenceByKey = useMemo(
+    () => new Map((plan?.evidence || []).map((source) => [source.source_key, source])),
+    [plan],
+  );
 
   function updateSessionPlan(nextPlan: TrainingPlan, workoutID: string) {
     setPlan(nextPlan);
@@ -448,6 +452,17 @@ export default function PlanPage() {
                       </li>
                     ))}
                   </ul>
+                  {selected.explanation.evidence_keys?.length ? (
+                    <>
+                      <h3>Base científica</h3>
+                      <ul>
+                        {selected.explanation.evidence_keys.map((key) => {
+                          const source = evidenceByKey.get(key);
+                          return source ? <li key={key}><a href={source.url} target="_blank" rel="noreferrer">{source.authors} ({source.published_year})</a></li> : null;
+                        })}
+                      </ul>
+                    </>
+                  ) : null}
                 </aside>
               )}
             </div>
