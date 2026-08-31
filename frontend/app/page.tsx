@@ -89,6 +89,10 @@ function Sidebar({ user, plan }: { user: User; plan: TrainingPlan | null }) {
           <Activity size={18} />
           Atividades
         </a>
+        <a className="nav-item" href="/avaliacao">
+          <Gauge size={18} />
+          Avaliação
+        </a>
         <button className="nav-item" disabled>
           <LineChart size={18} />
           Evolução

@@ -13,9 +13,9 @@ import (
 
 type Pinger interface{ Ping(context.Context) error }
 
-func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Service, onboardingService *athlete.OnboardingService, planningService *planning.Service, allowedOrigin string, secureCookies bool, sessionTTL time.Duration) http.Handler {
+func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Service, onboardingService *athlete.OnboardingService, assessmentService *athlete.AssessmentService, planningService *planning.Service, allowedOrigin string, secureCookies bool, sessionTTL time.Duration) http.Handler {
 	mux := http.NewServeMux()
-	server := &Server{auth: authService, athlete: athleteService, onboarding: onboardingService, planning: planningService, secureCookies: secureCookies, sessionTTL: sessionTTL}
+	server := &Server{auth: authService, athlete: athleteService, onboarding: onboardingService, assessments: assessmentService, planning: planningService, secureCookies: secureCookies, sessionTTL: sessionTTL}
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "service": "cadencia-api"})
 	})
@@ -39,6 +39,8 @@ func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Ser
 	mux.HandleFunc("PUT /v1/onboarding/goals", server.putGoals)
 	mux.HandleFunc("PUT /v1/onboarding/availability", server.putAvailability)
 	mux.HandleFunc("PUT /v1/onboarding/cycling-context", server.putCyclingContext)
+	mux.HandleFunc("GET /v1/assessments/current", server.currentAssessment)
+	mux.HandleFunc("POST /v1/assessments/submaximal", server.saveSubmaxAssessment)
 	mux.HandleFunc("POST /v1/plans/generate", server.generatePlan)
 	mux.HandleFunc("GET /v1/plans/current", server.currentPlan)
 	mux.HandleFunc("GET /v1/activities", server.activities)

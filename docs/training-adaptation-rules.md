@@ -28,6 +28,12 @@ Na geração do plano, o motor mantém a frequência, os limites de duração, a
 
 Se houver limitação ativa, a sessão específica é substituída pelo giro leve protegido. Iniciantes não recebem essas sessões de qualidade específicas ainda. Intervalos de alta intensidade ("tiros") continuam fora do motor até existir uma avaliação inicial de capacidade e regras próprias de progressão.
 
+## Avaliação inicial submáxima
+
+A rota `/avaliacao` apresenta um pedal de referência opcional: aquecimento leve, até 20 minutos de esforço controlado próximo de RPE 5 e desaquecimento. O atleta registra duração, RPE percebido e dor. Não há teste máximo, estimativa de VO₂max nem diagnóstico.
+
+Uma referência com pelo menos 18 minutos, RPE até 6 e sem dor fica marcada como apta apenas para futuras progressões. Dor, tontura, falta de ar incomum, mal-estar ou outro sintoma preocupante são motivos para interromper a atividade e buscar orientação profissional quando necessário. O resultado não libera automaticamente sessões intensas nesta versão.
+
 As alterações nunca ultrapassam os minutos disponíveis cadastrados para o dia. Sessões concluídas, puladas ou já modificadas por um feedback anterior não são recalculadas.
 
 ## Transparência e segurança

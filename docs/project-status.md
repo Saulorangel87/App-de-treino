@@ -62,7 +62,7 @@ ou PostgreSQL próprio na VPS Oracle (produção)
 - O pgAdmin foi configurado e as tabelas foram visualizadas com sucesso.
 - A senha local existe somente no `.env` ignorado e não deve ser copiada para documentos ou commits.
 
-O esquema contém usuários, perfis, objetivos, disponibilidade, recuperação, limitações, planos, treinos, sessões, feedback e sessões de autenticação. O perfil também possui um contexto opcional de ciclismo em JSONB. As migrações atuais vão de `000001` a `000008`.
+O esquema contém usuários, perfis, objetivos, disponibilidade, recuperação, limitações, planos, treinos, sessões, feedback e sessões de autenticação. O perfil também possui um contexto opcional de ciclismo em JSONB e histórico de avaliações submáximas. As migrações atuais vão de `000001` a `000009`.
 
 ## Backend implementado
 
@@ -81,6 +81,7 @@ A API Go possui:
 - `PUT /v1/onboarding/goals`: salva até dois objetivos priorizados.
 - `PUT /v1/onboarding/availability`: salva os sete dias da semana.
 - `PUT /v1/onboarding/cycling-context`: salva volume semanal, maior pedal, bicicleta, terreno, sensores, FTP e meta de prova opcionais.
+- `GET /v1/assessments/current` e `POST /v1/assessments/submaximal`: consultam e registram uma avaliação submáxima opcional.
 - `POST /v1/plans/generate`: gera um rascunho explicável de quatro semanas.
 - `GET /v1/plans/current`: consulta plano ativo, rascunho ou ciclo concluído mais recente.
 - `POST /v1/plans/{planID}/activate`: ativa um rascunho de forma transacional.
@@ -114,6 +115,7 @@ Segurança aplicada:
 - Rota `/atividades` com histórico de sessões concluídas e canceladas.
 - Perfil com quatro etapas persistentes: dados básicos, limitações, objetivos e disponibilidade.
 - Questionário de ciclismo opcional e condicional no fim do perfil: o FTP só aparece para quem usa medidor de potência e distância/data só aparecem quando existe meta de prova.
+- Rota `/avaliacao` para pedal de referência submáximo com registro de RPE, duração e dor; a tela reforça que não é teste máximo nem diagnóstico.
 - Geração, revisão e ativação do plano de quatro semanas.
 - Estado de ciclo concluído com ação para gerar o próximo ciclo.
 - Modal de detalhes e estrutura do treino.
@@ -169,7 +171,7 @@ Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exampl
 
 ## Próximas etapas recomendadas
 
-1. Criar uma avaliação inicial segura para estimar a capacidade do ciclista e habilitar progressivamente intervalos de alta intensidade.
+1. Usar a referência submáxima no motor para habilitar progressivamente sessões intervaladas controladas, mantendo bloqueios de segurança.
 2. Testar a instalação do PWA em um celular por uma origem HTTPS acessível pelo aparelho.
 3. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração. Integrar o Cloudflare Tunnel já utilizado à exposição HTTPS, mantendo o PostgreSQL inacessível publicamente.
 
@@ -177,7 +179,7 @@ Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exampl
 
 O commit mais recente confirmado localmente e no remoto antes desta atualização documental é:
 
-`c5bd6a0 feat: coleta histórico, terreno e sensores no perfil do ciclista`
+`d74ca67 feat: adapta sessões de ciclismo ao contexto do atleta`
 
 A árvore de trabalho estava limpa antes da atualização dos documentos. As alterações documentais devem ser revisadas e commitadas antes de iniciar a próxima etapa funcional.
 

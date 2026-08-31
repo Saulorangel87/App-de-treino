@@ -52,7 +52,7 @@ ou PostgreSQL na VPS Oracle (produção)
 Concluído localmente:
 
 1. PostgreSQL 17 em Docker Compose, exposto somente em loopback.
-2. Migrações SQL versionadas até `000008`, incluindo fontes científicas e contexto opcional de ciclismo.
+2. Migrações SQL versionadas até `000009`, incluindo fontes científicas, contexto opcional de ciclismo e avaliações submáximas.
 3. API REST em Go com verificações de saúde e prontidão.
 4. Autenticação com bcrypt, sessões opacas, hash do token e cookie `HttpOnly`.
 5. Frontend conectado exclusivamente à API.
@@ -61,10 +61,11 @@ Concluído localmente:
 8. Encerramento automático do plano e geração do próximo ciclo sem apagar o histórico.
 9. PWA, interface responsiva e validações locais de integração.
 10. Contexto opcional e condicional de ciclismo persistido (histórico resumido, terreno, equipamento, FTP e meta de prova).
+11. Avaliação inicial submáxima persistida, sem teste máximo ou diagnóstico.
 
 ## Próximas implementações
 
-1. Criar uma avaliação inicial segura para estimar capacidade e habilitar progressivamente sessões de intensidade mais alta.
+1. Usar a referência submáxima no motor para habilitar progressivamente sessões intervaladas controladas, sem liberar intensidade alta de forma automática.
 2. Testar instalação e comportamento do PWA em um celular por origem HTTPS.
 3. Preparar a produção na VPS Oracle com TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, backups automatizados e teste de restauração. O Cloudflare Tunnel deve expor somente o frontend e/ou a API.
 
