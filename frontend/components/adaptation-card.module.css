@@ -1,0 +1,140 @@
+.card {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+  margin: 18px 0;
+  padding: 15px;
+  border: 1px solid rgba(188, 255, 49, 0.22);
+  border-radius: 13px;
+  background: rgba(188, 255, 49, 0.07);
+  color: #e9f5ef;
+}
+
+.safety {
+  border-color: rgba(255, 194, 102, 0.32);
+  background: rgba(255, 194, 102, 0.08);
+}
+
+.heading {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.icon {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--lime);
+  color: #15372d;
+}
+
+.safety .icon {
+  background: #ffd08a;
+}
+
+.heading div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.heading small {
+  color: var(--lime);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.8px;
+}
+
+.safety .heading small {
+  color: #ffd08a;
+}
+
+.heading strong {
+  color: white;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.spark {
+  color: var(--lime);
+}
+
+.reason {
+  margin: 0;
+  color: #c4d7cf;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.comparison > span {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3px 8px;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+}
+
+.comparison small {
+  grid-column: 1 / -1;
+  color: #8fa99f;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+}
+
+.comparison s {
+  color: #8fa99f;
+  font-size: 9px;
+}
+
+.comparison b {
+  color: white;
+  font-size: 10px;
+}
+
+.warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 10px;
+  border-radius: 9px;
+  background: rgba(255, 194, 102, 0.1);
+  color: #ffe0b2;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.warning svg {
+  flex: 0 0 auto;
+}
+
+.compact {
+  width: min(100%, 390px);
+  margin: 14px 0 0;
+  padding: 11px;
+  gap: 9px;
+}
+
+.compact .reason,
+.compact .warning {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .comparison {
+    grid-template-columns: 1fr;
+  }
+}

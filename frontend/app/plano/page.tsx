@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AdaptationCard } from '@/components/adaptation-card';
 import { RpeHelp } from '@/components/rpe-help';
 import { WorkoutSessionActions } from '@/components/workout-session-actions';
 import { apiRequest } from '@/lib/api';
@@ -337,6 +338,11 @@ export default function PlanPage() {
                           <span>
                             <strong>{workout.name}</strong>
                             <small>{workout.objective}</small>
+                            {workout.explanation.adaptation && (
+                              <small>
+                                <Sparkles size={10} /> Ajustado pelo feedback
+                              </small>
+                            )}
                           </span>
                           <em>
                             <Clock3 size={12} />
@@ -368,6 +374,7 @@ export default function PlanPage() {
                       <RpeHelp compact />
                     </div>
                   </div>
+                  <AdaptationCard workout={selected} />
                   <WorkoutSessionActions
                     workout={selected}
                     planStatus={plan.status}

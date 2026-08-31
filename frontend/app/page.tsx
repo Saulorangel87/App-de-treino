@@ -17,6 +17,7 @@ import {
   Settings,
   Sparkles,
 } from 'lucide-react';
+import { AdaptationCard } from '@/components/adaptation-card';
 import { RpeHelp } from '@/components/rpe-help';
 import { WorkoutSessionActions } from '@/components/workout-session-actions';
 import { apiRequest } from '@/lib/api';
@@ -292,6 +293,7 @@ export default function HomePage() {
                   .format(parseTrainingDate(focusWorkout.scheduled_on))
                   .toUpperCase()}
               </div>
+              <AdaptationCard workout={focusWorkout} compact />
               <h2>{focusWorkout.name}</h2>
               <p>{focusWorkout.objective}</p>
               <div className="metric-row">
@@ -498,6 +500,7 @@ export default function HomePage() {
             </span>
             <h2 id="workout-title">{selected.name}</h2>
             <p>{selected.explanation.summary}</p>
+            <AdaptationCard workout={selected} />
             <ol className="workout-steps">
               <li>
                 <b>01</b>

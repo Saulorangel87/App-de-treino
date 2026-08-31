@@ -13,6 +13,14 @@ export type Workout = {
   explanation: {
     summary?: string;
     rules?: string[];
+    adaptation?: {
+      kind: 'safety' | 'recovery' | 'progression';
+      reason: string;
+      safety_notice?: string;
+      source_workout_id: string;
+      previous_duration_minutes: number;
+      previous_target_rpe: number;
+    };
   };
   status: 'planned' | 'in_progress' | 'completed' | 'skipped' | 'adapted';
   session?: WorkoutSession;
