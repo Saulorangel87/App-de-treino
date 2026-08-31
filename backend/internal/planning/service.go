@@ -48,6 +48,7 @@ type Context struct {
 	Availability     []AvailabilitySlot
 	Cycling          CyclingContext
 	BaselineEligible bool
+	RotationIndex    int
 }
 
 type Workout struct {
@@ -281,6 +282,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 				"event_goal": input.Cycling.EventGoal,
 			},
 			"baseline_eligible": input.BaselineEligible,
+			"rotation_index":    input.RotationIndex,
 		},
 		Workouts: workouts,
 	}
@@ -294,6 +296,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	mainBlock := "Ritmo confortável e contínuo"
 	summary := explanationFor(kind, restricted)
 	usesControlledIntervals := false
+	rotationApplied := false
 	if kind == "long" {
 		baseMinutes = map[string]int{"beginner": 75, "intermediate": 90, "advanced": 120}[input.ExperienceLevel]
 		name = "Endurance contínuo"
@@ -336,6 +339,22 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 			name = "Sweet spot progressivo"
 			targetRPE = 7.0
 		}
+		if input.ExperienceLevel == "advanced" && input.RotationIndex%2 == 1 {
+			switch name {
+			case "Intervalos controlados":
+				name = "Sweet spot progressivo"
+				mainBlock = "3 blocos sustentados com recuperação leve"
+				summary = "A rotação entre ciclos alterna o estímulo intervalado por um esforço sustentável de qualidade."
+				usesControlledIntervals = false
+				rotationApplied = true
+			case "Subidas controladas", "Sweet spot por potência", "Sweet spot progressivo":
+				name = "Tempo controlado"
+				targetRPE = 6.0
+				mainBlock = "3 blocos sustentados com recuperação leve"
+				summary = "A rotação entre ciclos alterna o estímulo específico sem aumentar a carga planejada."
+				rotationApplied = true
+			}
+		}
 	}
 	if restricted {
 		name = "Giro leve protegido"
@@ -362,6 +381,9 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	}
 	if usesControlledIntervals {
 		rules = append(rules, "Intervalos liberados pela avaliação submáxima apta, apenas nas semanas de construção.")
+	}
+	if rotationApplied {
+		rules = append(rules, "Sessão alternada pela rotação explicável entre ciclos.")
 	}
 	if restricted {
 		rules = append(rules, "Intensidade limitada por uma condição de segurança ativa.")

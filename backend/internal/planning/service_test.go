@@ -177,6 +177,21 @@ func TestBuildPlanUsesAssessmentForControlledIntervalsOnlyInBuildWeeks(t *testin
 	}
 }
 
+func TestBuildPlanRotatesAdvancedQualityAcrossCycles(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true, RotationIndex: 1,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 75}, {Weekday: 6, AvailableMinutes: 180}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name == "Intervalos controlados" {
+			t.Fatalf("expected rotation to use a different quality session, got %#v", workout)
+		}
+	}
+}
+
 func intPointer(value int) *int { return &value }
 
 func TestActivateReturnsTheActivePlan(t *testing.T) {

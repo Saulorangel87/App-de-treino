@@ -27,6 +27,9 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 	if err := json.Unmarshal(cyclingContext, &input.Cycling); err != nil {
 		return planning.Context{}, err
 	}
+	if err := s.pool.QueryRow(ctx, `SELECT count(*) FROM training_plans WHERE athlete_profile_id = $1`, input.ProfileID).Scan(&input.RotationIndex); err != nil {
+		return planning.Context{}, err
+	}
 
 	err = s.pool.QueryRow(ctx, `
 		SELECT goal_type FROM goals WHERE athlete_profile_id = $1 AND priority = 1`, input.ProfileID,
