@@ -40,11 +40,12 @@ func main() {
 	athleteService := athlete.NewService(store)
 	onboardingService := athlete.NewOnboardingService(store)
 	assessmentService := athlete.NewAssessmentService(store)
+	recoveryService := athlete.NewRecoveryService(store)
 	planningService := planning.NewService(store)
 
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           httpapi.NewRouter(db, authService, athleteService, onboardingService, assessmentService, planningService, cfg.AllowedOrigin, cfg.SecureCookies, cfg.SessionTTL),
+		Handler:           httpapi.NewRouter(db, authService, athleteService, onboardingService, assessmentService, recoveryService, planningService, cfg.AllowedOrigin, cfg.SecureCookies, cfg.SessionTTL),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      30 * time.Second,

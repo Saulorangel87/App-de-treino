@@ -62,10 +62,11 @@ Concluído localmente:
 9. PWA, interface responsiva e validações locais de integração.
 10. Contexto opcional e condicional de ciclismo persistido (histórico resumido, terreno, equipamento, FTP e meta de prova).
 11. Avaliação inicial submáxima persistida, sem teste máximo ou diagnóstico.
+12. Check-in diário persistido na tabela `recovery_data`, com data local enviada pelo cliente e adaptação conservadora, transacional e idempotente da próxima sessão.
 
 ## Próximas implementações
 
-1. Usar a referência submáxima no motor para habilitar progressivamente sessões intervaladas controladas, sem liberar intensidade alta de forma automática.
+1. Consolidar indicadores de evolução entre ciclos, preservando a distinção entre métricas observadas e interpretações do produto.
 2. Testar instalação e comportamento do PWA em um celular por origem HTTPS.
 3. Preparar a produção na VPS Oracle com TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, backups automatizados e teste de restauração. O Cloudflare Tunnel deve expor somente o frontend e/ou a API.
 

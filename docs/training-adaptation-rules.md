@@ -36,6 +36,19 @@ Uma referência com pelo menos 18 minutos, RPE até 6 e sem dor fica marcada com
 
 As alterações nunca ultrapassam os minutos disponíveis cadastrados para o dia. Sessões concluídas, puladas ou já modificadas por um feedback anterior não são recalculadas.
 
+## Check-in diário antes do treino
+
+A rota `/recuperacao` registra duração e qualidade do sono, estresse e fadiga percebida. Os limiares são regras conservadoras desta versão do produto, não critérios clínicos:
+
+- menos de 6 horas de sono ou qualidade do sono 1 ou 2 formam um sinal de sono; estresse 4 ou 5 e fadiga 4 ou 5 são os outros sinais de atenção;
+- um único sinal de atenção reduz em 10% a duração da próxima sessão futura e limita o RPE-alvo a 5;
+- dois ou mais sinais de atenção, ou fadiga 5, reduzem em 20% a duração e limitam o RPE-alvo a 4;
+- sem sinal de atenção, o plano é mantido; o check-in nunca aumenta intensidade ou duração por si só.
+
+Somente a próxima sessão `planned` ou `adapted` do plano ativo, na data do check-in ou depois dela, pode ser alterada. A decisão é transacional e fica em `workouts.explanation.pre_session_recovery`, incluindo a data, o nível de prontidão e o histórico de datas já aplicadas. Esse histórico impede que salvar novamente o mesmo check-in reduza repetidamente qualquer sessão. A duração mínima após o ajuste é 20 minutos.
+
+Depois que uma redução é aplicada, editar o check-in não aumenta novamente a sessão de forma automática. Essa escolha evita que uma correção de formulário seja interpretada como autorização para progredir carga; um ajuste manual futuro deverá ser uma ação explícita e auditável.
+
 ## Transparência e segurança
 
 Cada treino alterado guarda em `workouts.explanation.adaptation`:

@@ -18,6 +18,7 @@ type Server struct {
 	athlete       *athlete.Service
 	onboarding    *athlete.OnboardingService
 	assessments   *athlete.AssessmentService
+	recovery      *athlete.RecoveryService
 	planning      *planning.Service
 	secureCookies bool
 	sessionTTL    time.Duration

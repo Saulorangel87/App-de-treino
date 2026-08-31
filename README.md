@@ -36,6 +36,7 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `PUT /v1/onboarding/availability`: salva a disponibilidade semanal.
 - `PUT /v1/onboarding/cycling-context`: salva histórico resumido, equipamento, terreno e meta opcional de prova.
 - `GET /v1/assessments/current` e `POST /v1/assessments/submaximal`: consultam e registram o pedal de referência submáximo.
+- `GET /v1/recovery/today` e `PUT /v1/recovery/today`: consultam e salvam o check-in diário de sono, estresse e fadiga percebida.
 - `POST /v1/plans/generate`: gera e substitui o rascunho atual de quatro semanas.
 - `GET /v1/plans/current`: consulta o plano ativo ou rascunho mais recente.
 - `POST /v1/plans/{planID}/activate`: aprova um rascunho e mantém somente um plano ativo por atleta.
@@ -46,7 +47,7 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 
 As sessões são opacas, armazenadas no PostgreSQL apenas como hash e enviadas ao navegador em cookie `HttpOnly`. Em produção, `APP_ENV=production` ativa também a exigência de HTTPS no cookie.
 
-As rotas atuais do frontend são `/`, `/entrar`, `/perfil`, `/plano` e `/atividades`. A tela de atividades apresenta sessões concluídas e canceladas com data, duração, RPE e feedback. O perfil possui quatro etapas e retoma dados já salvos. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
+As rotas atuais do frontend são `/`, `/entrar`, `/perfil`, `/plano`, `/atividades`, `/avaliacao` e `/recuperacao`. A tela de atividades apresenta sessões concluídas e canceladas com data, duração, RPE e feedback. O perfil possui quatro etapas e retoma dados já salvos. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
 
 A tela `/plano` gera, apresenta e ativa ciclos de quatro semanas. O motor `rules-v1` é determinístico: considera experiência, objetivo, limitações, disponibilidade e o contexto opcional de ciclismo. Ele seleciona sessões específicas de forma gradual (cadência no indoor, subidas, sweet spot por potência/FTP e ritmo de prova), limita cada sessão ao tempo informado e reduz a intensidade quando há uma condição de segurança ativa. O dashboard usa o plano aprovado, explica a escala RPE e permite acompanhar a sessão do início ao feedback pós-treino.
 
@@ -54,13 +55,15 @@ O feedback de uma sessão concluída adapta de forma conservadora os próximos t
 
 A rota `/avaliacao` permite registrar opcionalmente um pedal de referência submáximo, sem teste máximo ou diagnóstico. Para atletas avançados com objetivo de desempenho/prova, sem limitação ativa e com tempo suficiente, uma referência apta libera apenas intervalos controlados nas semanas de construção; não libera sprints nem esforço máximo.
 
+A rota `/recuperacao` registra o check-in diário. Um sinal desfavorável gera cautela; fadiga máxima ou a combinação de dois sinais desfavoráveis indica necessidade de recuperação. Nesses casos, somente a próxima sessão futura do plano ativo pode ter duração e RPE reduzidos. Um check-in favorável mantém o plano e nunca aumenta a carga por si só. A decisão fica registrada no treino para não aplicar a mesma redução duas vezes.
+
 Quando não existem mais sessões planejadas ou em andamento, o PostgreSQL marca o plano ativo como concluído. O usuário pode então gerar um novo ciclo sem apagar o histórico anterior. As regras de datas e estados estão em `docs/training-cycle-lifecycle.md`.
 
 ## Estado atual e próxima etapa
 
 O fluxo completo de cadastro, onboarding, geração e ativação do plano, execução da sessão, feedback, adaptação e geração do próximo ciclo está implementado localmente. O frontend possui layout responsivo, PWA, rodapé com contatos, ajuda de RPE e bloqueio correto do scroll de fundo nos modais.
 
-O histórico de atividades realizadas e canceladas está implementado localmente. O perfil também coleta, de forma opcional e condicional, contexto de ciclismo (volume, maior pedal, bicicleta, terreno, sensores, FTP e meta de prova). Esses dados já são persistidos; a próxima evolução do motor é usá-los para liberar prescrições específicas com regras conservadoras e explicáveis. Em paralelo, permanece a preparação da VPS Oracle com TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups, restauração e Cloudflare Tunnel para expor somente o frontend e/ou a API — nunca o PostgreSQL.
+O histórico de atividades, o contexto específico de ciclismo, a avaliação submáxima, as sessões intervaladas controladas e o check-in diário de recuperação estão implementados localmente. A próxima evolução funcional recomendada é consolidar indicadores de evolução ao longo de vários ciclos. Em paralelo, permanece a preparação da VPS Oracle com TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups, restauração e Cloudflare Tunnel para expor somente o frontend e/ou a API — nunca o PostgreSQL.
 
 ## PWA
 

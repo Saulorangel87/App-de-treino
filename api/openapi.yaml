@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Cadência API
-  version: 0.6.0
+  version: 0.7.0
   description: API do MVP de planejamento adaptativo de ciclismo.
 servers:
   - url: http://localhost:8080
@@ -168,6 +168,30 @@ paths:
         '201': { description: Avaliação registrada }
         '400': { description: Dados inválidos }
         '401': { description: Sessão ausente ou expirada }
+  /v1/recovery/today:
+    get:
+      summary: Retorna o check-in do atleta na data local informada
+      parameters:
+        - in: query
+          name: date
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200': { description: Check-in encontrado ou nulo }
+        '400': { description: Data inválida }
+        '401': { description: Sessão ausente ou expirada }
+    put:
+      summary: Salva o check-in diário e pode reduzir a próxima sessão ainda não iniciada
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RecoveryRequest' }
+      responses:
+        '200': { description: Check-in salvo e eventual adaptação informada }
+        '400': { description: Dados inválidos }
+        '401': { description: Sessão ausente ou expirada }
+        '409': { description: Perfil básico ainda não preenchido }
   /v1/plans/generate:
     post:
       summary: Gera e salva um rascunho de quatro semanas usando regras explicáveis
@@ -316,6 +340,16 @@ components:
         duration_minutes: { type: integer, minimum: 15, maximum: 30 }
         actual_rpe: { type: number, minimum: 1, maximum: 10 }
         pain_reported: { type: boolean }
+        notes: { type: string, maxLength: 1000 }
+    RecoveryRequest:
+      type: object
+      required: [recorded_on, sleep_minutes, sleep_quality, stress_level, fatigue_level]
+      properties:
+        recorded_on: { type: string, format: date }
+        sleep_minutes: { type: integer, minimum: 0, maximum: 1440 }
+        sleep_quality: { type: integer, minimum: 1, maximum: 5 }
+        stress_level: { type: integer, minimum: 1, maximum: 5 }
+        fatigue_level: { type: integer, minimum: 1, maximum: 5 }
         notes: { type: string, maxLength: 1000 }
     TrainingPlan:
       type: object

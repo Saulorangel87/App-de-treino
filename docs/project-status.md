@@ -82,6 +82,7 @@ A API Go possui:
 - `PUT /v1/onboarding/availability`: salva os sete dias da semana.
 - `PUT /v1/onboarding/cycling-context`: salva volume semanal, maior pedal, bicicleta, terreno, sensores, FTP e meta de prova opcionais.
 - `GET /v1/assessments/current` e `POST /v1/assessments/submaximal`: consultam e registram uma avaliação submáxima opcional.
+- `GET /v1/recovery/today` e `PUT /v1/recovery/today`: consultam e salvam o check-in diário na data local do atleta.
 - `POST /v1/plans/generate`: gera um rascunho explicável de quatro semanas.
 - `GET /v1/plans/current`: consulta plano ativo, rascunho ou ciclo concluído mais recente.
 - `POST /v1/plans/{planID}/activate`: ativa um rascunho de forma transacional.
@@ -94,6 +95,7 @@ Comportamentos de domínio implementados:
 
 - O motor `rules-v1` gera quatro semanas respeitando experiência, objetivos, limitações, disponibilidade e contexto opcional de ciclismo. Para intermediários e avançados, ele seleciona de modo conservador sessões de cadência, subidas, sweet spot por potência/FTP ou ritmo de prova conforme os dados informados.
 - O feedback pós-treino adapta conservadoramente as próximas sessões e registra a justificativa no treino.
+- O check-in pré-treino usa sono, estresse e fadiga percebida para manter ou reduzir a próxima sessão futura; nunca progride carga sozinho e não reaplica a mesma redução para a mesma data.
 - Dor, fadiga, dificuldade e diferença de RPE podem reduzir a próxima carga; uma resposta claramente fácil permite somente uma pequena progressão de duração.
 - O plano ativo é concluído automaticamente quando não restam sessões planejadas ou em andamento.
 - O próximo ciclo começa sem sobrepor o ciclo concluído e preserva todos os dados anteriores.
@@ -116,6 +118,7 @@ Segurança aplicada:
 - Perfil com quatro etapas persistentes: dados básicos, limitações, objetivos e disponibilidade.
 - Questionário de ciclismo opcional e condicional no fim do perfil: o FTP só aparece para quem usa medidor de potência e distância/data só aparecem quando existe meta de prova.
 - Rota `/avaliacao` para pedal de referência submáximo com registro de RPE, duração e dor; a tela reforça que não é teste máximo nem diagnóstico.
+- Rota `/recuperacao` para check-in diário, resultado explicável e identificação do treino eventualmente reduzido.
 - Geração, revisão e ativação do plano de quatro semanas.
 - Estado de ciclo concluído com ação para gerar o próximo ciclo.
 - Modal de detalhes e estrutura do treino.
@@ -145,6 +148,7 @@ Segurança aplicada:
 - Seleção de sessões específicas pelo contexto de ciclismo coberta por testes do motor, sem alterar os limites de volume, disponibilidade ou segurança.
 - Geração do próximo ciclo validada sem sobreposição.
 - Build do frontend concluído após os ajustes de contraste, modal e responsividade.
+- Testes Go e build do frontend concluídos após a implementação do check-in diário; a validação autenticada no navegador ainda deve ser feita com a API reiniciada.
 - Meta viewport servida confirmada como `width=device-width, initial-scale=1, viewport-fit=cover`.
 
 O Windows App Control pode bloquear executáveis temporários sem assinatura produzidos por `go test`. Por isso, os testes Go são executados no container oficial do Go, sem reduzir a segurança do Windows.
@@ -171,9 +175,10 @@ Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exampl
 
 ## Próximas etapas recomendadas
 
-1. Usar a referência submáxima no motor para habilitar progressivamente sessões intervaladas controladas, mantendo bloqueios de segurança.
-2. Testar a instalação do PWA em um celular por uma origem HTTPS acessível pelo aparelho.
-3. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração. Integrar o Cloudflare Tunnel já utilizado à exposição HTTPS, mantendo o PostgreSQL inacessível publicamente.
+1. Validar no navegador o check-in diário em cenários de prontidão normal, cautela e recuperação, confirmando persistência e adaptação única da próxima sessão.
+2. Implementar a área de evolução com tendências entre ciclos, sem transformar sinais subjetivos em diagnóstico.
+3. Testar a instalação do PWA em um celular por uma origem HTTPS acessível pelo aparelho.
+4. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração. Integrar o Cloudflare Tunnel já utilizado à exposição HTTPS, mantendo o PostgreSQL inacessível publicamente.
 
 ## Pendência de UX registrada
 
@@ -183,9 +188,9 @@ Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exampl
 
 O commit mais recente confirmado localmente e no remoto antes desta atualização documental é:
 
-`d74ca67 feat: adapta sessões de ciclismo ao contexto do atleta`
+`073fe44 feat: adiciona rotação explicável de sessões entre ciclos`
 
-A árvore de trabalho estava limpa antes da atualização dos documentos. As alterações documentais devem ser revisadas e commitadas antes de iniciar a próxima etapa funcional.
+A árvore de trabalho estava limpa antes da implementação do check-in diário. As alterações atuais ainda não foram commitadas nem publicadas.
 
 ## Como retomar em uma conversa nova
 
@@ -194,6 +199,6 @@ Em uma nova conversa, informar que o projeto está em `C:\Users\saulo\Documents\
 1. ler `README.md`, este arquivo, `docs/architecture-decisions.md`, `docs/training-cycle-lifecycle.md` e `docs/training-adaptation-rules.md`;
 2. conferir `git status` e os commits recentes;
 3. resumir o estado encontrado antes de alterar arquivos;
-4. conferir o estado do Git e retomar pela evolução do motor com o contexto de ciclismo.
+4. conferir o estado do Git e retomar pela validação do check-in diário ou pela área de evolução.
 
 Esses documentos, o código e o histórico do Git fornecem o contexto necessário sem depender da conversa anterior.

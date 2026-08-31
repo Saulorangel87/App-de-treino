@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Clock3,
   Gauge,
+  HeartPulse,
   Home,
   LineChart,
   ListTree,
@@ -28,6 +29,7 @@ import {
 } from '@/lib/planning';
 
 type User = { display_name: string; email: string };
+type Recovery = { readiness: 'ready' | 'caution' | 'recovery_needed' };
 
 const dayFormatter = new Intl.DateTimeFormat('pt-BR', { weekday: 'short' });
 const fullDateFormatter = new Intl.DateTimeFormat('pt-BR', {
@@ -93,6 +95,10 @@ function Sidebar({ user, plan }: { user: User; plan: TrainingPlan | null }) {
           <Gauge size={18} />
           Avaliação
         </a>
+        <a className="nav-item" href="/recuperacao">
+          <HeartPulse size={18} />
+          Recuperação
+        </a>
         <button className="nav-item" disabled>
           <LineChart size={18} />
           Evolução
@@ -137,16 +143,20 @@ export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
   const [plan, setPlan] = useState<TrainingPlan | null>(null);
   const [selected, setSelected] = useState<Workout | null>(null);
+  const [recovery, setRecovery] = useState<Recovery | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const today = dateKey(new Date());
     Promise.all([
       apiRequest<{ user: User }>('/v1/me'),
       apiRequest<{ plan: TrainingPlan | null }>('/v1/plans/current'),
+      apiRequest<{ recovery: Recovery | null }>(`/v1/recovery/today?date=${today}`),
     ])
-      .then(([account, current]) => {
+      .then(([account, current, daily]) => {
         setUser(account.user);
         setPlan(current.plan);
+        setRecovery(daily.recovery);
       })
       .catch(() => {
         window.location.href = '/entrar';
@@ -317,6 +327,10 @@ export default function HomePage() {
           <a className="active-plan-pill" href="/plano">
             <span className="status-dot" />
             Plano ativo<strong>4 semanas</strong>
+          </a>
+          <a className={`recovery-pill ${recovery?.readiness || 'pending'}`} href="/recuperacao">
+            <HeartPulse size={15} />
+            {recovery ? recovery.readiness === 'ready' ? 'Recuperação ok' : recovery.readiness === 'caution' ? 'Atenção à recuperação' : 'Priorize recuperação' : 'Fazer check-in'}
           </a>
         </header>
         <div className="dashboard-grid">
