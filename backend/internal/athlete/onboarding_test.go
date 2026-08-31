@@ -19,6 +19,9 @@ func (onboardingStore) ReplaceGoals(_ context.Context, _ string, value []Goal) (
 func (onboardingStore) ReplaceAvailability(_ context.Context, _ string, value []Availability) ([]Availability, error) {
 	return value, nil
 }
+func (onboardingStore) SaveCyclingContext(_ context.Context, _ string, value CyclingContext) (CyclingContext, error) {
+	return value, nil
+}
 
 func TestSaveLimitationsAllowsAthleteWithoutLimitations(t *testing.T) {
 	result, err := NewOnboardingService(onboardingStore{}).SaveLimitations(context.Background(), "user-1", []Limitation{})

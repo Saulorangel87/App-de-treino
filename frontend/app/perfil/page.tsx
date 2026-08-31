@@ -12,7 +12,8 @@ type Profile = { birth_date?: string | null; sex?: string | null; height_cm?: nu
 type Limitation = { kind: string; description: string; is_active: boolean; professional_clearance_recommended: boolean };
 type Goal = { goal_type: string; priority: number; target_date?: string | null; details: string };
 type Availability = { weekday: number; available_minutes: number; preferred_time?: string | null; location?: string | null };
-type Onboarding = { limitations: Limitation[]; goals: Goal[]; availability: Availability[] };
+type CyclingContext = { weekly_hours: number; longest_ride_minutes: number; bike_type: string; terrain: string; uses_heart_rate: boolean; uses_power: boolean; ftp?: number; event_goal: boolean; event_distance_km?: number; event_date?: string };
+type Onboarding = { limitations: Limitation[]; goals: Goal[]; availability: Availability[]; cycling_context: CyclingContext };
 
 type ProfileForm = {
   birth_date: string;
@@ -47,6 +48,7 @@ export default function ProfilePage() {
   const [primaryGoal, setPrimaryGoal] = useState({ goal_type: 'health', target_date: '', details: '' });
   const [secondaryGoal, setSecondaryGoal] = useState('');
   const [availability, setAvailability] = useState<Availability[]>(initialAvailability);
+  const [cyclingContext, setCyclingContext] = useState<CyclingContext>({ weekly_hours: 0, longest_ride_minutes: 0, bike_type: '', terrain: '', uses_heart_rate: false, uses_power: false, event_goal: false });
   const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
@@ -71,6 +73,7 @@ export default function ProfilePage() {
         setStep(2);
 
         const { onboarding } = await apiRequest<{ onboarding: Onboarding }>('/v1/onboarding');
+        setCyclingContext(onboarding.cycling_context || { weekly_hours: 0, longest_ride_minutes: 0, bike_type: '', terrain: '', uses_heart_rate: false, uses_power: false, event_goal: false });
         if (onboarding.limitations.length) {
           const saved = onboarding.limitations[0];
           setHasLimitation(true);
@@ -158,6 +161,7 @@ export default function ProfilePage() {
     event.preventDefault();
     const updatingCompletedProfile = completed;
     await runSave(async () => {
+      await apiRequest('/v1/onboarding/cycling-context', { method: 'PUT', body: JSON.stringify({ cycling_context: cyclingContext }) });
       await apiRequest('/v1/onboarding/availability', { method: 'PUT', body: JSON.stringify({ availability }) });
       setCompleted(true);
       setMessage(
@@ -215,6 +219,7 @@ export default function ProfilePage() {
           </form>}
 
           {step === 4 && <form onSubmit={saveAvailability} className="profile-form availability-form">
+            <fieldset><legend>Seu ciclismo hoje</legend><p className="fieldset-intro">Essas perguntas são opcionais e ajudam a tornar os próximos treinos mais específicos.</p><div className="form-grid"><div><Label>Horas por semana</Label><Input type="number" min="0" max="80" step="0.5" value={cyclingContext.weekly_hours || ''} onChange={(e) => setCyclingContext(c => ({ ...c, weekly_hours: Number(e.target.value) }))} /></div><div><Label>Maior pedal recente (min)</Label><Input type="number" min="0" max="1440" value={cyclingContext.longest_ride_minutes || ''} onChange={(e) => setCyclingContext(c => ({ ...c, longest_ride_minutes: Number(e.target.value) }))} /></div><div><Label>Tipo de bicicleta</Label><select value={cyclingContext.bike_type} onChange={(e) => setCyclingContext(c => ({ ...c, bike_type: e.target.value }))}><option value="">Não informar</option><option value="road">Estrada</option><option value="mtb">MTB</option><option value="gravel">Gravel</option><option value="indoor">Indoor/rolo</option></select></div><div><Label>Terreno predominante</Label><select value={cyclingContext.terrain} onChange={(e) => setCyclingContext(c => ({ ...c, terrain: e.target.value }))}><option value="">Não informar</option><option value="flat">Plano</option><option value="rolling">Misto</option><option value="hilly">Com subidas</option></select></div></div><div className="binary-choice"><label><input type="checkbox" checked={cyclingContext.uses_heart_rate} onChange={(e) => setCyclingContext(c => ({ ...c, uses_heart_rate: e.target.checked }))} /><span><strong>Uso frequência cardíaca</strong></span></label><label><input type="checkbox" checked={cyclingContext.uses_power} onChange={(e) => setCyclingContext(c => ({ ...c, uses_power: e.target.checked, ftp: e.target.checked ? c.ftp : undefined }))} /><span><strong>Uso medidor de potência</strong></span></label></div>{cyclingContext.uses_power && <div className="activity-field"><Label>FTP (watts)</Label><Input type="number" min="50" max="600" value={cyclingContext.ftp || ''} onChange={(e) => setCyclingContext(c => ({ ...c, ftp: Number(e.target.value) || undefined }))} /></div>}</fieldset>
             <fieldset><legend>Dias disponíveis</legend><p className="fieldset-intro">Ative um dia e escolha quanto tempo você realmente consegue reservar.</p><div className="availability-grid">{availability.map((day) => { const active = day.available_minutes > 0; return <div className={`availability-day ${active ? 'active' : ''}`} key={day.weekday}><button type="button" aria-pressed={active} onClick={() => updateDay(day.weekday, active ? { available_minutes: 0, preferred_time: null, location: null } : { available_minutes: 60 })}><span>{DAYS[day.weekday]}</span><i>{active && <Check size={12} />}</i></button>{active && <div><select aria-label={`Duração de ${DAYS[day.weekday]}`} value={day.available_minutes} onChange={(event) => updateDay(day.weekday, { available_minutes: Number(event.target.value) })}><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 hora</option><option value="90">1h30</option><option value="120">2 horas</option><option value="180">3 horas</option><option value="240">4 horas</option><option value="360">6 horas</option><option value="480">8 horas</option></select><select aria-label={`Local de ${DAYS[day.weekday]}`} value={day.location || ''} onChange={(event) => updateDay(day.weekday, { location: event.target.value || null })}><option value="">Qualquer local</option><option value="outdoor">Rua/estrada</option><option value="indoor">Rolo/indoor</option><option value="gym">Academia</option></select></div>}</div>; })}</div></fieldset>
             <div className="availability-summary"><div><strong>{trainingDays}</strong><span>dias possíveis</span></div><div><strong>{Math.floor(totalMinutes / 60)}h{totalMinutes % 60 ? ` ${totalMinutes % 60}min` : ''}</strong><span>por semana</span></div><p>O plano poderá usar menos tempo conforme sua recuperação e experiência.</p></div>
             {completed && <div className="completion-card"><span><Check size={20} /></span><div><strong>Perfil inicial concluído</strong><p>Seus dados estão prontos para orientar a próxima fase: a geração do plano.</p></div></div>}

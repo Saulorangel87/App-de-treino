@@ -18,6 +18,9 @@ type goalsRequest struct {
 type availabilityRequest struct {
 	Availability []athlete.Availability `json:"availability"`
 }
+type cyclingContextRequest struct {
+	CyclingContext athlete.CyclingContext `json:"cycling_context"`
+}
 
 func (s *Server) getOnboarding(w http.ResponseWriter, r *http.Request) {
 	user, ok := s.requireUser(w, r)
@@ -82,6 +85,22 @@ func (s *Server) putAvailability(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"availability": result})
+}
+
+func (s *Server) putCyclingContext(w http.ResponseWriter, r *http.Request) {
+	user, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	var input cyclingContextRequest
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+	result, err := s.onboarding.SaveCyclingContext(r.Context(), user.ID, input.CyclingContext)
+	if !s.handleOnboardingError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"cycling_context": result})
 }
 
 func (s *Server) handleOnboardingError(w http.ResponseWriter, err error) bool {

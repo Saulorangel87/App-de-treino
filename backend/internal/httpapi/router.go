@@ -38,6 +38,7 @@ func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Ser
 	mux.HandleFunc("PUT /v1/onboarding/limitations", server.putLimitations)
 	mux.HandleFunc("PUT /v1/onboarding/goals", server.putGoals)
 	mux.HandleFunc("PUT /v1/onboarding/availability", server.putAvailability)
+	mux.HandleFunc("PUT /v1/onboarding/cycling-context", server.putCyclingContext)
 	mux.HandleFunc("POST /v1/plans/generate", server.generatePlan)
 	mux.HandleFunc("GET /v1/plans/current", server.currentPlan)
 	mux.HandleFunc("GET /v1/activities", server.activities)

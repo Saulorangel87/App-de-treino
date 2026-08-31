@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/Saulorangel87/App-de-treino/backend/internal/athlete"
@@ -14,6 +15,13 @@ func (s *Store) OnboardingByUserID(ctx context.Context, userID string) (athlete.
 		return athlete.Onboarding{}, err
 	}
 	result := athlete.Onboarding{Limitations: []athlete.Limitation{}, Goals: []athlete.Goal{}, Availability: []athlete.Availability{}}
+	var contextJSON []byte
+	if err := s.pool.QueryRow(ctx, `SELECT cycling_context FROM athlete_profiles WHERE id = $1`, profileID).Scan(&contextJSON); err != nil {
+		return athlete.Onboarding{}, err
+	}
+	if err := json.Unmarshal(contextJSON, &result.CyclingContext); err != nil {
+		return athlete.Onboarding{}, err
+	}
 
 	limitationRows, err := s.pool.Query(ctx, `
 		SELECT kind, description, is_active, professional_clearance_recommended
@@ -70,6 +78,19 @@ func (s *Store) OnboardingByUserID(ctx context.Context, userID string) (athlete.
 		result.Availability = append(result.Availability, item)
 	}
 	return result, availabilityRows.Err()
+}
+
+func (s *Store) SaveCyclingContext(ctx context.Context, userID string, value athlete.CyclingContext) (athlete.CyclingContext, error) {
+	profileID, err := s.profileID(ctx, userID)
+	if err != nil {
+		return athlete.CyclingContext{}, err
+	}
+	payload, err := json.Marshal(value)
+	if err != nil {
+		return athlete.CyclingContext{}, err
+	}
+	_, err = s.pool.Exec(ctx, `UPDATE athlete_profiles SET cycling_context = $2::jsonb, updated_at = now() WHERE id = $1`, profileID, payload)
+	return value, err
 }
 
 func (s *Store) ReplaceLimitations(ctx context.Context, userID string, limitations []athlete.Limitation) ([]athlete.Limitation, error) {

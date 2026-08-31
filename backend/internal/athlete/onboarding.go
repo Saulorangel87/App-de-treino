@@ -31,9 +31,23 @@ type Availability struct {
 }
 
 type Onboarding struct {
-	Limitations  []Limitation   `json:"limitations"`
-	Goals        []Goal         `json:"goals"`
-	Availability []Availability `json:"availability"`
+	Limitations    []Limitation   `json:"limitations"`
+	Goals          []Goal         `json:"goals"`
+	Availability   []Availability `json:"availability"`
+	CyclingContext CyclingContext `json:"cycling_context"`
+}
+
+type CyclingContext struct {
+	WeeklyHours        float64 `json:"weekly_hours"`
+	LongestRideMinutes int     `json:"longest_ride_minutes"`
+	BikeType           string  `json:"bike_type"`
+	Terrain            string  `json:"terrain"`
+	UsesHeartRate      bool    `json:"uses_heart_rate"`
+	UsesPower          bool    `json:"uses_power"`
+	FTP                *int    `json:"ftp,omitempty"`
+	EventGoal          bool    `json:"event_goal"`
+	EventDistanceKM    *int    `json:"event_distance_km,omitempty"`
+	EventDate          *string `json:"event_date,omitempty"`
 }
 
 type OnboardingStore interface {
@@ -41,6 +55,27 @@ type OnboardingStore interface {
 	ReplaceLimitations(context.Context, string, []Limitation) ([]Limitation, error)
 	ReplaceGoals(context.Context, string, []Goal) ([]Goal, error)
 	ReplaceAvailability(context.Context, string, []Availability) ([]Availability, error)
+	SaveCyclingContext(context.Context, string, CyclingContext) (CyclingContext, error)
+}
+
+func (s *OnboardingService) SaveCyclingContext(ctx context.Context, userID string, value CyclingContext) (CyclingContext, error) {
+	if value.WeeklyHours < 0 || value.WeeklyHours > 80 || value.LongestRideMinutes < 0 || value.LongestRideMinutes > 1440 || (value.FTP != nil && (*value.FTP < 50 || *value.FTP > 600)) || (value.EventDistanceKM != nil && (*value.EventDistanceKM < 1 || *value.EventDistanceKM > 2000)) {
+		return CyclingContext{}, ErrInvalidOnboarding
+	}
+	if value.UsesPower != (value.FTP != nil) && value.FTP != nil {
+		return CyclingContext{}, ErrInvalidOnboarding
+	}
+	if value.EventGoal {
+		if value.EventDistanceKM == nil || value.EventDate == nil {
+			return CyclingContext{}, ErrInvalidOnboarding
+		}
+		if _, err := time.Parse("2006-01-02", *value.EventDate); err != nil {
+			return CyclingContext{}, ErrInvalidOnboarding
+		}
+	} else {
+		value.EventDistanceKM, value.EventDate = nil, nil
+	}
+	return s.store.SaveCyclingContext(ctx, userID, value)
 }
 
 type OnboardingService struct{ store OnboardingStore }
