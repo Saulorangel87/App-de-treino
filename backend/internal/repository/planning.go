@@ -12,13 +12,17 @@ import (
 
 func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (planning.Context, error) {
 	var input planning.Context
+	var cyclingContext []byte
 	err := s.pool.QueryRow(ctx, `
-		SELECT id::text, experience_level FROM athlete_profiles WHERE user_id = $1`, userID,
-	).Scan(&input.ProfileID, &input.ExperienceLevel)
+		SELECT id::text, experience_level, cycling_context FROM athlete_profiles WHERE user_id = $1`, userID,
+	).Scan(&input.ProfileID, &input.ExperienceLevel, &cyclingContext)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return planning.Context{}, planning.ErrIncompleteOnboarding
 	}
 	if err != nil {
+		return planning.Context{}, err
+	}
+	if err := json.Unmarshal(cyclingContext, &input.Cycling); err != nil {
 		return planning.Context{}, err
 	}
 

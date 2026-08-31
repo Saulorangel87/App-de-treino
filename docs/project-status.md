@@ -91,7 +91,7 @@ A API Go possui:
 
 Comportamentos de domínio implementados:
 
-- O motor `rules-v1` gera quatro semanas respeitando experiência, objetivos, limitações e disponibilidade.
+- O motor `rules-v1` gera quatro semanas respeitando experiência, objetivos, limitações, disponibilidade e contexto opcional de ciclismo. Para intermediários e avançados, ele seleciona de modo conservador sessões de cadência, subidas, sweet spot por potência/FTP ou ritmo de prova conforme os dados informados.
 - O feedback pós-treino adapta conservadoramente as próximas sessões e registra a justificativa no treino.
 - Dor, fadiga, dificuldade e diferença de RPE podem reduzir a próxima carga; uma resposta claramente fácil permite somente uma pequena progressão de duração.
 - O plano ativo é concluído automaticamente quando não restam sessões planejadas ou em andamento.
@@ -140,6 +140,7 @@ Segurança aplicada:
 - Migração `000005` implementada para adaptação por feedback e coberta por testes das decisões.
 - Migração `000006` implementada para conclusão automática e correção de planos antigos sem sessões pendentes.
 - Migrações `000007` e `000008` aplicadas localmente para fontes científicas e contexto de ciclismo, respectivamente.
+- Seleção de sessões específicas pelo contexto de ciclismo coberta por testes do motor, sem alterar os limites de volume, disponibilidade ou segurança.
 - Geração do próximo ciclo validada sem sobreposição.
 - Build do frontend concluído após os ajustes de contraste, modal e responsividade.
 - Meta viewport servida confirmada como `width=device-width, initial-scale=1, viewport-fit=cover`.
@@ -168,7 +169,7 @@ Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exampl
 
 ## Próximas etapas recomendadas
 
-1. Evoluir o motor `rules-v1` para usar o contexto persistido e liberar, por níveis, prescrições específicas de ciclismo — sem abandonar as proteções de disponibilidade, recuperação e segurança.
+1. Criar uma avaliação inicial segura para estimar a capacidade do ciclista e habilitar progressivamente intervalos de alta intensidade.
 2. Testar a instalação do PWA em um celular por uma origem HTTPS acessível pelo aparelho.
 3. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração. Integrar o Cloudflare Tunnel já utilizado à exposição HTTPS, mantendo o PostgreSQL inacessível publicamente.
 

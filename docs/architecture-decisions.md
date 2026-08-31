@@ -64,7 +64,7 @@ Concluído localmente:
 
 ## Próximas implementações
 
-1. Evoluir o motor de prescrição para usar o contexto de ciclismo e liberar treinos específicos por nível, sempre dentro de regras seguras e explicáveis.
+1. Criar uma avaliação inicial segura para estimar capacidade e habilitar progressivamente sessões de intensidade mais alta.
 2. Testar instalação e comportamento do PWA em um celular por origem HTTPS.
 3. Preparar a produção na VPS Oracle com TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, backups automatizados e teste de restauração. O Cloudflare Tunnel deve expor somente o frontend e/ou a API.
 

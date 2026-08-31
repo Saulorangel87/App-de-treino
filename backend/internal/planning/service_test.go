@@ -103,6 +103,60 @@ func TestGenerateRequiresCompletedOnboarding(t *testing.T) {
 	}
 }
 
+func TestBuildPlanUsesCyclingContextForSpecificQualitySession(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance",
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		Cycling:      CyclingContext{UsesPower: true, FTP: intPointer(250)},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name == "Sweet spot por potência" {
+			return
+		}
+	}
+	t.Fatalf("expected a power-guided quality session, got %#v", plan.Workouts)
+}
+
+func TestBuildPlanUsesHillyTerrainForIntermediateQualitySession(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "intermediate", PrimaryGoal: "endurance",
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 75}, {Weekday: 6, AvailableMinutes: 150}},
+		Cycling:      CyclingContext{Terrain: "hilly"},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name == "Subidas controladas" {
+			return
+		}
+	}
+	t.Fatalf("expected a hilly-terrain quality session, got %#v", plan.Workouts)
+}
+
+func TestBuildPlanRestrictionOverridesSpecificCyclingContext(t *testing.T) {
+	ftp := 250
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance",
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		Limitations:  []LimitationContext{{Kind: "pain", ProfessionalClearanceRecommended: true}},
+		Cycling:      CyclingContext{UsesPower: true, FTP: &ftp, Terrain: "hilly", EventGoal: true},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name != "Giro leve protegido" || workout.TargetRPE > 4 || workout.DurationMinutes > 45 {
+			t.Fatalf("expected protected session to override cycling context, got %#v", workout)
+		}
+	}
+}
+
+func intPointer(value int) *int { return &value }
+
 func TestActivateReturnsTheActivePlan(t *testing.T) {
 	store := &planStore{saved: Plan{ID: "9a1eead7-6168-4d50-8c7c-451301e29d85", Status: "draft"}}
 	service := NewService(store)

@@ -16,6 +16,18 @@ O mecanismo é uma regra conservadora de produto, não um diagnóstico nem uma p
 - **Resposta claramente fácil:** quando o RPE real fica pelo menos 2 pontos abaixo do alvo, a fadiga é no máximo 2 e a dificuldade é `easy` ou `very_easy`, aumenta somente 5% da duração da próxima sessão. A intensidade não aumenta.
 - **Resposta dentro do esperado:** mantém o plano inalterado.
 
+## Seleção de sessões específicas
+
+Na geração do plano, o motor mantém a frequência, os limites de duração, a semana de recuperação e as proteções de segurança já definidas. O contexto opcional do ciclista serve somente para escolher a sessão de qualidade mais adequada:
+
+- **Indoor + nível intermediário:** sessão de cadência técnica com RPE moderado.
+- **Terreno com subidas + nível intermediário ou avançado:** subidas controladas, com recuperação leve.
+- **Nível avançado + medidor de potência e FTP informado:** sweet spot orientado pelo dado disponível, sem converter automaticamente o FTP em metas rígidas de watts nesta versão.
+- **Nível avançado + meta de prova:** ritmo de prova controlado, sustentável e sem tentar reproduzir a prova completa.
+- **Demais perfis:** mantém o tempo controlado; avançados sem contexto específico recebem sweet spot progressivo.
+
+Se houver limitação ativa, a sessão específica é substituída pelo giro leve protegido. Iniciantes não recebem essas sessões de qualidade específicas ainda. Intervalos de alta intensidade ("tiros") continuam fora do motor até existir uma avaliação inicial de capacidade e regras próprias de progressão.
+
 As alterações nunca ultrapassam os minutos disponíveis cadastrados para o dia. Sessões concluídas, puladas ou já modificadas por um feedback anterior não são recalculadas.
 
 ## Transparência e segurança
