@@ -15,11 +15,12 @@ Aplicação de planejamento adaptativo de treinos de ciclismo.
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` em ordem numérica no banco local.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema atual chega à migração `000006`.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
 O frontend nunca se conecta diretamente ao PostgreSQL. Todo acesso passa pela API Go.
+A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432` já estava ocupada no Windows. O `.env.example` mantém valores ilustrativos e não contém segredos.
 
 ## Fluxo implementado
 
@@ -42,9 +43,19 @@ O frontend nunca se conecta diretamente ao PostgreSQL. Todo acesso passa pela AP
 
 As sessões são opacas, armazenadas no PostgreSQL apenas como hash e enviadas ao navegador em cookie `HttpOnly`. Em produção, `APP_ENV=production` ativa também a exigência de HTTPS no cookie.
 
-As telas locais ficam em `/entrar` e `/perfil`. O perfil possui quatro etapas e retoma dados já salvos. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
+As rotas atuais do frontend são `/`, `/entrar`, `/perfil` e `/plano`. O perfil possui quatro etapas e retoma dados já salvos. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
 
-A tela `/plano` gera, apresenta e ativa o primeiro ciclo de quatro semanas. O motor `rules-v1` é determinístico: considera experiência, objetivo, limitações e disponibilidade, limita cada sessão ao tempo informado e reduz a intensidade quando há uma condição de segurança ativa. O dashboard usa o plano aprovado, explica a escala RPE e permite acompanhar a sessão do início ao feedback pós-treino.
+A tela `/plano` gera, apresenta e ativa ciclos de quatro semanas. O motor `rules-v1` é determinístico: considera experiência, objetivo, limitações e disponibilidade, limita cada sessão ao tempo informado e reduz a intensidade quando há uma condição de segurança ativa. O dashboard usa o plano aprovado, explica a escala RPE e permite acompanhar a sessão do início ao feedback pós-treino.
+
+O feedback de uma sessão concluída adapta de forma conservadora os próximos treinos planejados. Dor, fadiga, dificuldade e diferença entre RPE planejado e realizado podem reduzir duração ou esforço; uma resposta claramente fácil permite somente uma progressão pequena de duração. A decisão fica registrada no treino e é apresentada na interface. As regras completas estão em `docs/training-adaptation-rules.md`.
+
+Quando não existem mais sessões planejadas ou em andamento, o PostgreSQL marca o plano ativo como concluído. O usuário pode então gerar um novo ciclo sem apagar o histórico anterior. As regras de datas e estados estão em `docs/training-cycle-lifecycle.md`.
+
+## Estado atual e próxima etapa
+
+O fluxo completo de cadastro, onboarding, geração e ativação do plano, execução da sessão, feedback, adaptação e geração do próximo ciclo está implementado localmente. O frontend possui layout responsivo, PWA, rodapé com contatos, ajuda de RPE e bloqueio correto do scroll de fundo nos modais.
+
+A próxima etapa planejada é criar o histórico de atividades realizadas e canceladas, com endpoint autenticado no backend e a rota `/atividades` no frontend. Depois disso, serão feitos o teste do PWA em celular por HTTPS e a preparação segura da VPS Oracle.
 
 ## PWA
 

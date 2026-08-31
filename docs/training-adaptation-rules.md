@@ -1,5 +1,7 @@
 # Adaptação do plano após o treino
 
+Última revisão: 31 de agosto de 2026.
+
 ## Objetivo
 
 O aplicativo usa o feedback enviado ao concluir uma sessão para fazer ajustes pequenos nas próximas sessões ainda planejadas. A adaptação acontece na mesma transação que salva o feedback no PostgreSQL: se qualquer parte falhar, nenhuma alteração parcial é mantida.

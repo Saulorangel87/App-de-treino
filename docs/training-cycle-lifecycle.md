@@ -1,5 +1,7 @@
 # Ciclo de vida dos planos de treino
 
+Última revisão: 31 de agosto de 2026.
+
 ## Estados
 
 - `draft`: plano calculado e aguardando aprovação.

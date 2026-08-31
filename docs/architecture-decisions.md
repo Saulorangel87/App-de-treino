@@ -1,5 +1,7 @@
 # Decisões de arquitetura
 
+Última revisão: 31 de agosto de 2026.
+
 ## ADR-001 — Banco de dados próprio
 
 **Status:** Aceita
@@ -43,12 +45,25 @@ PostgreSQL local (desenvolvimento)
 ou PostgreSQL na VPS Oracle (produção)
 ```
 
-## Próxima implementação planejada
+## Estado da implementação
 
-1. Criar PostgreSQL local e configuração de ambiente de exemplo.
-2. Definir o esquema inicial e as migrações.
-3. Criar a API REST em Go com acesso ao banco.
-4. Implementar autenticação segura no backend.
-5. Conectar o frontend exclusivamente pela API HTTPS.
-6. Preparar implantação na VPS, TLS, firewall, backups e restauração testada.
+Concluído localmente:
+
+1. PostgreSQL 17 em Docker Compose, exposto somente em loopback.
+2. Migrações SQL versionadas até `000006`.
+3. API REST em Go com verificações de saúde e prontidão.
+4. Autenticação com bcrypt, sessões opacas, hash do token e cookie `HttpOnly`.
+5. Frontend conectado exclusivamente à API.
+6. Onboarding persistente, motor `rules-v1`, planos de quatro semanas e aprovação transacional.
+7. Ciclo de vida das sessões, feedback pós-treino e adaptação conservadora das próximas cargas.
+8. Encerramento automático do plano e geração do próximo ciclo sem apagar o histórico.
+9. PWA, interface responsiva e validações locais de integração.
+
+## Próximas implementações
+
+1. Expor e apresentar o histórico de atividades concluídas e canceladas.
+2. Testar instalação e comportamento do PWA em um celular por origem HTTPS.
+3. Preparar a produção na VPS Oracle com TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, backups automatizados e teste de restauração.
+
+Uma implantação só será considerada concluída depois de validar HTTPS, CORS, cookies seguros, migrações, backup e restauração.
 

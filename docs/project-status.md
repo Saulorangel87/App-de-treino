@@ -1,19 +1,21 @@
 # Estado atual do projeto Cadência
 
-Última atualização: 30 de agosto de 2026.
+Última atualização: 31 de agosto de 2026.
 
-Este documento é o ponto de retomada do projeto. Ele registra o que já foi decidido, implementado e testado, além das próximas etapas. Não devem ser incluídas aqui senhas, tokens ou outras credenciais.
+Este documento é o ponto principal de retomada do projeto. Ele registra decisões, funcionalidades implementadas, validações e próximas etapas. Não devem ser incluídas aqui senhas, tokens ou outras credenciais.
 
 ## Objetivo
 
-Construir uma aplicação inteligente de planejamento adaptativo de treinos de ciclismo. O sistema terá cadastro do atleta, avaliação de objetivos, disponibilidade, limitações, geração de plano, acompanhamento de sessões e ajustes com base no feedback e na recuperação.
+Construir uma aplicação inteligente de planejamento adaptativo de treinos de ciclismo com cadastro do atleta, avaliação de objetivos, disponibilidade e limitações, geração de planos, acompanhamento de sessões e ajustes baseados no feedback e na recuperação.
+
+O mecanismo atual é uma regra conservadora e explicável de produto. Ele não realiza diagnóstico nem substitui prescrição ou acompanhamento profissional.
 
 ## Repositório e publicação
 
 - Repositório GitHub: <https://github.com/Saulorangel87/App-de-treino>
-- Branch utilizada: `master`
+- Branch utilizada: `master`.
 - Frontend publicado para demonstração: <https://cadencia-treino-inteligente.sauloleonardo1987.chatgpt.site>
-- A versão publicada ainda representa principalmente o dashboard visual. Autenticação e perfil estão sendo testados localmente porque dependem da API local.
+- A URL publicada é a última demonstração registrada e pode não conter as alterações locais mais recentes. O fluxo autenticado completo continua sendo validado localmente porque depende da API Go e do PostgreSQL.
 
 ## Arquitetura definida
 
@@ -42,107 +44,101 @@ ou PostgreSQL próprio na VPS Oracle (produção)
 - `frontend/`: aplicação React/TypeScript baseada em Vinext e Sites.
 - `backend/`: API REST escrita em Go.
 - `database/migrations/`: migrações PostgreSQL.
-- `api/openapi.yaml`: contrato da API.
+- `database/tests/`: verificações SQL das migrações e regras do banco.
+- `api/openapi.yaml`: contrato OpenAPI da API.
 - `infrastructure/`: futura configuração de produção na VPS Oracle.
 - `scripts/`: scripts auxiliares para desenvolvimento local.
-- `docs/`: decisões de arquitetura e este registro de continuidade.
+- `docs/`: decisões, regras e este registro de continuidade.
 
 ## Banco de dados local
 
-- Container: `cadencia-postgres`
-- Imagem: PostgreSQL 17 Alpine
-- Banco: `cadencia_dev`
-- Usuário local: `cadencia`
-- Endereço local confirmado: `127.0.0.1:5433`
-- A porta 5433 foi escolhida porque a porta 5432 já estava ocupada por outro processo PostgreSQL no Windows.
+- Container: `cadencia-postgres`.
+- Imagem: PostgreSQL 17 Alpine.
+- Banco: `cadencia_dev`.
+- Usuário local: `cadencia`.
+- Endereço local confirmado: `127.0.0.1:5433`.
+- A porta `5433` foi escolhida porque a `5432` já estava ocupada por outro processo PostgreSQL no Windows.
 - O pgAdmin foi configurado e as tabelas foram visualizadas com sucesso.
-- A senha local existe apenas no `.env` ignorado e não deve ser copiada para documentos ou commits.
+- A senha local existe somente no `.env` ignorado e não deve ser copiada para documentos ou commits.
 
-O esquema contém as tabelas de usuários, perfis, objetivos, disponibilidade, recuperação, limitações, planos, treinos, sessões, feedback e sessões de autenticação.
+O esquema contém usuários, perfis, objetivos, disponibilidade, recuperação, limitações, planos, treinos, sessões, feedback e sessões de autenticação. As migrações atuais vão de `000001` a `000006`.
 
 ## Backend implementado
 
 A API Go possui:
 
-- `GET /health`: estado básico do processo.
-- `GET /ready`: verifica se a aplicação consegue acessar o banco.
+- `GET /health`: informa se o processo está ativo.
+- `GET /ready`: verifica o acesso ao PostgreSQL.
 - `POST /v1/auth/register`: cria usuário e inicia uma sessão.
 - `POST /v1/auth/login`: autentica o usuário.
 - `POST /v1/auth/logout`: encerra a sessão atual.
 - `GET /v1/me`: retorna o usuário autenticado.
-- `GET /v1/profile`: consulta o perfil básico do atleta.
+- `GET /v1/profile`: consulta o perfil básico.
 - `PUT /v1/profile`: cria ou atualiza o perfil básico.
 - `GET /v1/onboarding`: consulta limitações, objetivos e disponibilidade.
 - `PUT /v1/onboarding/limitations`: substitui as limitações ativas.
-- `PUT /v1/onboarding/goals`: salva os objetivos priorizados.
+- `PUT /v1/onboarding/goals`: salva até dois objetivos priorizados.
 - `PUT /v1/onboarding/availability`: salva os sete dias da semana.
 - `POST /v1/plans/generate`: gera um rascunho explicável de quatro semanas.
-- `GET /v1/plans/current`: consulta o plano ativo ou rascunho disponível.
-- `POST /v1/plans/{planID}/activate`: ativa o rascunho escolhido de forma transacional.
-- `POST /v1/workouts/{workoutID}/start`: inicia uma sessão planejada do plano ativo.
-- `POST /v1/workouts/{workoutID}/complete`: conclui a sessão e salva RPE, dificuldade, fadiga, dor e observações.
-- `POST /v1/workouts/{workoutID}/cancel`: cancela uma sessão em andamento e registra o treino como não realizado.
+- `GET /v1/plans/current`: consulta plano ativo, rascunho ou ciclo concluído mais recente.
+- `POST /v1/plans/{planID}/activate`: ativa um rascunho de forma transacional.
+- `POST /v1/workouts/{workoutID}/start`: inicia uma sessão planejada.
+- `POST /v1/workouts/{workoutID}/complete`: conclui a sessão e salva o feedback.
+- `POST /v1/workouts/{workoutID}/cancel`: cancela uma sessão em andamento e preserva o histórico.
 
-Segurança já aplicada:
+Comportamentos de domínio implementados:
+
+- O motor `rules-v1` gera quatro semanas respeitando experiência, objetivos, limitações e disponibilidade.
+- O feedback pós-treino adapta conservadoramente as próximas sessões e registra a justificativa no treino.
+- Dor, fadiga, dificuldade e diferença de RPE podem reduzir a próxima carga; uma resposta claramente fácil permite somente uma pequena progressão de duração.
+- O plano ativo é concluído automaticamente quando não restam sessões planejadas ou em andamento.
+- O próximo ciclo começa sem sobrepor o ciclo concluído e preserva todos os dados anteriores.
+
+Segurança aplicada:
 
 - Senhas protegidas com bcrypt.
-- Tokens de sessão opacos; apenas o hash SHA-256 é armazenado no banco.
-- Cookie de sessão `HttpOnly`.
-- Em produção, o cookie também exige HTTPS.
+- Tokens de sessão opacos; somente o hash SHA-256 é armazenado.
+- Cookie de sessão `HttpOnly` e também `Secure` quando `APP_ENV=production`.
 - CORS configurado por variável de ambiente.
-- PostgreSQL local exposto somente no endereço de loopback.
-- Índice parcial no PostgreSQL garante no máximo um plano ativo por atleta.
+- PostgreSQL local exposto somente em loopback.
+- Índice parcial garante no máximo um plano ativo por atleta.
+- Alterações de sessão, feedback e adaptação acontecem de forma transacional.
 
 ## Frontend implementado
 
-- Dashboard inicial responsivo.
-- Modal de detalhes do treino.
+- Dashboard autenticado e responsivo.
+- Rotas `/entrar`, `/perfil` e `/plano`.
+- Perfil com quatro etapas persistentes: dados básicos, limitações, objetivos e disponibilidade.
+- Geração, revisão e ativação do plano de quatro semanas.
+- Estado de ciclo concluído com ação para gerar o próximo ciclo.
+- Modal de detalhes e estrutura do treino.
+- Início, conclusão, cancelamento e feedback da sessão.
+- Adaptações automáticas explicadas no dashboard, modal e plano.
 - Indicadores de prontidão, carga semanal e explicabilidade.
-- Rota `/entrar` para cadastro e login.
-- Rota `/perfil` com quatro etapas persistentes do cadastro do atleta.
-- Rota `/plano` para gerar e revisar um rascunho de quatro semanas.
-- Aprovação do rascunho e substituição segura de um plano ativo anterior.
-- Dashboard conectado ao usuário autenticado e às sessões reais do plano ativo.
-- Ajuda contextual de RPE com escala de percepção de esforço de 1 a 10.
-- Integração do frontend com a API por `VITE_API_URL`.
-- O documento HTML está configurado com `lang="pt-BR"`.
-- Acesso ao perfil pelo dashboard.
+- Ajuda contextual de RPE com escala de 1 a 10.
+- Integração com a API por `VITE_API_URL`.
+- Documento configurado com `lang="pt-BR"`.
+- PWA com manifesto, ícones, instalação, tela offline e cache apenas de recursos estáticos.
+- Rodapé fixo com autoria, versão, LinkedIn, GitHub, e-mail e ação de instalação.
+- Contraste, tooltips, tipografia mobile e responsividade revisados.
+- Scroll da página bloqueado durante o modal; o modal permanece acima do rodapé.
+- Meta viewport explícita e página sem rolagem horizontal no mobile.
 
-### Situação do fluxo de perfil
+## Validações realizadas
 
-O onboarding salva cada etapa no PostgreSQL e permite avançar e voltar sem perder o que já foi gravado.
+- Cadastro, login, cookie de sessão e `/v1/me` testados no banco local.
+- Criação e retomada do perfil testadas no PostgreSQL.
+- Motor `rules-v1` testado com 12 sessões em quatro semanas sem ultrapassar a disponibilidade.
+- Fluxo de integração validado: cadastro temporário, onboarding, geração, ativação e leitura do plano.
+- Ciclo de sessão validado: iniciar, concluir com feedback, iniciar outra sessão e cancelar.
+- Migração `000004` validada para estados transacionais das sessões.
+- Migração `000005` implementada para adaptação por feedback e coberta por testes das decisões.
+- Migração `000006` implementada para conclusão automática e correção de planos antigos sem sessões pendentes.
+- Geração do próximo ciclo validada sem sobreposição.
+- Build do frontend concluído após os ajustes de contraste, modal e responsividade.
+- Meta viewport servida confirmada como `width=device-width, initial-scale=1, viewport-fit=cover`.
 
-Etapas planejadas:
-
-1. Dados básicos e experiência — implementada.
-2. Lesões, dores e limitações — implementada.
-3. Objetivos esportivos — implementada.
-4. Disponibilidade semanal e revisão — implementada.
-
-## Avisos observados no console
-
-- O perfil inexistente agora retorna `200` com valor nulo, evitando o antigo erro `404` no console durante o primeiro acesso.
-- Avisos de recursos carregados por `preload` e não usados imediatamente: relacionados ao ambiente de desenvolvimento/empacotamento; não bloqueiam o funcionamento.
-- Os campos do perfil agora usam estado controlado desde a inicialização para eliminar o aviso do Base UI sobre mudança de estado não controlado para controlado.
-- Mensagem para instalar React DevTools: somente uma recomendação do React durante o desenvolvimento.
-
-## Validações já realizadas
-
-- Cadastro de usuário, cookie de sessão e consulta de `/v1/me` testados contra o banco real local.
-- Criação e leitura do perfil testadas contra o banco real local.
-- Usuário temporário de integração removido após o teste.
-- Compilação e análise do backend concluídas.
-- Testes Go executados com sucesso em container Linux.
-- Build do frontend concluído com as rotas `/`, `/entrar` e `/perfil`.
-- Motor `rules-v1` testado com geração e leitura de 12 sessões em quatro semanas, sem ultrapassar a disponibilidade informada.
-- Fluxo de integração validado no PostgreSQL local: cadastro temporário, onboarding, geração de 12 sessões, ativação, leitura do plano ativo e remoção dos dados de teste.
-- Build do frontend concluído com o dashboard real, aprovação do plano e ajuda de RPE.
-- Fluxo visual validado em Chrome isolado: aprovação do rascunho, abertura do painel e atualização direta sem erros de runtime.
-- Cache do PWA atualizado para priorizar a rede em scripts e estilos; no desenvolvimento, workers e caches antigos do Cadência são removidos antes de carregar os módulos.
-- Migração `000004` aplicada no PostgreSQL local com estados transacionais para sessões em andamento, concluídas e canceladas.
-- Fluxo de integração das sessões validado com atleta temporário: iniciar, concluir com RPE 7 e feedback, iniciar outra sessão, cancelar e remover todos os dados do teste.
-
-Observação: o Windows App Control bloqueia executáveis temporários sem assinatura produzidos pelo `go test`. Por isso, os testes são executados no container oficial do Go, sem reduzir a segurança do Windows.
+O Windows App Control pode bloquear executáveis temporários sem assinatura produzidos por `go test`. Por isso, os testes Go são executados no container oficial do Go, sem reduzir a segurança do Windows.
 
 ## Como iniciar o ambiente local
 
@@ -150,30 +146,42 @@ Observação: o Windows App Control bloqueia executáveis temporários sem assin
 2. Na raiz do repositório, executar `docker compose up -d postgres`.
 3. Iniciar a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 4. Em outro terminal, entrar em `frontend/` e executar `npm run dev`.
-5. Acessar a URL local apresentada pelo frontend.
+5. Acessar `http://localhost:3000`.
+6. Verificar a API em `http://localhost:8080/health` e a prontidão em `http://localhost:8080/ready` quando necessário.
 
-Os valores reais devem continuar somente nos arquivos `.env` locais. O `.env.example` pode usar valores ilustrativos e precisa permanecer sem segredos.
+Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.example` usa valores ilustrativos e deve permanecer sem segredos.
 
 ## Pedidos já registrados
 
-- Footer verde-escuro e minimalista semelhante à referência enviada — implementado com autoria, versão, GitHub, LinkedIn, e-mail e ação de instalação.
-- PWA instalável — implementado com manifesto, ícones de 192/512 px, ícone maskable, suporte a iOS, service worker e tela offline básica.
-- Preservar o idioma do HTML como português do Brasil.
-- Explicar RPE dentro do aplicativo para atletas iniciantes — implementado com ajuda contextual acessível.
+- Usar banco PostgreSQL próprio, local no desenvolvimento e na VPS Oracle em produção.
+- Footer verde-escuro e minimalista com contatos.
+- PWA instalável para celular.
+- HTML em português do Brasil.
+- Explicação acessível de RPE para atletas iniciantes.
+- Interface mobile legível, sem rolagem lateral e com modais que não movimentem o fundo.
 
 ## Próximas etapas recomendadas
 
-1. Usar conclusão e feedback para adaptar com segurança os próximos treinos.
-2. Criar histórico de sessões realizadas e canceladas.
-3. Testar a instalação do PWA em um celular usando uma origem HTTPS acessível pelo aparelho.
-4. Preparar produção na VPS: TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups e teste de restauração.
+1. Criar um endpoint autenticado para o histórico de atividades concluídas e canceladas.
+2. Criar a rota `/atividades`, ativar o item correspondente na navegação e apresentar data, duração, RPE, dificuldade, fadiga e dor.
+3. Testar a instalação do PWA em um celular por uma origem HTTPS acessível pelo aparelho.
+4. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração.
 
 ## Estado do Git no momento deste registro
 
-A etapa de acompanhamento da sessão e feedback pós-treino foi implementada e validada localmente. Antes da próxima grande etapa, revisar `git status` e criar um commit. Sugestão de mensagem:
+O commit mais recente confirmado localmente e no remoto antes desta atualização documental é:
 
-`Registra sessões e feedback pós-treino`
+`fca0a77 fix: corrige responsividade, tipografia e scroll do modal`
+
+A árvore de trabalho estava limpa antes da atualização dos documentos. As alterações documentais devem ser revisadas e commitadas antes de iniciar a próxima etapa funcional.
 
 ## Como retomar em uma conversa nova
 
-Em uma nova conversa, informar que o projeto está em `C:\Users\saulo\Documents\App de treino` e pedir para ler este arquivo e `docs/architecture-decisions.md` antes de continuar. Esses dois documentos, junto com o código e o histórico do Git, fornecem o contexto necessário sem depender do histórico completo da conversa anterior.
+Em uma nova conversa, informar que o projeto está em `C:\Users\saulo\Documents\App de treino` e pedir para:
+
+1. ler `README.md`, este arquivo, `docs/architecture-decisions.md`, `docs/training-cycle-lifecycle.md` e `docs/training-adaptation-rules.md`;
+2. conferir `git status` e os commits recentes;
+3. resumir o estado encontrado antes de alterar arquivos;
+4. retomar pela implementação do histórico de atividades.
+
+Esses documentos, o código e o histórico do Git fornecem o contexto necessário sem depender da conversa anterior.
