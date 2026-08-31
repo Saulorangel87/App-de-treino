@@ -18,6 +18,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { RpeHelp } from '@/components/rpe-help';
+import { WorkoutSessionActions } from '@/components/workout-session-actions';
 import { apiRequest } from '@/lib/api';
 import {
   parseTrainingDate,
@@ -162,6 +163,13 @@ export default function HomePage() {
       activePlan.workouts[activePlan.workouts.length - 1]
     );
   }, [activePlan, todayKey]);
+
+  function updateSessionPlan(nextPlan: TrainingPlan, workoutID: string) {
+    setPlan(nextPlan);
+    setSelected(
+      nextPlan.workouts.find((workout) => workout.id === workoutID) || null,
+    );
+  }
 
   const displayedWeek = useMemo(() => {
     if (!focusWorkout || !activePlan) return [];
@@ -523,6 +531,11 @@ export default function HomePage() {
                 <em>Giro confortável</em>
               </li>
             </ol>
+            <WorkoutSessionActions
+              workout={selected}
+              planStatus={activePlan.status}
+              onPlanUpdated={updateSessionPlan}
+            />
             <a className="modal-plan-link" href="/plano">
               Abrir plano completo <ArrowRight size={15} />
             </a>

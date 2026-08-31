@@ -36,12 +36,15 @@ O frontend nunca se conecta diretamente ao PostgreSQL. Todo acesso passa pela AP
 - `POST /v1/plans/generate`: gera e substitui o rascunho atual de quatro semanas.
 - `GET /v1/plans/current`: consulta o plano ativo ou rascunho mais recente.
 - `POST /v1/plans/{planID}/activate`: aprova um rascunho e mantém somente um plano ativo por atleta.
+- `POST /v1/workouts/{workoutID}/start`: inicia uma sessão planejada do plano ativo.
+- `POST /v1/workouts/{workoutID}/complete`: conclui a sessão e registra RPE, dificuldade, fadiga e dor.
+- `POST /v1/workouts/{workoutID}/cancel`: cancela uma sessão em andamento e mantém esse histórico.
 
 As sessões são opacas, armazenadas no PostgreSQL apenas como hash e enviadas ao navegador em cookie `HttpOnly`. Em produção, `APP_ENV=production` ativa também a exigência de HTTPS no cookie.
 
 As telas locais ficam em `/entrar` e `/perfil`. O perfil possui quatro etapas e retoma dados já salvos. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
 
-A tela `/plano` gera, apresenta e ativa o primeiro ciclo de quatro semanas. O motor `rules-v1` é determinístico: considera experiência, objetivo, limitações e disponibilidade, limita cada sessão ao tempo informado e reduz a intensidade quando há uma condição de segurança ativa. O dashboard usa o plano aprovado e explica a escala RPE na própria interface.
+A tela `/plano` gera, apresenta e ativa o primeiro ciclo de quatro semanas. O motor `rules-v1` é determinístico: considera experiência, objetivo, limitações e disponibilidade, limita cada sessão ao tempo informado e reduz a intensidade quando há uma condição de segurança ativa. O dashboard usa o plano aprovado, explica a escala RPE e permite acompanhar a sessão do início ao feedback pós-treino.
 
 ## PWA
 

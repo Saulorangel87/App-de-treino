@@ -160,7 +160,51 @@ paths:
         '400': { description: Identificador inválido }
         '401': { description: Sessão ausente ou expirada }
         '404': { description: Rascunho não encontrado ou pertencente a outro atleta }
+  /v1/workouts/{workoutID}/start:
+    post:
+      summary: Inicia um treino planejado pertencente ao plano ativo
+      parameters:
+        - $ref: '#/components/parameters/WorkoutID'
+      responses:
+        '200': { description: Sessão iniciada e plano atualizado }
+        '400': { description: Identificador inválido }
+        '401': { description: Sessão de usuário ausente ou expirada }
+        '404': { description: Treino não encontrado no plano ativo }
+        '409': { description: Transição de estado inválida }
+  /v1/workouts/{workoutID}/complete:
+    post:
+      summary: Conclui uma sessão em andamento e salva o feedback percebido
+      parameters:
+        - $ref: '#/components/parameters/WorkoutID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CompleteWorkoutRequest' }
+      responses:
+        '200': { description: Sessão concluída, feedback salvo e plano atualizado }
+        '400': { description: Identificador ou feedback inválido }
+        '401': { description: Sessão de usuário ausente ou expirada }
+        '404': { description: Treino não encontrado no plano ativo }
+        '409': { description: Treino não está em andamento }
+  /v1/workouts/{workoutID}/cancel:
+    post:
+      summary: Cancela uma sessão em andamento e marca o treino como não realizado
+      parameters:
+        - $ref: '#/components/parameters/WorkoutID'
+      responses:
+        '200': { description: Sessão cancelada e plano atualizado }
+        '400': { description: Identificador inválido }
+        '401': { description: Sessão de usuário ausente ou expirada }
+        '404': { description: Treino não encontrado no plano ativo }
+        '409': { description: Treino não está em andamento }
 components:
+  parameters:
+    WorkoutID:
+      in: path
+      name: workoutID
+      required: true
+      schema: { type: string, format: uuid }
   schemas:
     RegisterRequest:
       type: object
@@ -235,4 +279,37 @@ components:
         target_rpe: { type: number, minimum: 0, maximum: 10 }
         structure: { type: object, additionalProperties: true }
         explanation: { type: object, additionalProperties: true }
-        status: { type: string, enum: [planned, completed, skipped, adapted] }
+        status: { type: string, enum: [planned, in_progress, completed, skipped, adapted] }
+        session:
+          oneOf:
+            - { $ref: '#/components/schemas/WorkoutSession' }
+            - { type: 'null' }
+    WorkoutSession:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [in_progress, completed, cancelled] }
+        started_at: { type: string, format: date-time }
+        completed_at: { type: string, format: date-time }
+        cancelled_at: { type: string, format: date-time }
+        duration_minutes: { type: integer, minimum: 0 }
+        actual_rpe: { type: number, minimum: 1, maximum: 10 }
+        feedback: { $ref: '#/components/schemas/WorkoutFeedback' }
+    WorkoutFeedback:
+      type: object
+      required: [difficulty, pain_reported, fatigue_after]
+      properties:
+        difficulty: { type: string, enum: [very_easy, easy, moderate, hard, very_hard] }
+        pain_reported: { type: boolean }
+        fatigue_after: { type: integer, minimum: 1, maximum: 5 }
+        notes: { type: string, maxLength: 1000 }
+    CompleteWorkoutRequest:
+      type: object
+      required: [actual_rpe, difficulty, pain_reported, fatigue_after]
+      properties:
+        actual_rpe: { type: number, minimum: 1, maximum: 10 }
+        difficulty: { type: string, enum: [very_easy, easy, moderate, hard, very_hard] }
+        pain_reported: { type: boolean }
+        fatigue_after: { type: integer, minimum: 1, maximum: 5 }
+        notes: { type: string, maxLength: 1000 }

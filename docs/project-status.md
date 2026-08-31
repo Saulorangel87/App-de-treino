@@ -79,6 +79,9 @@ A API Go possui:
 - `POST /v1/plans/generate`: gera um rascunho explicável de quatro semanas.
 - `GET /v1/plans/current`: consulta o plano ativo ou rascunho disponível.
 - `POST /v1/plans/{planID}/activate`: ativa o rascunho escolhido de forma transacional.
+- `POST /v1/workouts/{workoutID}/start`: inicia uma sessão planejada do plano ativo.
+- `POST /v1/workouts/{workoutID}/complete`: conclui a sessão e salva RPE, dificuldade, fadiga, dor e observações.
+- `POST /v1/workouts/{workoutID}/cancel`: cancela uma sessão em andamento e registra o treino como não realizado.
 
 Segurança já aplicada:
 
@@ -136,6 +139,8 @@ Etapas planejadas:
 - Build do frontend concluído com o dashboard real, aprovação do plano e ajuda de RPE.
 - Fluxo visual validado em Chrome isolado: aprovação do rascunho, abertura do painel e atualização direta sem erros de runtime.
 - Cache do PWA atualizado para priorizar a rede em scripts e estilos; no desenvolvimento, workers e caches antigos do Cadência são removidos antes de carregar os módulos.
+- Migração `000004` aplicada no PostgreSQL local com estados transacionais para sessões em andamento, concluídas e canceladas.
+- Fluxo de integração das sessões validado com atleta temporário: iniciar, concluir com RPE 7 e feedback, iniciar outra sessão, cancelar e remover todos os dados do teste.
 
 Observação: o Windows App Control bloqueia executáveis temporários sem assinatura produzidos pelo `go test`. Por isso, os testes são executados no container oficial do Go, sem reduzir a segurança do Windows.
 
@@ -158,17 +163,16 @@ Os valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exa
 
 ## Próximas etapas recomendadas
 
-1. Implementar início, conclusão e cancelamento de uma sessão de treino.
-2. Registrar RPE realizado, dificuldade, fadiga e eventual dor no feedback pós-sessão.
-3. Usar conclusão e feedback para adaptar com segurança os próximos treinos.
-4. Testar a instalação do PWA em um celular usando uma origem HTTPS acessível pelo aparelho.
-5. Preparar produção na VPS: TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups e teste de restauração.
+1. Usar conclusão e feedback para adaptar com segurança os próximos treinos.
+2. Criar histórico de sessões realizadas e canceladas.
+3. Testar a instalação do PWA em um celular usando uma origem HTTPS acessível pelo aparelho.
+4. Preparar produção na VPS: TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups e teste de restauração.
 
 ## Estado do Git no momento deste registro
 
-A etapa de ativação do plano, dashboard real e ajuda de RPE foi implementada e validada localmente. Antes da próxima grande etapa, revisar `git status` e criar um commit. Sugestão de mensagem:
+A etapa de acompanhamento da sessão e feedback pós-treino foi implementada e validada localmente. Antes da próxima grande etapa, revisar `git status` e criar um commit. Sugestão de mensagem:
 
-`Ativa planos e integra treinos reais ao dashboard`
+`Registra sessões e feedback pós-treino`
 
 ## Como retomar em uma conversa nova
 

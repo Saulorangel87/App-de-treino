@@ -80,7 +80,7 @@ export function AppFooter() {
 
   return (
     <footer className="site-footer">
-      <p>© 2026 DESENVOLVIDO POR SAULO RANGEL <span>— V0.4.0</span></p>
+      <p>© 2026 DESENVOLVIDO POR SAULO RANGEL <span>— V0.5.0</span></p>
       <div className="footer-actions">
         {installPrompt && !installed && <button type="button" className="install-app" onClick={installApp}><Download size={14} />Instalar app</button>}
         {installed && <span className="installed-label"><span />App instalado</span>}

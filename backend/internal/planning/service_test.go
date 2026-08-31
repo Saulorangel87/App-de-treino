@@ -11,6 +11,10 @@ type planStore struct {
 	saved       Plan
 	activatedID string
 	activateErr error
+	startedID   string
+	completedID string
+	cancelledID string
+	completion  CompletionInput
 }
 
 func (s *planStore) PlanningContextByUserID(context.Context, string) (Context, error) {
@@ -27,6 +31,19 @@ func (s *planStore) ActivatePlanByUserID(_ context.Context, _ string, planID str
 		return s.activateErr
 	}
 	s.saved.Status = "active"
+	return nil
+}
+func (s *planStore) StartWorkoutByUserID(_ context.Context, _ string, workoutID string) error {
+	s.startedID = workoutID
+	return nil
+}
+func (s *planStore) CompleteWorkoutByUserID(_ context.Context, _ string, workoutID string, input CompletionInput) error {
+	s.completedID = workoutID
+	s.completion = input
+	return nil
+}
+func (s *planStore) CancelWorkoutByUserID(_ context.Context, _ string, workoutID string) error {
+	s.cancelledID = workoutID
 	return nil
 }
 
@@ -102,5 +119,38 @@ func TestActivateRejectsInvalidPlanID(t *testing.T) {
 	}
 	if store.activatedID != "" {
 		t.Fatal("store must not be called with an invalid id")
+	}
+}
+
+func TestWorkoutLifecycleValidatesAndDelegates(t *testing.T) {
+	const workoutID = "9a1eead7-6168-4d50-8c7c-451301e29d85"
+	store := &planStore{saved: Plan{Status: "active"}}
+	service := NewService(store)
+
+	if _, err := service.StartWorkout(context.Background(), "user-1", workoutID); err != nil {
+		t.Fatalf("start failed: %v", err)
+	}
+	input := CompletionInput{ActualRPE: 7, Difficulty: "hard", FatigueAfter: 4, PainReported: false, Notes: "Sessão consistente."}
+	if _, err := service.CompleteWorkout(context.Background(), "user-1", workoutID, input); err != nil {
+		t.Fatalf("complete failed: %v", err)
+	}
+	if _, err := service.CancelWorkout(context.Background(), "user-1", workoutID); err != nil {
+		t.Fatalf("cancel failed: %v", err)
+	}
+	if store.startedID != workoutID || store.completedID != workoutID || store.cancelledID != workoutID || store.completion.ActualRPE != 7 {
+		t.Fatalf("unexpected delegated lifecycle: %#v", store)
+	}
+}
+
+func TestCompleteWorkoutRejectsInvalidFeedback(t *testing.T) {
+	store := &planStore{}
+	_, err := NewService(store).CompleteWorkout(context.Background(), "user-1", "9a1eead7-6168-4d50-8c7c-451301e29d85", CompletionInput{
+		ActualRPE: 11, Difficulty: "extreme", FatigueAfter: 0,
+	})
+	if err != ErrInvalidFeedback {
+		t.Fatalf("expected invalid feedback, got %v", err)
+	}
+	if store.completedID != "" {
+		t.Fatal("store must not receive invalid feedback")
 	}
 }

@@ -13,6 +13,10 @@ var (
 	ErrIncompleteOnboarding = errors.New("incomplete onboarding")
 	ErrInvalidPlanID        = errors.New("invalid plan id")
 	ErrPlanMissing          = errors.New("plan not found")
+	ErrInvalidWorkoutID     = errors.New("invalid workout id")
+	ErrWorkoutMissing       = errors.New("workout not found")
+	ErrInvalidTransition    = errors.New("invalid workout transition")
+	ErrInvalidFeedback      = errors.New("invalid workout feedback")
 )
 
 var planIDPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
@@ -37,15 +41,42 @@ type Context struct {
 }
 
 type Workout struct {
-	ID              string         `json:"id,omitempty"`
-	ScheduledOn     string         `json:"scheduled_on"`
-	Name            string         `json:"name"`
-	Objective       string         `json:"objective"`
-	DurationMinutes int            `json:"duration_minutes"`
-	TargetRPE       float64        `json:"target_rpe"`
-	Structure       map[string]any `json:"structure"`
-	Explanation     map[string]any `json:"explanation"`
-	Status          string         `json:"status"`
+	ID              string          `json:"id,omitempty"`
+	ScheduledOn     string          `json:"scheduled_on"`
+	Name            string          `json:"name"`
+	Objective       string          `json:"objective"`
+	DurationMinutes int             `json:"duration_minutes"`
+	TargetRPE       float64         `json:"target_rpe"`
+	Structure       map[string]any  `json:"structure"`
+	Explanation     map[string]any  `json:"explanation"`
+	Status          string          `json:"status"`
+	Session         *WorkoutSession `json:"session,omitempty"`
+}
+
+type WorkoutSession struct {
+	ID              string     `json:"id"`
+	Status          string     `json:"status"`
+	StartedAt       *time.Time `json:"started_at,omitempty"`
+	CompletedAt     *time.Time `json:"completed_at,omitempty"`
+	CancelledAt     *time.Time `json:"cancelled_at,omitempty"`
+	DurationMinutes *int       `json:"duration_minutes,omitempty"`
+	ActualRPE       *float64   `json:"actual_rpe,omitempty"`
+	Feedback        *Feedback  `json:"feedback,omitempty"`
+}
+
+type Feedback struct {
+	Difficulty   string `json:"difficulty"`
+	PainReported bool   `json:"pain_reported"`
+	FatigueAfter int    `json:"fatigue_after"`
+	Notes        string `json:"notes,omitempty"`
+}
+
+type CompletionInput struct {
+	ActualRPE    float64
+	Difficulty   string
+	PainReported bool
+	FatigueAfter int
+	Notes        string
 }
 
 type Plan struct {
@@ -62,6 +93,9 @@ type Store interface {
 	SaveDraftPlan(context.Context, string, Plan) (Plan, error)
 	CurrentPlanByUserID(context.Context, string) (Plan, error)
 	ActivatePlanByUserID(context.Context, string, string) error
+	StartWorkoutByUserID(context.Context, string, string) error
+	CompleteWorkoutByUserID(context.Context, string, string, CompletionInput) error
+	CancelWorkoutByUserID(context.Context, string, string) error
 }
 
 type Service struct {
@@ -97,6 +131,51 @@ func (s *Service) Activate(ctx context.Context, userID, planID string) (Plan, er
 		return Plan{}, err
 	}
 	return s.store.CurrentPlanByUserID(ctx, userID)
+}
+
+func (s *Service) StartWorkout(ctx context.Context, userID, workoutID string) (Plan, error) {
+	if !planIDPattern.MatchString(workoutID) {
+		return Plan{}, ErrInvalidWorkoutID
+	}
+	if err := s.store.StartWorkoutByUserID(ctx, userID, workoutID); err != nil {
+		return Plan{}, err
+	}
+	return s.store.CurrentPlanByUserID(ctx, userID)
+}
+
+func (s *Service) CompleteWorkout(ctx context.Context, userID, workoutID string, input CompletionInput) (Plan, error) {
+	if !planIDPattern.MatchString(workoutID) {
+		return Plan{}, ErrInvalidWorkoutID
+	}
+	if !validCompletion(input) {
+		return Plan{}, ErrInvalidFeedback
+	}
+	if err := s.store.CompleteWorkoutByUserID(ctx, userID, workoutID, input); err != nil {
+		return Plan{}, err
+	}
+	return s.store.CurrentPlanByUserID(ctx, userID)
+}
+
+func (s *Service) CancelWorkout(ctx context.Context, userID, workoutID string) (Plan, error) {
+	if !planIDPattern.MatchString(workoutID) {
+		return Plan{}, ErrInvalidWorkoutID
+	}
+	if err := s.store.CancelWorkoutByUserID(ctx, userID, workoutID); err != nil {
+		return Plan{}, err
+	}
+	return s.store.CurrentPlanByUserID(ctx, userID)
+}
+
+func validCompletion(input CompletionInput) bool {
+	if input.ActualRPE < 1 || input.ActualRPE > 10 || input.FatigueAfter < 1 || input.FatigueAfter > 5 || len(input.Notes) > 1000 {
+		return false
+	}
+	switch input.Difficulty {
+	case "very_easy", "easy", "moderate", "hard", "very_hard":
+		return true
+	default:
+		return false
+	}
 }
 
 func buildPlan(input Context, now time.Time) (Plan, error) {

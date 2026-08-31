@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RpeHelp } from '@/components/rpe-help';
+import { WorkoutSessionActions } from '@/components/workout-session-actions';
 import { apiRequest } from '@/lib/api';
 import {
   parseTrainingDate,
@@ -82,6 +83,13 @@ export default function PlanPage() {
       ) || 0,
     [plan],
   );
+
+  function updateSessionPlan(nextPlan: TrainingPlan, workoutID: string) {
+    setPlan(nextPlan);
+    setSelected(
+      nextPlan.workouts.find((workout) => workout.id === workoutID) || null,
+    );
+  }
 
   async function generate(replace = false) {
     if (
@@ -360,6 +368,11 @@ export default function PlanPage() {
                       <RpeHelp compact />
                     </div>
                   </div>
+                  <WorkoutSessionActions
+                    workout={selected}
+                    planStatus={plan.status}
+                    onPlanUpdated={updateSessionPlan}
+                  />
                   <h3>Estrutura</h3>
                   <ol>
                     <li>

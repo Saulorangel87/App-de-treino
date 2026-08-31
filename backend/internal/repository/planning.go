@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
 	"github.com/jackc/pgx/v5"
@@ -140,9 +141,22 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 	}
 	plan.Workouts = []planning.Workout{}
 	rows, err := s.pool.Query(ctx, `
-		SELECT id::text, scheduled_on::text, name, objective, duration_minutes,
-			target_rpe::double precision, structure, explanation, status
-		FROM workouts WHERE training_plan_id = $1 ORDER BY scheduled_on, created_at`, plan.ID)
+		SELECT w.id::text, w.scheduled_on::text, w.name, w.objective, w.duration_minutes,
+			w.target_rpe::double precision, w.structure, w.explanation, w.status,
+			ws.id::text, ws.status, ws.started_at, ws.completed_at, ws.cancelled_at,
+			ws.duration_minutes, ws.actual_rpe::double precision,
+			f.difficulty, f.pain_reported, f.fatigue_after, f.notes
+		FROM workouts w
+		LEFT JOIN LATERAL (
+			SELECT latest.*
+			FROM workout_sessions latest
+			WHERE latest.workout_id = w.id
+			ORDER BY latest.created_at DESC
+			LIMIT 1
+		) ws ON true
+		LEFT JOIN feedback f ON f.workout_session_id = ws.id
+		WHERE w.training_plan_id = $1
+		ORDER BY w.scheduled_on, w.created_at`, plan.ID)
 	if err != nil {
 		return planning.Plan{}, err
 	}
@@ -150,7 +164,17 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 	for rows.Next() {
 		var workout planning.Workout
 		var structure, explanation []byte
-		if err := rows.Scan(&workout.ID, &workout.ScheduledOn, &workout.Name, &workout.Objective, &workout.DurationMinutes, &workout.TargetRPE, &structure, &explanation, &workout.Status); err != nil {
+		var sessionID, sessionStatus, difficulty, notes *string
+		var startedAt, completedAt, cancelledAt *time.Time
+		var durationMinutes, fatigueAfter *int
+		var actualRPE *float64
+		var painReported *bool
+		if err := rows.Scan(
+			&workout.ID, &workout.ScheduledOn, &workout.Name, &workout.Objective,
+			&workout.DurationMinutes, &workout.TargetRPE, &structure, &explanation, &workout.Status,
+			&sessionID, &sessionStatus, &startedAt, &completedAt, &cancelledAt,
+			&durationMinutes, &actualRPE, &difficulty, &painReported, &fatigueAfter, &notes,
+		); err != nil {
 			return planning.Plan{}, err
 		}
 		if err := json.Unmarshal(structure, &workout.Structure); err != nil {
@@ -158,6 +182,22 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 		}
 		if err := json.Unmarshal(explanation, &workout.Explanation); err != nil {
 			return planning.Plan{}, err
+		}
+		if sessionID != nil && sessionStatus != nil {
+			workout.Session = &planning.WorkoutSession{
+				ID: *sessionID, Status: *sessionStatus, StartedAt: startedAt,
+				CompletedAt: completedAt, CancelledAt: cancelledAt,
+				DurationMinutes: durationMinutes, ActualRPE: actualRPE,
+			}
+			if difficulty != nil && painReported != nil && fatigueAfter != nil {
+				workout.Session.Feedback = &planning.Feedback{
+					Difficulty: *difficulty, PainReported: *painReported,
+					FatigueAfter: *fatigueAfter,
+				}
+				if notes != nil {
+					workout.Session.Feedback.Notes = *notes
+				}
+			}
 		}
 		plan.Workouts = append(plan.Workouts, workout)
 	}
