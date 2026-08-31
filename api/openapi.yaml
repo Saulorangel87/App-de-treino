@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Cadência API
-  version: 0.7.0
+  version: 0.8.0
   description: API do MVP de planejamento adaptativo de ciclismo.
 servers:
   - url: http://localhost:8080
@@ -192,6 +192,12 @@ paths:
         '400': { description: Dados inválidos }
         '401': { description: Sessão ausente ou expirada }
         '409': { description: Perfil básico ainda não preenchido }
+  /v1/evolution/summary:
+    get:
+      summary: Retorna os indicadores históricos observados do atleta autenticado
+      responses:
+        '200': { description: Totais de sessões, semanas recentes e check-ins de recuperação }
+        '401': { description: Sessão ausente ou expirada }
   /v1/plans/generate:
     post:
       summary: Gera e salva um rascunho de quatro semanas usando regras explicáveis

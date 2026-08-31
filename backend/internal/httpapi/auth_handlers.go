@@ -8,6 +8,7 @@ import (
 
 	"github.com/Saulorangel87/App-de-treino/backend/internal/athlete"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/auth"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/evolution"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
 )
 
@@ -19,6 +20,7 @@ type Server struct {
 	onboarding    *athlete.OnboardingService
 	assessments   *athlete.AssessmentService
 	recovery      *athlete.RecoveryService
+	evolution     *evolution.Service
 	planning      *planning.Service
 	secureCookies bool
 	sessionTTL    time.Duration

@@ -14,6 +14,7 @@ import (
 	"github.com/Saulorangel87/App-de-treino/backend/internal/auth"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/config"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/database"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/evolution"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/httpapi"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/repository"
@@ -41,11 +42,12 @@ func main() {
 	onboardingService := athlete.NewOnboardingService(store)
 	assessmentService := athlete.NewAssessmentService(store)
 	recoveryService := athlete.NewRecoveryService(store)
+	evolutionService := evolution.NewService(store)
 	planningService := planning.NewService(store)
 
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           httpapi.NewRouter(db, authService, athleteService, onboardingService, assessmentService, recoveryService, planningService, cfg.AllowedOrigin, cfg.SecureCookies, cfg.SessionTTL),
+		Handler:           httpapi.NewRouter(db, authService, athleteService, onboardingService, assessmentService, recoveryService, evolutionService, planningService, cfg.AllowedOrigin, cfg.SecureCookies, cfg.SessionTTL),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      30 * time.Second,

@@ -99,10 +99,10 @@ function Sidebar({ user, plan }: { user: User; plan: TrainingPlan | null }) {
           <HeartPulse size={18} />
           Recuperação
         </a>
-        <button className="nav-item" disabled>
+        <a className="nav-item" href="/evolucao">
           <LineChart size={18} />
           Evolução
-        </button>
+        </a>
       </nav>
       <div className="sidebar-bottom">
         <div className="coach-note">

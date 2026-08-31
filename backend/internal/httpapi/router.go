@@ -8,14 +8,15 @@ import (
 
 	"github.com/Saulorangel87/App-de-treino/backend/internal/athlete"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/auth"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/evolution"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
 )
 
 type Pinger interface{ Ping(context.Context) error }
 
-func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Service, onboardingService *athlete.OnboardingService, assessmentService *athlete.AssessmentService, recoveryService *athlete.RecoveryService, planningService *planning.Service, allowedOrigin string, secureCookies bool, sessionTTL time.Duration) http.Handler {
+func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Service, onboardingService *athlete.OnboardingService, assessmentService *athlete.AssessmentService, recoveryService *athlete.RecoveryService, evolutionService *evolution.Service, planningService *planning.Service, allowedOrigin string, secureCookies bool, sessionTTL time.Duration) http.Handler {
 	mux := http.NewServeMux()
-	server := &Server{auth: authService, athlete: athleteService, onboarding: onboardingService, assessments: assessmentService, recovery: recoveryService, planning: planningService, secureCookies: secureCookies, sessionTTL: sessionTTL}
+	server := &Server{auth: authService, athlete: athleteService, onboarding: onboardingService, assessments: assessmentService, recovery: recoveryService, evolution: evolutionService, planning: planningService, secureCookies: secureCookies, sessionTTL: sessionTTL}
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "service": "cadencia-api"})
 	})
@@ -43,6 +44,7 @@ func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Ser
 	mux.HandleFunc("POST /v1/assessments/submaximal", server.saveSubmaxAssessment)
 	mux.HandleFunc("GET /v1/recovery/today", server.todayRecovery)
 	mux.HandleFunc("PUT /v1/recovery/today", server.putTodayRecovery)
+	mux.HandleFunc("GET /v1/evolution/summary", server.evolutionSummary)
 	mux.HandleFunc("POST /v1/plans/generate", server.generatePlan)
 	mux.HandleFunc("GET /v1/plans/current", server.currentPlan)
 	mux.HandleFunc("GET /v1/activities", server.activities)
