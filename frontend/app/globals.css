@@ -16,11 +16,17 @@
   box-sizing: border-box;
 }
 html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
   background: var(--paper);
 }
 body {
+  width: 100%;
+  max-width: 100%;
   margin: 0;
-  padding-bottom: 54px;
+  padding-bottom: 44px;
+  overflow-x: clip;
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-geist-sans), Arial, sans-serif;
@@ -773,7 +779,7 @@ button {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 20;
+  z-index: 100;
   display: grid;
   place-items: center;
   background: rgba(8, 25, 20, 0.55);
@@ -786,11 +792,16 @@ button {
   max-height: none;
   margin: 0;
   border: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 .workout-modal {
   width: min(520px, 100%);
   max-height: calc(100vh - 40px);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  touch-action: pan-y;
   background: #f9fbf7;
   border-radius: 20px;
   padding: 31px;
@@ -1321,6 +1332,32 @@ button {
   }
 }
 @media (max-width: 720px) {
+  .app-shell,
+  .workspace,
+  .dashboard-grid,
+  .today-card,
+  .today-copy,
+  .week-card,
+  .insight-card {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .workspace {
+    width: 100%;
+    overflow-x: clip;
+  }
+
+  .week-card {
+    overflow: hidden;
+  }
+
+  .week-days {
+    width: 100%;
+    max-width: 100%;
+    overscroll-behavior-x: contain;
+  }
+
   .app-shell {
     display: block;
   }
@@ -1381,8 +1418,8 @@ button {
     grid-column: auto;
   }
   .week-days {
-    overflow-x: auto;
-    grid-template-columns: repeat(7, 105px);
+    overflow-x: visible;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     padding-bottom: 4px;
   }
   .week-header h3 {
@@ -1405,6 +1442,12 @@ button {
     grid-column: 2;
     border: 0;
     padding: 0;
+  }
+}
+@media (max-width: 420px) {
+  .today-copy .details-button {
+    margin-top: 12px;
+    margin-left: 0;
   }
 }
 
@@ -2227,8 +2270,8 @@ button {
   left: 0;
   right: 0;
   bottom: 0;
-  min-height: 54px;
-  padding: 12px clamp(18px, 4vw, 56px);
+  min-height: 44px;
+  padding: 5px clamp(14px, 3vw, 40px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2823,17 +2866,17 @@ a.footer-icon:hover {
 }
 @media (max-width: 720px) {
   body {
-    padding-bottom: 50px;
+    padding-bottom: 40px;
   }
   .site-footer {
-    min-height: 50px;
-    padding: 8px 12px;
+    min-height: 40px;
+    padding: 3px 8px;
     flex-direction: row;
     gap: 10px;
     text-align: center;
   }
   .site-footer p {
-    font-size: 8px;
+    font-size: 9.5px;
     letter-spacing: 0.4px;
   }
   .footer-actions {
@@ -2850,6 +2893,6 @@ a.footer-icon:hover {
     display: none;
   }
   .sidebar {
-    bottom: 50px;
+    bottom: 40px;
   }
 }

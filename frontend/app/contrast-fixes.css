@@ -134,3 +134,83 @@ button:focus-visible {
     text-align: left;
   }
 }
+
+/* Mobile reading scale: preserve the compact layout without microscopic copy. */
+@media (max-width: 720px) {
+  .nav-item,
+  .eyebrow,
+  .section-kicker,
+  .section-label,
+  .card-heading span,
+  .insight-card span,
+  .evidence-tag span,
+  .load-summary > span,
+  .plan-empty > p,
+  .plan-heading p,
+  .plan-week > header span,
+  .workout-detail > span,
+  .modal-kicker {
+    font-size: 11px;
+  }
+
+  .today-copy > p,
+  .insight-card p,
+  .plan-empty > div,
+  .plan-heading > div > span,
+  .plan-safety p,
+  .workout-detail > p,
+  .workout-detail li,
+  .workout-modal > p {
+    font-size: 13px;
+  }
+
+  .metric-row span,
+  .readiness-list > div,
+  .readiness-list b,
+  .readiness-list i,
+  .plan-summary-number span,
+  .week-progress strong,
+  .week-progress span,
+  .day-card span,
+  .day-card p,
+  .day-card small,
+  .load-summary strong,
+  .load-summary small,
+  .load-summary em,
+  .plan-empty > small,
+  .plan-heading-actions .draft-pill,
+  .plan-message,
+  .plan-safety strong,
+  .plan-stats span,
+  .plan-week > header small,
+  .plan-week time,
+  .plan-week button span small,
+  .plan-week em,
+  .detail-metrics strong,
+  .workout-steps li > b,
+  .workout-steps small,
+  .workout-steps em,
+  .session-actions > header small,
+  .session-status,
+  .feedback-scale,
+  .safety-note,
+  .rpe-tooltip span {
+    font-size: 11px;
+  }
+
+  .start-button,
+  .details-button,
+  .checkin-button,
+  .insight-card button,
+  .modal-start,
+  .modal-plan-link,
+  .plan-heading-actions button {
+    font-size: 12px;
+  }
+
+  .metric-row b,
+  .workout-steps strong,
+  .rpe-tooltip strong {
+    font-size: 13px;
+  }
+}

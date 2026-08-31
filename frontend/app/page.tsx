@@ -150,6 +150,29 @@ export default function HomePage() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (!selected) return;
+
+    const root = document.documentElement;
+    const body = document.body;
+    const previousRootOverflow = root.style.overflow;
+    const previousBodyOverflow = body.style.overflow;
+    const previousBodyPaddingRight = body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - root.clientWidth;
+
+    root.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    return () => {
+      root.style.overflow = previousRootOverflow;
+      body.style.overflow = previousBodyOverflow;
+      body.style.paddingRight = previousBodyPaddingRight;
+    };
+  }, [selected]);
+
   const activePlan = plan?.status === 'active' ? plan : null;
   const today = useMemo(() => new Date(), []);
   const todayKey = dateKey(today);
