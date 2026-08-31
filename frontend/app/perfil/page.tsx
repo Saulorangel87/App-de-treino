@@ -156,10 +156,15 @@ export default function ProfilePage() {
 
   async function saveAvailability(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const updatingCompletedProfile = completed;
     await runSave(async () => {
       await apiRequest('/v1/onboarding/availability', { method: 'PUT', body: JSON.stringify({ availability }) });
       setCompleted(true);
-      setMessage('Perfil concluído. Seu contexto inicial está salvo com segurança.');
+      setMessage(
+        updatingCompletedProfile
+          ? 'Disponibilidade salva. Abra Meu plano e escolha Atualizar plano para gerar um rascunho com esta nova rotina.'
+          : 'Perfil concluído. Seu contexto inicial está salvo com segurança.',
+      );
     });
   }
 
@@ -210,11 +215,11 @@ export default function ProfilePage() {
           </form>}
 
           {step === 4 && <form onSubmit={saveAvailability} className="profile-form availability-form">
-            <fieldset><legend>Dias disponíveis</legend><p className="fieldset-intro">Ative um dia e escolha quanto tempo você realmente consegue reservar.</p><div className="availability-grid">{availability.map((day) => { const active = day.available_minutes > 0; return <div className={`availability-day ${active ? 'active' : ''}`} key={day.weekday}><button type="button" aria-pressed={active} onClick={() => updateDay(day.weekday, active ? { available_minutes: 0, preferred_time: null, location: null } : { available_minutes: 60 })}><span>{DAYS[day.weekday]}</span><i>{active && <Check size={12} />}</i></button>{active && <div><select aria-label={`Duração de ${DAYS[day.weekday]}`} value={day.available_minutes} onChange={(event) => updateDay(day.weekday, { available_minutes: Number(event.target.value) })}><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 hora</option><option value="90">1h30</option><option value="120">2 horas</option><option value="180">3 horas</option><option value="240">4 horas</option></select><select aria-label={`Local de ${DAYS[day.weekday]}`} value={day.location || ''} onChange={(event) => updateDay(day.weekday, { location: event.target.value || null })}><option value="">Qualquer local</option><option value="outdoor">Rua/estrada</option><option value="indoor">Rolo/indoor</option><option value="gym">Academia</option></select></div>}</div>; })}</div></fieldset>
+            <fieldset><legend>Dias disponíveis</legend><p className="fieldset-intro">Ative um dia e escolha quanto tempo você realmente consegue reservar.</p><div className="availability-grid">{availability.map((day) => { const active = day.available_minutes > 0; return <div className={`availability-day ${active ? 'active' : ''}`} key={day.weekday}><button type="button" aria-pressed={active} onClick={() => updateDay(day.weekday, active ? { available_minutes: 0, preferred_time: null, location: null } : { available_minutes: 60 })}><span>{DAYS[day.weekday]}</span><i>{active && <Check size={12} />}</i></button>{active && <div><select aria-label={`Duração de ${DAYS[day.weekday]}`} value={day.available_minutes} onChange={(event) => updateDay(day.weekday, { available_minutes: Number(event.target.value) })}><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 hora</option><option value="90">1h30</option><option value="120">2 horas</option><option value="180">3 horas</option><option value="240">4 horas</option><option value="360">6 horas</option><option value="480">8 horas</option></select><select aria-label={`Local de ${DAYS[day.weekday]}`} value={day.location || ''} onChange={(event) => updateDay(day.weekday, { location: event.target.value || null })}><option value="">Qualquer local</option><option value="outdoor">Rua/estrada</option><option value="indoor">Rolo/indoor</option><option value="gym">Academia</option></select></div>}</div>; })}</div></fieldset>
             <div className="availability-summary"><div><strong>{trainingDays}</strong><span>dias possíveis</span></div><div><strong>{Math.floor(totalMinutes / 60)}h{totalMinutes % 60 ? ` ${totalMinutes % 60}min` : ''}</strong><span>por semana</span></div><p>O plano poderá usar menos tempo conforme sua recuperação e experiência.</p></div>
             {completed && <div className="completion-card"><span><Check size={20} /></span><div><strong>Perfil inicial concluído</strong><p>Seus dados estão prontos para orientar a próxima fase: a geração do plano.</p></div></div>}
             <FormFeedback error={error} message={message} />
-            <div className="form-actions"><Button type="button" variant="outline" onClick={() => { setCompleted(false); setStep(3); }}><ArrowLeft size={15} /> Voltar</Button>{completed ? <Button type="button" className="profile-submit" onClick={() => { window.location.href = '/'; }}>Ir para o painel<ArrowRight size={16} /></Button> : <Button type="submit" disabled={saving || totalMinutes === 0} className="profile-submit">{saving ? 'Salvando…' : 'Concluir perfil'}<Check size={16} /></Button>}</div>
+            <div className="form-actions"><Button type="button" variant="outline" onClick={() => setStep(3)}><ArrowLeft size={15} /> Voltar</Button>{completed && <Button type="button" variant="outline" onClick={() => { window.location.href = '/'; }}>Ir para o painel<ArrowRight size={16} /></Button>}<Button type="submit" disabled={saving || totalMinutes === 0} className="profile-submit">{saving ? 'Salvando…' : completed ? 'Salvar alterações' : 'Concluir perfil'}<Check size={16} /></Button></div>
           </form>}
 
           <aside className="profile-aside"><div className="aside-icon"><AsideIcon size={18} /></div><h2>{copy.asideTitle}</h2><p>{copy.aside}</p><hr /><span>Você poderá revisar todas essas informações quando sua rotina mudar.</span></aside>

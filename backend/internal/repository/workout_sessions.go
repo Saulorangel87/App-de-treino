@@ -3,10 +3,55 @@ package repository
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
 	"github.com/jackc/pgx/v5"
 )
+
+func (s *Store) ActivitiesByUserID(ctx context.Context, userID string) ([]planning.Activity, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT ws.id::text, w.id::text, w.name, w.objective, w.scheduled_on::text,
+			ws.status, ws.started_at, ws.completed_at, ws.cancelled_at,
+			ws.duration_minutes, ws.actual_rpe,
+			f.difficulty, f.pain_reported, f.fatigue_after, f.notes
+		FROM workout_sessions ws
+		JOIN athlete_profiles ap ON ap.id = ws.athlete_profile_id
+		JOIN workouts w ON w.id = ws.workout_id
+		LEFT JOIN feedback f ON f.workout_session_id = ws.id
+		WHERE ap.user_id = $1 AND ws.status IN ('completed', 'cancelled')
+		ORDER BY COALESCE(ws.completed_at, ws.cancelled_at) DESC, ws.created_at DESC`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	activities := make([]planning.Activity, 0)
+	for rows.Next() {
+		var activity planning.Activity
+		var startedAt, completedAt, cancelledAt *time.Time
+		var duration *int
+		var rpe *float64
+		var difficulty, notes *string
+		var pain *bool
+		var fatigue *int
+		if err := rows.Scan(&activity.ID, &activity.WorkoutID, &activity.Name, &activity.Objective, &activity.ScheduledOn,
+			&activity.Status, &startedAt, &completedAt, &cancelledAt, &duration, &rpe,
+			&difficulty, &pain, &fatigue, &notes); err != nil {
+			return nil, err
+		}
+		activity.StartedAt, activity.CompletedAt, activity.CancelledAt = startedAt, completedAt, cancelledAt
+		activity.DurationMinutes, activity.ActualRPE = duration, rpe
+		if difficulty != nil {
+			activity.Feedback = &planning.Feedback{Difficulty: *difficulty, PainReported: *pain, FatigueAfter: *fatigue}
+			if notes != nil {
+				activity.Feedback.Notes = *notes
+			}
+		}
+		activities = append(activities, activity)
+	}
+	return activities, rows.Err()
+}
 
 func (s *Store) StartWorkoutByUserID(ctx context.Context, userID, workoutID string) error {
 	tx, err := s.pool.Begin(ctx)

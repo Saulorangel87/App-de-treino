@@ -38,6 +38,7 @@ ou PostgreSQL próprio na VPS Oracle (produção)
 - Produção usará PostgreSQL controlado pelo proprietário na VPS Oracle.
 - Configurações sensíveis ficam em `.env`, que está ignorado pelo Git.
 - Alterações no banco são versionadas em migrações SQL.
+- Cloudflare Tunnel é utilizado quando necessário para disponibilizar o frontend e/ou a API por HTTPS; o túnel não expõe o PostgreSQL e suas credenciais permanecem fora do repositório.
 
 ## Organização do repositório
 
@@ -85,6 +86,7 @@ A API Go possui:
 - `POST /v1/workouts/{workoutID}/start`: inicia uma sessão planejada.
 - `POST /v1/workouts/{workoutID}/complete`: conclui a sessão e salva o feedback.
 - `POST /v1/workouts/{workoutID}/cancel`: cancela uma sessão em andamento e preserva o histórico.
+- `GET /v1/activities`: retorna as atividades concluídas e canceladas do atleta autenticado.
 
 Comportamentos de domínio implementados:
 
@@ -108,6 +110,7 @@ Segurança aplicada:
 
 - Dashboard autenticado e responsivo.
 - Rotas `/entrar`, `/perfil` e `/plano`.
+- Rota `/atividades` com histórico de sessões concluídas e canceladas.
 - Perfil com quatro etapas persistentes: dados básicos, limitações, objetivos e disponibilidade.
 - Geração, revisão e ativação do plano de quatro semanas.
 - Estado de ciclo concluído com ação para gerar o próximo ciclo.
@@ -162,10 +165,8 @@ Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exampl
 
 ## Próximas etapas recomendadas
 
-1. Criar um endpoint autenticado para o histórico de atividades concluídas e canceladas.
-2. Criar a rota `/atividades`, ativar o item correspondente na navegação e apresentar data, duração, RPE, dificuldade, fadiga e dor.
-3. Testar a instalação do PWA em um celular por uma origem HTTPS acessível pelo aparelho.
-4. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração.
+1. Testar a instalação do PWA em um celular por uma origem HTTPS acessível pelo aparelho.
+2. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração. Integrar o Cloudflare Tunnel já utilizado à exposição HTTPS, mantendo o PostgreSQL inacessível publicamente.
 
 ## Estado do Git no momento deste registro
 

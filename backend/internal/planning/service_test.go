@@ -15,6 +15,7 @@ type planStore struct {
 	completedID string
 	cancelledID string
 	completion  CompletionInput
+	activities  []Activity
 }
 
 func (s *planStore) PlanningContextByUserID(context.Context, string) (Context, error) {
@@ -45,6 +46,9 @@ func (s *planStore) CompleteWorkoutByUserID(_ context.Context, _ string, workout
 func (s *planStore) CancelWorkoutByUserID(_ context.Context, _ string, workoutID string) error {
 	s.cancelledID = workoutID
 	return nil
+}
+func (s *planStore) ActivitiesByUserID(context.Context, string) ([]Activity, error) {
+	return s.activities, nil
 }
 
 func TestGenerateBuildsFourWeeksAndRespectsAvailability(t *testing.T) {
@@ -152,5 +156,13 @@ func TestCompleteWorkoutRejectsInvalidFeedback(t *testing.T) {
 	}
 	if store.completedID != "" {
 		t.Fatal("store must not receive invalid feedback")
+	}
+}
+
+func TestActivitiesReturnsOnlyWhatTheStoreProvidesForTheUser(t *testing.T) {
+	store := &planStore{activities: []Activity{{ID: "session-1", Name: "Giro de base", Status: "completed"}}}
+	activities, err := NewService(store).Activities(context.Background(), "user-1")
+	if err != nil || len(activities) != 1 || activities[0].ID != "session-1" {
+		t.Fatalf("unexpected activities: %#v, error: %v", activities, err)
 	}
 }

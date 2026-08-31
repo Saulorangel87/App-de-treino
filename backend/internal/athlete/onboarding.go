@@ -103,7 +103,7 @@ func (s *OnboardingService) SaveAvailability(ctx context.Context, userID string,
 	totalMinutes := 0
 	for index := range availability {
 		item := &availability[index]
-		if item.Weekday < 0 || item.Weekday > 6 || weekdays[item.Weekday] || item.AvailableMinutes < 0 || item.AvailableMinutes > 360 {
+		if item.Weekday < 0 || item.Weekday > 6 || weekdays[item.Weekday] || item.AvailableMinutes < 0 || item.AvailableMinutes > 480 {
 			return nil, ErrInvalidOnboarding
 		}
 		weekdays[item.Weekday] = true

@@ -32,19 +32,6 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 		return planning.Context{}, err
 	}
 
-	var previousPlanEnd time.Time
-	err = s.pool.QueryRow(ctx, `
-		SELECT ends_on
-		FROM training_plans
-		WHERE athlete_profile_id = $1 AND status = 'completed'
-		ORDER BY ends_on DESC, created_at DESC
-		LIMIT 1`, input.ProfileID).Scan(&previousPlanEnd)
-	if err == nil {
-		input.PreviousPlanEndsOn = &previousPlanEnd
-	} else if !errors.Is(err, pgx.ErrNoRows) {
-		return planning.Context{}, err
-	}
-
 	limitationRows, err := s.pool.Query(ctx, `
 		SELECT kind, professional_clearance_recommended FROM injuries_or_limitations
 		WHERE athlete_profile_id = $1 AND is_active = true`, input.ProfileID)

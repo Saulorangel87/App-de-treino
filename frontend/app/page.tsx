@@ -85,10 +85,10 @@ function Sidebar({ user, plan }: { user: User; plan: TrainingPlan | null }) {
           <CalendarDays size={18} />
           Meu plano
         </a>
-        <button className="nav-item" disabled>
+        <a className="nav-item" href="/atividades">
           <Activity size={18} />
           Atividades
-        </button>
+        </a>
         <button className="nav-item" disabled>
           <LineChart size={18} />
           Evolução

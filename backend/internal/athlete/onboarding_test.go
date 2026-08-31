@@ -45,4 +45,19 @@ func TestSaveAvailabilityRequiresAtLeastOneTrainingDay(t *testing.T) {
 	}
 }
 
+func TestSaveAvailabilityAllowsUpToEightHoursPerDay(t *testing.T) {
+	items := make([]Availability, 7)
+	for index := range items {
+		items[index].Weekday = index
+	}
+	items[6].AvailableMinutes = 480
+	if _, err := NewOnboardingService(onboardingStore{}).SaveAvailability(context.Background(), "user-1", items); err != nil {
+		t.Fatalf("expected eight hours to be accepted, got %v", err)
+	}
+	items[6].AvailableMinutes = 481
+	if _, err := NewOnboardingService(onboardingStore{}).SaveAvailability(context.Background(), "user-1", items); !errorsIs(err, ErrInvalidOnboarding) {
+		t.Fatalf("expected more than eight hours to be rejected, got %v", err)
+	}
+}
+
 func errorsIs(err, target error) bool { return err == target }

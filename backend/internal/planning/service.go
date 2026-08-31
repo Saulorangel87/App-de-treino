@@ -33,12 +33,11 @@ type AvailabilitySlot struct {
 }
 
 type Context struct {
-	ProfileID          string
-	ExperienceLevel    string
-	PrimaryGoal        string
-	PreviousPlanEndsOn *time.Time
-	Limitations        []LimitationContext
-	Availability       []AvailabilitySlot
+	ProfileID       string
+	ExperienceLevel string
+	PrimaryGoal     string
+	Limitations     []LimitationContext
+	Availability    []AvailabilitySlot
 }
 
 type Workout struct {
@@ -80,6 +79,21 @@ type CompletionInput struct {
 	Notes        string
 }
 
+type Activity struct {
+	ID              string     `json:"id"`
+	WorkoutID       string     `json:"workout_id"`
+	Name            string     `json:"name"`
+	Objective       string     `json:"objective"`
+	ScheduledOn     string     `json:"scheduled_on"`
+	Status          string     `json:"status"`
+	StartedAt       *time.Time `json:"started_at,omitempty"`
+	CompletedAt     *time.Time `json:"completed_at,omitempty"`
+	CancelledAt     *time.Time `json:"cancelled_at,omitempty"`
+	DurationMinutes *int       `json:"duration_minutes,omitempty"`
+	ActualRPE       *float64   `json:"actual_rpe,omitempty"`
+	Feedback        *Feedback  `json:"feedback,omitempty"`
+}
+
 type Plan struct {
 	ID                   string         `json:"id,omitempty"`
 	StartsOn             string         `json:"starts_on"`
@@ -97,6 +111,7 @@ type Store interface {
 	StartWorkoutByUserID(context.Context, string, string) error
 	CompleteWorkoutByUserID(context.Context, string, string, CompletionInput) error
 	CancelWorkoutByUserID(context.Context, string, string) error
+	ActivitiesByUserID(context.Context, string) ([]Activity, error)
 }
 
 type Service struct {
@@ -167,6 +182,10 @@ func (s *Service) CancelWorkout(ctx context.Context, userID, workoutID string) (
 	return s.store.CurrentPlanByUserID(ctx, userID)
 }
 
+func (s *Service) Activities(ctx context.Context, userID string) ([]Activity, error) {
+	return s.store.ActivitiesByUserID(ctx, userID)
+}
+
 func validCompletion(input CompletionInput) bool {
 	if input.ActualRPE < 1 || input.ActualRPE > 10 || input.FatigueAfter < 1 || input.FatigueAfter > 5 || len(input.Notes) > 1000 {
 		return false
@@ -196,12 +215,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 	sort.Slice(slots, func(i, j int) bool { return slots[i].Weekday < slots[j].Weekday })
 
 	start := nextMonday(now)
-	if input.PreviousPlanEndsOn != nil {
-		afterPreviousCycle := nextMonday(input.PreviousPlanEndsOn.AddDate(0, 0, 1))
-		if afterPreviousCycle.After(start) {
-			start = afterPreviousCycle
-		}
-	}
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	restricted := len(input.Limitations) > 0
 	for _, item := range input.Limitations {
 		if item.ProfessionalClearanceRecommended {
@@ -214,13 +228,17 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 		longIndex := longestSlot(slots)
 		intensityIndex := intensitySlot(slots, longIndex)
 		for index, slot := range slots {
+			scheduledOn := start.AddDate(0, 0, week*7+weekdayOffset(slot.Weekday))
+			if week == 0 && scheduledOn.Before(today) {
+				continue
+			}
 			kind := "base"
 			if index == longIndex {
 				kind = "long"
 			} else if index == intensityIndex && !restricted {
 				kind = "quality"
 			}
-			workouts = append(workouts, makeWorkout(input, slot, kind, restricted, multipliers[week], start.AddDate(0, 0, week*7+weekdayOffset(slot.Weekday))))
+			workouts = append(workouts, makeWorkout(input, slot, kind, restricted, multipliers[week], scheduledOn))
 		}
 	}
 
@@ -303,8 +321,10 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 
 func nextMonday(value time.Time) time.Time {
 	local := time.Date(value.Year(), value.Month(), value.Day(), 0, 0, 0, 0, value.Location())
-	days := (8 - int(local.Weekday())) % 7
-	return local.AddDate(0, 0, days)
+	if local.Weekday() == time.Sunday {
+		return local.AddDate(0, 0, 1)
+	}
+	return local.AddDate(0, 0, -((int(local.Weekday()) + 6) % 7))
 }
 
 func weekdayOffset(weekday int) int { return (weekday + 6) % 7 }

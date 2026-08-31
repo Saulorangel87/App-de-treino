@@ -17,12 +17,11 @@ A migração `000006_training_plan_completion` também identifica planos antigos
 
 ## Próximo ciclo
 
-Um plano concluído continua disponível na consulta do plano atual até que um novo rascunho seja gerado. A interface apresenta a ação **Gerar próximo ciclo**.
+Um plano concluído continua disponível na consulta do plano atual até que um novo rascunho seja gerado. A interface apresenta a ação **Gerar próximo ciclo**. Ao atualizar a disponibilidade, o usuário também pode gerar um rascunho revisado a partir da semana corrente.
 
 O início do novo ciclo é calculado assim:
 
-1. próxima segunda-feira em relação à data atual;
-2. primeira segunda-feira após o término do último ciclo concluído;
-3. utiliza-se a data que ocorrer por último.
+1. segunda-feira da semana corrente, ou a próxima segunda-feira quando a geração acontece no domingo;
+2. sessões da semana corrente que já ficaram no passado não são criadas.
 
-Isso evita sobreposição entre ciclos e não apaga o histórico anterior. Depois de gerado, o novo plano permanece como rascunho até o usuário revisá-lo e aceitá-lo.
+Isso mantém o plano útil no momento da geração e não apaga o histórico anterior. Depois de gerado, o novo plano permanece como rascunho até o usuário revisá-lo e aceitá-lo.

@@ -93,13 +93,13 @@ export default function PlanPage() {
   }
 
   async function generate(replace = false) {
-    if (
-      replace &&
-      !window.confirm(
-        'Substituir o rascunho atual por um novo plano calculado com seus dados mais recentes?',
-      )
-    )
-      return;
+    if (replace) {
+      const confirmation =
+        plan?.status === 'active'
+          ? 'Criar um novo rascunho com sua disponibilidade atual? O plano ativo continuará preservado até você revisar e aceitar o novo plano.'
+          : 'Substituir o rascunho atual por um novo plano calculado com seus dados mais recentes?';
+      if (!window.confirm(confirmation)) return;
+    }
     setGenerating(true);
     setError('');
     setMessage('');
@@ -263,6 +263,20 @@ export default function PlanPage() {
                       Gerar outro
                     </Button>
                   </>
+                )}
+                {plan.status === 'active' && (
+                  <Button
+                    variant="outline"
+                    onClick={() => generate(true)}
+                    disabled={generating}
+                  >
+                    {generating ? (
+                      <LoaderCircle className="spin" size={14} />
+                    ) : (
+                      <RefreshCw size={14} />
+                    )}
+                    {generating ? 'Calculando…' : 'Atualizar plano'}
+                  </Button>
                 )}
                 {plan.status === 'completed' && (
                   <Button

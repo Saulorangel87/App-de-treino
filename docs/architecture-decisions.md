@@ -26,6 +26,8 @@ O repositório terá um `compose.yaml` com PostgreSQL para permitir subir um amb
 
 O backend em Go será executado na VPS ou em outro servidor autorizado a alcançar o PostgreSQL da VPS. A configuração usará uma variável `DATABASE_URL` específica do ambiente.
 
+O projeto também utiliza Cloudflare Tunnel para expor serviços HTTP/HTTPS quando necessário. O túnel deve encaminhar tráfego somente para o frontend e/ou para a API, conforme a configuração do ambiente; ele não substitui nem expõe diretamente o PostgreSQL. As credenciais e o arquivo de configuração do túnel permanecem fora do repositório.
+
 ### Migrações
 
 Todas as alterações de estrutura serão versionadas em arquivos SQL. O mesmo conjunto de migrações será aplicado primeiro localmente e depois na VPS, com backup antes de mudanças de produção.
@@ -61,9 +63,8 @@ Concluído localmente:
 
 ## Próximas implementações
 
-1. Expor e apresentar o histórico de atividades concluídas e canceladas.
-2. Testar instalação e comportamento do PWA em um celular por origem HTTPS.
-3. Preparar a produção na VPS Oracle com TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, backups automatizados e teste de restauração.
+1. Testar instalação e comportamento do PWA em um celular por origem HTTPS.
+2. Preparar a produção na VPS Oracle com TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, backups automatizados e teste de restauração. O Cloudflare Tunnel deve expor somente o frontend e/ou a API.
 
 Uma implantação só será considerada concluída depois de validar HTTPS, CORS, cookies seguros, migrações, backup e restauração.
 

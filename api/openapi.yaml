@@ -147,6 +147,12 @@ paths:
       responses:
         '200': { description: Plano encontrado ou nulo }
         '401': { description: Sessão ausente ou expirada }
+  /v1/activities:
+    get:
+      summary: Retorna atividades concluídas e canceladas do atleta autenticado, da mais recente para a mais antiga
+      responses:
+        '200': { description: Histórico de atividades }
+        '401': { description: Sessão ausente ou expirada }
   /v1/plans/{planID}/activate:
     post:
       summary: Ativa um rascunho e cancela o plano ativo anterior do atleta
@@ -252,7 +258,7 @@ components:
       required: [weekday, available_minutes]
       properties:
         weekday: { type: integer, minimum: 0, maximum: 6 }
-        available_minutes: { type: integer, minimum: 0, maximum: 360 }
+        available_minutes: { type: integer, minimum: 0, maximum: 480 }
         preferred_time: { type: [string, 'null'], pattern: '^([01]\\d|2[0-3]):[0-5]\\d$' }
         location: { type: [string, 'null'], maxLength: 80 }
     TrainingPlan:
@@ -313,3 +319,19 @@ components:
         pain_reported: { type: boolean }
         fatigue_after: { type: integer, minimum: 1, maximum: 5 }
         notes: { type: string, maxLength: 1000 }
+    Activity:
+      type: object
+      required: [id, workout_id, name, objective, scheduled_on, status]
+      properties:
+        id: { type: string, format: uuid }
+        workout_id: { type: string, format: uuid }
+        name: { type: string }
+        objective: { type: string }
+        scheduled_on: { type: string, format: date }
+        status: { type: string, enum: [completed, cancelled] }
+        started_at: { type: string, format: date-time }
+        completed_at: { type: string, format: date-time }
+        cancelled_at: { type: string, format: date-time }
+        duration_minutes: { type: integer, minimum: 0 }
+        actual_rpe: { type: number, minimum: 1, maximum: 10 }
+        feedback: { $ref: '#/components/schemas/WorkoutFeedback' }

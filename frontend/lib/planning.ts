@@ -44,6 +44,21 @@ export type WorkoutSession = {
   feedback?: WorkoutFeedback;
 };
 
+export type Activity = {
+  id: string;
+  workout_id: string;
+  name: string;
+  objective: string;
+  scheduled_on: string;
+  status: 'completed' | 'cancelled';
+  started_at?: string;
+  completed_at?: string;
+  cancelled_at?: string;
+  duration_minutes?: number;
+  actual_rpe?: number;
+  feedback?: WorkoutFeedback;
+};
+
 export type TrainingPlan = {
   id: string;
   starts_on: string;
