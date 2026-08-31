@@ -1,0 +1,136 @@
+/* Contrast and visual-state audit: light application surfaces */
+:root {
+  --muted: #5b6d63;
+}
+
+.eyebrow,
+.section-kicker,
+.card-heading span,
+.insight-card span,
+.evidence-tag span,
+.score-wrap span,
+.week-progress span,
+.day-card span,
+.load-summary > span,
+.load-summary small,
+.evidence-tag small {
+  color: #5b6d63;
+}
+
+.plan-summary-number span,
+.day-card small,
+.insight-card p,
+.modal-kicker,
+.workout-steps li > b,
+.workout-steps small,
+.session-actions > header small,
+.session-guidance,
+.feedback-heading small,
+.feedback-scale,
+.session-result span,
+.session-result p,
+.checkin-question button,
+.safety-note {
+  color: #586b61;
+}
+
+.workout-modal > p {
+  color: #52655b;
+}
+
+.load-summary em {
+  color: #1f6847;
+}
+
+.effort-label {
+  color: #b3c9c0;
+}
+
+.zone-scale {
+  color: #a5bdb4;
+}
+
+/* Account, profile and onboarding surfaces */
+.form-kicker,
+.profile-heading p,
+.plan-empty > p,
+.plan-heading p {
+  color: #3f6f5d;
+}
+
+.form-intro,
+.form-legal,
+.profile-topbar small,
+.profile-heading > div > span,
+.step-indicator span,
+.unit-input span,
+.choice-cards small,
+.binary-choice small,
+.clearance-check small,
+.fieldset-intro,
+.availability-summary span,
+.availability-summary p,
+.completion-card p {
+  color: #5b6d63;
+}
+
+.onboarding-progress i {
+  color: #5b6d63;
+}
+
+/* Plan, status and safety surfaces */
+.plan-empty > small,
+.plan-heading > div > span,
+.plan-stats span,
+.plan-week > header small,
+.plan-week button span small,
+.plan-week em {
+  color: #5b6d63;
+}
+
+.plan-heading-actions .draft-pill {
+  color: #48643a;
+}
+
+.plan-safety {
+  color: #7b461f;
+}
+
+.plan-safety p {
+  color: #704f35;
+}
+
+.nav-item:disabled {
+  opacity: 0.58;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid rgba(43, 111, 83, 0.35);
+  outline-offset: 3px;
+}
+
+.sidebar a:focus-visible,
+.sidebar button:focus-visible,
+.site-footer a:focus-visible,
+.site-footer button:focus-visible,
+.today-card a:focus-visible,
+.today-card button:focus-visible,
+.workout-detail button:focus-visible {
+  outline-color: rgba(201, 244, 79, 0.72);
+}
+
+@media (max-width: 520px) {
+  .workout-modal {
+    padding: 27px 20px 24px;
+  }
+
+  .workout-steps li {
+    grid-template-columns: 28px minmax(0, 1fr);
+  }
+
+  .workout-steps em {
+    grid-column: 2;
+    text-align: left;
+  }
+}

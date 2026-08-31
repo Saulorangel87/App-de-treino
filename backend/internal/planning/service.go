@@ -33,11 +33,12 @@ type AvailabilitySlot struct {
 }
 
 type Context struct {
-	ProfileID       string
-	ExperienceLevel string
-	PrimaryGoal     string
-	Limitations     []LimitationContext
-	Availability    []AvailabilitySlot
+	ProfileID          string
+	ExperienceLevel    string
+	PrimaryGoal        string
+	PreviousPlanEndsOn *time.Time
+	Limitations        []LimitationContext
+	Availability       []AvailabilitySlot
 }
 
 type Workout struct {
@@ -195,6 +196,12 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 	sort.Slice(slots, func(i, j int) bool { return slots[i].Weekday < slots[j].Weekday })
 
 	start := nextMonday(now)
+	if input.PreviousPlanEndsOn != nil {
+		afterPreviousCycle := nextMonday(input.PreviousPlanEndsOn.AddDate(0, 0, 1))
+		if afterPreviousCycle.After(start) {
+			start = afterPreviousCycle
+		}
+	}
 	restricted := len(input.Limitations) > 0
 	for _, item := range input.Limitations {
 		if item.ProfessionalClearanceRecommended {

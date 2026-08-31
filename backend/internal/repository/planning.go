@@ -32,6 +32,19 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 		return planning.Context{}, err
 	}
 
+	var previousPlanEnd time.Time
+	err = s.pool.QueryRow(ctx, `
+		SELECT ends_on
+		FROM training_plans
+		WHERE athlete_profile_id = $1 AND status = 'completed'
+		ORDER BY ends_on DESC, created_at DESC
+		LIMIT 1`, input.ProfileID).Scan(&previousPlanEnd)
+	if err == nil {
+		input.PreviousPlanEndsOn = &previousPlanEnd
+	} else if !errors.Is(err, pgx.ErrNoRows) {
+		return planning.Context{}, err
+	}
+
 	limitationRows, err := s.pool.Query(ctx, `
 		SELECT kind, professional_clearance_recommended FROM injuries_or_limitations
 		WHERE athlete_profile_id = $1 AND is_active = true`, input.ProfileID)
@@ -127,8 +140,8 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 	err := s.pool.QueryRow(ctx, `
 		SELECT tp.id::text, tp.starts_on::text, tp.ends_on::text, tp.status, tp.prescription_snapshot
 		FROM training_plans tp JOIN athlete_profiles ap ON ap.id = tp.athlete_profile_id
-		WHERE ap.user_id = $1 AND tp.status IN ('active', 'draft')
-		ORDER BY CASE tp.status WHEN 'active' THEN 0 ELSE 1 END, tp.created_at DESC LIMIT 1`, userID,
+		WHERE ap.user_id = $1 AND tp.status IN ('active', 'draft', 'completed')
+		ORDER BY CASE tp.status WHEN 'active' THEN 0 WHEN 'draft' THEN 1 ELSE 2 END, tp.created_at DESC LIMIT 1`, userID,
 	).Scan(&plan.ID, &plan.StartsOn, &plan.EndsOn, &plan.Status, &snapshot)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return planning.Plan{}, planning.ErrPlanMissing

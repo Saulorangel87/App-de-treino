@@ -2697,6 +2697,25 @@ a.footer-icon:hover {
   visibility: visible;
   transform: translateY(0);
 }
+
+.workout-modal .rpe-tooltip {
+  right: auto;
+  left: 50%;
+  width: min(190px, calc(100vw - 48px));
+  transform: translate(-50%, 4px);
+}
+
+.workout-modal .rpe-tooltip::after {
+  right: auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.workout-modal .rpe-help-wrap:hover .rpe-tooltip,
+.workout-modal .rpe-help-wrap:focus-within .rpe-tooltip {
+  transform: translate(-50%, 0);
+}
+
 .rpe-tooltip strong {
   color: #12372c;
   font-size: 10px;

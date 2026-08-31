@@ -200,6 +200,7 @@ export default function HomePage() {
   }
 
   if (!activePlan || !focusWorkout) {
+    const completedCycle = plan?.status === 'completed';
     return (
       <main className="app-shell">
         <Sidebar user={user} plan={plan} />
@@ -215,24 +216,32 @@ export default function HomePage() {
               <CalendarDays size={25} />
             </span>
             <p>
-              {plan?.status === 'draft'
-                ? 'PLANO PRONTO PARA REVISÃO'
-                : 'PLANEJAMENTO'}
+              {completedCycle
+                ? 'CICLO CONCLUÍDO'
+                : plan?.status === 'draft'
+                  ? 'PLANO PRONTO PARA REVISÃO'
+                  : 'PLANEJAMENTO'}
             </p>
             <h2>
-              {plan?.status === 'draft'
-                ? 'Seu rascunho está esperando aprovação.'
-                : 'Crie seu primeiro ciclo de treinos.'}
+              {completedCycle
+                ? 'Pronto para suas próximas quatro semanas.'
+                : plan?.status === 'draft'
+                  ? 'Seu rascunho está esperando aprovação.'
+                  : 'Crie seu primeiro ciclo de treinos.'}
             </h2>
             <div>
-              {plan?.status === 'draft'
-                ? 'Revise as quatro semanas e aceite o plano para mostrar as sessões reais neste painel.'
-                : 'Conclua seu perfil para gerar um plano compatível com sua experiência e disponibilidade.'}
+              {completedCycle
+                ? 'Seu histórico foi preservado. Gere o próximo ciclo com seu perfil e sua disponibilidade atuais.'
+                : plan?.status === 'draft'
+                  ? 'Revise as quatro semanas e aceite o plano para mostrar as sessões reais neste painel.'
+                  : 'Conclua seu perfil para gerar um plano compatível com sua experiência e disponibilidade.'}
             </div>
             <a href="/plano">
-              {plan?.status === 'draft'
-                ? 'Revisar e aceitar plano'
-                : 'Criar meu plano'}
+              {completedCycle
+                ? 'Gerar próximo ciclo'
+                : plan?.status === 'draft'
+                  ? 'Revisar e aceitar plano'
+                  : 'Criar meu plano'}
               <ArrowRight size={15} />
             </a>
           </section>

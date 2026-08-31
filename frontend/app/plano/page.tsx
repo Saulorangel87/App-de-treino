@@ -231,7 +231,11 @@ export default function PlanPage() {
                       : 'draft-pill'
                   }
                 >
-                  {plan.status === 'active' ? 'PLANO ATIVO' : 'RASCUNHO'}
+                  {plan.status === 'active'
+                    ? 'PLANO ATIVO'
+                    : plan.status === 'completed'
+                      ? 'CICLO CONCLUÍDO'
+                      : 'RASCUNHO'}
                 </span>
                 {plan.status === 'draft' && (
                   <>
@@ -260,8 +264,34 @@ export default function PlanPage() {
                     </Button>
                   </>
                 )}
+                {plan.status === 'completed' && (
+                  <Button
+                    onClick={() => generate()}
+                    disabled={generating}
+                    className="plan-activate"
+                  >
+                    {generating ? (
+                      <LoaderCircle className="spin" size={14} />
+                    ) : (
+                      <Sparkles size={14} />
+                    )}
+                    {generating ? 'Calculando…' : 'Gerar próximo ciclo'}
+                  </Button>
+                )}
               </div>
             </header>
+            {plan.status === 'completed' && (
+              <div className="plan-safety">
+                <CheckCircle2 size={18} />
+                <div>
+                  <strong>Ciclo concluído</strong>
+                  <p>
+                    Seu histórico foi preservado. O próximo plano começará
+                    depois deste ciclo.
+                  </p>
+                </div>
+              </div>
+            )}
             {plan.prescription_snapshot.restricted && (
               <div className="plan-safety">
                 <ShieldAlert size={18} />

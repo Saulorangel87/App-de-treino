@@ -121,6 +121,64 @@
   flex: 0 0 auto;
 }
 
+:global(.workout-modal) .card {
+  border-color: #b9d0c3;
+  background: #edf5ef;
+  color: #173c30;
+}
+
+:global(.workout-modal) .safety {
+  border-color: #d69a3d;
+  background: #fff8e9;
+}
+
+:global(.workout-modal) .icon {
+  background: #c9f44f;
+  color: #173c30;
+}
+
+:global(.workout-modal) .safety .icon {
+  background: #f1b34e;
+  color: #402a0b;
+}
+
+:global(.workout-modal) .heading small,
+:global(.workout-modal) .spark {
+  color: #376d55;
+}
+
+:global(.workout-modal) .safety .heading small {
+  color: #82510b;
+}
+
+:global(.workout-modal) .heading strong {
+  color: #173c30;
+}
+
+:global(.workout-modal) .reason {
+  color: #405f52;
+}
+
+:global(.workout-modal) .comparison > span {
+  border-color: #c9d8cf;
+  background: #fff;
+}
+
+:global(.workout-modal) .comparison small,
+:global(.workout-modal) .comparison s {
+  color: #5b6d63;
+}
+
+:global(.workout-modal) .comparison b {
+  color: #173c30;
+}
+
+:global(.workout-modal) .warning {
+  border: 1px solid #edc47e;
+  background: #ffedcd;
+  color: #70420b;
+}
+
 .compact {
   width: min(100%, 390px);
   margin: 14px 0 0;
