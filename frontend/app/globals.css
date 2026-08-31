@@ -260,6 +260,7 @@ button {
   gap: 18px;
 }
 .today-card {
+  min-width: 0;
   min-height: 353px;
   border-radius: 19px;
   overflow: hidden;
@@ -267,13 +268,16 @@ button {
   color: white;
   display: grid;
   grid-template-columns: 1.08fr 0.92fr;
+  container-type: inline-size;
   box-shadow: 0 12px 30px rgba(20, 65, 50, 0.09);
 }
 .today-copy {
+  min-width: 0;
   padding: 34px 12px 30px 35px;
 }
 .section-label {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   color: #afc8bf;
@@ -289,12 +293,14 @@ button {
   opacity: 0.4;
 }
 .today-copy h2 {
+  max-width: 100%;
   font-family: var(--font-newsreader), Georgia, serif;
   font-size: clamp(42px, 4vw, 58px);
   line-height: 0.93;
   font-weight: 500;
   letter-spacing: -2px;
   margin: 24px 0 15px;
+  overflow-wrap: break-word;
 }
 .today-copy > p {
   max-width: 410px;
@@ -305,6 +311,7 @@ button {
 }
 .metric-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 22px;
   margin: 23px 0;
 }
@@ -352,8 +359,10 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  text-decoration: none;
 }
 .effort-visual {
+  min-width: 0;
   padding: 32px 32px 28px;
   background: rgba(6, 32, 24, 0.28);
   display: flex;
@@ -878,6 +887,7 @@ button {
   text-decoration: none;
 }
 .session-actions {
+  min-width: 0;
   margin: 18px 0;
   padding: 16px;
   display: grid;
@@ -933,8 +943,13 @@ button {
 }
 .session-button-row {
   display: grid;
-  grid-template-columns: 1fr 0.72fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.72fr);
   gap: 8px;
+}
+.session-button-row button {
+  min-width: 0;
+  padding-inline: 10px;
+  white-space: normal;
 }
 .session-guidance {
   margin: 0;
@@ -1076,6 +1091,9 @@ button {
 .workout-detail .session-actions {
   border-color: rgba(255, 255, 255, 0.11);
   background: rgba(255, 255, 255, 0.045);
+}
+.workout-detail .session-button-row {
+  grid-template-columns: 1fr;
 }
 .workout-detail .session-actions > header small,
 .workout-detail .session-guidance {
@@ -1276,6 +1294,25 @@ button {
   .profile-mini {
     justify-content: center;
   }
+  .today-card {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .effort-visual {
+    display: none;
+  }
+}
+@media (min-width: 981px) and (max-width: 1100px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .today-card {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr);
+  }
+}
+@media (max-width: 840px) {
   .today-card {
     grid-template-columns: 1fr;
   }
@@ -2545,6 +2582,7 @@ a.footer-icon:hover {
   font-style: normal;
 }
 .workout-detail {
+  min-width: 0;
   position: sticky;
   top: 18px;
   padding: 24px;
@@ -2620,7 +2658,8 @@ a.footer-icon:hover {
   z-index: 80;
   right: -4px;
   bottom: calc(100% + 10px);
-  width: min(270px, calc(100vw - 32px));
+  width: min(220px, calc(100vw - 48px));
+  max-width: calc(100vw - 48px);
   display: grid;
   gap: 4px;
   align-items: start;
@@ -2640,6 +2679,9 @@ a.footer-icon:hover {
     opacity 0.15s ease,
     transform 0.15s ease,
     visibility 0.15s ease;
+}
+.today-card .rpe-tooltip {
+  width: clamp(160px, 20cqw, 220px);
 }
 .rpe-tooltip::after {
   content: '';
@@ -2745,6 +2787,19 @@ a.footer-icon:hover {
   .feedback-grid,
   .session-button-row {
     grid-template-columns: 1fr;
+  }
+}
+@container (max-width: 560px) {
+  .today-copy h2 {
+    font-size: clamp(30px, 10cqw, 45px);
+    line-height: 0.98;
+    letter-spacing: -1.2px;
+  }
+  .today-copy {
+    padding-inline: clamp(20px, 7cqw, 30px);
+  }
+  .details-button {
+    margin: 12px 0 0;
   }
 }
 @media (max-width: 720px) {
