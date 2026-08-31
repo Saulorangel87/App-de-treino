@@ -155,6 +155,28 @@ func TestBuildPlanRestrictionOverridesSpecificCyclingContext(t *testing.T) {
 	}
 }
 
+func TestBuildPlanUsesAssessmentForControlledIntervalsOnlyInBuildWeeks(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 75}, {Weekday: 6, AvailableMinutes: 180}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	intervals := 0
+	for _, workout := range plan.Workouts {
+		if workout.Name == "Intervalos controlados" {
+			intervals++
+			if workout.TargetRPE != 7 || workout.DurationMinutes > 75 {
+				t.Fatalf("unexpected interval workout: %#v", workout)
+			}
+		}
+	}
+	if intervals != 2 {
+		t.Fatalf("expected intervals only in two build weeks, got %d", intervals)
+	}
+}
+
 func intPointer(value int) *int { return &value }
 
 func TestActivateReturnsTheActivePlan(t *testing.T) {

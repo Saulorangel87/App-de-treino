@@ -41,12 +41,13 @@ type CyclingContext struct {
 }
 
 type Context struct {
-	ProfileID       string
-	ExperienceLevel string
-	PrimaryGoal     string
-	Limitations     []LimitationContext
-	Availability    []AvailabilitySlot
-	Cycling         CyclingContext
+	ProfileID        string
+	ExperienceLevel  string
+	PrimaryGoal      string
+	Limitations      []LimitationContext
+	Availability     []AvailabilitySlot
+	Cycling          CyclingContext
+	BaselineEligible bool
 }
 
 type Workout struct {
@@ -279,6 +280,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 				"uses_power": input.Cycling.UsesPower,
 				"event_goal": input.Cycling.EventGoal,
 			},
+			"baseline_eligible": input.BaselineEligible,
 		},
 		Workouts: workouts,
 	}
@@ -291,6 +293,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	targetRPE := 4.0
 	mainBlock := "Ritmo confortável e contínuo"
 	summary := explanationFor(kind, restricted)
+	usesControlledIntervals := false
 	if kind == "long" {
 		baseMinutes = map[string]int{"beginner": 75, "intermediate": 90, "advanced": 120}[input.ExperienceLevel]
 		name = "Endurance contínuo"
@@ -301,7 +304,13 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		name = "Tempo controlado"
 		targetRPE = 6.0
 		mainBlock = "3 blocos sustentados com recuperação leve"
-		if input.ExperienceLevel == "intermediate" && input.Cycling.BikeType == "indoor" {
+		if input.ExperienceLevel == "advanced" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 50 && multiplier >= 0.95 {
+			name = "Intervalos controlados"
+			targetRPE = 7.0
+			mainBlock = "4 blocos de 4 min em esforço forte-controlado, com 3 min leves entre os blocos"
+			summary = "A referência submáxima concluída sem sinais de alerta permite uma progressão intervalada controlada."
+			usesControlledIntervals = true
+		} else if input.ExperienceLevel == "intermediate" && input.Cycling.BikeType == "indoor" {
 			name = "Cadência técnica"
 			targetRPE = 5.0
 			mainBlock = "6 blocos de cadência controlada com recuperação leve"
@@ -351,8 +360,15 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		fmt.Sprintf("Carga compatível com experiência %s.", experienceLabel(input.ExperienceLevel)),
 		"Progressão de três semanas seguida por uma semana de recuperação.",
 	}
+	if usesControlledIntervals {
+		rules = append(rules, "Intervalos liberados pela avaliação submáxima apta, apenas nas semanas de construção.")
+	}
 	if restricted {
 		rules = append(rules, "Intensidade limitada por uma condição de segurança ativa.")
+	}
+	evidenceKeys := []string{"acsm-1998"}
+	if usesControlledIntervals {
+		evidenceKeys = append(evidenceKeys, "rosenblat-2020")
 	}
 	return Workout{
 		ScheduledOn:     date.Format("2006-01-02"),
@@ -365,7 +381,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 			"main":             mainBlock,
 			"cooldown_minutes": minInt(10, maxInt(5, duration/8)),
 		},
-		Explanation: map[string]any{"summary": summary, "rules": rules, "evidence_keys": []string{"acsm-1998"}},
+		Explanation: map[string]any{"summary": summary, "rules": rules, "evidence_keys": evidenceKeys},
 		Status:      "planned",
 	}
 }

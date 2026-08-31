@@ -14,8 +14,10 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 	var input planning.Context
 	var cyclingContext []byte
 	err := s.pool.QueryRow(ctx, `
-		SELECT id::text, experience_level, cycling_context FROM athlete_profiles WHERE user_id = $1`, userID,
-	).Scan(&input.ProfileID, &input.ExperienceLevel, &cyclingContext)
+		SELECT ap.id::text, ap.experience_level, ap.cycling_context,
+			COALESCE((SELECT ca.eligible_for_progression FROM cycling_assessments ca WHERE ca.athlete_profile_id = ap.id ORDER BY ca.completed_at DESC LIMIT 1), false)
+		FROM athlete_profiles ap WHERE ap.user_id = $1`, userID,
+	).Scan(&input.ProfileID, &input.ExperienceLevel, &cyclingContext, &input.BaselineEligible)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return planning.Context{}, planning.ErrIncompleteOnboarding
 	}

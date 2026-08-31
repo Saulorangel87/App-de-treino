@@ -62,7 +62,7 @@ ou PostgreSQL próprio na VPS Oracle (produção)
 - O pgAdmin foi configurado e as tabelas foram visualizadas com sucesso.
 - A senha local existe somente no `.env` ignorado e não deve ser copiada para documentos ou commits.
 
-O esquema contém usuários, perfis, objetivos, disponibilidade, recuperação, limitações, planos, treinos, sessões, feedback e sessões de autenticação. O perfil também possui um contexto opcional de ciclismo em JSONB e histórico de avaliações submáximas. As migrações atuais vão de `000001` a `000009`.
+O esquema contém usuários, perfis, objetivos, disponibilidade, recuperação, limitações, planos, treinos, sessões, feedback e sessões de autenticação. O perfil também possui um contexto opcional de ciclismo em JSONB e histórico de avaliações submáximas. As migrações atuais vão de `000001` a `000010`.
 
 ## Backend implementado
 
@@ -174,6 +174,10 @@ Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exampl
 1. Usar a referência submáxima no motor para habilitar progressivamente sessões intervaladas controladas, mantendo bloqueios de segurança.
 2. Testar a instalação do PWA em um celular por uma origem HTTPS acessível pelo aparelho.
 3. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração. Integrar o Cloudflare Tunnel já utilizado à exposição HTTPS, mantendo o PostgreSQL inacessível publicamente.
+
+## Pendência de UX registrada
+
+- Na lateral de detalhes do plano, aumentar em etapa futura a tipografia da estrutura do treino, da explicação e das regras; manter as referências científicas em tamanho compacto.
 
 ## Estado do Git no momento deste registro
 
