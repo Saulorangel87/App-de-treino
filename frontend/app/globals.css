@@ -1148,6 +1148,28 @@ button {
 .workout-detail .feedback-scale {
   color: #a9bfb6;
 }
+.workout-detail .session-feedback .pain-check {
+  border-color: #d7e2da;
+  background: #f8fbf8;
+  color: #274c3d;
+}
+.workout-detail .session-feedback .pain-check input {
+  accent-color: #b5533d;
+}
+.workout-detail .session-feedback textarea {
+  border-color: #d7e2da;
+  background: #f8fbf8;
+  color: #284b3c;
+}
+.workout-detail .session-feedback textarea::placeholder {
+  color: #637a6e;
+  opacity: 1;
+}
+.workout-detail .session-feedback textarea:focus,
+.workout-detail .session-feedback .pain-check:has(input:focus-visible) {
+  outline: 2px solid #b8e854;
+  outline-offset: 2px;
+}
 .workout-detail .session-result {
   color: #a3e8c1;
 }
