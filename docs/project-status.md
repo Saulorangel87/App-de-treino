@@ -47,7 +47,7 @@ ou PostgreSQL próprio na VPS Oracle (produção)
 - `database/migrations/`: migrações PostgreSQL.
 - `database/tests/`: verificações SQL das migrações e regras do banco.
 - `api/openapi.yaml`: contrato OpenAPI da API.
-- `infrastructure/`: futura configuração de produção na VPS Oracle.
+- `infrastructure/`: configuração versionada de produção para a VPS Oracle; ainda não implantada.
 - `scripts/`: scripts auxiliares para desenvolvimento local.
 - `docs/`: decisões, regras e este registro de continuidade.
 
@@ -184,7 +184,7 @@ Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exampl
 
 ## Próximas etapas recomendadas
 
-1. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração. Integrar o Cloudflare Tunnel já utilizado à exposição HTTPS, mantendo o PostgreSQL inacessível publicamente.
+1. Revisar e implantar na VPS Oracle a composição em `infrastructure/cadencia/`: PostgreSQL privado, usuário de aplicação com privilégio mínimo, migrações controladas, backup, teste de restauração e Cloudflare Tunnel dedicado. Nenhuma etapa de VPS ou Cloudflare foi executada ainda.
 
 ## Pendência de UX registrada
 

@@ -8,14 +8,14 @@ Aplicação de planejamento adaptativo de treinos de ciclismo.
 - `backend/`: API REST em Go.
 - `database/`: migrações PostgreSQL versionadas.
 - `api/`: contrato OpenAPI.
-- `infrastructure/`: configuração futura da VPS Oracle.
+- `infrastructure/`: configuração versionada para a VPS Oracle.
 - `docs/`: decisões e regras do produto.
 
 ## Ambiente local
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema atual chega à migração `000010`.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema atual chega à migração `000011`.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -68,7 +68,9 @@ Quando não existem mais sessões planejadas ou em andamento, o PostgreSQL marca
 
 O fluxo completo de cadastro, onboarding, geração e ativação do plano, execução da sessão, feedback, adaptação e geração do próximo ciclo está implementado localmente. O frontend possui layout responsivo, PWA, rodapé com contatos, ajuda de RPE, logout autenticado e bloqueio correto do scroll de fundo nos modais. A navegação, os gráficos, o plano e o modal de sessão foram validados em um celular real.
 
-O histórico de atividades, o contexto específico de ciclismo, a avaliação submáxima, as sessões intervaladas controladas, o check-in diário e a área de evolução estão implementados localmente. Em paralelo, permanece a preparação da VPS Oracle com TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups, restauração e Cloudflare Tunnel para expor somente o frontend e/ou a API — nunca o PostgreSQL.
+O histórico de atividades, o contexto específico de ciclismo, a avaliação submáxima, as sessões intervaladas controladas, o check-in diário e a área de evolução estão implementados localmente. A configuração de produção foi preparada em `infrastructure/cadencia/`, com PostgreSQL privado, usuário de aplicação com privilégio mínimo, migrações controladas, backup verificável e Cloudflare Tunnel dedicado. Ela foi validada por build e execução local do frontend, mas ainda não foi implantada na VPS Oracle nem recebeu segredos reais.
+
+Consulte [infrastructure/cadencia/README.md](infrastructure/cadencia/README.md) antes de implantar. A VPS e o Cloudflare só devem ser alterados após revisão e autorização explícita; o PostgreSQL nunca recebe hostname, rota pública ou porta exposta.
 
 ## PWA
 

@@ -66,10 +66,11 @@ Concluído localmente:
 13. Área de evolução baseada em dados observados: sessões encerradas, duração e distância semanais, elevação acumulada, médias opcionais de potência/frequência cardíaca, RPE, consistência e check-ins, sem pontuação de saúde, estimativa de performance ou diagnóstico.
 14. Métricas do pedal são opcionais: distância e elevação para qualquer sessão; frequência cardíaca e potência somente quando o equipamento está informado no perfil. A elevação é persistida pela migração `000011`.
 15. PWA instalado e validado em um celular real por origem HTTPS temporária, incluindo navegação autenticada, comportamento responsivo, gráficos, modal de sessão e logout. O túnel e seus registros DNS temporários foram removidos depois do teste.
+16. Configuração de produção preparada localmente em `infrastructure/cadencia/`, com imagens Docker para frontend e API, PostgreSQL em rede interna, usuário de aplicação sem privilégios administrativos, migrações controladas, backup verificável e Cloudflare Tunnel dedicado. A configuração não foi implantada na VPS nem recebeu segredos reais.
 
 ## Próximas implementações
 
-1. Preparar a produção na VPS Oracle com TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, backups automatizados e teste de restauração. O Cloudflare Tunnel deve expor somente o frontend e/ou a API.
+1. Implantar e validar a configuração preparada na VPS Oracle: banco privado, migrações, backup automatizado e teste de restauração. O Cloudflare Tunnel dedicado deve expor somente o frontend e a API.
 
 Uma implantação só será considerada concluída depois de validar HTTPS, CORS, cookies seguros, migrações, backup e restauração.
 
