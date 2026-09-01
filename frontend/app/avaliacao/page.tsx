@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Activity, AlertTriangle, ArrowLeft, Bike, CheckCircle2, Clock3, LoaderCircle } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
+import { AccountActions } from '@/components/account-actions';
 
 type User = { display_name: string };
 type Assessment = { id: string; duration_minutes: number; actual_rpe: number; pain_reported: boolean; eligible_for_progression: boolean };
@@ -36,7 +37,7 @@ export default function AssessmentPage() {
 
   if (loading || !user) return <main className="profile-loading"><LoaderCircle className="spin" />Carregando sua avaliação…</main>;
   return <main className="assessment-shell">
-    <header className="profile-topbar"><a href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</a><div><small>ATLETA</small><strong>{user.display_name}</strong></div></header>
+    <header className="profile-topbar"><a href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</a><AccountActions label="ATLETA" name={user.display_name} /></header>
     <section className="assessment-content">
       <a href="/" className="back-link"><ArrowLeft size={15} />Voltar ao painel</a>
       <header className="assessment-heading"><p>AVALIAÇÃO INICIAL</p><h1>Seu pedal de referência.</h1><span>Uma referência submáxima para orientar a evolução do plano. Não é exame médico nem teste máximo.</span></header>

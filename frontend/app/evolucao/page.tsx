@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Bike, CalendarCheck2, CircleAlert, Clock3, HeartPulse, LineChart, LoaderCircle, MapPinned, MoonStar, Mountain, Target, Zap } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
+import { AccountActions } from '@/components/account-actions';
 
 type User = { display_name: string };
 type Week = { week_start: string; completed_sessions: number; cancelled_sessions: number; total_minutes: number; average_rpe: number; total_distance_km: number; total_elevation_m: number; average_power_watts: number; average_heart_rate: number };
@@ -35,7 +36,7 @@ export default function EvolutionPage() {
   const hasCyclingMetrics = summary.total_distance_km > 0 || summary.total_elevation_m > 0 || summary.average_power_watts > 0 || summary.average_heart_rate > 0;
 
   return <main className="evolution-shell">
-    <header className="profile-topbar"><a href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</a><div><small>ATLETA</small><strong>{user.display_name}</strong></div></header>
+    <header className="profile-topbar"><a href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</a><AccountActions label="ATLETA" name={user.display_name} /></header>
     <section className="evolution-content">
       <a href="/" className="back-link"><ArrowLeft size={15} />Voltar ao painel</a>
       <header className="evolution-heading"><p>EVOLUÇÃO</p><h1>Seu histórico, com contexto.</h1><span>Registros observados ao longo do tempo. Eles ajudam você a acompanhar consistência e resposta percebida, mas não substituem avaliação profissional nem representam diagnóstico.</span></header>

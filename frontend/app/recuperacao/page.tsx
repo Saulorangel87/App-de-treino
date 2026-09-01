@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Bike, CheckCircle2, HeartPulse, LoaderCircle, MoonStar, ShieldAlert } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
+import { AccountActions } from '@/components/account-actions';
 
 type User = { display_name: string };
 type AdaptedWorkout = { id: string; scheduled_on: string; name: string; duration_minutes: number; target_rpe: number };
@@ -68,7 +69,7 @@ export default function RecoveryPage() {
   if (loading || !user) return <main className="profile-loading"><LoaderCircle className="spin" />Carregando sua recuperação…</main>;
   const resultCopy = recovery ? readinessCopy[recovery.readiness] : null;
   return <main className="recovery-shell">
-    <header className="profile-topbar"><a href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</a><div><small>ATLETA</small><strong>{user.display_name}</strong></div></header>
+    <header className="profile-topbar"><a href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</a><AccountActions label="ATLETA" name={user.display_name} /></header>
     <section className="recovery-content">
       <a href="/" className="back-link"><ArrowLeft size={15} />Voltar ao painel</a>
       <header className="recovery-heading"><p>CHECK-IN DIÁRIO</p><h1>Como você chega para hoje?</h1><span>Registre sono, estresse e fadiga percebida. O app usa esses sinais apenas para manter ou reduzir a próxima carga — nunca para aumentá-la automaticamente.</span></header>

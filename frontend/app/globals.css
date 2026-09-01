@@ -233,6 +233,59 @@ button {
   align-items: center;
   gap: 9px;
 }
+.logout-wrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+.logout-button {
+  height: 36px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #dce4de;
+  border-radius: 10px;
+  background: white;
+  color: #52675d;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+.logout-button:hover {
+  border-color: #bdcfc4;
+  background: #f5f8f5;
+  color: #214f3d;
+}
+.logout-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+.logout-button.compact {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+}
+.logout-button.compact span {
+  display: none;
+}
+.logout-wrap > small {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 6px);
+  right: 0;
+  width: max-content;
+  max-width: min(260px, calc(100vw - 32px));
+  padding: 6px 8px;
+  border-radius: 7px;
+  background: #fff1ed;
+  color: #984d39;
+  box-shadow: 0 8px 24px rgba(29, 55, 44, 0.12);
+  font-size: 9px;
+  line-height: 1.35;
+}
 .help-button {
   width: 38px;
   height: 38px;
@@ -1433,13 +1486,20 @@ button {
     width: 100%;
     display: grid;
     grid-template-columns: repeat(6, 1fr);
+    gap: 2px;
   }
   .nav-item {
+    min-width: 0;
     height: 48px;
     padding: 0;
     flex-direction: column;
     gap: 3px;
     font-size: 7px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .nav-item.active {
+    box-shadow: inset 0 -2px var(--lime);
   }
   .workspace {
     padding: 0 16px 88px;
@@ -1733,6 +1793,16 @@ button {
 .profile-topbar > div {
   text-align: right;
 }
+.profile-topbar .account-actions {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+.account-identity {
+  min-width: 0;
+  text-align: right;
+}
 .profile-topbar small,
 .profile-topbar strong {
   display: block;
@@ -1745,6 +1815,12 @@ button {
 .profile-topbar strong {
   font-size: 10px;
   margin-top: 3px;
+}
+.account-identity strong {
+  max-width: min(260px, 32vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .profile-content {
   width: min(1080px, calc(100% - 40px));
@@ -2497,7 +2573,31 @@ a.footer-icon:hover {
 .consistency-count { display: flex; align-items: baseline; gap: 8px; margin: 39px 0 14px; }.consistency-count strong { color: #214538; font-family: var(--font-newsreader), Georgia, serif; font-size: 56px; font-weight: 500; }.consistency-count span { color: #66766d; font-size: 12px; }.consistency-line { height: 10px; overflow: hidden; border-radius: 9px; background: #edf2ed; }.consistency-line i { display: block; height: 100%; border-radius: inherit; background: #3b7b59; }.consistency-labels { display: flex; justify-content: space-between; margin-top: 8px; color: #718078; font-size: 10px; }
 .recovery-history { margin-top: 18px; }.recovery-history-list { display: grid; margin-top: 18px; border-top: 1px solid #e8ede8; }.recovery-history-item { display: grid; grid-template-columns: 74px 112px repeat(3, 1fr); gap: 10px; align-items: center; min-height: 49px; border-bottom: 1px solid #e8ede8; color: #607168; font-size: 11px; }.recovery-history-item time { color: #355948; font-weight: 750; text-transform: uppercase; }.readiness-tag { width: fit-content; padding: 5px 8px; border-radius: 20px; background: #e7f5eb; color: #2d7050; font-size: 9px; font-weight: 800; }.readiness-tag.caution { background: #fff7e7; color: #92662d; }.readiness-tag.recovery_needed { background: #fff0ea; color: #9a4d36; }
 .evolution-empty { max-width: 700px; margin: 70px auto; padding: 55px; text-align: center; color: #5b7466; }.evolution-empty > svg { color: #558049; }.evolution-empty h2 { margin: 16px 0 8px; color: #29483b; font-family: var(--font-newsreader), Georgia, serif; font-size: 29px; font-weight: 500; }.evolution-empty p { margin: 0; font-size: 13px; line-height: 1.6; }.evolution-empty a { display: inline-block; margin-top: 18px; color: #216448; font-size: 12px; font-weight: 800; }
-@media (max-width: 760px) { .evolution-content { width: min(100% - 32px, 1040px); }.evolution-heading h1 { font-size: 34px; }.evolution-metrics { grid-template-columns: repeat(2, 1fr); }.evolution-metrics article:nth-child(2) { border-right: 0; }.evolution-metrics article:nth-child(-n+2) { border-bottom: 1px solid var(--line); }.evolution-grid { grid-template-columns: 1fr; }.recovery-history-item { grid-template-columns: 64px 100px 1fr; padding: 10px 0; }.recovery-history-item span:nth-last-child(-n+2) { grid-column: 3; }.evolution-card { padding: 20px; } }
+@media (max-width: 760px) {
+  .evolution-content { width: min(100% - 32px, 1040px); overflow-x: clip; }
+  .evolution-heading h1 { font-size: 34px; }
+  .evolution-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .evolution-metrics article { min-width: 0; }
+  .evolution-metrics article:nth-child(2) { border-right: 0; }
+  .evolution-metrics article:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  .evolution-grid { grid-template-columns: minmax(0, 1fr); }
+  .evolution-card { min-width: 0; padding: 20px; overflow: hidden; }
+  .volume-chart,
+  .distance-chart {
+    max-width: 100%;
+    grid-template-columns: repeat(8, minmax(46px, 1fr));
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #a9bdb2 transparent;
+  }
+  .volume-column { min-width: 0; }
+  .cycling-chart-title { flex-wrap: wrap; }
+  .recovery-history-item { grid-template-columns: 64px 100px minmax(0, 1fr); padding: 10px 0; }
+  .recovery-history-item span { min-width: 0; }
+  .recovery-history-item span:nth-last-child(-n+2) { grid-column: 3; }
+}
 
 .plan-content {
   width: min(1180px, calc(100% - 40px));
@@ -2689,6 +2789,9 @@ a.footer-icon:hover {
   display: grid;
   gap: 13px;
 }
+.workout-detail-shell {
+  min-width: 0;
+}
 .plan-week {
   overflow: hidden;
   border: 1px solid var(--line);
@@ -2788,9 +2891,11 @@ a.footer-icon:hover {
   display: flex;
   align-items: center;
   gap: 4px;
+  justify-self: end;
   color: #718178;
   font-size: 9px;
   font-style: normal;
+  white-space: nowrap;
 }
 .workout-detail {
   min-width: 0;
@@ -2800,6 +2905,12 @@ a.footer-icon:hover {
   border-radius: 15px;
   background: #12372c;
   color: white;
+}
+.workout-detail-close {
+  display: none;
+}
+.workout-detail-backdrop {
+  display: none;
 }
 .workout-detail > span {
   color: var(--lime);
@@ -2978,8 +3089,57 @@ a.footer-icon:hover {
   .plan-layout {
     grid-template-columns: 1fr;
   }
-  .workout-detail {
-    position: static;
+  .workout-detail-shell {
+    display: none;
+  }
+  .workout-detail-shell.mobile-open {
+    position: fixed;
+    z-index: 120;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    background: rgba(5, 24, 18, 0.72);
+    backdrop-filter: blur(4px);
+  }
+  .workout-detail-shell.mobile-open .workout-detail {
+    position: relative;
+    z-index: 1;
+    top: auto;
+    width: min(100%, 520px);
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 24px 70px rgba(4, 24, 17, 0.38);
+  }
+  .workout-detail-shell.mobile-open .workout-detail-backdrop {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    cursor: default;
+  }
+  .workout-detail-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    cursor: pointer;
+  }
+  .workout-detail > span,
+  .workout-detail h2 {
+    padding-right: 42px;
   }
 }
 @media (max-width: 650px) {
@@ -3009,7 +3169,11 @@ a.footer-icon:hover {
     border-top: 1px solid #e7ece6;
   }
   .plan-week button {
-    grid-template-columns: 48px 1fr 58px;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    gap: 9px;
+  }
+  .plan-week button em {
+    font-size: 10px;
   }
   .plan-week button em:last-child {
     display: none;
@@ -3064,5 +3228,21 @@ a.footer-icon:hover {
   }
   .sidebar {
     bottom: var(--footer-height);
+  }
+  .profile-topbar {
+    padding-inline: 16px;
+  }
+  .profile-topbar .account-actions {
+    gap: 8px;
+  }
+  .account-identity strong {
+    max-width: 120px;
+  }
+  .logout-button:not(.compact) {
+    width: 36px;
+    padding: 0;
+  }
+  .logout-button:not(.compact) span {
+    display: none;
   }
 }

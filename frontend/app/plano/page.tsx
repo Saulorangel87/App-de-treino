@@ -12,8 +12,10 @@ import {
   RefreshCw,
   ShieldAlert,
   Sparkles,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AccountActions } from '@/components/account-actions';
 import { AdaptationCard } from '@/components/adaptation-card';
 import { RpeHelp } from '@/components/rpe-help';
 import { WorkoutSessionActions } from '@/components/workout-session-actions';
@@ -43,6 +45,7 @@ export default function PlanPage() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [activating, setActivating] = useState(false);
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
@@ -62,6 +65,15 @@ export default function PlanPage() {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!mobileDetailOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileDetailOpen]);
 
   const weeks = useMemo(() => {
     if (!plan) return [];
@@ -94,6 +106,13 @@ export default function PlanPage() {
     setSelected(
       nextPlan.workouts.find((workout) => workout.id === workoutID) || null,
     );
+  }
+
+  function selectWorkout(workout: Workout) {
+    setSelected(workout);
+    if (window.matchMedia('(max-width: 900px)').matches) {
+      setMobileDetailOpen(true);
+    }
   }
 
   async function generate(replace = false) {
@@ -173,10 +192,7 @@ export default function PlanPage() {
           </span>
           cadência
         </a>
-        <div>
-          <small>ATLETA</small>
-          <strong>{user?.display_name}</strong>
-        </div>
+        <AccountActions label="ATLETA" name={user?.display_name} />
       </header>
       <section className="plan-content">
         <a href="/" className="back-link">
@@ -377,7 +393,7 @@ export default function PlanPage() {
                             selected?.id === workout.id ? 'selected' : '',
                             workout.status === 'completed' ? 'completed' : '',
                           ].filter(Boolean).join(' ')}
-                          onClick={() => setSelected(workout)}
+                          onClick={() => selectWorkout(workout)}
                         >
                           <time>
                             {dateFormatter.format(
@@ -408,9 +424,31 @@ export default function PlanPage() {
                 ))}
               </div>
               {selected && (
-                <aside className="workout-detail">
+                <div
+                  className={`workout-detail-shell${mobileDetailOpen ? ' mobile-open' : ''}`}
+                  role={mobileDetailOpen ? 'dialog' : undefined}
+                  aria-modal={mobileDetailOpen ? true : undefined}
+                  aria-labelledby={
+                    mobileDetailOpen ? 'selected-workout-title' : undefined
+                  }
+                >
+                  <button
+                    type="button"
+                    className="workout-detail-backdrop"
+                    aria-label="Fechar detalhes do treino"
+                    onClick={() => setMobileDetailOpen(false)}
+                  />
+                  <aside className="workout-detail">
+                  <button
+                    type="button"
+                    className="workout-detail-close"
+                    aria-label="Fechar detalhes do treino"
+                    onClick={() => setMobileDetailOpen(false)}
+                  >
+                    <X size={19} />
+                  </button>
                   <span>SESSÃO SELECIONADA</span>
-                  <h2>{selected.name}</h2>
+                  <h2 id="selected-workout-title">{selected.name}</h2>
                   <p>{selected.explanation.summary}</p>
                   <div className="detail-metrics">
                     <div>
@@ -466,7 +504,8 @@ export default function PlanPage() {
                       </ul>
                     </>
                   ) : null}
-                </aside>
+                  </aside>
+                </div>
               )}
             </div>
           </>

@@ -19,6 +19,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { AdaptationCard } from '@/components/adaptation-card';
+import { LogoutButton } from '@/components/account-actions';
 import { RpeHelp } from '@/components/rpe-help';
 import { WorkoutSessionActions } from '@/components/workout-session-actions';
 import { apiRequest } from '@/lib/api';
@@ -247,6 +248,7 @@ export default function HomePage() {
               <p className="eyebrow">SEU TREINO, NO SEU RITMO</p>
               <h1>Olá, {user.display_name.split(' ')[0]}.</h1>
             </div>
+            <LogoutButton compact />
           </header>
           <section className="dashboard-empty">
             <span>
@@ -324,14 +326,17 @@ export default function HomePage() {
             </p>
             <h1>Olá, {user.display_name.split(' ')[0]}.</h1>
           </div>
-          <a className="active-plan-pill" href="/plano">
-            <span className="status-dot" />
-            Plano ativo<strong>4 semanas</strong>
-          </a>
-          <a className={`recovery-pill ${recovery?.readiness || 'pending'}`} href="/recuperacao">
-            <HeartPulse size={15} />
-            {recovery ? recovery.readiness === 'ready' ? 'Recuperação ok' : recovery.readiness === 'caution' ? 'Atenção à recuperação' : 'Priorize recuperação' : 'Fazer check-in'}
-          </a>
+          <div className="top-actions">
+            <a className="active-plan-pill" href="/plano">
+              <span className="status-dot" />
+              Plano ativo<strong>4 semanas</strong>
+            </a>
+            <a className={`recovery-pill ${recovery?.readiness || 'pending'}`} href="/recuperacao">
+              <HeartPulse size={15} />
+              {recovery ? recovery.readiness === 'ready' ? 'Recuperação ok' : recovery.readiness === 'caution' ? 'Atenção à recuperação' : 'Priorize recuperação' : 'Fazer check-in'}
+            </a>
+            <LogoutButton compact />
+          </div>
         </header>
         <div className="dashboard-grid">
           <section className="today-card">

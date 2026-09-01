@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiRequest } from '@/lib/api';
+import { AccountActions } from '@/components/account-actions';
 
 type User = { display_name: string; email: string };
 type Profile = { birth_date?: string | null; sex?: string | null; height_cm?: number | null; weight_kg?: number | null; experience_level: string; activity_level?: string | null };
@@ -189,7 +190,7 @@ export default function ProfilePage() {
 
   return (
     <main className="profile-shell">
-      <header className="profile-topbar"><a href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</a><div><small>CONTA</small><strong>{user?.display_name}</strong></div></header>
+      <header className="profile-topbar"><a href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</a><AccountActions label="CONTA" name={user?.display_name} /></header>
       <section className="profile-content">
         <a href="/" className="back-link"><ArrowLeft size={15} /> Voltar ao painel</a>
         <nav className="onboarding-progress" aria-label="Progresso do perfil">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Activity, ArrowLeft, Bike, CalendarDays, Clock3, Gauge, HeartPulse, LoaderCircle, MapPinned, XCircle, Zap } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
+import { AccountActions } from '@/components/account-actions';
 import { parseTrainingDate, type Activity as TrainingActivity } from '@/lib/planning';
 
 type User = { display_name: string };
@@ -46,7 +47,7 @@ export default function ActivitiesPage() {
     <main className="activities-shell">
       <header className="profile-topbar">
         <a href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</a>
-        <div><small>ATLETA</small><strong>{user?.display_name}</strong></div>
+        <AccountActions label="ATLETA" name={user?.display_name} />
       </header>
       <section className="activities-content">
         <a href="/" className="back-link"><ArrowLeft size={15} />Voltar ao painel</a>

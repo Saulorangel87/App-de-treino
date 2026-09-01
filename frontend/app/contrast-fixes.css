@@ -213,4 +213,12 @@ button:focus-visible {
   .rpe-tooltip strong {
     font-size: 13px;
   }
+
+  .main-nav .nav-item {
+    padding-inline: 2px;
+    overflow: hidden;
+    font-size: 9px;
+    line-height: 1;
+    letter-spacing: -0.15px;
+  }
 }
