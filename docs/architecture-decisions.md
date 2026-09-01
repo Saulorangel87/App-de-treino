@@ -63,12 +63,12 @@ Concluído localmente:
 10. Contexto opcional e condicional de ciclismo persistido (histórico resumido, terreno, equipamento, FTP e meta de prova).
 11. Avaliação inicial submáxima persistida, sem teste máximo ou diagnóstico.
 12. Check-in diário persistido na tabela `recovery_data`, com data local enviada pelo cliente e adaptação conservadora, transacional e idempotente da próxima sessão.
-13. Área de evolução baseada em dados observados: sessões encerradas, duração, RPE, consistência semanal e check-ins, sem pontuação de saúde ou diagnóstico.
+13. Área de evolução baseada em dados observados: sessões encerradas, duração e distância semanais, elevação acumulada, médias opcionais de potência/frequência cardíaca, RPE, consistência e check-ins, sem pontuação de saúde, estimativa de performance ou diagnóstico.
 14. Métricas do pedal são opcionais: distância e elevação para qualquer sessão; frequência cardíaca e potência somente quando o equipamento está informado no perfil. A elevação é persistida pela migração `000011`.
 
 ## Próximas implementações
 
-1. Agregar distância, elevação, potência e frequência cardíaca na área de evolução, respeitando a ausência de dados.
+1. Validar no navegador autenticado a apresentação agregada de distância, elevação, potência e frequência cardíaca na área de evolução, inclusive quando parte dessas métricas não foi preenchida.
 2. Testar instalação e comportamento do PWA em um celular por origem HTTPS.
 3. Preparar a produção na VPS Oracle com TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, backups automatizados e teste de restauração. O Cloudflare Tunnel deve expor somente o frontend e/ou a API.
 

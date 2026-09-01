@@ -8,6 +8,10 @@ type Week struct {
 	CancelledSessions int     `json:"cancelled_sessions"`
 	TotalMinutes      int     `json:"total_minutes"`
 	AverageRPE        float64 `json:"average_rpe"`
+	TotalDistanceKM   float64 `json:"total_distance_km"`
+	TotalElevationM   int     `json:"total_elevation_m"`
+	AveragePowerW     float64 `json:"average_power_watts"`
+	AverageHeartRate  float64 `json:"average_heart_rate"`
 }
 
 type RecoveryPoint struct {
@@ -26,6 +30,10 @@ type Summary struct {
 	AverageRPE        float64         `json:"average_rpe"`
 	AverageFatigue    float64         `json:"average_fatigue"`
 	CompletionRate    float64         `json:"completion_rate"`
+	TotalDistanceKM   float64         `json:"total_distance_km"`
+	TotalElevationM   int             `json:"total_elevation_m"`
+	AveragePowerW     float64         `json:"average_power_watts"`
+	AverageHeartRate  float64         `json:"average_heart_rate"`
 	Weeks             []Week          `json:"weeks"`
 	Recovery          []RecoveryPoint `json:"recovery"`
 }

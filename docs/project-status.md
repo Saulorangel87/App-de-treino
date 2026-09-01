@@ -83,7 +83,7 @@ A API Go possui:
 - `PUT /v1/onboarding/cycling-context`: salva volume semanal, maior pedal, bicicleta, terreno, sensores, FTP e meta de prova opcionais.
 - `GET /v1/assessments/current` e `POST /v1/assessments/submaximal`: consultam e registram uma avaliação submáxima opcional.
 - `GET /v1/recovery/today` e `PUT /v1/recovery/today`: consultam e salvam o check-in diário na data local do atleta.
-- `GET /v1/evolution/summary`: retorna sessões encerradas, volume das últimas oito semanas e check-ins recentes.
+- `GET /v1/evolution/summary`: retorna sessões encerradas, duração e distância das últimas oito semanas, métricas agregadas registradas e check-ins recentes.
 - `POST /v1/plans/generate`: gera um rascunho explicável de quatro semanas.
 - `GET /v1/plans/current`: consulta plano ativo, rascunho ou ciclo concluído mais recente.
 - `POST /v1/plans/{planID}/activate`: ativa um rascunho de forma transacional.
@@ -121,7 +121,7 @@ Segurança aplicada:
 - Questionário de ciclismo opcional e condicional no fim do perfil: o FTP só aparece para quem usa medidor de potência e distância/data só aparecem quando existe meta de prova.
 - Rota `/avaliacao` para pedal de referência submáximo com registro de RPE, duração e dor; a tela reforça que não é teste máximo nem diagnóstico.
 - Rota `/recuperacao` para check-in diário, resultado explicável e identificação do treino eventualmente reduzido.
-- Rota `/evolucao` para acompanhar consistência, tempo registrado, RPE médio e check-ins, sem inferir desempenho clínico ou físico.
+- Rota `/evolucao` para acompanhar consistência, tempo e distância por semana, elevação acumulada, médias opcionais de potência/frequência cardíaca, RPE e check-ins, sem inferir desempenho clínico ou físico.
 - Geração, revisão e ativação do plano de quatro semanas.
 - Estado de ciclo concluído com ação para gerar o próximo ciclo.
 - Modal de detalhes e estrutura do treino.
@@ -181,10 +181,9 @@ Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exampl
 
 ## Próximas etapas recomendadas
 
-1. Validar no navegador a conclusão de treino com e sem métricas opcionais, além do histórico e da área de evolução.
-2. Incluir tendências de distância, elevação, potência e frequência cardíaca na área de evolução quando houver dados suficientes.
-3. Testar a instalação do PWA em um celular por uma origem HTTPS acessível pelo aparelho.
-4. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração. Integrar o Cloudflare Tunnel já utilizado à exposição HTTPS, mantendo o PostgreSQL inacessível publicamente.
+1. Validar no navegador a conclusão de treino com e sem métricas opcionais, além do histórico e da área de evolução agregada, inclusive com parte dos campos vazios.
+2. Testar a instalação do PWA em um celular por uma origem HTTPS acessível pelo aparelho.
+3. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração. Integrar o Cloudflare Tunnel já utilizado à exposição HTTPS, mantendo o PostgreSQL inacessível publicamente.
 
 ## Pendência de UX registrada
 
@@ -194,9 +193,9 @@ Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exampl
 
 O commit mais recente confirmado localmente e no remoto antes desta atualização documental é:
 
-`726c0ab feat: adiciona resumo histórico de treinos e recuperação`
+`666d0d3 feat: adiciona métricas opcionais de treino, incluindo distância, ganho de elevação, frequência cardíaca e potência`
 
-A árvore de trabalho estava limpa antes da implementação das métricas opcionais da sessão. As alterações atuais ainda não foram commitadas nem publicadas.
+A árvore de trabalho estava limpa antes da implementação da evolução agregada das métricas do pedal. As alterações atuais ainda não foram commitadas nem publicadas.
 
 ## Como retomar em uma conversa nova
 
@@ -205,6 +204,6 @@ Em uma nova conversa, informar que o projeto está em `C:\Users\saulo\Documents\
 1. ler `README.md`, este arquivo, `docs/architecture-decisions.md`, `docs/training-cycle-lifecycle.md` e `docs/training-adaptation-rules.md`;
 2. conferir `git status` e os commits recentes;
 3. resumir o estado encontrado antes de alterar arquivos;
-4. conferir o estado do Git e retomar pela validação das métricas da sessão, pela evolução detalhada ou pela preparação de produção.
+4. conferir o estado do Git e retomar pela validação da evolução agregada das métricas, pelo PWA em HTTPS ou pela preparação de produção.
 
 Esses documentos, o código e o histórico do Git fornecem o contexto necessário sem depender da conversa anterior.

@@ -15,12 +15,17 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 			COUNT(*) FILTER (WHERE ws.status = 'cancelled'),
 			COALESCE(SUM(ws.duration_minutes) FILTER (WHERE ws.status = 'completed'), 0),
 			COALESCE(AVG(ws.actual_rpe) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
-			COALESCE(AVG(f.fatigue_after) FILTER (WHERE ws.status = 'completed'), 0)::double precision
+			COALESCE(AVG(f.fatigue_after) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
+			COALESCE(SUM(ws.distance_km) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
+			COALESCE(SUM(ws.elevation_gain_m) FILTER (WHERE ws.status = 'completed'), 0),
+			COALESCE(AVG(ws.average_power_watts) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
+			COALESCE(AVG(ws.average_heart_rate) FILTER (WHERE ws.status = 'completed'), 0)::double precision
 		FROM workout_sessions ws
 		JOIN athlete_profiles ap ON ap.id = ws.athlete_profile_id
 		LEFT JOIN feedback f ON f.workout_session_id = ws.id
 		WHERE ap.user_id = $1`, userID,
-	).Scan(&completed, &cancelled, &result.TotalMinutes, &result.AverageRPE, &result.AverageFatigue); err != nil {
+	).Scan(&completed, &cancelled, &result.TotalMinutes, &result.AverageRPE, &result.AverageFatigue,
+		&result.TotalDistanceKM, &result.TotalElevationM, &result.AveragePowerW, &result.AverageHeartRate); err != nil {
 		return evolution.Summary{}, err
 	}
 	result.CompletedSessions, result.CancelledSessions = int(completed), int(cancelled)
@@ -41,7 +46,11 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 			COUNT(ws.id) FILTER (WHERE ws.status = 'completed'),
 			COUNT(ws.id) FILTER (WHERE ws.status = 'cancelled'),
 			COALESCE(SUM(ws.duration_minutes) FILTER (WHERE ws.status = 'completed'), 0),
-			COALESCE(AVG(ws.actual_rpe) FILTER (WHERE ws.status = 'completed'), 0)::double precision
+			COALESCE(AVG(ws.actual_rpe) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
+			COALESCE(SUM(ws.distance_km) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
+			COALESCE(SUM(ws.elevation_gain_m) FILTER (WHERE ws.status = 'completed'), 0),
+			COALESCE(AVG(ws.average_power_watts) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
+			COALESCE(AVG(ws.average_heart_rate) FILTER (WHERE ws.status = 'completed'), 0)::double precision
 		FROM weeks w
 		LEFT JOIN athlete_profiles ap ON ap.user_id = $1
 		LEFT JOIN workout_sessions ws ON ws.athlete_profile_id = ap.id
@@ -56,7 +65,8 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 	for weeks.Next() {
 		var week evolution.Week
 		var weekCompleted, weekCancelled int64
-		if err := weeks.Scan(&week.WeekStart, &weekCompleted, &weekCancelled, &week.TotalMinutes, &week.AverageRPE); err != nil {
+		if err := weeks.Scan(&week.WeekStart, &weekCompleted, &weekCancelled, &week.TotalMinutes, &week.AverageRPE,
+			&week.TotalDistanceKM, &week.TotalElevationM, &week.AveragePowerW, &week.AverageHeartRate); err != nil {
 			return evolution.Summary{}, err
 		}
 		week.CompletedSessions, week.CancelledSessions = int(weekCompleted), int(weekCancelled)

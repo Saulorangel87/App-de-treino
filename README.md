@@ -37,7 +37,7 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `PUT /v1/onboarding/cycling-context`: salva histórico resumido, equipamento, terreno e meta opcional de prova.
 - `GET /v1/assessments/current` e `POST /v1/assessments/submaximal`: consultam e registram o pedal de referência submáximo.
 - `GET /v1/recovery/today` e `PUT /v1/recovery/today`: consultam e salvam o check-in diário de sono, estresse e fadiga percebida.
-- `GET /v1/evolution/summary`: retorna totais observados, oito semanas de volume e check-ins recentes para o atleta autenticado.
+- `GET /v1/evolution/summary`: retorna totais observados, oito semanas de duração e métricas de pedal registradas, além de check-ins recentes para o atleta autenticado.
 - `POST /v1/plans/generate`: gera e substitui o rascunho atual de quatro semanas.
 - `GET /v1/plans/current`: consulta o plano ativo ou rascunho mais recente.
 - `POST /v1/plans/{planID}/activate`: aprova um rascunho e mantém somente um plano ativo por atleta.
@@ -58,9 +58,9 @@ A rota `/avaliacao` permite registrar opcionalmente um pedal de referência subm
 
 A rota `/recuperacao` registra o check-in diário. Um sinal desfavorável gera cautela; fadiga máxima ou a combinação de dois sinais desfavoráveis indica necessidade de recuperação. Nesses casos, somente a próxima sessão futura do plano ativo pode ter duração e RPE reduzidos. Um check-in favorável mantém o plano e nunca aumenta a carga por si só. A decisão fica registrada no treino para não aplicar a mesma redução duas vezes.
 
-A rota `/evolucao` organiza o que foi registrado: sessões concluídas e canceladas, tempo concluído por semana, RPE médio, consistência e check-ins recentes. Ela mostra dados observados e explicita quando ainda não há histórico suficiente; não estima desempenho físico nem faz diagnóstico.
+A rota `/evolucao` organiza o que foi registrado: sessões concluídas e canceladas, tempo e distância por semana, elevação acumulada, médias opcionais de potência e frequência cardíaca, RPE, consistência e check-ins recentes. Ela mostra somente dados observados e explicita quando ainda não há histórico suficiente; não estima desempenho físico nem faz diagnóstico.
 
-Ao concluir um treino, o atleta pode acrescentar distância e ganho de elevação. Quem informa no perfil que usa sensor de frequência cardíaca ou medidor de potência recebe também os respectivos campos opcionais. Esses dados aparecem no resultado da sessão e no histórico; as tendências específicas de distância, potência e frequência cardíaca serão incorporadas à área de evolução em uma etapa posterior.
+Ao concluir um treino, o atleta pode acrescentar distância e ganho de elevação. Quem informa no perfil que usa sensor de frequência cardíaca ou medidor de potência recebe também os respectivos campos opcionais. Esses dados aparecem no resultado da sessão, no histórico e, quando preenchidos, de forma agregada na área de evolução.
 
 Quando não existem mais sessões planejadas ou em andamento, o PostgreSQL marca o plano ativo como concluído. O usuário pode então gerar um novo ciclo sem apagar o histórico anterior. As regras de datas e estados estão em `docs/training-cycle-lifecycle.md`.
 
