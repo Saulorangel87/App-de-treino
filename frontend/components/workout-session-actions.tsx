@@ -17,6 +17,8 @@ import type { TrainingPlan, Workout } from '@/lib/planning';
 type Props = {
   workout: Workout;
   planStatus: TrainingPlan['status'];
+  usesHeartRate?: boolean;
+  usesPower?: boolean;
   onPlanUpdated: (plan: TrainingPlan, workoutID: string) => void;
 };
 
@@ -44,6 +46,8 @@ const timeFormatter = new Intl.DateTimeFormat('pt-BR', {
 export function WorkoutSessionActions({
   workout,
   planStatus,
+  usesHeartRate = false,
+  usesPower = false,
   onPlanUpdated,
 }: Props) {
   const [action, setAction] = useState('');
@@ -56,6 +60,10 @@ export function WorkoutSessionActions({
   const [fatigueAfter, setFatigueAfter] = useState(3);
   const [painReported, setPainReported] = useState(false);
   const [notes, setNotes] = useState('');
+  const [distanceKM, setDistanceKM] = useState('');
+  const [elevationGainM, setElevationGainM] = useState('');
+  const [averageHeartRate, setAverageHeartRate] = useState('');
+  const [averagePowerW, setAveragePowerW] = useState('');
   const [error, setError] = useState('');
 
   async function mutate(path: string, body?: object) {
@@ -89,6 +97,10 @@ export function WorkoutSessionActions({
       fatigue_after: fatigueAfter,
       pain_reported: painReported,
       notes,
+      distance_km: optionalNumber(distanceKM),
+      elevation_gain_m: optionalNumber(elevationGainM),
+      average_heart_rate: usesHeartRate ? optionalNumber(averageHeartRate) : undefined,
+      average_power_watts: usesPower ? optionalNumber(averagePowerW) : undefined,
     });
   }
 
@@ -241,6 +253,28 @@ export function WorkoutSessionActions({
             </label>
           </div>
 
+          <fieldset className="session-metrics">
+            <legend>Dados do pedal <small>opcionais</small></legend>
+            <div className="feedback-grid">
+              <label>
+                Distância (km)
+                <input type="number" min="0" max="2000" step="0.1" inputMode="decimal" value={distanceKM} onChange={(event) => setDistanceKM(event.target.value)} placeholder="Ex.: 32,5" />
+              </label>
+              <label>
+                Ganho de elevação (m)
+                <input type="number" min="0" max="20000" step="1" inputMode="numeric" value={elevationGainM} onChange={(event) => setElevationGainM(event.target.value)} placeholder="Ex.: 420" />
+              </label>
+              {usesHeartRate && <label>
+                FC média (bpm)
+                <input type="number" min="30" max="250" step="1" inputMode="numeric" value={averageHeartRate} onChange={(event) => setAverageHeartRate(event.target.value)} placeholder="Ex.: 142" />
+              </label>}
+              {usesPower && <label>
+                Potência média (W)
+                <input type="number" min="0" max="2000" step="1" inputMode="numeric" value={averagePowerW} onChange={(event) => setAveragePowerW(event.target.value)} placeholder="Ex.: 185" />
+              </label>}
+            </div>
+          </fieldset>
+
           <label className="pain-check">
             <input
               type="checkbox"
@@ -289,6 +323,7 @@ export function WorkoutSessionActions({
               {feedback.pain_reported ? ' · dor relatada' : ' · sem dor'}
             </span>
             {feedback.notes && <p>{feedback.notes}</p>}
+            {(session?.distance_km !== undefined || session?.elevation_gain_m !== undefined || session?.average_heart_rate !== undefined || session?.average_power_watts !== undefined) && <p className="session-metric-result">{session?.distance_km !== undefined && `${session.distance_km} km`}{session?.elevation_gain_m !== undefined && ` · ${session.elevation_gain_m} m+`}{session?.average_heart_rate !== undefined && ` · FC ${session.average_heart_rate} bpm`}{session?.average_power_watts !== undefined && ` · ${session.average_power_watts} W`}</p>}
           </div>
         </div>
       )}
@@ -307,4 +342,9 @@ export function WorkoutSessionActions({
       )}
     </section>
   );
+}
+
+function optionalNumber(value: string) {
+  const normalized = value.trim().replace(',', '.');
+  return normalized === '' ? undefined : Number(normalized);
 }

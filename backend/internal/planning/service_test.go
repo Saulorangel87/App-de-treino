@@ -250,6 +250,17 @@ func TestCompleteWorkoutRejectsInvalidFeedback(t *testing.T) {
 	}
 }
 
+func TestCompleteWorkoutRejectsInvalidOptionalMetrics(t *testing.T) {
+	store := &planStore{}
+	tooHighPower := 2001
+	_, err := NewService(store).CompleteWorkout(context.Background(), "user-1", "9a1eead7-6168-4d50-8c7c-451301e29d85", CompletionInput{
+		ActualRPE: 5, Difficulty: "moderate", FatigueAfter: 3, AveragePowerW: &tooHighPower,
+	})
+	if err != ErrInvalidFeedback || store.completedID != "" {
+		t.Fatalf("invalid optional metrics must be rejected before persistence: %#v, %v", store, err)
+	}
+}
+
 func TestActivitiesReturnsOnlyWhatTheStoreProvidesForTheUser(t *testing.T) {
 	store := &planStore{activities: []Activity{{ID: "session-1", Name: "Giro de base", Status: "completed"}}}
 	activities, err := NewService(store).Activities(context.Background(), "user-1")

@@ -62,7 +62,7 @@ ou PostgreSQL próprio na VPS Oracle (produção)
 - O pgAdmin foi configurado e as tabelas foram visualizadas com sucesso.
 - A senha local existe somente no `.env` ignorado e não deve ser copiada para documentos ou commits.
 
-O esquema contém usuários, perfis, objetivos, disponibilidade, recuperação, limitações, planos, treinos, sessões, feedback e sessões de autenticação. O perfil também possui um contexto opcional de ciclismo em JSONB e histórico de avaliações submáximas. As migrações atuais vão de `000001` a `000010`.
+O esquema contém usuários, perfis, objetivos, disponibilidade, recuperação, limitações, planos, treinos, sessões, feedback e sessões de autenticação. O perfil também possui um contexto opcional de ciclismo em JSONB e histórico de avaliações submáximas. As migrações atuais vão de `000001` a `000011`.
 
 ## Backend implementado
 
@@ -97,6 +97,7 @@ Comportamentos de domínio implementados:
 - O motor `rules-v1` gera quatro semanas respeitando experiência, objetivos, limitações, disponibilidade e contexto opcional de ciclismo. Para intermediários e avançados, ele seleciona de modo conservador sessões de cadência, subidas, sweet spot por potência/FTP ou ritmo de prova conforme os dados informados.
 - O feedback pós-treino adapta conservadoramente as próximas sessões e registra a justificativa no treino.
 - O check-in pré-treino usa sono, estresse e fadiga percebida para manter ou reduzir a próxima sessão futura; nunca progride carga sozinho e não reaplica a mesma redução para a mesma data.
+- A conclusão de sessão aceita métricas opcionais do pedal: distância, elevação, frequência cardíaca média e potência média, com limites de validação no backend.
 - Dor, fadiga, dificuldade e diferença de RPE podem reduzir a próxima carga; uma resposta claramente fácil permite somente uma pequena progressão de duração.
 - O plano ativo é concluído automaticamente quando não restam sessões planejadas ou em andamento.
 - O próximo ciclo começa sem sobrepor o ciclo concluído e preserva todos os dados anteriores.
@@ -125,6 +126,7 @@ Segurança aplicada:
 - Estado de ciclo concluído com ação para gerar o próximo ciclo.
 - Modal de detalhes e estrutura do treino.
 - Início, conclusão, cancelamento e feedback da sessão.
+- Registro opcional de distância e elevação em qualquer pedal; frequência cardíaca e potência aparecem somente quando o equipamento correspondente está marcado no perfil.
 - Adaptações automáticas explicadas no dashboard, modal e plano.
 - Indicadores de prontidão, carga semanal e explicabilidade.
 - Ajuda contextual de RPE com escala de 1 a 10.
@@ -152,6 +154,7 @@ Segurança aplicada:
 - Build do frontend concluído após os ajustes de contraste, modal e responsividade.
 - Testes Go e build do frontend concluídos após a implementação do check-in diário; o fluxo autenticado foi validado no navegador pelo usuário.
 - Testes Go e build do frontend concluídos após a implementação da área de evolução; a validação visual e autenticada dessa rota ainda deve ser feita no navegador.
+- Migração `000011` aplicada localmente para ganho de elevação; testes Go e build do frontend concluídos após o registro opcional de métricas do pedal. A validação autenticada no navegador ainda deve ser feita.
 - Meta viewport servida confirmada como `width=device-width, initial-scale=1, viewport-fit=cover`.
 
 O Windows App Control pode bloquear executáveis temporários sem assinatura produzidos por `go test`. Por isso, os testes Go são executados no container oficial do Go, sem reduzir a segurança do Windows.
@@ -178,9 +181,10 @@ Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exampl
 
 ## Próximas etapas recomendadas
 
-1. Validar no navegador a área de evolução com e sem histórico, incluindo os check-ins de recuperação.
-2. Testar a instalação do PWA em um celular por uma origem HTTPS acessível pelo aparelho.
-3. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração. Integrar o Cloudflare Tunnel já utilizado à exposição HTTPS, mantendo o PostgreSQL inacessível publicamente.
+1. Validar no navegador a conclusão de treino com e sem métricas opcionais, além do histórico e da área de evolução.
+2. Incluir tendências de distância, elevação, potência e frequência cardíaca na área de evolução quando houver dados suficientes.
+3. Testar a instalação do PWA em um celular por uma origem HTTPS acessível pelo aparelho.
+4. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração. Integrar o Cloudflare Tunnel já utilizado à exposição HTTPS, mantendo o PostgreSQL inacessível publicamente.
 
 ## Pendência de UX registrada
 
@@ -190,9 +194,9 @@ Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exampl
 
 O commit mais recente confirmado localmente e no remoto antes desta atualização documental é:
 
-`7e898fc feat: adiciona check-in diário de recuperação e ajuste preventivo`
+`726c0ab feat: adiciona resumo histórico de treinos e recuperação`
 
-A árvore de trabalho estava limpa antes da implementação da área de evolução. As alterações atuais ainda não foram commitadas nem publicadas.
+A árvore de trabalho estava limpa antes da implementação das métricas opcionais da sessão. As alterações atuais ainda não foram commitadas nem publicadas.
 
 ## Como retomar em uma conversa nova
 
@@ -201,6 +205,6 @@ Em uma nova conversa, informar que o projeto está em `C:\Users\saulo\Documents\
 1. ler `README.md`, este arquivo, `docs/architecture-decisions.md`, `docs/training-cycle-lifecycle.md` e `docs/training-adaptation-rules.md`;
 2. conferir `git status` e os commits recentes;
 3. resumir o estado encontrado antes de alterar arquivos;
-4. conferir o estado do Git e retomar pela validação da área de evolução ou pela preparação de produção.
+4. conferir o estado do Git e retomar pela validação das métricas da sessão, pela evolução detalhada ou pela preparação de produção.
 
 Esses documentos, o código e o histórico do Git fornecem o contexto necessário sem depender da conversa anterior.

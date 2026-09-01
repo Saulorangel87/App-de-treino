@@ -147,13 +147,13 @@ func (s *Store) SaveDraftPlan(ctx context.Context, profileID string, plan planni
 
 func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (planning.Plan, error) {
 	var plan planning.Plan
-	var snapshot []byte
+	var snapshot, cyclingContext []byte
 	err := s.pool.QueryRow(ctx, `
-		SELECT tp.id::text, tp.starts_on::text, tp.ends_on::text, tp.status, tp.prescription_snapshot
+		SELECT tp.id::text, tp.starts_on::text, tp.ends_on::text, tp.status, tp.prescription_snapshot, ap.cycling_context
 		FROM training_plans tp JOIN athlete_profiles ap ON ap.id = tp.athlete_profile_id
 		WHERE ap.user_id = $1 AND tp.status IN ('active', 'draft', 'completed')
 		ORDER BY CASE tp.status WHEN 'draft' THEN 0 WHEN 'active' THEN 1 ELSE 2 END, tp.created_at DESC LIMIT 1`, userID,
-	).Scan(&plan.ID, &plan.StartsOn, &plan.EndsOn, &plan.Status, &snapshot)
+	).Scan(&plan.ID, &plan.StartsOn, &plan.EndsOn, &plan.Status, &snapshot, &cyclingContext)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return planning.Plan{}, planning.ErrPlanMissing
 	}
@@ -163,12 +163,18 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 	if err := json.Unmarshal(snapshot, &plan.PrescriptionSnapshot); err != nil {
 		return planning.Plan{}, err
 	}
+	var currentCyclingContext map[string]any
+	if err := json.Unmarshal(cyclingContext, &currentCyclingContext); err != nil {
+		return planning.Plan{}, err
+	}
+	plan.PrescriptionSnapshot["cycling_context"] = currentCyclingContext
 	plan.Workouts = []planning.Workout{}
 	rows, err := s.pool.Query(ctx, `
 		SELECT w.id::text, w.scheduled_on::text, w.name, w.objective, w.duration_minutes,
 			w.target_rpe::double precision, w.structure, w.explanation, w.status,
 			ws.id::text, ws.status, ws.started_at, ws.completed_at, ws.cancelled_at,
-			ws.duration_minutes, ws.actual_rpe::double precision,
+			ws.duration_minutes, ws.actual_rpe::double precision, ws.distance_km::double precision, ws.elevation_gain_m,
+			ws.average_power_watts, ws.average_heart_rate,
 			f.difficulty, f.pain_reported, f.fatigue_after, f.notes
 		FROM workouts w
 		LEFT JOIN LATERAL (
@@ -190,14 +196,15 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 		var structure, explanation []byte
 		var sessionID, sessionStatus, difficulty, notes *string
 		var startedAt, completedAt, cancelledAt *time.Time
-		var durationMinutes, fatigueAfter *int
-		var actualRPE *float64
+		var durationMinutes, fatigueAfter, elevationGainM, averagePowerW, averageHeartRate *int
+		var actualRPE, distanceKM *float64
 		var painReported *bool
 		if err := rows.Scan(
 			&workout.ID, &workout.ScheduledOn, &workout.Name, &workout.Objective,
 			&workout.DurationMinutes, &workout.TargetRPE, &structure, &explanation, &workout.Status,
 			&sessionID, &sessionStatus, &startedAt, &completedAt, &cancelledAt,
-			&durationMinutes, &actualRPE, &difficulty, &painReported, &fatigueAfter, &notes,
+			&durationMinutes, &actualRPE, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate,
+			&difficulty, &painReported, &fatigueAfter, &notes,
 		); err != nil {
 			return planning.Plan{}, err
 		}
@@ -211,7 +218,8 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 			workout.Session = &planning.WorkoutSession{
 				ID: *sessionID, Status: *sessionStatus, StartedAt: startedAt,
 				CompletedAt: completedAt, CancelledAt: cancelledAt,
-				DurationMinutes: durationMinutes, ActualRPE: actualRPE,
+				DurationMinutes: durationMinutes, ActualRPE: actualRPE, DistanceKM: distanceKM,
+				ElevationGainM: elevationGainM, AveragePowerW: averagePowerW, AverageHeartRate: averageHeartRate,
 			}
 			if difficulty != nil && painReported != nil && fatigueAfter != nil {
 				workout.Session.Feedback = &planning.Feedback{

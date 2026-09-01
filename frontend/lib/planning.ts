@@ -42,6 +42,10 @@ export type WorkoutSession = {
   cancelled_at?: string;
   duration_minutes?: number;
   actual_rpe?: number;
+  distance_km?: number;
+  elevation_gain_m?: number;
+  average_power_watts?: number;
+  average_heart_rate?: number;
   feedback?: WorkoutFeedback;
 };
 
@@ -57,6 +61,10 @@ export type Activity = {
   cancelled_at?: string;
   duration_minutes?: number;
   actual_rpe?: number;
+  distance_km?: number;
+  elevation_gain_m?: number;
+  average_power_watts?: number;
+  average_heart_rate?: number;
   feedback?: WorkoutFeedback;
 };
 
@@ -71,6 +79,10 @@ export type TrainingPlan = {
     primary_goal?: string;
     restricted?: boolean;
     sessions_per_week?: number;
+    cycling_context?: {
+      uses_heart_rate?: boolean;
+      uses_power?: boolean;
+    };
   };
   workouts: Workout[];
   evidence?: ScientificSource[];

@@ -426,6 +426,8 @@ export default function PlanPage() {
                   <WorkoutSessionActions
                     workout={selected}
                     planStatus={plan.status}
+                    usesHeartRate={Boolean(plan.prescription_snapshot.cycling_context?.uses_heart_rate)}
+                    usesPower={Boolean(plan.prescription_snapshot.cycling_context?.uses_power)}
                     onPlanUpdated={updateSessionPlan}
                   />
                   <h3>Estrutura</h3>

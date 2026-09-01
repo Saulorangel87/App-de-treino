@@ -10,11 +10,15 @@ import (
 )
 
 type completeWorkoutInput struct {
-	ActualRPE    float64 `json:"actual_rpe"`
-	Difficulty   string  `json:"difficulty"`
-	PainReported bool    `json:"pain_reported"`
-	FatigueAfter int     `json:"fatigue_after"`
-	Notes        string  `json:"notes"`
+	ActualRPE        float64  `json:"actual_rpe"`
+	Difficulty       string   `json:"difficulty"`
+	PainReported     bool     `json:"pain_reported"`
+	FatigueAfter     int      `json:"fatigue_after"`
+	Notes            string   `json:"notes"`
+	DistanceKM       *float64 `json:"distance_km"`
+	ElevationGainM   *int     `json:"elevation_gain_m"`
+	AveragePowerW    *int     `json:"average_power_watts"`
+	AverageHeartRate *int     `json:"average_heart_rate"`
 }
 
 func (s *Server) startWorkout(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +46,9 @@ func (s *Server) completeWorkout(w http.ResponseWriter, r *http.Request) {
 	plan, err := s.planning.CompleteWorkout(r.Context(), user.ID, r.PathValue("workoutID"), planning.CompletionInput{
 		ActualRPE: input.ActualRPE, Difficulty: input.Difficulty,
 		PainReported: input.PainReported, FatigueAfter: input.FatigueAfter,
-		Notes: strings.TrimSpace(input.Notes),
+		Notes:      strings.TrimSpace(input.Notes),
+		DistanceKM: input.DistanceKM, ElevationGainM: input.ElevationGainM,
+		AveragePowerW: input.AveragePowerW, AverageHeartRate: input.AverageHeartRate,
 	})
 	if writeWorkoutError(w, err) {
 		return

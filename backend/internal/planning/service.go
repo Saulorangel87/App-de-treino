@@ -33,11 +33,12 @@ type AvailabilitySlot struct {
 }
 
 type CyclingContext struct {
-	BikeType  string `json:"bike_type"`
-	Terrain   string `json:"terrain"`
-	UsesPower bool   `json:"uses_power"`
-	FTP       *int   `json:"ftp,omitempty"`
-	EventGoal bool   `json:"event_goal"`
+	BikeType      string `json:"bike_type"`
+	Terrain       string `json:"terrain"`
+	UsesHeartRate bool   `json:"uses_heart_rate"`
+	UsesPower     bool   `json:"uses_power"`
+	FTP           *int   `json:"ftp,omitempty"`
+	EventGoal     bool   `json:"event_goal"`
 }
 
 type Context struct {
@@ -65,14 +66,18 @@ type Workout struct {
 }
 
 type WorkoutSession struct {
-	ID              string     `json:"id"`
-	Status          string     `json:"status"`
-	StartedAt       *time.Time `json:"started_at,omitempty"`
-	CompletedAt     *time.Time `json:"completed_at,omitempty"`
-	CancelledAt     *time.Time `json:"cancelled_at,omitempty"`
-	DurationMinutes *int       `json:"duration_minutes,omitempty"`
-	ActualRPE       *float64   `json:"actual_rpe,omitempty"`
-	Feedback        *Feedback  `json:"feedback,omitempty"`
+	ID               string     `json:"id"`
+	Status           string     `json:"status"`
+	StartedAt        *time.Time `json:"started_at,omitempty"`
+	CompletedAt      *time.Time `json:"completed_at,omitempty"`
+	CancelledAt      *time.Time `json:"cancelled_at,omitempty"`
+	DurationMinutes  *int       `json:"duration_minutes,omitempty"`
+	ActualRPE        *float64   `json:"actual_rpe,omitempty"`
+	DistanceKM       *float64   `json:"distance_km,omitempty"`
+	ElevationGainM   *int       `json:"elevation_gain_m,omitempty"`
+	AveragePowerW    *int       `json:"average_power_watts,omitempty"`
+	AverageHeartRate *int       `json:"average_heart_rate,omitempty"`
+	Feedback         *Feedback  `json:"feedback,omitempty"`
 }
 
 type Feedback struct {
@@ -83,26 +88,34 @@ type Feedback struct {
 }
 
 type CompletionInput struct {
-	ActualRPE    float64
-	Difficulty   string
-	PainReported bool
-	FatigueAfter int
-	Notes        string
+	ActualRPE        float64
+	Difficulty       string
+	PainReported     bool
+	FatigueAfter     int
+	Notes            string
+	DistanceKM       *float64
+	ElevationGainM   *int
+	AveragePowerW    *int
+	AverageHeartRate *int
 }
 
 type Activity struct {
-	ID              string     `json:"id"`
-	WorkoutID       string     `json:"workout_id"`
-	Name            string     `json:"name"`
-	Objective       string     `json:"objective"`
-	ScheduledOn     string     `json:"scheduled_on"`
-	Status          string     `json:"status"`
-	StartedAt       *time.Time `json:"started_at,omitempty"`
-	CompletedAt     *time.Time `json:"completed_at,omitempty"`
-	CancelledAt     *time.Time `json:"cancelled_at,omitempty"`
-	DurationMinutes *int       `json:"duration_minutes,omitempty"`
-	ActualRPE       *float64   `json:"actual_rpe,omitempty"`
-	Feedback        *Feedback  `json:"feedback,omitempty"`
+	ID               string     `json:"id"`
+	WorkoutID        string     `json:"workout_id"`
+	Name             string     `json:"name"`
+	Objective        string     `json:"objective"`
+	ScheduledOn      string     `json:"scheduled_on"`
+	Status           string     `json:"status"`
+	StartedAt        *time.Time `json:"started_at,omitempty"`
+	CompletedAt      *time.Time `json:"completed_at,omitempty"`
+	CancelledAt      *time.Time `json:"cancelled_at,omitempty"`
+	DurationMinutes  *int       `json:"duration_minutes,omitempty"`
+	ActualRPE        *float64   `json:"actual_rpe,omitempty"`
+	DistanceKM       *float64   `json:"distance_km,omitempty"`
+	ElevationGainM   *int       `json:"elevation_gain_m,omitempty"`
+	AveragePowerW    *int       `json:"average_power_watts,omitempty"`
+	AverageHeartRate *int       `json:"average_heart_rate,omitempty"`
+	Feedback         *Feedback  `json:"feedback,omitempty"`
 }
 
 type ScientificSource struct {
@@ -213,6 +226,18 @@ func validCompletion(input CompletionInput) bool {
 	if input.ActualRPE < 1 || input.ActualRPE > 10 || input.FatigueAfter < 1 || input.FatigueAfter > 5 || len(input.Notes) > 1000 {
 		return false
 	}
+	if input.DistanceKM != nil && (*input.DistanceKM < 0 || *input.DistanceKM > 2000) {
+		return false
+	}
+	if input.ElevationGainM != nil && (*input.ElevationGainM < 0 || *input.ElevationGainM > 20000) {
+		return false
+	}
+	if input.AveragePowerW != nil && (*input.AveragePowerW < 0 || *input.AveragePowerW > 2000) {
+		return false
+	}
+	if input.AverageHeartRate != nil && (*input.AverageHeartRate < 30 || *input.AverageHeartRate > 250) {
+		return false
+	}
 	switch input.Difficulty {
 	case "very_easy", "easy", "moderate", "hard", "very_hard":
 		return true
@@ -276,10 +301,11 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 			"restricted":        restricted,
 			"sessions_per_week": len(slots),
 			"cycling_context": map[string]any{
-				"bike_type":  input.Cycling.BikeType,
-				"terrain":    input.Cycling.Terrain,
-				"uses_power": input.Cycling.UsesPower,
-				"event_goal": input.Cycling.EventGoal,
+				"bike_type":       input.Cycling.BikeType,
+				"terrain":         input.Cycling.Terrain,
+				"uses_heart_rate": input.Cycling.UsesHeartRate,
+				"uses_power":      input.Cycling.UsesPower,
+				"event_goal":      input.Cycling.EventGoal,
 			},
 			"baseline_eligible": input.BaselineEligible,
 			"rotation_index":    input.RotationIndex,

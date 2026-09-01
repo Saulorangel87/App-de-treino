@@ -587,6 +587,8 @@ export default function HomePage() {
             <WorkoutSessionActions
               workout={selected}
               planStatus={activePlan.status}
+              usesHeartRate={Boolean(activePlan.prescription_snapshot.cycling_context?.uses_heart_rate)}
+              usesPower={Boolean(activePlan.prescription_snapshot.cycling_context?.uses_power)}
               onPlanUpdated={updateSessionPlan}
             />
             <a className="modal-plan-link" href="/plano">

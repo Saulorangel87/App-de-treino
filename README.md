@@ -42,7 +42,7 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `GET /v1/plans/current`: consulta o plano ativo ou rascunho mais recente.
 - `POST /v1/plans/{planID}/activate`: aprova um rascunho e mantém somente um plano ativo por atleta.
 - `POST /v1/workouts/{workoutID}/start`: inicia uma sessão planejada do plano ativo.
-- `POST /v1/workouts/{workoutID}/complete`: conclui a sessão e registra RPE, dificuldade, fadiga e dor.
+- `POST /v1/workouts/{workoutID}/complete`: conclui a sessão e registra RPE, dificuldade, fadiga, dor e, opcionalmente, distância, elevação, frequência cardíaca e potência.
 - `POST /v1/workouts/{workoutID}/cancel`: cancela uma sessão em andamento e mantém esse histórico.
 - `GET /v1/activities`: lista, para o atleta autenticado, as sessões concluídas e canceladas.
 
@@ -59,6 +59,8 @@ A rota `/avaliacao` permite registrar opcionalmente um pedal de referência subm
 A rota `/recuperacao` registra o check-in diário. Um sinal desfavorável gera cautela; fadiga máxima ou a combinação de dois sinais desfavoráveis indica necessidade de recuperação. Nesses casos, somente a próxima sessão futura do plano ativo pode ter duração e RPE reduzidos. Um check-in favorável mantém o plano e nunca aumenta a carga por si só. A decisão fica registrada no treino para não aplicar a mesma redução duas vezes.
 
 A rota `/evolucao` organiza o que foi registrado: sessões concluídas e canceladas, tempo concluído por semana, RPE médio, consistência e check-ins recentes. Ela mostra dados observados e explicita quando ainda não há histórico suficiente; não estima desempenho físico nem faz diagnóstico.
+
+Ao concluir um treino, o atleta pode acrescentar distância e ganho de elevação. Quem informa no perfil que usa sensor de frequência cardíaca ou medidor de potência recebe também os respectivos campos opcionais. Esses dados aparecem no resultado da sessão e no histórico; as tendências específicas de distância, potência e frequência cardíaca serão incorporadas à área de evolução em uma etapa posterior.
 
 Quando não existem mais sessões planejadas ou em andamento, o PostgreSQL marca o plano ativo como concluído. O usuário pode então gerar um novo ciclo sem apagar o histórico anterior. As regras de datas e estados estão em `docs/training-cycle-lifecycle.md`.
 

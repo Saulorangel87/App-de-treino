@@ -13,7 +13,8 @@ func (s *Store) ActivitiesByUserID(ctx context.Context, userID string) ([]planni
 	rows, err := s.pool.Query(ctx, `
 		SELECT ws.id::text, w.id::text, w.name, w.objective, w.scheduled_on::text,
 			ws.status, ws.started_at, ws.completed_at, ws.cancelled_at,
-			ws.duration_minutes, ws.actual_rpe,
+			ws.duration_minutes, ws.actual_rpe, ws.distance_km::double precision, ws.elevation_gain_m,
+			ws.average_power_watts, ws.average_heart_rate,
 			f.difficulty, f.pain_reported, f.fatigue_after, f.notes
 		FROM workout_sessions ws
 		JOIN athlete_profiles ap ON ap.id = ws.athlete_profile_id
@@ -30,18 +31,21 @@ func (s *Store) ActivitiesByUserID(ctx context.Context, userID string) ([]planni
 	for rows.Next() {
 		var activity planning.Activity
 		var startedAt, completedAt, cancelledAt *time.Time
-		var duration *int
+		var duration, elevationGainM, averagePowerW, averageHeartRate *int
 		var rpe *float64
+		var distanceKM *float64
 		var difficulty, notes *string
 		var pain *bool
 		var fatigue *int
 		if err := rows.Scan(&activity.ID, &activity.WorkoutID, &activity.Name, &activity.Objective, &activity.ScheduledOn,
-			&activity.Status, &startedAt, &completedAt, &cancelledAt, &duration, &rpe,
+			&activity.Status, &startedAt, &completedAt, &cancelledAt, &duration, &rpe, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate,
 			&difficulty, &pain, &fatigue, &notes); err != nil {
 			return nil, err
 		}
 		activity.StartedAt, activity.CompletedAt, activity.CancelledAt = startedAt, completedAt, cancelledAt
 		activity.DurationMinutes, activity.ActualRPE = duration, rpe
+		activity.DistanceKM, activity.ElevationGainM = distanceKM, elevationGainM
+		activity.AveragePowerW, activity.AverageHeartRate = averagePowerW, averageHeartRate
 		if difficulty != nil {
 			activity.Feedback = &planning.Feedback{Difficulty: *difficulty, PainReported: *pain, FatigueAfter: *fatigue}
 			if notes != nil {
@@ -133,8 +137,12 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 		SET status = 'completed',
 			completed_at = now(),
 			duration_minutes = GREATEST(0, FLOOR(EXTRACT(EPOCH FROM (now() - started_at)) / 60))::integer,
-			actual_rpe = $2
-		WHERE id = $1`, sessionID, input.ActualRPE); err != nil {
+			actual_rpe = $2,
+			distance_km = $3,
+			elevation_gain_m = $4,
+			average_power_watts = $5,
+			average_heart_rate = $6
+		WHERE id = $1`, sessionID, input.ActualRPE, input.DistanceKM, input.ElevationGainM, input.AveragePowerW, input.AverageHeartRate); err != nil {
 		return err
 	}
 	if _, err := tx.Exec(ctx, `

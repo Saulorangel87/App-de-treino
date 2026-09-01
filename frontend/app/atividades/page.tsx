@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Activity, ArrowLeft, Bike, CalendarDays, Clock3, Gauge, LoaderCircle, XCircle } from 'lucide-react';
+import { Activity, ArrowLeft, Bike, CalendarDays, Clock3, Gauge, HeartPulse, LoaderCircle, MapPinned, XCircle, Zap } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 import { parseTrainingDate, type Activity as TrainingActivity } from '@/lib/planning';
 
@@ -77,6 +77,10 @@ export default function ActivitiesPage() {
                   <div className="activity-metrics">
                     <span><Clock3 size={14} /><b>{item.duration_minutes ?? '—'}</b> {item.duration_minutes === undefined ? 'duração' : 'min'}</span>
                     <span><Gauge size={14} /><b>{item.actual_rpe ? `RPE ${item.actual_rpe}` : '—'}</b></span>
+                    {item.distance_km !== undefined && <span><MapPinned size={14} /><b>{item.distance_km} km</b></span>}
+                    {item.elevation_gain_m !== undefined && <span><MapPinned size={14} /><b>{item.elevation_gain_m} m+</b></span>}
+                    {item.average_heart_rate !== undefined && <span><HeartPulse size={14} /><b>{item.average_heart_rate} bpm</b></span>}
+                    {item.average_power_watts !== undefined && <span><Zap size={14} /><b>{item.average_power_watts} W</b></span>}
                     {item.feedback && <><span><b>{difficultyLabels[item.feedback.difficulty]}</b></span><span>Fadiga <b>{item.feedback.fatigue_after}/5</b></span><span className={item.feedback.pain_reported ? 'pain' : ''}>{item.feedback.pain_reported ? 'Dor relatada' : 'Sem dor'}</span></>}
                   </div>
                   {item.feedback?.notes && <p className="activity-notes">{item.feedback.notes}</p>}

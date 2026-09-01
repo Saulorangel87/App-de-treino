@@ -1040,6 +1040,7 @@ button {
   justify-content: stretch;
 }
 .feedback-grid select,
+.feedback-grid input,
 .session-feedback textarea {
   width: 100%;
   margin-top: 5px;
@@ -1053,6 +1054,10 @@ button {
   height: 36px;
   padding: 0 9px;
 }
+.feedback-grid input { height: 36px; padding: 0 9px; }
+.session-metrics { margin: 0; padding: 11px 0 0; border: 0; border-top: 1px solid #dce5de; }
+.session-metrics legend { padding: 0; color: #42564b; font-size: 9px; font-weight: 750; }.session-metrics legend small { color: #78887f; font-size: 8px; font-weight: 500; }
+.session-metric-result { font-weight: 650; }
 .session-feedback .pain-check {
   justify-content: flex-start;
   padding: 10px;
@@ -1138,6 +1143,7 @@ button {
 .workout-detail .session-feedback label {
   color: #eef6f2;
 }
+.workout-detail .feedback-grid input { border-color: rgba(255, 255, 255, 0.18); background: rgba(255, 255, 255, 0.08); color: white; }.workout-detail .session-metrics { border-color: rgba(255, 255, 255, 0.12); }.workout-detail .session-metrics legend { color: #eef6f2; }.workout-detail .session-metrics legend small { color: #a9bfb6; }
 .workout-detail .feedback-heading small,
 .workout-detail .feedback-scale {
   color: #a9bfb6;
