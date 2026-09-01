@@ -66,12 +66,14 @@ Quando não existem mais sessões planejadas ou em andamento, o PostgreSQL marca
 
 ## Estado atual e próxima etapa
 
-O fluxo completo de cadastro, onboarding, geração e ativação do plano, execução da sessão, feedback, adaptação e geração do próximo ciclo está implementado localmente. O frontend possui layout responsivo, PWA, rodapé com contatos, ajuda de RPE e bloqueio correto do scroll de fundo nos modais.
+O fluxo completo de cadastro, onboarding, geração e ativação do plano, execução da sessão, feedback, adaptação e geração do próximo ciclo está implementado localmente. O frontend possui layout responsivo, PWA, rodapé com contatos, ajuda de RPE, logout autenticado e bloqueio correto do scroll de fundo nos modais. A navegação, os gráficos, o plano e o modal de sessão foram validados em um celular real.
 
 O histórico de atividades, o contexto específico de ciclismo, a avaliação submáxima, as sessões intervaladas controladas, o check-in diário e a área de evolução estão implementados localmente. Em paralelo, permanece a preparação da VPS Oracle com TLS, firewall, usuário PostgreSQL de privilégio mínimo, backups, restauração e Cloudflare Tunnel para expor somente o frontend e/ou a API — nunca o PostgreSQL.
 
 ## PWA
 
 O frontend inclui manifesto, ícones, suporte à instalação e uma tela offline segura. O service worker armazena somente recursos estáticos; respostas da API e dados autenticados nunca entram no cache offline.
+
+A instalação e o comportamento autenticado do PWA foram validados em um celular por uma origem HTTPS temporária do Cloudflare Tunnel. Essa exposição foi criada somente para o teste, não incluiu o PostgreSQL e foi removida após a validação.
 
 O registro do service worker ocorre apenas no build de produção. Para testar localmente, pare o servidor de desenvolvimento, execute `npm run build` e depois `npm run preview:pwa` dentro de `frontend/`. A prévia usa a porta 3000, já autorizada pela API local. A instalação exige HTTPS ou `localhost`/`127.0.0.1`.

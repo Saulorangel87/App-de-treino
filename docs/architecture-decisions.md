@@ -65,12 +65,11 @@ Concluído localmente:
 12. Check-in diário persistido na tabela `recovery_data`, com data local enviada pelo cliente e adaptação conservadora, transacional e idempotente da próxima sessão.
 13. Área de evolução baseada em dados observados: sessões encerradas, duração e distância semanais, elevação acumulada, médias opcionais de potência/frequência cardíaca, RPE, consistência e check-ins, sem pontuação de saúde, estimativa de performance ou diagnóstico.
 14. Métricas do pedal são opcionais: distância e elevação para qualquer sessão; frequência cardíaca e potência somente quando o equipamento está informado no perfil. A elevação é persistida pela migração `000011`.
+15. PWA instalado e validado em um celular real por origem HTTPS temporária, incluindo navegação autenticada, comportamento responsivo, gráficos, modal de sessão e logout. O túnel e seus registros DNS temporários foram removidos depois do teste.
 
 ## Próximas implementações
 
-1. Validar no navegador autenticado a apresentação agregada de distância, elevação, potência e frequência cardíaca na área de evolução, inclusive quando parte dessas métricas não foi preenchida.
-2. Testar instalação e comportamento do PWA em um celular por origem HTTPS.
-3. Preparar a produção na VPS Oracle com TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, backups automatizados e teste de restauração. O Cloudflare Tunnel deve expor somente o frontend e/ou a API.
+1. Preparar a produção na VPS Oracle com TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, backups automatizados e teste de restauração. O Cloudflare Tunnel deve expor somente o frontend e/ou a API.
 
 Uma implantação só será considerada concluída depois de validar HTTPS, CORS, cookies seguros, migrações, backup e restauração.
 

@@ -137,6 +137,8 @@ Segurança aplicada:
 - Contraste, tooltips, tipografia mobile e responsividade revisados.
 - Scroll da página bloqueado durante o modal; o modal permanece acima do rodapé.
 - Meta viewport explícita e página sem rolagem horizontal no mobile.
+- Sessão selecionada aberta como modal no mobile, evitando rolagem até o fim do plano.
+- Logout autenticado disponível no cabeçalho das áreas privadas.
 
 ## Validações realizadas
 
@@ -153,9 +155,10 @@ Segurança aplicada:
 - Geração do próximo ciclo validada sem sobreposição.
 - Build do frontend concluído após os ajustes de contraste, modal e responsividade.
 - Testes Go e build do frontend concluídos após a implementação do check-in diário; o fluxo autenticado foi validado no navegador pelo usuário.
-- Testes Go e build do frontend concluídos após a implementação da área de evolução; a validação visual e autenticada dessa rota ainda deve ser feita no navegador.
-- Migração `000011` aplicada localmente para ganho de elevação; testes Go e build do frontend concluídos após o registro opcional de métricas do pedal. A validação autenticada no navegador ainda deve ser feita.
+- Testes Go e build do frontend concluídos após a implementação da área de evolução; a apresentação agregada e autenticada foi validada no navegador.
+- Migração `000011` aplicada localmente para ganho de elevação; testes Go e build do frontend concluídos após o registro opcional de métricas do pedal, seguido de validação autenticada no navegador.
 - Meta viewport servida confirmada como `width=device-width, initial-scale=1, viewport-fit=cover`.
+- PWA instalado e utilizado em um celular real por HTTPS temporário via Cloudflare Tunnel. Login, navegação autenticada, gráficos, plano, modais, menu inferior e logout foram revisados no aparelho; o túnel e os registros DNS temporários foram removidos ao final do teste.
 
 O Windows App Control pode bloquear executáveis temporários sem assinatura produzidos por `go test`. Por isso, os testes Go são executados no container oficial do Go, sem reduzir a segurança do Windows.
 
@@ -181,9 +184,7 @@ Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exampl
 
 ## Próximas etapas recomendadas
 
-1. Validar no navegador a conclusão de treino com e sem métricas opcionais, além do histórico e da área de evolução agregada, inclusive com parte dos campos vazios.
-2. Testar a instalação do PWA em um celular por uma origem HTTPS acessível pelo aparelho.
-3. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração. Integrar o Cloudflare Tunnel já utilizado à exposição HTTPS, mantendo o PostgreSQL inacessível publicamente.
+1. Preparar produção na VPS Oracle: TLS, firewall, serviço do backend, usuário PostgreSQL de privilégio mínimo, migrações, backups e teste de restauração. Integrar o Cloudflare Tunnel já utilizado à exposição HTTPS, mantendo o PostgreSQL inacessível publicamente.
 
 ## Pendência de UX registrada
 
@@ -191,11 +192,11 @@ Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.exampl
 
 ## Estado do Git no momento deste registro
 
-O commit mais recente confirmado localmente e no remoto antes desta atualização documental é:
+O commit mais recente confirmado localmente antes desta atualização documental é:
 
-`666d0d3 feat: adiciona métricas opcionais de treino, incluindo distância, ganho de elevação, frequência cardíaca e potência`
+`7859df2 feat: aprimora experiência mobile e adiciona logout`
 
-A árvore de trabalho estava limpa antes da implementação da evolução agregada das métricas do pedal. As alterações atuais ainda não foram commitadas nem publicadas.
+A árvore de trabalho estava limpa antes desta atualização documental. A versão validada no celular está registrada nesse commit; esta atualização de documentação ainda não foi commitada nem publicada.
 
 ## Como retomar em uma conversa nova
 
@@ -204,6 +205,6 @@ Em uma nova conversa, informar que o projeto está em `C:\Users\saulo\Documents\
 1. ler `README.md`, este arquivo, `docs/architecture-decisions.md`, `docs/training-cycle-lifecycle.md` e `docs/training-adaptation-rules.md`;
 2. conferir `git status` e os commits recentes;
 3. resumir o estado encontrado antes de alterar arquivos;
-4. conferir o estado do Git e retomar pela validação da evolução agregada das métricas, pelo PWA em HTTPS ou pela preparação de produção.
+4. conferir o estado do Git e retomar pela preparação segura da produção na VPS Oracle.
 
 Esses documentos, o código e o histórico do Git fornecem o contexto necessário sem depender da conversa anterior.
