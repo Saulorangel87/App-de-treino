@@ -11,6 +11,7 @@
   --lime: #c9f44f;
   --green: #164b3a;
   --mint: #d8f4e4;
+  --footer-height: 38px;
 }
 * {
   box-sizing: border-box;
@@ -25,7 +26,7 @@ body {
   width: 100%;
   max-width: 100%;
   margin: 0;
-  padding-bottom: 44px;
+  padding-bottom: var(--footer-height);
   overflow-x: clip;
   background: var(--paper);
   color: var(--ink);
@@ -43,8 +44,9 @@ button {
 .sidebar {
   position: sticky;
   top: 0;
-  height: 100vh;
-  padding: 27px 18px 20px;
+  min-width: 0;
+  height: calc(100vh - var(--footer-height));
+  padding: 24px 18px 0;
   display: flex;
   flex-direction: column;
   background: #102d24;
@@ -104,12 +106,18 @@ button {
   box-shadow: inset 2px 0 var(--lime);
 }
 .sidebar-bottom {
+  width: 100%;
+  min-width: 0;
   margin-top: auto;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 .coach-note {
-  margin: 0 3px 9px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0 0 7px;
   padding: 14px;
   border: 1px solid rgba(201, 244, 79, 0.18);
   background: rgba(201, 244, 79, 0.06);
@@ -128,20 +136,25 @@ button {
 }
 .coach-note p {
   margin: 0;
-  font-size: 10px;
+  min-width: 0;
+  font-size: 12px;
   color: #abc0b6;
   line-height: 1.45;
 }
 .coach-note strong {
   display: block;
   color: white;
-  font-size: 11px;
+  font-size: 13px;
   margin-bottom: 2px;
 }
 .profile-mini {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   border: 0;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 16px 6px 0;
+  padding: 10px 6px 0;
   background: transparent;
   color: white;
   display: flex;
@@ -162,18 +175,29 @@ button {
 }
 .profile-mini > span:nth-child(2) {
   flex: 1;
+  min-width: 0;
 }
 .profile-mini strong,
 .profile-mini small {
   display: block;
 }
 .profile-mini strong {
-  font-size: 11px;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.25;
+  white-space: normal;
 }
 .profile-mini small {
   color: #8eaaa0;
-  font-size: 9px;
+  overflow: hidden;
+  font-size: 11px;
   margin-top: 2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-mini > svg {
+  flex: 0 0 15px;
+  color: #bdd0c7;
 }
 .workspace {
   min-width: 0;
@@ -191,7 +215,7 @@ button {
 .eyebrow,
 .section-kicker {
   margin: 0 0 7px;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 1.3px;
   color: #8b978f;
@@ -290,7 +314,7 @@ button {
   align-items: center;
   gap: 8px;
   color: #afc8bf;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 750;
   letter-spacing: 1px;
 }
@@ -329,7 +353,7 @@ button {
   align-items: center;
   gap: 6px;
   color: #a8c0b6;
-  font-size: 10px;
+  font-size: 11px;
 }
 .metric-row b {
   color: white;
@@ -361,7 +385,7 @@ button {
   border: 0;
   background: transparent;
   color: #d5e2dd;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   margin-left: 12px;
   cursor: pointer;
@@ -382,13 +406,13 @@ button {
   justify-content: space-between;
   align-items: center;
   color: #8da99d;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.9px;
 }
 .effort-label strong {
   color: #d5e6df;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0;
 }
 .bars {
@@ -412,7 +436,7 @@ button {
   display: flex;
   justify-content: space-between;
   color: #69887c;
-  font-size: 7px;
+  font-size: 9px;
   margin-top: 7px;
 }
 .coach-tip {
@@ -428,13 +452,13 @@ button {
 .coach-tip p {
   margin: 0;
   color: #a8c1b7;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.45;
 }
 .coach-tip strong {
   color: white;
   display: block;
-  font-size: 10px;
+  font-size: 12px;
   margin-bottom: 2px;
 }
 .readiness-card,
@@ -454,7 +478,7 @@ button {
 .card-heading span,
 .insight-card span,
 .evidence-tag span {
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 1.1px;
   font-weight: 800;
   color: #8a978f;
@@ -510,7 +534,7 @@ button {
 }
 .score-wrap span {
   color: #93a098;
-  font-size: 9px;
+  font-size: 11px;
 }
 .readiness-list {
   border-top: 1px solid #edf0ec;
@@ -522,20 +546,20 @@ button {
   gap: 8px;
   align-items: center;
   padding: 9px 0;
-  font-size: 9px;
+  font-size: 11px;
   border-bottom: 1px solid #edf0ec;
 }
 .readiness-list span {
   color: #738078;
 }
 .readiness-list b {
-  font-size: 9px;
+  font-size: 11px;
 }
 .readiness-list i {
   font-style: normal;
   text-align: right;
   color: #42a778;
-  font-size: 8px;
+  font-size: 10px;
 }
 .readiness-list i.warn {
   color: #e87b60;
@@ -550,7 +574,7 @@ button {
   justify-content: center;
   align-items: center;
   gap: 5px;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   cursor: pointer;
 }
@@ -572,7 +596,7 @@ button {
 .plan-summary-number span {
   margin-top: 5px;
   color: #7e8c84;
-  font-size: 9px;
+  font-size: 11px;
 }
 .plan-summary-card .readiness-list > div {
   grid-template-columns: 72px 1fr;
@@ -601,11 +625,11 @@ button {
 .week-progress strong,
 .week-progress span {
   display: block;
-  font-size: 10px;
+  font-size: 11px;
 }
 .week-progress span {
   color: #8a968f;
-  font-size: 8px;
+  font-size: 10px;
   margin-top: 2px;
 }
 .week-days {
@@ -633,7 +657,7 @@ button {
 }
 .day-card span {
   color: #8b978f;
-  font-size: 7px;
+  font-size: 9px;
   font-weight: 800;
 }
 .day-card strong {
@@ -643,7 +667,7 @@ button {
 }
 .day-card p {
   margin: 8px 0 0;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -651,7 +675,7 @@ button {
 }
 .day-card small {
   color: #7d8b82;
-  font-size: 7px;
+  font-size: 9px;
 }
 .workout-dot {
   margin-top: 11px;
@@ -687,7 +711,7 @@ button {
   margin-top: 15px;
 }
 .load-summary > span {
-  font-size: 7px;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.8px;
   color: #89968e;
@@ -706,14 +730,14 @@ button {
   border-radius: inherit;
 }
 .load-summary strong {
-  font-size: 9px;
+  font-size: 11px;
 }
 .load-summary small {
   color: #8d9991;
   font-weight: 500;
 }
 .load-summary em {
-  font-size: 8px;
+  font-size: 10px;
   color: #34976b;
   font-style: normal;
   background: #e7f5ed;
@@ -740,14 +764,14 @@ button {
 .insight-card h3 {
   margin: 4px 0;
   font-family: var(--font-newsreader), Georgia, serif;
-  font-size: 19px;
+  font-size: 21px;
   font-weight: 500;
 }
 .insight-card p {
   max-width: 720px;
   margin: 0;
   color: #748178;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.5;
 }
 .insight-card button {
@@ -756,7 +780,7 @@ button {
   margin-top: 8px;
   background: transparent;
   color: #245e49;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 800;
   display: flex;
   gap: 4px;
@@ -772,12 +796,12 @@ button {
   display: block;
 }
 .evidence-tag strong {
-  font-size: 10px;
+  font-size: 12px;
   margin: 4px 0 2px;
 }
 .evidence-tag small {
   color: #78857d;
-  font-size: 8px;
+  font-size: 10px;
 }
 .modal-backdrop {
   position: fixed;
@@ -2301,8 +2325,9 @@ button {
   left: 0;
   right: 0;
   bottom: 0;
-  min-height: 44px;
-  padding: 5px clamp(14px, 3vw, 40px);
+  height: var(--footer-height);
+  min-height: 0;
+  padding: 3px clamp(14px, 3vw, 40px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2315,7 +2340,7 @@ button {
 .site-footer p {
   margin: 0;
   font-family: Consolas, 'Courier New', monospace;
-  font-size: 10px;
+  font-size: 9px;
   letter-spacing: 0.9px;
   text-transform: uppercase;
 }
@@ -2328,8 +2353,8 @@ button {
   gap: 12px;
 }
 .footer-icon {
-  width: 27px;
-  height: 27px;
+  width: 24px;
+  height: 24px;
   display: grid;
   place-items: center;
   border-radius: 7px;
@@ -2342,7 +2367,7 @@ a.footer-icon:hover {
   background: rgba(255, 255, 255, 0.06);
 }
 .install-app {
-  height: 30px;
+  height: 26px;
   padding: 0 11px;
   display: flex;
   align-items: center;
@@ -2729,6 +2754,28 @@ a.footer-icon:hover {
   color: #29483b;
   font-size: 11px;
 }
+.plan-week button .workout-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.plan-week button .workout-name > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workout-completion {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #e0f1e6;
+  color: #267050;
+}
+.workout-completion svg { width: 11px; height: 11px; }
+.plan-week button.completed:not(.selected) { background: #fbfdfb; }
 .plan-week button span small {
   margin-top: 3px;
   color: #829087;
@@ -2986,11 +3033,13 @@ a.footer-icon:hover {
   }
 }
 @media (max-width: 720px) {
+  :root { --footer-height: 40px; }
   body {
-    padding-bottom: 40px;
+    padding-bottom: var(--footer-height);
   }
   .site-footer {
-    min-height: 40px;
+    height: var(--footer-height);
+    min-height: 0;
     padding: 3px 8px;
     flex-direction: row;
     gap: 10px;
@@ -3014,6 +3063,6 @@ a.footer-icon:hover {
     display: none;
   }
   .sidebar {
-    bottom: 40px;
+    bottom: var(--footer-height);
   }
 }

@@ -373,9 +373,10 @@ export default function PlanPage() {
                         <button
                           type="button"
                           key={workout.id}
-                          className={
-                            selected?.id === workout.id ? 'selected' : ''
-                          }
+                          className={[
+                            selected?.id === workout.id ? 'selected' : '',
+                            workout.status === 'completed' ? 'completed' : '',
+                          ].filter(Boolean).join(' ')}
                           onClick={() => setSelected(workout)}
                         >
                           <time>
@@ -384,7 +385,7 @@ export default function PlanPage() {
                             )}
                           </time>
                           <span>
-                            <strong>{workout.name}</strong>
+                            <strong className="workout-name"><span>{workout.name}</span>{workout.status === 'completed' && <span className="workout-completion" role="img" aria-label="Treino concluído"><Check size={11} /></span>}</strong>
                             <small>{workout.objective}</small>
                             {workout.explanation.adaptation && (
                               <small>
