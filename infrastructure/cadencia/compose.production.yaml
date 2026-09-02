@@ -51,7 +51,11 @@ services:
       API_PORT: "8080"
       APP_ENV: production
       ALLOWED_ORIGIN: ${ALLOWED_ORIGIN}
+      APP_BASE_URL: ${APP_BASE_URL}
       DATABASE_URL: ${DATABASE_URL}
+      EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_TOKEN_HOURS: ${EMAIL_TOKEN_HOURS:-24}
+      RESEND_API_KEY: ${RESEND_API_KEY}
       SESSION_DAYS: ${SESSION_DAYS:-7}
     expose:
       - "8080"
