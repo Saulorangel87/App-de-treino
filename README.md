@@ -15,7 +15,7 @@ Aplicação de planejamento adaptativo de treinos de ciclismo.
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema atual chega à migração `000011`.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema atual chega à migração `000012`.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -66,13 +66,20 @@ Ao concluir um treino, o atleta pode acrescentar distância e ganho de elevaçã
 
 Quando não existem mais sessões planejadas ou em andamento, o PostgreSQL marca o plano ativo como concluído. O usuário pode então gerar um novo ciclo sem apagar o histórico anterior. As regras de datas e estados estão em `docs/training-cycle-lifecycle.md`.
 
-## Estado atual e próxima etapa
+## Estado atual e próximas etapas
 
-O fluxo completo de cadastro, onboarding, geração e ativação do plano, execução da sessão, feedback, adaptação e geração do próximo ciclo está implementado localmente. O frontend possui layout responsivo, PWA, rodapé com contatos, ajuda de RPE, logout autenticado e bloqueio correto do scroll de fundo nos modais. A navegação, os gráficos, o plano e o modal de sessão foram validados em um celular real.
+O MVP de ciclismo está publicado em produção real:
 
-O histórico de atividades, o contexto específico de ciclismo, a avaliação submáxima, as sessões intervaladas controladas, o check-in diário e a área de evolução estão implementados localmente. A configuração de produção foi preparada em `infrastructure/cadencia/`, com PostgreSQL privado, usuário de aplicação com privilégio mínimo, migrações controladas, backup verificável e Cloudflare Tunnel dedicado. Ela foi validada por build e execução local do frontend, mas ainda não foi implantada na VPS Oracle nem recebeu segredos reais.
+- Frontend: <https://cadencia.devsaulo.com.br>
+- API: <https://cadencia-api.devsaulo.com.br>
+- Produção implantada na VPS Oracle no commit `41638da`.
+- PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
+- Cadastro, confirmação de e-mail, recuperação de senha, onboarding, plano, treino, feedback, adaptação, atividades, evolução e logout foram validados.
+- Dependabot está com 0 alertas abertos; os testes Go, build Docker e `govulncheck` passaram.
 
-Consulte [infrastructure/cadencia/README.md](infrastructure/cadencia/README.md) antes de implantar. A VPS e o Cloudflare só devem ser alterados após revisão e autorização explícita; o PostgreSQL nunca recebe hostname, rota pública ou porta exposta.
+Ainda falta concluir a operação de produção: restauração completa do backup em ambiente isolado, cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.
+
+Depois da estabilização, as próximas evoluções do produto são a integração controlada de IA no backend, a coleta progressiva de mais dados do ciclista e novas sessões específicas com regras e referências próprias. Consulte `docs/project-status.md` para o inventário completo.
 
 ## PWA
 

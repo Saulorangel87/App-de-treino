@@ -1,210 +1,194 @@
 # Estado atual do projeto Cadência
 
-Última atualização: 31 de agosto de 2026.
+Última atualização: 2 de setembro de 2026.
 
-Este documento é o ponto principal de retomada do projeto. Ele registra decisões, funcionalidades implementadas, validações e próximas etapas. Não devem ser incluídas aqui senhas, tokens ou outras credenciais.
+Este é o documento principal de continuidade. Ele registra o que está implementado, validado, publicado e pendente. Não incluir senhas, tokens, chaves de API ou conteúdo de arquivos `.env`.
 
-## Objetivo
+## Resumo executivo
 
-Construir uma aplicação inteligente de planejamento adaptativo de treinos de ciclismo com cadastro do atleta, avaliação de objetivos, disponibilidade e limitações, geração de planos, acompanhamento de sessões e ajustes baseados no feedback e na recuperação.
+O MVP de ciclismo está em produção real e foi validado no navegador e em um celular. O fluxo de cadastro, confirmação de e-mail, perfil, geração e ativação de plano, execução, feedback, adaptação, histórico, evolução e logout está funcionando.
 
-O mecanismo atual é uma regra conservadora e explicável de produto. Ele não realiza diagnóstico nem substitui prescrição ou acompanhamento profissional.
+O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e referências científicas. A integração com um modelo externo de IA ainda não foi implementada; a próxima fase poderá usar IA para explicações e interpretação dentro dos limites do motor.
 
-## Repositório e publicação
+## Repositório e produção
 
-- Repositório GitHub: <https://github.com/Saulorangel87/App-de-treino>
-- Branch utilizada: `master`.
-- Frontend publicado para demonstração: <https://cadencia-treino-inteligente.sauloleonardo1987.chatgpt.site>
-- A URL publicada é a última demonstração registrada e pode não conter as alterações locais mais recentes. O fluxo autenticado completo continua sendo validado localmente porque depende da API Go e do PostgreSQL.
+- Repositório: <https://github.com/Saulorangel87/App-de-treino>
+- Branch de produção: `master`.
+- Frontend: <https://cadencia.devsaulo.com.br>
+- API: <https://cadencia-api.devsaulo.com.br>
+- VPS: Oracle Cloud, Ubuntu, acesso administrativo por SSH na porta 22.
+- Código na VPS: `/home/ubuntu/apps/cadencia`.
+- Commit implantado: `41638da fix: atualiza dependencias Go vulneraveis`.
+- O Cloudflare Tunnel dedicado expõe somente frontend e API; o PostgreSQL não possui hostname, rota pública ou porta publicada.
 
-## Arquitetura definida
+## Arquitetura efetiva
 
 ```text
-Frontend React/TypeScript
-        |
-        | HTTPS / API REST
-        v
-Backend Go
-        |
-        | conexão protegida
-        v
-PostgreSQL local (desenvolvimento)
-ou PostgreSQL próprio na VPS Oracle (produção)
+Navegador / PWA
+       |
+       | HTTPS pelo Cloudflare Tunnel
+       v
+frontend (cadencia_edge)
+       |
+       | REST / cookies HttpOnly
+       v
+api (cadencia_edge + cadencia_data)
+       |
+       | rede Docker interna
+       v
+PostgreSQL (cadencia_data, sem porta no host)
 ```
 
-- O navegador nunca acessa o PostgreSQL diretamente.
-- O backend Go é o único componente que acessa o banco.
-- Desenvolvimento e testes usam PostgreSQL local no Docker.
-- Produção usará PostgreSQL controlado pelo proprietário na VPS Oracle.
-- Configurações sensíveis ficam em `.env`, que está ignorado pelo Git.
-- Alterações no banco são versionadas em migrações SQL.
-- Cloudflare Tunnel é utilizado quando necessário para disponibilizar o frontend e/ou a API por HTTPS; o túnel não expõe o PostgreSQL e suas credenciais permanecem fora do repositório.
+- Desenvolvimento usa PostgreSQL 17 em Docker, normalmente em `127.0.0.1:5433`.
+- Produção usa PostgreSQL 17 na VPS Oracle, em rede Docker interna.
+- O navegador nunca recebe credenciais nem acessa o PostgreSQL.
+- A composição de produção não publica portas do Cadência no host.
+- Configurações e segredos permanecem fora do Git, no `.env.production` da VPS.
 
-## Organização do repositório
+## Organização
 
-- `frontend/`: aplicação React/TypeScript baseada em Vinext e Sites.
-- `backend/`: API REST escrita em Go.
-- `database/migrations/`: migrações PostgreSQL.
-- `database/tests/`: verificações SQL das migrações e regras do banco.
-- `api/openapi.yaml`: contrato OpenAPI da API.
-- `infrastructure/`: configuração versionada de produção para a VPS Oracle; ainda não implantada.
-- `scripts/`: scripts auxiliares para desenvolvimento local.
-- `docs/`: decisões, regras e este registro de continuidade.
+- `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
+- `backend/`: API REST em Go.
+- `database/migrations/`: migrações PostgreSQL até `000012`.
+- `database/tests/`: verificações SQL.
+- `api/openapi.yaml`: contrato da API local e de produção.
+- `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.
+- `docs/`: regras de produto, ciclo de vida, arquitetura e operação.
 
-## Banco de dados local
+## Funcionalidades implementadas
 
-- Container: `cadencia-postgres`.
-- Imagem: PostgreSQL 17 Alpine.
-- Banco: `cadencia_dev`.
-- Usuário local: `cadencia`.
-- Endereço local confirmado: `127.0.0.1:5433`.
-- A porta `5433` foi escolhida porque a `5432` já estava ocupada por outro processo PostgreSQL no Windows.
-- O pgAdmin foi configurado e as tabelas foram visualizadas com sucesso.
-- A senha local existe somente no `.env` ignorado e não deve ser copiada para documentos ou commits.
+### Conta e segurança
 
-O esquema contém usuários, perfis, objetivos, disponibilidade, recuperação, limitações, planos, treinos, sessões, feedback e sessões de autenticação. O perfil também possui um contexto opcional de ciclismo em JSONB e histórico de avaliações submáximas. As migrações atuais vão de `000001` a `000011`.
+- Cadastro, login, logout e sessão por cookie `HttpOnly`.
+- Senhas com bcrypt e tokens de sessão armazenados somente como hash.
+- Confirmação de e-mail por token aleatório, expirável e de uso único.
+- Recuperação de senha por token expirável, com revogação das sessões após a troca.
+- Produção configurada com Resend e remetente verificado.
+- Geração e ativação de planos bloqueadas enquanto o e-mail não estiver confirmado.
 
-## Backend implementado
+### Perfil e planejamento
 
-A API Go possui:
+- Perfil em quatro etapas: dados básicos, limitações, objetivos e disponibilidade.
+- Até dois objetivos priorizados.
+- Disponibilidade individual dos sete dias, com opções de duração até 8 horas.
+- Contexto opcional de ciclismo: histórico resumido, equipamento, terreno, sensores, FTP e meta de prova.
+- Motor `rules-v1` com ciclos de quatro semanas, progressão, recuperação e datas calculadas para a semana corrente.
+- Geração de rascunho, revisão, ativação e geração do próximo ciclo sem apagar o histórico.
 
-- `GET /health`: informa se o processo está ativo.
-- `GET /ready`: verifica o acesso ao PostgreSQL.
-- `POST /v1/auth/register`: cria usuário e inicia uma sessão.
-- `POST /v1/auth/login`: autentica o usuário.
-- `POST /v1/auth/logout`: encerra a sessão atual.
-- `GET /v1/me`: retorna o usuário autenticado.
-- `GET /v1/profile`: consulta o perfil básico.
-- `PUT /v1/profile`: cria ou atualiza o perfil básico.
-- `GET /v1/onboarding`: consulta limitações, objetivos, disponibilidade e contexto opcional de ciclismo.
-- `PUT /v1/onboarding/limitations`: substitui as limitações ativas.
-- `PUT /v1/onboarding/goals`: salva até dois objetivos priorizados.
-- `PUT /v1/onboarding/availability`: salva os sete dias da semana.
-- `PUT /v1/onboarding/cycling-context`: salva volume semanal, maior pedal, bicicleta, terreno, sensores, FTP e meta de prova opcionais.
-- `GET /v1/assessments/current` e `POST /v1/assessments/submaximal`: consultam e registram uma avaliação submáxima opcional.
-- `GET /v1/recovery/today` e `PUT /v1/recovery/today`: consultam e salvam o check-in diário na data local do atleta.
-- `GET /v1/evolution/summary`: retorna sessões encerradas, duração e distância das últimas oito semanas, métricas agregadas registradas e check-ins recentes.
-- `POST /v1/plans/generate`: gera um rascunho explicável de quatro semanas.
-- `GET /v1/plans/current`: consulta plano ativo, rascunho ou ciclo concluído mais recente.
-- `POST /v1/plans/{planID}/activate`: ativa um rascunho de forma transacional.
-- `POST /v1/workouts/{workoutID}/start`: inicia uma sessão planejada.
-- `POST /v1/workouts/{workoutID}/complete`: conclui a sessão e salva o feedback.
-- `POST /v1/workouts/{workoutID}/cancel`: cancela uma sessão em andamento e preserva o histórico.
-- `GET /v1/activities`: retorna as atividades concluídas e canceladas do atleta autenticado.
+### Treinos, feedback e evolução
 
-Comportamentos de domínio implementados:
+- Sessões planejadas, iniciadas, concluídas e canceladas.
+- Feedback com RPE, dificuldade, fadiga, dor e observações.
+- Métricas opcionais: distância, elevação, frequência cardíaca média e potência média.
+- Adaptação conservadora após feedback e check-in diário de sono, estresse e fadiga.
+- Avaliação inicial submáxima, sem teste máximo ou diagnóstico.
+- Sessões específicas para perfis adequados: cadência, subidas, sweet spot, ritmo de prova e intervalos controlados.
+- Histórico em `/atividades` e agregações observadas em `/evolucao`.
+- Indicadores de consistência, carga semanal, prontidão e explicabilidade.
 
-- O motor `rules-v1` gera quatro semanas respeitando experiência, objetivos, limitações, disponibilidade e contexto opcional de ciclismo. Para intermediários e avançados, ele seleciona de modo conservador sessões de cadência, subidas, sweet spot por potência/FTP ou ritmo de prova conforme os dados informados.
-- O feedback pós-treino adapta conservadoramente as próximas sessões e registra a justificativa no treino.
-- O check-in pré-treino usa sono, estresse e fadiga percebida para manter ou reduzir a próxima sessão futura; nunca progride carga sozinho e não reaplica a mesma redução para a mesma data.
-- A conclusão de sessão aceita métricas opcionais do pedal: distância, elevação, frequência cardíaca média e potência média, com limites de validação no backend.
-- Dor, fadiga, dificuldade e diferença de RPE podem reduzir a próxima carga; uma resposta claramente fácil permite somente uma pequena progressão de duração.
-- O plano ativo é concluído automaticamente quando não restam sessões planejadas ou em andamento.
-- O próximo ciclo começa sem sobrepor o ciclo concluído e preserva todos os dados anteriores.
+### Interface e PWA
 
-Segurança aplicada:
+- Dashboard, plano, atividades, avaliação, recuperação e evolução.
+- Modal de sessão no mobile, check visual de treinos concluídos e logout.
+- PWA instalável, manifesto, ícones e tela offline segura.
+- Cache offline limitado a recursos estáticos; dados autenticados não entram no cache.
+- Interface em português do Brasil, responsiva e sem rolagem horizontal no mobile.
 
-- Senhas protegidas com bcrypt.
-- Tokens de sessão opacos; somente o hash SHA-256 é armazenado.
-- Cookie de sessão `HttpOnly` e também `Secure` quando `APP_ENV=production`.
-- CORS configurado por variável de ambiente.
-- PostgreSQL local exposto somente em loopback.
-- Índice parcial garante no máximo um plano ativo por atleta.
-- Alterações de sessão, feedback e adaptação acontecem de forma transacional.
+## API disponível
 
-## Frontend implementado
+As rotas estão descritas em `api/openapi.yaml`. Os grupos principais são:
 
-- Dashboard autenticado e responsivo.
-- Rotas `/entrar`, `/perfil` e `/plano`.
-- Rota `/atividades` com histórico de sessões concluídas e canceladas.
-- Perfil com quatro etapas persistentes: dados básicos, limitações, objetivos e disponibilidade.
-- Questionário de ciclismo opcional e condicional no fim do perfil: o FTP só aparece para quem usa medidor de potência e distância/data só aparecem quando existe meta de prova.
-- Rota `/avaliacao` para pedal de referência submáximo com registro de RPE, duração e dor; a tela reforça que não é teste máximo nem diagnóstico.
-- Rota `/recuperacao` para check-in diário, resultado explicável e identificação do treino eventualmente reduzido.
-- Rota `/evolucao` para acompanhar consistência, tempo e distância por semana, elevação acumulada, médias opcionais de potência/frequência cardíaca, RPE e check-ins, sem inferir desempenho clínico ou físico.
-- Geração, revisão e ativação do plano de quatro semanas.
-- Estado de ciclo concluído com ação para gerar o próximo ciclo.
-- Modal de detalhes e estrutura do treino.
-- Início, conclusão, cancelamento e feedback da sessão.
-- Registro opcional de distância e elevação em qualquer pedal; frequência cardíaca e potência aparecem somente quando o equipamento correspondente está marcado no perfil.
-- Adaptações automáticas explicadas no dashboard, modal e plano.
-- Indicadores de prontidão, carga semanal e explicabilidade.
-- Ajuda contextual de RPE com escala de 1 a 10.
-- Integração com a API por `VITE_API_URL`.
-- Documento configurado com `lang="pt-BR"`.
-- PWA com manifesto, ícones, instalação, tela offline e cache apenas de recursos estáticos.
-- Rodapé fixo com autoria, versão, LinkedIn, GitHub, e-mail e ação de instalação.
-- Contraste, tooltips, tipografia mobile e responsividade revisados.
-- Scroll da página bloqueado durante o modal; o modal permanece acima do rodapé.
-- Meta viewport explícita e página sem rolagem horizontal no mobile.
-- Sessão selecionada aberta como modal no mobile, evitando rolagem até o fim do plano.
-- Logout autenticado disponível no cabeçalho das áreas privadas.
+- Saúde: `GET /health`, `GET /ready`.
+- Conta: `/v1/auth/*` e `GET /v1/me`.
+- Perfil/onboarding: `/v1/profile` e `/v1/onboarding/*`.
+- Avaliação e recuperação: `/v1/assessments/*` e `/v1/recovery/today`.
+- Planejamento: `/v1/plans/*`.
+- Sessões: `/v1/workouts/{workoutID}/*`.
+- Histórico: `GET /v1/activities`.
+- Evolução: `GET /v1/evolution/summary`.
 
-## Validações realizadas
+## Banco e migrações
 
-- Cadastro, login, cookie de sessão e `/v1/me` testados no banco local.
-- Criação e retomada do perfil testadas no PostgreSQL.
-- Motor `rules-v1` testado com 12 sessões em quatro semanas sem ultrapassar a disponibilidade.
-- Fluxo de integração validado: cadastro temporário, onboarding, geração, ativação e leitura do plano.
-- Ciclo de sessão validado: iniciar, concluir com feedback, iniciar outra sessão e cancelar.
-- Migração `000004` validada para estados transacionais das sessões.
-- Migração `000005` implementada para adaptação por feedback e coberta por testes das decisões.
-- Migração `000006` implementada para conclusão automática e correção de planos antigos sem sessões pendentes.
-- Migrações `000007` e `000008` aplicadas localmente para fontes científicas e contexto de ciclismo, respectivamente.
-- Seleção de sessões específicas pelo contexto de ciclismo coberta por testes do motor, sem alterar os limites de volume, disponibilidade ou segurança.
-- Geração do próximo ciclo validada sem sobreposição.
-- Build do frontend concluído após os ajustes de contraste, modal e responsividade.
-- Testes Go e build do frontend concluídos após a implementação do check-in diário; o fluxo autenticado foi validado no navegador pelo usuário.
-- Testes Go e build do frontend concluídos após a implementação da área de evolução; a apresentação agregada e autenticada foi validada no navegador.
-- Migração `000011` aplicada localmente para ganho de elevação; testes Go e build do frontend concluídos após o registro opcional de métricas do pedal, seguido de validação autenticada no navegador.
-- Meta viewport servida confirmada como `width=device-width, initial-scale=1, viewport-fit=cover`.
-- PWA instalado e utilizado em um celular real por HTTPS temporário via Cloudflare Tunnel. Login, navegação autenticada, gráficos, plano, modais, menu inferior e logout foram revisados no aparelho; o túnel e os registros DNS temporários foram removidos ao final do teste.
+- Migrações aplicadas no projeto: `000001` a `000012`.
+- `000012` adiciona confirmação de e-mail e recuperação de senha.
+- Produção possui registro de migrações em `cadencia_schema_migrations`.
+- O usuário da API não é superusuário; o proprietário do banco é reservado para operações administrativas.
+- Não há alteração de esquema pendente neste momento.
 
-O Windows App Control pode bloquear executáveis temporários sem assinatura produzidos por `go test`. Por isso, os testes Go são executados no container oficial do Go, sem reduzir a segurança do Windows.
+## Produção validada
 
-## Como iniciar o ambiente local
+Em 2 de setembro de 2026:
 
-1. Abrir o Docker Desktop e aguardar o estado “Running”.
-2. Na raiz do repositório, executar `docker compose up -d postgres`.
-3. Iniciar a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
-4. Em outro terminal, entrar em `frontend/` e executar `npm run dev`.
-5. Acessar `http://localhost:3000`.
-6. Verificar a API em `http://localhost:8080/health` e a prontidão em `http://localhost:8080/ready` quando necessário.
+- Código `41638da` atualizado na VPS por fast-forward.
+- Imagem da API reconstruída com Go 1.25.
+- Somente o container `cadencia-api-1` foi recriado.
+- `cadencia-api-1`, `cadencia-frontend-1` e `cadencia-postgres-1` ficaram saudáveis; o túnel permaneceu ativo.
+- API interna: `/health` retornou `{"service":"cadencia-api","status":"ok"}`.
+- API interna: `/ready` retornou `{"status":"ready"}`.
+- API pública e frontend público retornaram HTTP 200.
+- Nenhuma porta do Cadência foi publicada no host.
+- Cadastro, confirmação de e-mail, ativação de plano e recuperação de senha foram testados em produção; uma mensagem de confirmação caiu em spam, sem falha funcional.
 
-Valores reais devem continuar somente nos arquivos `.env` locais. O `.env.example` usa valores ilustrativos e deve permanecer sem segredos.
+## Dependências e segurança
 
-## Pedidos já registrados
+- GitHub Dependabot: 0 alertas abertos e 39 fechados após a atualização do commit `41638da`.
+- `pgx` atualizado para `5.9.2`.
+- `golang.org/x/crypto` atualizado para `0.55.0`.
+- `golang.org/x/text` atualizado para `0.41.0`.
+- Toolchain de build da API atualizado para Go `1.25`.
+- O backend foi validado com `go test ./...`, build Docker e `govulncheck`.
+- O `govulncheck` não encontrou vulnerabilidades alcançáveis pelo código; permanece uma advisory de `openpgp` não utilizado e sem correção upstream.
 
-- Usar banco PostgreSQL próprio, local no desenvolvimento e na VPS Oracle em produção.
-- Footer verde-escuro e minimalista com contatos.
-- PWA instalável para celular.
-- HTML em português do Brasil.
-- Explicação acessível de RPE para atletas iniciantes.
-- Interface mobile legível, sem rolagem lateral e com modais que não movimentem o fundo.
+## Backups e operação
 
-## Próximas etapas recomendadas
+- Backup diário do Cadência ativo em `cadencia-backup.timer`, às 03:30 UTC.
+- Retenção configurada: 14 dias.
+- Dumps em formato customizado, validados por `pg_restore --list`.
+- Diretório de produção: `/var/backups/cadencia`.
+- Backup preventivo do deploy de 2 de setembro: `cadencia-20260902T104801Z.dump`.
+- O teste de restauração completo em um PostgreSQL temporário ainda está pendente; a validação atual confirma a integridade estrutural do arquivo.
 
-1. Revisar e implantar na VPS Oracle a composição em `infrastructure/cadencia/`: PostgreSQL privado, usuário de aplicação com privilégio mínimo, migrações controladas, backup, teste de restauração e Cloudflare Tunnel dedicado. Nenhuma etapa de VPS ou Cloudflare foi executada ainda.
+## Auditoria da VPS e pendências operacionais
 
-## Pendência de UX registrada
+O Cadência está isolado, mas a VPS hospeda outros aplicativos. Foram observadas portas Docker publicadas para serviços como Rotas, Despesas, Estoque, n8n, Immich, Uptime Kuma, Tecboard e Nginx Proxy Manager.
 
-- Na lateral de detalhes do plano, aumentar em etapa futura a tipografia da estrutura do treino, da explicação e das regras; manter as referências científicas em tamanho compacto.
+O teste externo realizado a partir do ambiente atual confirmou acesso à porta 22 e à porta 2283 (Immich); as demais portas testadas não responderam externamente. A política local de entrada ainda está permissiva (`accept`), não há `ufw` instalado e a cadeia `DOCKER-USER` está vazia.
 
-## Estado do Git no momento deste registro
+Pendências, sem executar bloqueios automáticos:
 
-O commit mais recente confirmado localmente antes desta atualização documental é:
+1. Mapear cada domínio, túnel e proxy dos aplicativos existentes.
+2. Confirmar as regras de rede da Oracle Cloud.
+3. Restringir SSH ao Tailscale ou a IPs administrativos, sem perder acesso.
+4. Fechar portas diretas desnecessárias, especialmente serviços que já usam proxy.
+5. Fazer restauração completa do backup em ambiente isolado.
+6. Definir cópia externa dos backups e monitoramento de falhas.
+7. Atualizar esta documentação após cada mudança de infraestrutura.
 
-`7859df2 feat: aprimora experiência mobile e adiciona logout`
+## Próximas etapas do produto
 
-A árvore de trabalho estava limpa antes desta atualização documental. A versão validada no celular está registrada nesse commit; esta atualização de documentação ainda não foi commitada nem publicada.
+1. Concluir a restauração isolada e o hardening da VPS.
+2. Aplicar o ajuste visual pendente na tela inicial desktop: texto de privacidade mais amigável e menos altura/scroll.
+3. Integrar IA no backend para explicações, interpretação de feedback e comunicação personalizada, sempre subordinada ao motor de regras e às proteções de segurança.
+4. Expandir a coleta progressiva de dados do ciclista.
+5. Evoluir sessões específicas de cadência, tiros, subidas, potência e preparação para provas com regras próprias e validação científica.
+6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
 
-## Como retomar em uma conversa nova
+## Como iniciar localmente
 
-Em uma nova conversa, informar que o projeto está em `C:\Users\saulo\Documents\App de treino` e pedir para:
+1. Inicie o Docker Desktop.
+2. Na raiz, execute `docker compose up -d postgres`.
+3. Inicie a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
+4. Em outro terminal, entre em `frontend/` e execute `npm run dev`.
+5. Acesse `http://localhost:3000`.
+6. API local: `http://localhost:8080/health` e `http://localhost:8080/ready`.
 
-1. ler `README.md`, este arquivo, `docs/architecture-decisions.md`, `docs/training-cycle-lifecycle.md` e `docs/training-adaptation-rules.md`;
-2. conferir `git status` e os commits recentes;
-3. resumir o estado encontrado antes de alterar arquivos;
-4. conferir o estado do Git e retomar pela preparação segura da produção na VPS Oracle.
+Para testar o PWA localmente, pare o servidor de desenvolvimento e execute `npm run build` e `npm run preview:pwa` dentro de `frontend/`.
 
-Esses documentos, o código e o histórico do Git fornecem o contexto necessário sem depender da conversa anterior.
+## Como retomar
+
+Antes de alterar o projeto:
+
+1. Leia este arquivo, `README.md`, `docs/architecture-decisions.md`, `docs/training-cycle-lifecycle.md` e `docs/training-adaptation-rules.md`.
+2. Confira `git status` e os commits recentes.
+3. Preserve os bancos PostgreSQL local e da VPS.
+4. Não publique, faça commit ou altere infraestrutura sem autorização explícita.

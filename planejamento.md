@@ -1080,3 +1080,22 @@ Construir o React/TypeScript em cima de tudo que já foi definido.
 
 9. 🔄 Sistema adaptativo
 Fazer o aplicativo aprender com os treinos realizados e feedback do usuário.
+
+---
+
+# Registro de execução do MVP — 2 de setembro de 2026
+
+O MVP de ciclismo previsto neste planejamento foi implementado e está em produção real. O fluxo validado inclui cadastro, perfil, objetivos, disponibilidade, limitações, avaliação submáxima, geração e ativação do plano, execução da sessão, feedback, adaptação, histórico de atividades, evolução e logout.
+
+O motor atual é o `rules-v1`: determinístico, explicável e baseado em regras e referências científicas. Ele não depende de um modelo de linguagem para inventar treinos. A integração de IA no backend ainda é uma próxima fase e deverá respeitar as regras de segurança, as evidências e os limites do motor.
+
+A infraestrutura de produção usa PostgreSQL próprio na VPS Oracle, frontend e API expostos por Cloudflare Tunnel dedicado e PostgreSQL em rede Docker interna. Backups diários estão ativos. A documentação operacional detalhada está em `docs/project-status.md` e `infrastructure/cadencia/README.md`.
+
+Pendências principais:
+
+- testar restauração completa do backup em ambiente isolado e definir cópia externa;
+- concluir hardening das portas dos demais aplicativos hospedados na VPS;
+- aplicar o ajuste visual de privacidade e altura da tela inicial desktop;
+- integrar IA de forma controlada no backend;
+- ampliar a coleta progressiva de dados e a variedade de sessões específicas de ciclismo;
+- avaliar integrações externas, como Strava, somente após definir consentimento, custos e segurança.

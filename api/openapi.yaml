@@ -5,6 +5,9 @@ info:
   description: API do MVP de planejamento adaptativo de ciclismo.
 servers:
   - url: http://localhost:8080
+    description: Desenvolvimento local
+  - url: https://cadencia-api.devsaulo.com.br
+    description: Produção na VPS Oracle via Cloudflare Tunnel
 paths:
   /health:
     get:

@@ -1,76 +1,104 @@
 # Decisões de arquitetura
 
-Última revisão: 31 de agosto de 2026.
+Última revisão: 2 de setembro de 2026.
 
 ## ADR-001 — Banco de dados próprio
 
-**Status:** Aceita
+**Status:** Aceita e aplicada.
 
-O Cadência usará PostgreSQL controlado pelo proprietário do projeto.
+O Cadência usa PostgreSQL controlado pelo proprietário do projeto:
 
-- Desenvolvimento e testes: PostgreSQL local, preferencialmente executado com Docker Compose.
-- Produção: PostgreSQL hospedado na VPS Oracle do proprietário.
-- O ambiente de desenvolvimento e o de produção usarão o mesmo mecanismo de banco e as mesmas migrações.
-- A aplicação não dependerá do banco gerenciado da hospedagem do frontend.
-- Endereços, usuários, senhas e certificados serão fornecidos por variáveis de ambiente e nunca serão gravados no repositório.
-- A conexão de produção deverá usar TLS, usuário exclusivo da aplicação, privilégios mínimos, firewall restritivo e backups automatizados.
-- O backend em Go será o único componente autorizado a acessar o banco. O navegador nunca receberá credenciais do PostgreSQL.
+- Desenvolvimento e testes: PostgreSQL 17 em Docker Compose, exposto somente em loopback (`127.0.0.1:5433`).
+- Produção: PostgreSQL 17 na VPS Oracle, dentro da rede Docker `cadencia_data`.
+- O backend Go é o único componente autorizado a acessar o banco.
+- O navegador nunca recebe credenciais, hostname ou porta do PostgreSQL.
+- O usuário da API não possui privilégios administrativos.
+- Migrações SQL são versionadas e registradas em `cadencia_schema_migrations`.
 
-## Estratégia de ambientes
+## ADR-002 — Frontend, backend e transporte
 
-### Local
-
-O repositório terá um `compose.yaml` com PostgreSQL para permitir subir um ambiente reproduzível. Os dados locais ficarão em volume separado e não serão enviados ao repositório.
-
-### Produção
-
-O backend em Go será executado na VPS ou em outro servidor autorizado a alcançar o PostgreSQL da VPS. A configuração usará uma variável `DATABASE_URL` específica do ambiente.
-
-O projeto também utiliza Cloudflare Tunnel para expor serviços HTTP/HTTPS quando necessário. O túnel deve encaminhar tráfego somente para o frontend e/ou para a API, conforme a configuração do ambiente; ele não substitui nem expõe diretamente o PostgreSQL. As credenciais e o arquivo de configuração do túnel permanecem fora do repositório.
-
-### Migrações
-
-Todas as alterações de estrutura serão versionadas em arquivos SQL. O mesmo conjunto de migrações será aplicado primeiro localmente e depois na VPS, com backup antes de mudanças de produção.
-
-## Fluxo de acesso
+**Status:** Aceita e aplicada.
 
 ```text
-Frontend React
+Navegador / PWA
       |
-      | HTTPS / REST
+      | HTTPS via Cloudflare Tunnel dedicado
       v
-Backend Go
+Frontend (cadencia_edge)
       |
-      | conexão PostgreSQL protegida
+      | REST e cookie HttpOnly
       v
-PostgreSQL local (desenvolvimento)
-ou PostgreSQL na VPS Oracle (produção)
+API Go (cadencia_edge + cadencia_data)
+      |
+      | rede interna Docker
+      v
+PostgreSQL (cadencia_data)
 ```
 
-## Estado da implementação
+- Frontend: React/TypeScript com Vinext.
+- Backend: Go, API REST.
+- O Cloudflare Tunnel encaminha somente frontend e API.
+- Produção usa `https://cadencia.devsaulo.com.br` e `https://cadencia-api.devsaulo.com.br`.
+- Nenhum serviço da composição de produção publica portas do Cadência no host.
 
-Concluído localmente:
+## ADR-003 — Motor de treinamento e IA
 
-1. PostgreSQL 17 em Docker Compose, exposto somente em loopback.
-2. Migrações SQL versionadas até `000011`, incluindo fontes científicas, contexto opcional de ciclismo, avaliações submáximas e ganho de elevação por sessão.
-3. API REST em Go com verificações de saúde e prontidão.
-4. Autenticação com bcrypt, sessões opacas, hash do token e cookie `HttpOnly`.
-5. Frontend conectado exclusivamente à API.
-6. Onboarding persistente, motor `rules-v1`, planos de quatro semanas e aprovação transacional.
-7. Ciclo de vida das sessões, feedback pós-treino e adaptação conservadora das próximas cargas.
-8. Encerramento automático do plano e geração do próximo ciclo sem apagar o histórico.
-9. PWA, interface responsiva e validações locais de integração.
-10. Contexto opcional e condicional de ciclismo persistido (histórico resumido, terreno, equipamento, FTP e meta de prova).
-11. Avaliação inicial submáxima persistida, sem teste máximo ou diagnóstico.
-12. Check-in diário persistido na tabela `recovery_data`, com data local enviada pelo cliente e adaptação conservadora, transacional e idempotente da próxima sessão.
-13. Área de evolução baseada em dados observados: sessões encerradas, duração e distância semanais, elevação acumulada, médias opcionais de potência/frequência cardíaca, RPE, consistência e check-ins, sem pontuação de saúde, estimativa de performance ou diagnóstico.
-14. Métricas do pedal são opcionais: distância e elevação para qualquer sessão; frequência cardíaca e potência somente quando o equipamento está informado no perfil. A elevação é persistida pela migração `000011`.
-15. PWA instalado e validado em um celular real por origem HTTPS temporária, incluindo navegação autenticada, comportamento responsivo, gráficos, modal de sessão e logout. O túnel e seus registros DNS temporários foram removidos depois do teste.
-16. Configuração de produção preparada localmente em `infrastructure/cadencia/`, com imagens Docker para frontend e API, PostgreSQL em rede interna, usuário de aplicação sem privilégios administrativos, migrações controladas, backup verificável e Cloudflare Tunnel dedicado. A configuração não foi implantada na VPS nem recebeu segredos reais.
+**Status:** Motor aplicado; IA externa pendente.
 
-## Próximas implementações
+O planejamento é gerado pelo motor determinístico `rules-v1`, com regras explícitas, limitações de segurança, disponibilidade e evidências científicas. Uma futura integração de IA ficará no backend e poderá explicar decisões, interpretar feedback e adaptar a comunicação, mas não poderá inventar estudos, ultrapassar as regras ou diagnosticar condições clínicas.
 
-1. Implantar e validar a configuração preparada na VPS Oracle: banco privado, migrações, backup automatizado e teste de restauração. O Cloudflare Tunnel dedicado deve expor somente o frontend e a API.
+## ADR-004 — Autenticação e e-mail
 
-Uma implantação só será considerada concluída depois de validar HTTPS, CORS, cookies seguros, migrações, backup e restauração.
+**Status:** Aceita e aplicada.
+
+- Senhas com bcrypt.
+- Sessões opacas com hash SHA-256 armazenado no banco.
+- Cookies `HttpOnly`; em produção também `Secure`.
+- Confirmação de e-mail e recuperação de senha com tokens aleatórios, expiráveis, de uso único e armazenados somente como hash.
+- E-mails de produção enviados pelo Resend, com remetente verificado.
+- Troca de senha revoga todas as sessões existentes.
+
+## ADR-005 — Migrações e produção
+
+**Status:** Aplicada.
+
+As migrações `000001` a `000012` foram aplicadas localmente e em produção. A migração `000012` adicionou confirmação de e-mail e recuperação de senha. Antes de uma mudança estrutural, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
+
+## Estado de produção
+
+Em 2 de setembro de 2026, o commit `41638da` foi implantado na VPS Oracle. A imagem da API foi reconstruída com Go 1.25 e somente o container `cadencia-api-1` foi recriado.
+
+Validações realizadas:
+
+- API interna `/health`: `200`.
+- API interna `/ready`: `200`.
+- API pública e frontend público: `200`.
+- API, frontend e PostgreSQL saudáveis; túnel ativo.
+- PostgreSQL sem porta publicada pelo Cadência.
+- Dependabot do GitHub: 0 alertas abertos e 39 fechados.
+- `go test ./...`, build Docker e `govulncheck` concluídos.
+
+## Backups
+
+- `cadencia-backup.timer` está habilitado na VPS e executa diariamente às 03:30 UTC.
+- Os dumps ficam em `/var/backups/cadencia`, com retenção de 14 dias.
+- O script valida cada arquivo com `pg_restore --list`.
+- O backup preventivo do último deploy foi `cadencia-20260902T104801Z.dump`.
+- O teste completo de restauração em um banco temporário ainda está pendente.
+
+## Segurança operacional da VPS
+
+A composição do Cadência está isolada, mas a VPS também hospeda outros aplicativos. A auditoria encontrou portas Docker publicadas para Rotas, Despesas, Estoque, n8n, Immich, Uptime Kuma, Tecboard e Nginx Proxy Manager.
+
+O teste externo confirmou a porta SSH `22` e a porta `2283` do Immich; as demais portas testadas não responderam externamente. A política local de entrada ainda é permissiva (`accept`), não há `ufw` instalado e a cadeia `DOCKER-USER` está vazia.
+
+Nenhuma porta de outro aplicativo deve ser bloqueada sem mapear antes seus domínios, túneis, proxies e necessidade de acesso. O próximo hardening deve preservar Tailscale, Cloudflare e os aplicativos existentes.
+
+## Próximas decisões
+
+1. Definir o procedimento de restauração isolada e, depois, cópia externa dos backups.
+2. Escolher a política de firewall e a lista mínima de portas públicas da VPS.
+3. Registrar monitoramento e alertas de saúde/backup.
+4. Integrar IA no backend com limites explícitos.
+5. Evoluir coleta de dados e sessões específicas de ciclismo.
 

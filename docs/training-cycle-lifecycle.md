@@ -1,6 +1,6 @@
 # Ciclo de vida dos planos de treino
 
-Última revisão: 31 de agosto de 2026.
+Última revisão: 2 de setembro de 2026.
 
 ## Estados
 
