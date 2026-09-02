@@ -12,6 +12,10 @@ func (s *Server) generatePlan(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !user.EmailVerified {
+		writeError(w, http.StatusForbidden, "email_not_verified", "Confirme seu e-mail antes de gerar um plano.")
+		return
+	}
 	plan, err := s.planning.Generate(r.Context(), user.ID)
 	if errors.Is(err, planning.ErrIncompleteOnboarding) {
 		writeError(w, http.StatusConflict, "onboarding_incomplete", "Conclua perfil, objetivo e disponibilidade antes de gerar o plano.")
@@ -44,6 +48,10 @@ func (s *Server) currentPlan(w http.ResponseWriter, r *http.Request) {
 func (s *Server) activatePlan(w http.ResponseWriter, r *http.Request) {
 	user, ok := s.requireUser(w, r)
 	if !ok {
+		return
+	}
+	if !user.EmailVerified {
+		writeError(w, http.StatusForbidden, "email_not_verified", "Confirme seu e-mail antes de ativar um plano.")
 		return
 	}
 	plan, err := s.planning.Activate(r.Context(), user.ID, r.PathValue("planID"))

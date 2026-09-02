@@ -14,6 +14,7 @@ import (
 	"github.com/Saulorangel87/App-de-treino/backend/internal/auth"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/config"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/database"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/email"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/evolution"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/httpapi"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
@@ -44,10 +45,16 @@ func main() {
 	recoveryService := athlete.NewRecoveryService(store)
 	evolutionService := evolution.NewService(store)
 	planningService := planning.NewService(store)
+	var emailSender email.Sender = email.DevelopmentSender{}
+	if cfg.ResendAPIKey != "" && cfg.EmailFrom != "" {
+		emailSender = email.NewResendSender(cfg.ResendAPIKey, cfg.EmailFrom)
+	} else if cfg.SecureCookies {
+		emailSender = email.DisabledSender{}
+	}
 
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           httpapi.NewRouter(db, authService, athleteService, onboardingService, assessmentService, recoveryService, evolutionService, planningService, cfg.AllowedOrigin, cfg.SecureCookies, cfg.SessionTTL),
+		Handler:           httpapi.NewRouter(db, authService, athleteService, onboardingService, assessmentService, recoveryService, evolutionService, planningService, emailSender, cfg.AppBaseURL, cfg.AllowedOrigin, cfg.SecureCookies, !cfg.SecureCookies, cfg.SessionTTL, cfg.EmailTokenTTL),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      30 * time.Second,

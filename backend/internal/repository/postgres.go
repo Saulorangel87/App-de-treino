@@ -21,8 +21,8 @@ func (s *Store) CreateUser(ctx context.Context, email, passwordHash, displayName
 	err := s.pool.QueryRow(ctx, `
 		INSERT INTO users (email, password_hash, display_name)
 		VALUES ($1, $2, $3)
-		RETURNING id::text, email, password_hash, display_name, created_at`, email, passwordHash, displayName,
-	).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DisplayName, &user.CreatedAt)
+		RETURNING id::text, email, password_hash, display_name, created_at, email_verified_at IS NOT NULL`, email, passwordHash, displayName,
+	).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DisplayName, &user.CreatedAt, &user.EmailVerified)
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 		return auth.User{}, auth.ErrEmailExists
@@ -32,8 +32,8 @@ func (s *Store) CreateUser(ctx context.Context, email, passwordHash, displayName
 
 func (s *Store) UserByEmail(ctx context.Context, email string) (auth.User, error) {
 	var user auth.User
-	err := s.pool.QueryRow(ctx, `SELECT id::text, email, password_hash, display_name, created_at FROM users WHERE email = $1`, email).
-		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DisplayName, &user.CreatedAt)
+	err := s.pool.QueryRow(ctx, `SELECT id::text, email, password_hash, display_name, created_at, email_verified_at IS NOT NULL FROM users WHERE email = $1`, email).
+		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DisplayName, &user.CreatedAt, &user.EmailVerified)
 	return user, err
 }
 
@@ -51,14 +51,71 @@ func (s *Store) UserBySessionHash(ctx context.Context, tokenHash []byte) (auth.U
 		          (SELECT email FROM users WHERE id = auth_sessions.user_id),
 		          (SELECT password_hash FROM users WHERE id = auth_sessions.user_id),
 		          (SELECT display_name FROM users WHERE id = auth_sessions.user_id),
-		          (SELECT created_at FROM users WHERE id = auth_sessions.user_id)`, tokenHash,
-	).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DisplayName, &user.CreatedAt)
+		          (SELECT created_at FROM users WHERE id = auth_sessions.user_id),
+		          (SELECT email_verified_at IS NOT NULL FROM users WHERE id = auth_sessions.user_id)`, tokenHash,
+	).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DisplayName, &user.CreatedAt, &user.EmailVerified)
 	return user, err
 }
 
 func (s *Store) DeleteSession(ctx context.Context, tokenHash []byte) error {
 	_, err := s.pool.Exec(ctx, `DELETE FROM auth_sessions WHERE token_hash = $1`, tokenHash)
 	return err
+}
+
+func (s *Store) CreateEmailToken(ctx context.Context, userID, purpose string, tokenHash []byte, expiresAt time.Time) error {
+	return s.withTx(ctx, func(tx pgx.Tx) error {
+		if _, err := tx.Exec(ctx, `DELETE FROM auth_email_tokens WHERE user_id = $1 AND purpose = $2 AND used_at IS NULL`, userID, purpose); err != nil {
+			return err
+		}
+		_, err := tx.Exec(ctx, `INSERT INTO auth_email_tokens (user_id, purpose, token_hash, expires_at) VALUES ($1, $2, $3, $4)`, userID, purpose, tokenHash, expiresAt)
+		return err
+	})
+}
+
+func (s *Store) VerifyEmailToken(ctx context.Context, tokenHash []byte) (auth.User, error) {
+	var user auth.User
+	err := s.withTx(ctx, func(tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `
+			WITH consumed AS (
+				UPDATE auth_email_tokens SET used_at = now()
+				WHERE token_hash = $1 AND purpose = 'verify_email' AND used_at IS NULL AND expires_at > now()
+				RETURNING user_id
+			)
+			UPDATE users SET email_verified_at = COALESCE(email_verified_at, now()), updated_at = now()
+			WHERE id = (SELECT user_id FROM consumed)
+			RETURNING id::text, email, password_hash, display_name, created_at, email_verified_at IS NOT NULL`, tokenHash,
+		).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DisplayName, &user.CreatedAt, &user.EmailVerified)
+	})
+	return user, err
+}
+
+func (s *Store) ResetPasswordWithToken(ctx context.Context, tokenHash []byte, passwordHash string) error {
+	return s.withTx(ctx, func(tx pgx.Tx) error {
+		var userID string
+		if err := tx.QueryRow(ctx, `
+			UPDATE auth_email_tokens SET used_at = now()
+			WHERE token_hash = $1 AND purpose = 'reset_password' AND used_at IS NULL AND expires_at > now()
+			RETURNING user_id::text`, tokenHash).Scan(&userID); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(ctx, `UPDATE users SET password_hash = $1, updated_at = now() WHERE id = $2`, passwordHash, userID); err != nil {
+			return err
+		}
+		_, err := tx.Exec(ctx, `DELETE FROM auth_sessions WHERE user_id = $1`, userID)
+		return err
+	})
+}
+
+func (s *Store) withTx(ctx context.Context, operation func(pgx.Tx) error) error {
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	if err := operation(tx); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
 }
 
 func (s *Store) UpsertProfile(ctx context.Context, profile athlete.Profile) (athlete.Profile, error) {

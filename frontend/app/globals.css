@@ -1749,6 +1749,13 @@ button {
   background: #fff0ec;
   font-size: 9px;
 }
+
+.form-notice { margin: 0; color: #176447; font-size: 14px; line-height: 1.45; }
+.form-link { display: inline-block; margin-top: 18px; color: #155a42; font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.auth-action-shell { min-height: calc(100vh - 56px); display: grid; place-items: center; padding: 28px 20px; background: #f5f7f2; }
+.auth-action-card { width: min(100%, 520px); padding: 40px; border: 1px solid #dce5de; border-radius: 24px; background: #fff; box-shadow: 0 16px 48px rgba(13, 49, 37, .08); color: #16382c; }
+.auth-action-card > svg { color: #287b59; margin-bottom: 18px; }.auth-action-card h1 { margin: 8px 0 12px; font-family: var(--font-newsreader); font-size: clamp(32px, 5vw, 44px); }.auth-action-card > p:not(.form-kicker) { color: #52675d; line-height: 1.55; }.auth-action-link { display: inline-flex; margin-top: 22px; padding: 12px 16px; border-radius: 10px; background: #10583f; color: #fff; font-weight: 750; text-decoration: none; }
+.email-verification-banner { display: flex; align-items: center; gap: 14px; margin: 18px 0 24px; padding: 15px 18px; border: 1px solid #badfc8; border-radius: 14px; background: #eff9f1; color: #164e38; }.email-verification-banner > svg { flex: 0 0 auto; }.email-verification-banner div { flex: 1; }.email-verification-banner strong { display: block; font-size: 14px; }.email-verification-banner p { margin: 3px 0 0; font-size: 13px; line-height: 1.4; }.email-verification-banner button { flex: 0 0 auto; }
 .form-legal {
   color: #929e96;
   text-align: center;

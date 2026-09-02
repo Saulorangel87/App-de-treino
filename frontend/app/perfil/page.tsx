@@ -1,14 +1,14 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Bike, CalendarDays, Check, CircleAlert, Flag, HeartPulse, LoaderCircle, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Bike, CalendarDays, Check, CircleAlert, Flag, HeartPulse, LoaderCircle, MailCheck, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiRequest } from '@/lib/api';
 import { AccountActions } from '@/components/account-actions';
 
-type User = { display_name: string; email: string };
+type User = { display_name: string; email: string; email_verified: boolean };
 type Profile = { birth_date?: string | null; sex?: string | null; height_cm?: number | null; weight_kg?: number | null; experience_level: string; activity_level?: string | null };
 type Limitation = { kind: string; description: string; is_active: boolean; professional_clearance_recommended: boolean };
 type Goal = { goal_type: string; priority: number; target_date?: string | null; details: string };
@@ -51,6 +51,8 @@ export default function ProfilePage() {
   const [availability, setAvailability] = useState<Availability[]>(initialAvailability);
   const [cyclingContext, setCyclingContext] = useState<CyclingContext>({ weekly_hours: 0, longest_ride_minutes: 0, bike_type: '', terrain: '', uses_heart_rate: false, uses_power: false, event_goal: false });
   const [completed, setCompleted] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState('');
+  const [sendingVerification, setSendingVerification] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -186,6 +188,20 @@ export default function ProfilePage() {
     }
   }
 
+  async function resendVerification() {
+    setSendingVerification(true);
+    setVerificationMessage('');
+    try {
+      const result = await apiRequest<{ message: string; development_verification_url?: string }>('/v1/auth/resend-verification', { method: 'POST' });
+      setVerificationMessage(result.development_verification_url ? `${result.message} Abra o link local abaixo.` : result.message);
+      if (result.development_verification_url) window.open(result.development_verification_url, '_blank', 'noopener,noreferrer');
+    } catch (caught) {
+      setVerificationMessage(caught instanceof Error ? caught.message : 'Não foi possível reenviar a confirmação.');
+    } finally {
+      setSendingVerification(false);
+    }
+  }
+
   if (loading) return <main className="profile-loading"><LoaderCircle className="spin" />Carregando seu perfil…</main>;
 
   return (
@@ -193,6 +209,7 @@ export default function ProfilePage() {
       <header className="profile-topbar"><a href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</a><AccountActions label="CONTA" name={user?.display_name} /></header>
       <section className="profile-content">
         <a href="/" className="back-link"><ArrowLeft size={15} /> Voltar ao painel</a>
+        {user && !user.email_verified && <section className="email-verification-banner"><MailCheck size={19} /><div><strong>Confirme seu e-mail antes de gerar ou ativar um plano.</strong><p>{verificationMessage || `Enviamos um link para ${user.email}.`}</p></div><Button type="button" variant="outline" disabled={sendingVerification} onClick={resendVerification}>{sendingVerification ? 'Enviando…' : 'Reenviar link'}</Button></section>}
         <nav className="onboarding-progress" aria-label="Progresso do perfil">
           {stepCopy.map((_, index) => <span key={index} className={index + 1 <= step ? 'active' : ''}><i>{index + 1 < step || completed ? <Check size={11} /> : index + 1}</i></span>)}
         </nav>

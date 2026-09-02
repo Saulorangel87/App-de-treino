@@ -11,14 +11,18 @@ export default function SignInPage() {
   const [mode, setMode] = useState<'login' | 'register'>('register');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [developmentVerificationURL, setDevelopmentVerificationURL] = useState('');
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError('');
+    setNotice('');
+    setDevelopmentVerificationURL('');
     const data = new FormData(event.currentTarget);
     try {
-      await apiRequest(`/v1/auth/${mode === 'register' ? 'register' : 'login'}`, {
+      const result = await apiRequest<{ message?: string; development_verification_url?: string }>(`/v1/auth/${mode === 'register' ? 'register' : 'login'}`, {
         method: 'POST',
         body: JSON.stringify({
           email: data.get('email'),
@@ -26,7 +30,12 @@ export default function SignInPage() {
           ...(mode === 'register' ? { display_name: data.get('display_name') } : {}),
         }),
       });
-      window.location.href = '/perfil';
+      if (mode === 'register') {
+        setNotice(result.message || 'Enviamos um link para confirmar seu e-mail.');
+        setDevelopmentVerificationURL(result.development_verification_url || '');
+        return;
+      }
+      window.location.href = '/';
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Não foi possível continuar.');
     } finally {
@@ -53,8 +62,8 @@ export default function SignInPage() {
       <section className="account-form-panel">
         <div className="account-form-wrap">
           <div className="mode-switch" aria-label="Escolha a forma de acesso">
-            <button className={mode === 'register' ? 'active' : ''} onClick={() => { setMode('register'); setError(''); }}>Criar conta</button>
-            <button className={mode === 'login' ? 'active' : ''} onClick={() => { setMode('login'); setError(''); }}>Entrar</button>
+            <button className={mode === 'register' ? 'active' : ''} onClick={() => { setMode('register'); setError(''); setNotice(''); }}>Criar conta</button>
+            <button className={mode === 'login' ? 'active' : ''} onClick={() => { setMode('login'); setError(''); setNotice(''); }}>Entrar</button>
           </div>
           <p className="form-kicker">{mode === 'register' ? 'PRIMEIRO PASSO' : 'BEM-VINDO DE VOLTA'}</p>
           <h2>{mode === 'register' ? 'Vamos começar pelo básico.' : 'Continue sua evolução.'}</h2>
@@ -64,8 +73,12 @@ export default function SignInPage() {
             <div><Label htmlFor="email">E-mail</Label><Input id="email" name="email" type="email" required placeholder="voce@exemplo.com" autoComplete="email" /></div>
             <div><Label htmlFor="password">Senha</Label><Input id="password" name="password" type="password" minLength={10} maxLength={72} required placeholder="No mínimo 10 caracteres" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} /></div>
             {error && <p className="form-error" role="alert">{error}</p>}
+            {notice && <p className="form-notice" role="status">{notice}</p>}
             <Button type="submit" disabled={loading} className="account-submit">{loading ? 'Aguarde…' : mode === 'register' ? 'Criar minha conta' : 'Entrar'}<ArrowRight size={16} /></Button>
           </form>
+          {mode === 'login' && <a className="form-link" href="/esqueci-minha-senha">Esqueci minha senha</a>}
+          {developmentVerificationURL && <a className="form-link" href={developmentVerificationURL}>Abrir confirmação local</a>}
+          {notice && mode === 'register' && <a className="form-link" href="/perfil">Já confirmei meu e-mail</a>}
           <p className="form-legal">Ao continuar, você concorda em fornecer dados de treino para personalização. O Cadência não realiza diagnóstico clínico.</p>
         </div>
       </section>

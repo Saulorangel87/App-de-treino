@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Cadência API
-  version: 0.10.0
+  version: 0.11.0
   description: API do MVP de planejamento adaptativo de ciclismo.
 servers:
   - url: http://localhost:8080
@@ -45,6 +45,46 @@ paths:
       summary: Encerra a sessão atual
       responses:
         '204': { description: Sessão encerrada }
+  /v1/auth/resend-verification:
+    post:
+      summary: Reenvia o link de confirmação para o usuário autenticado
+      responses:
+        '200': { description: Link enviado ou conta já confirmada }
+        '401': { description: Sessão ausente ou expirada }
+        '503': { description: Serviço de e-mail indisponível }
+  /v1/auth/verify-email:
+    post:
+      summary: Confirma o endereço de e-mail com um token de uso único
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TokenRequest' }
+      responses:
+        '200': { description: E-mail confirmado }
+        '400': { description: Token inválido, expirado ou já usado }
+  /v1/auth/forgot-password:
+    post:
+      summary: Solicita um link de redefinição sem revelar se o e-mail possui conta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmailRequest' }
+      responses:
+        '200': { description: Resposta genérica enviada }
+        '503': { description: Serviço de e-mail indisponível }
+  /v1/auth/reset-password:
+    post:
+      summary: Redefine a senha com um token de uso único e revoga as sessões existentes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ResetPasswordRequest' }
+      responses:
+        '200': { description: Senha redefinida }
+        '400': { description: Senha ou token inválido }
   /v1/me:
     get:
       summary: Retorna o usuário da sessão
@@ -205,6 +245,7 @@ paths:
         '201': { description: Plano gerado }
         '401': { description: Sessão ausente ou expirada }
         '409': { description: Onboarding incompleto }
+        '403': { description: E-mail ainda não confirmado }
   /v1/plans/current:
     get:
       summary: Retorna o plano ativo ou rascunho mais recente
@@ -230,6 +271,7 @@ paths:
         '400': { description: Identificador inválido }
         '401': { description: Sessão ausente ou expirada }
         '404': { description: Rascunho não encontrado ou pertencente a outro atleta }
+        '403': { description: E-mail ainda não confirmado }
   /v1/workouts/{workoutID}/start:
     post:
       summary: Inicia um treino planejado pertencente ao plano ativo
@@ -289,6 +331,22 @@ components:
       properties:
         email: { type: string, format: email }
         password: { type: string }
+    EmailRequest:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+    TokenRequest:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string, minLength: 1 }
+    ResetPasswordRequest:
+      type: object
+      required: [token, password]
+      properties:
+        token: { type: string, minLength: 1 }
+        password: { type: string, minLength: 10, maxLength: 72 }
     AthleteProfile:
       type: object
       required: [experience_level]

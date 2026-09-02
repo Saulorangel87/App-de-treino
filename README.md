@@ -24,9 +24,11 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 
 ## Fluxo implementado
 
-- `POST /v1/auth/register`: cria usuário, aplica hash seguro à senha e inicia sessão.
+- `POST /v1/auth/register`: cria usuário, aplica hash seguro à senha, inicia sessão e envia a confirmação de e-mail.
 - `POST /v1/auth/login`: autentica e cria uma nova sessão.
 - `POST /v1/auth/logout`: revoga a sessão atual.
+- `POST /v1/auth/resend-verification` e `POST /v1/auth/verify-email`: reenviam e consomem um link de confirmação de uso único.
+- `POST /v1/auth/forgot-password` e `POST /v1/auth/reset-password`: iniciam e concluem a redefinição segura da senha.
 - `GET /v1/me`: retorna o usuário autenticado.
 - `GET /v1/profile`: consulta o perfil básico do ciclista.
 - `PUT /v1/profile`: cria ou atualiza o perfil básico.
@@ -46,7 +48,7 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `POST /v1/workouts/{workoutID}/cancel`: cancela uma sessão em andamento e mantém esse histórico.
 - `GET /v1/activities`: lista, para o atleta autenticado, as sessões concluídas e canceladas.
 
-As sessões são opacas, armazenadas no PostgreSQL apenas como hash e enviadas ao navegador em cookie `HttpOnly`. Em produção, `APP_ENV=production` ativa também a exigência de HTTPS no cookie.
+As sessões são opacas, armazenadas no PostgreSQL apenas como hash e enviadas ao navegador em cookie `HttpOnly`. Em produção, `APP_ENV=production` ativa também a exigência de HTTPS no cookie. Os links de confirmação e redefinição são aleatórios, expiram e só têm o hash armazenado; a redefinição de senha revoga todas as sessões existentes. A geração e a ativação de planos exigem e-mail confirmado.
 
 As rotas atuais do frontend são `/`, `/entrar`, `/perfil`, `/plano`, `/atividades`, `/avaliacao`, `/recuperacao` e `/evolucao`. A tela de atividades apresenta sessões concluídas e canceladas com data, duração, RPE e feedback. O perfil possui quatro etapas e retoma dados já salvos. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
 

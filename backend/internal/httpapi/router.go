@@ -8,15 +8,16 @@ import (
 
 	"github.com/Saulorangel87/App-de-treino/backend/internal/athlete"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/auth"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/email"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/evolution"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
 )
 
 type Pinger interface{ Ping(context.Context) error }
 
-func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Service, onboardingService *athlete.OnboardingService, assessmentService *athlete.AssessmentService, recoveryService *athlete.RecoveryService, evolutionService *evolution.Service, planningService *planning.Service, allowedOrigin string, secureCookies bool, sessionTTL time.Duration) http.Handler {
+func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Service, onboardingService *athlete.OnboardingService, assessmentService *athlete.AssessmentService, recoveryService *athlete.RecoveryService, evolutionService *evolution.Service, planningService *planning.Service, emailSender email.Sender, appBaseURL, allowedOrigin string, secureCookies, development bool, sessionTTL, emailTokenTTL time.Duration) http.Handler {
 	mux := http.NewServeMux()
-	server := &Server{auth: authService, athlete: athleteService, onboarding: onboardingService, assessments: assessmentService, recovery: recoveryService, evolution: evolutionService, planning: planningService, secureCookies: secureCookies, sessionTTL: sessionTTL}
+	server := &Server{auth: authService, athlete: athleteService, onboarding: onboardingService, assessments: assessmentService, recovery: recoveryService, evolution: evolutionService, planning: planningService, emailSender: emailSender, appBaseURL: appBaseURL, secureCookies: secureCookies, development: development, sessionTTL: sessionTTL, emailTokenTTL: emailTokenTTL}
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "service": "cadencia-api"})
 	})
@@ -32,6 +33,10 @@ func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Ser
 	mux.HandleFunc("POST /v1/auth/register", server.register)
 	mux.HandleFunc("POST /v1/auth/login", server.login)
 	mux.HandleFunc("POST /v1/auth/logout", server.logout)
+	mux.HandleFunc("POST /v1/auth/resend-verification", server.resendVerification)
+	mux.HandleFunc("POST /v1/auth/verify-email", server.verifyEmail)
+	mux.HandleFunc("POST /v1/auth/forgot-password", server.forgotPassword)
+	mux.HandleFunc("POST /v1/auth/reset-password", server.resetPassword)
 	mux.HandleFunc("GET /v1/me", server.me)
 	mux.HandleFunc("GET /v1/profile", server.getProfile)
 	mux.HandleFunc("PUT /v1/profile", server.putProfile)

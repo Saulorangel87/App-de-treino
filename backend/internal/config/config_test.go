@@ -10,6 +10,7 @@ func TestLoadRequiresDatabaseURL(t *testing.T) {
 }
 
 func TestLoadUsesEnvironment(t *testing.T) {
+	t.Setenv("APP_ENV", "development")
 	t.Setenv("DATABASE_URL", "postgres://example")
 	t.Setenv("API_PORT", "9090")
 	t.Setenv("ALLOWED_ORIGIN", "https://example.com")
@@ -19,5 +20,15 @@ func TestLoadUsesEnvironment(t *testing.T) {
 	}
 	if cfg.Port != "9090" || cfg.AllowedOrigin != "https://example.com" {
 		t.Fatalf("unexpected config: %+v", cfg)
+	}
+}
+
+func TestLoadRequiresResendConfigurationInProduction(t *testing.T) {
+	t.Setenv("APP_ENV", "production")
+	t.Setenv("DATABASE_URL", "postgres://example")
+	t.Setenv("EMAIL_FROM", "")
+	t.Setenv("RESEND_API_KEY", "")
+	if _, err := Load(); err == nil {
+		t.Fatal("expected production configuration to require Resend credentials")
 	}
 }
