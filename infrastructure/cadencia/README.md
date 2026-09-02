@@ -88,3 +88,5 @@ O diretório de produção é `/var/backups/cadencia`, com acesso do usuário `u
 - A API usa Go 1.25 na imagem de build (`infrastructure/cadencia/Dockerfile.api`).
 - O PostgreSQL não deve receber porta publicada, hostname público ou regra no Cloudflare.
 - O hardening das portas dos demais aplicativos da VPS é uma atividade separada; não altere seus containers por este compose.
+
+Na auditoria de 2 de setembro de 2026, os serviços externos continuavam fora desta composição. O Nginx Proxy Manager usa Tailscale para `casaos.oraclecloud.com.br` (`100.67.151.30:8888`) e `immich.photo.com.br` (`100.67.151.30:2283`). Existe ainda um `cloudflared-tunnel` separado para outros aplicativos. Antes de qualquer bloqueio, confirme esses destinos, as regras da Oracle Cloud e o acesso administrativo pelo Tailscale.
