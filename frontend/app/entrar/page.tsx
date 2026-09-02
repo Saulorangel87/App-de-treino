@@ -57,7 +57,7 @@ export default function SignInPage() {
             <li><Check size={15} /> Começamos apenas com ciclismo</li>
           </ul>
         </div>
-        <div className="privacy-note"><ShieldCheck size={17} /><span><strong>Privacidade por arquitetura</strong>O navegador nunca acessa diretamente o PostgreSQL.</span></div>
+        <div className="privacy-note"><ShieldCheck size={17} /><span><strong>Seus dados ficam protegidos</strong>A aplicação controla o acesso às suas informações com segurança.</span></div>
       </section>
       <section className="account-form-panel">
         <div className="account-form-wrap">

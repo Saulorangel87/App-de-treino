@@ -1568,13 +1568,13 @@ button {
 
 /* Account and athlete profile */
 .account-shell {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--footer-height));
   display: grid;
   grid-template-columns: minmax(360px, 0.9fr) minmax(460px, 1.1fr);
   background: #f7f8f4;
 }
 .account-story {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--footer-height));
   padding: 34px clamp(32px, 6vw, 84px);
   display: flex;
   flex-direction: column;
@@ -2335,6 +2335,7 @@ button {
 
 @media (max-width: 800px) {
   .account-shell {
+    min-height: 100vh;
     grid-template-columns: 1fr;
   }
   .account-story {

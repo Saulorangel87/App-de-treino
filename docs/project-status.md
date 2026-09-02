@@ -168,7 +168,7 @@ Pendências, sem executar bloqueios automáticos:
 ## Próximas etapas do produto
 
 1. Concluir o hardening da VPS.
-2. Aplicar o ajuste visual pendente na tela inicial desktop: texto de privacidade mais amigável e menos altura/scroll.
+2. Validar visualmente e publicar o ajuste aplicado na tela inicial desktop: texto de privacidade mais amigável e menos altura/scroll.
 3. Integrar IA no backend para explicações, interpretação de feedback e comunicação personalizada, sempre subordinada ao motor de regras e às proteções de segurança.
 4. Expandir a coleta progressiva de dados do ciclista.
 5. Evoluir sessões específicas de cadência, tiros, subidas, potência e preparação para provas com regras próprias e validação científica.
