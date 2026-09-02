@@ -154,7 +154,7 @@ O Cadência está isolado, mas a VPS hospeda outros aplicativos. Foram observada
 
 O teste externo realizado a partir do ambiente atual confirmou acesso à porta 22 e à porta 2283 (Immich); as demais portas testadas não responderam externamente. A política local de entrada ainda está permissiva (`accept`), não há `ufw` instalado e a cadeia `DOCKER-USER` está vazia.
 
-Na auditoria somente leitura de 2 de setembro de 2026, o host também apresentou Home Assistant na porta 8123, além das portas já catalogadas. O Nginx Proxy Manager possui os destinos `casaos.oraclecloud.com.br` → `100.67.151.30:8888` e `immich.photo.com.br` → `100.67.151.30:2283`, ambos por Tailscale. Existe um segundo container Cloudflare Tunnel, separado do túnel dedicado do Cadência, que encaminha o Immich; seus logs recentes registraram reconexão bem-sucedida e aviso de versão desatualizada. Nenhuma alteração de rede foi feita.
+Na auditoria somente leitura de 2 de setembro de 2026, o host também apresentou Home Assistant na porta 8123, além das portas já catalogadas. O processo nessa porta é o Python do Home Assistant (`/config`); a porta 8888 pertence ao `casaos-gateway` e a 2283 é a publicação Docker do Immich. O Nginx Proxy Manager possui os destinos `casaos.oraclecloud.com.br` → `100.67.151.30:8888` e `immich.photo.com.br` → `100.67.151.30:2283`, ambos por Tailscale. Existe um segundo container Cloudflare Tunnel, separado do túnel dedicado do Cadência, que encaminha o Immich; seus logs recentes registraram reconexão bem-sucedida e aviso de versão desatualizada. Os testes externos confirmaram apenas 22 e 2283 acessíveis; nenhuma alteração de rede foi feita.
 
 Pendências, sem executar bloqueios automáticos:
 
