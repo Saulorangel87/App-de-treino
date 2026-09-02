@@ -160,7 +160,7 @@ Pendências, sem executar bloqueios automáticos:
 
 1. Completar o mapa de cada domínio, túnel e proxy dos aplicativos existentes.
 2. Confirmar as regras de rede da Oracle Cloud.
-3. Restringir SSH ao Tailscale ou a IPs administrativos, sem perder acesso.
+3. Verificar periodicamente o acesso administrativo pelo Tailscale; novas conexões SSH pela interface pública já estão bloqueadas.
 4. Fechar outras portas diretas desnecessárias, especialmente serviços que já usam proxy; `2283` do Immich já está bloqueada na interface pública.
 5. Definir cópia externa dos backups e monitoramento de falhas.
 6. Atualizar esta documentação após cada mudança de infraestrutura.
