@@ -84,7 +84,7 @@ Validações realizadas:
 - Os dumps ficam em `/var/backups/cadencia`, com retenção de 14 dias.
 - O script valida cada arquivo com `pg_restore --list`.
 - O backup preventivo do último deploy foi `cadencia-20260902T104801Z.dump`.
-- O teste completo de restauração em um banco temporário ainda está pendente.
+- O teste completo de restauração foi concluído em 2 de setembro de 2026 com `cadencia-20260902T104801Z.dump`: a restauração em PostgreSQL 17 temporário terminou sem erro, validou 15 tabelas públicas e `cadencia_schema_migrations`, e o container temporário foi removido sem tocar a produção.
 
 ## Segurança operacional da VPS
 
@@ -96,9 +96,8 @@ Nenhuma porta de outro aplicativo deve ser bloqueada sem mapear antes seus domí
 
 ## Próximas decisões
 
-1. Definir o procedimento de restauração isolada e, depois, cópia externa dos backups.
+1. Definir cópia externa dos backups e o monitoramento de falhas.
 2. Escolher a política de firewall e a lista mínima de portas públicas da VPS.
 3. Registrar monitoramento e alertas de saúde/backup.
 4. Integrar IA no backend com limites explícitos.
 5. Evoluir coleta de dados e sessões específicas de ciclismo.
-

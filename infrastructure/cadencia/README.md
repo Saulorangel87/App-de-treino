@@ -77,7 +77,7 @@ sudo CADENCIA_BACKUP_DIR=/var/backups/cadencia \
   bash infrastructure/cadencia/scripts/backup-postgres.sh
 ```
 
-O diretório de produção é `/var/backups/cadencia`, com acesso do usuário `ubuntu`. O backup preventivo do deploy mais recente foi `cadencia-20260902T104801Z.dump`. A validação estrutural do arquivo já ocorre automaticamente; o teste completo de restauração em banco/volume separado e a cópia externa dos dumps ainda estão pendentes.
+O diretório de produção é `/var/backups/cadencia`, com acesso do usuário `ubuntu`. O backup preventivo do deploy mais recente foi `cadencia-20260902T104801Z.dump`. A validação estrutural do arquivo ocorre automaticamente. Em 2 de setembro de 2026, esse dump também foi restaurado com sucesso em um PostgreSQL 17 temporário: foram confirmadas 15 tabelas públicas e `cadencia_schema_migrations`, e o ambiente temporário foi removido sem alterar a produção. A cópia externa dos dumps ainda está pendente.
 
 ## Segurança operacional
 

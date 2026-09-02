@@ -146,7 +146,7 @@ Em 2 de setembro de 2026:
 - Dumps em formato customizado, validados por `pg_restore --list`.
 - Diretório de produção: `/var/backups/cadencia`.
 - Backup preventivo do deploy de 2 de setembro: `cadencia-20260902T104801Z.dump`.
-- O teste de restauração completo em um PostgreSQL temporário ainda está pendente; a validação atual confirma a integridade estrutural do arquivo.
+- O teste de restauração completo foi concluído em 2 de setembro de 2026 com o dump `cadencia-20260902T104801Z.dump`: um PostgreSQL 17 temporário restaurou o arquivo com sucesso, apresentou 15 tabelas públicas e `cadencia_schema_migrations`, e foi removido ao final. O banco e os volumes de produção não foram alterados.
 
 ## Auditoria da VPS e pendências operacionais
 
@@ -160,13 +160,12 @@ Pendências, sem executar bloqueios automáticos:
 2. Confirmar as regras de rede da Oracle Cloud.
 3. Restringir SSH ao Tailscale ou a IPs administrativos, sem perder acesso.
 4. Fechar portas diretas desnecessárias, especialmente serviços que já usam proxy.
-5. Fazer restauração completa do backup em ambiente isolado.
-6. Definir cópia externa dos backups e monitoramento de falhas.
-7. Atualizar esta documentação após cada mudança de infraestrutura.
+5. Definir cópia externa dos backups e monitoramento de falhas.
+6. Atualizar esta documentação após cada mudança de infraestrutura.
 
 ## Próximas etapas do produto
 
-1. Concluir a restauração isolada e o hardening da VPS.
+1. Concluir o hardening da VPS.
 2. Aplicar o ajuste visual pendente na tela inicial desktop: texto de privacidade mais amigável e menos altura/scroll.
 3. Integrar IA no backend para explicações, interpretação de feedback e comunicação personalizada, sempre subordinada ao motor de regras e às proteções de segurança.
 4. Expandir a coleta progressiva de dados do ciclista.

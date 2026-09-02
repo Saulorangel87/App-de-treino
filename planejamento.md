@@ -1093,7 +1093,7 @@ A infraestrutura de produção usa PostgreSQL próprio na VPS Oracle, frontend e
 
 Pendências principais:
 
-- testar restauração completa do backup em ambiente isolado e definir cópia externa;
+- definir cópia externa dos backups e monitoramento de falhas;
 - concluir hardening das portas dos demais aplicativos hospedados na VPS;
 - aplicar o ajuste visual de privacidade e altura da tela inicial desktop;
 - integrar IA de forma controlada no backend;
