@@ -53,6 +53,18 @@ docker compose --env-file infrastructure/cadencia/.env.production \
   -f infrastructure/cadencia/compose.production.yaml up -d api frontend tunnel
 ```
 
+O Ollama é opcional e não é iniciado pelo comando acima. Quando a VPS tiver sido avaliada e a IA for autorizada, prepare-o somente na rede interna do Cadência:
+
+```sh
+docker compose --env-file infrastructure/cadencia/.env.production \
+  -f infrastructure/cadencia/compose.production.yaml up -d ollama
+docker compose --env-file infrastructure/cadencia/.env.production \
+  -f infrastructure/cadencia/compose.production.yaml exec ollama \
+  ollama pull qwen3:4b-instruct
+```
+
+O serviço tem limite de 4 GiB de memória, uma execução simultânea e nenhum `ports:` publicado; `11434` fica acessível somente pela rede Docker privada. Mantenha `AI_ENABLED=false` até concluir um teste controlado do modelo e confirmar folga de memória.
+
 Após o deploy, valide:
 
 ```sh

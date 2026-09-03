@@ -75,6 +75,21 @@ services:
       - cadencia_edge
       - cadencia_data
 
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    mem_limit: 4g
+    cpus: "1.0"
+    environment:
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+    expose:
+      - "11434"
+    volumes:
+      - cadencia_ollama_data:/root/.ollama
+    networks:
+      - cadencia_data
+
   frontend:
     build:
       context: ../..
@@ -109,3 +124,5 @@ networks:
 volumes:
   cadencia_postgres_data:
     name: cadencia_postgres_data
+  cadencia_ollama_data:
+    name: cadencia_ollama_data
