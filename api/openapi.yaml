@@ -454,6 +454,7 @@ components:
         warmup_minutes: { type: integer, minimum: 1 }
         main: { type: string }
         cooldown_minutes: { type: integer, minimum: 1 }
+        protocol_key: { type: string }
         steps:
           type: array
           items: { $ref: '#/components/schemas/WorkoutStep' }

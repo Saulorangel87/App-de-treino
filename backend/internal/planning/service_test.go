@@ -162,6 +162,9 @@ func TestBuildPlanIncludesActionableStepsForSpecificSessions(t *testing.T) {
 			t.Fatalf("step total %d does not match workout duration %d: %#v", total, workout.DurationMinutes, steps)
 		}
 		if workout.Name == "Subidas controladas" {
+			if workout.Structure["protocol_key"] != "controlled_hills" || workout.Explanation["protocol_key"] != "controlled_hills" {
+				t.Fatalf("expected explicit protocol mapping: %#v / %#v", workout.Structure, workout.Explanation)
+			}
 			if steps[1].Title != "Subida controlada 1 de 4" || steps[2].Kind != "recovery" {
 				t.Fatalf("expected explicit hill blocks and recovery: %#v", steps)
 			}
@@ -169,6 +172,22 @@ func TestBuildPlanIncludesActionableStepsForSpecificSessions(t *testing.T) {
 		}
 	}
 	t.Fatal("expected a specific hill workout")
+}
+
+func TestSessionProtocolsKeepEvidenceMapping(t *testing.T) {
+	for _, name := range []string{
+		"Giro de base", "Endurance contínuo", "Giro leve protegido", "Tempo controlado",
+		"Ritmo de prova controlado", "Cadência técnica", "Subidas controladas",
+		"Sweet spot por potência", "Sweet spot progressivo", "Intervalos controlados",
+	} {
+		protocol := protocolForWorkout(name)
+		if protocol.Key == "" || len(protocol.EvidenceKeys) == 0 || protocol.EvidenceScope == "" {
+			t.Fatalf("protocol %q is missing evidence metadata: %#v", name, protocol)
+		}
+	}
+	if protocolForWorkout("unknown").Key != "continuous_base" {
+		t.Fatal("unknown sessions should use the safe continuous fallback protocol")
+	}
 }
 
 func TestBuildPlanRestrictionOverridesSpecificCyclingContext(t *testing.T) {

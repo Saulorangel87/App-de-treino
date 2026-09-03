@@ -171,7 +171,7 @@ Pendências, sem executar bloqueios automáticos:
 2. Validar visualmente e publicar o ajuste aplicado na tela inicial desktop: texto de privacidade mais amigável e menos altura/scroll.
 3. Integrar IA no backend para explicações, interpretação de feedback e comunicação personalizada, sempre subordinada ao motor de regras e às proteções de segurança. A primeira camada de sessões estruturadas já foi implementada: o motor envia etapas com duração, RPE e instruções acionáveis.
 4. Expandir a coleta progressiva de dados do ciclista.
-5. Evoluir sessões específicas de cadência, tiros, subidas, potência e preparação para provas com regras próprias e validação científica.
+5. Evoluir sessões específicas de cadência, tiros, subidas, potência e preparação para provas com regras próprias e validação científica. A biblioteca inicial de protocolos, o mapeamento de evidências e as etapas operacionais já estão implementados; ainda falta ampliar a cobertura de sessões e revisar parâmetros com profissional habilitado.
 6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
 
 ## Como iniciar localmente

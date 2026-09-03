@@ -34,6 +34,22 @@ As sessões geradas agora carregam uma sequência de etapas acionáveis em `work
 
 Uma sessão de subida, por exemplo, pode apresentar quatro esforços separados por recuperações leves, em vez de apenas o texto "4 blocos sustentados em subida". A soma das etapas é igual à duração prescrita e continua limitada à disponibilidade do dia. Em uma adaptação de duração, a interface ajusta proporcionalmente a exibição das etapas até que uma futura versão do motor passe a recalcular os blocos no próprio banco.
 
+## Biblioteca de protocolos
+
+O motor mantém uma biblioteca explícita de protocolos em código. Cada protocolo possui uma chave estável, um formato de blocos, uma instrução de execução e referências de evidência. A duração final ainda é calculada pelo motor conforme a semana, o nível, os minutos disponíveis e as proteções de segurança.
+
+- `base_endurance`: giro de base contínuo, RPE leve a moderado.
+- `continuous_endurance`: endurance contínuo no maior período disponível, sem blocos intensos.
+- `controlled_tempo`: três blocos de ritmo controlado com recuperação leve.
+- `controlled_hills`: até quatro blocos sustentados em subida, com recuperação leve.
+- `technical_cadence`: blocos curtos de cadência técnica, sem elevar excessivamente o esforço.
+- `power_sweet_spot` e `progressive_sweet_spot`: blocos sustentáveis; o FTP contextualiza a sessão, mas não cria metas rígidas automaticamente.
+- `controlled_event_pace`: blocos sustentáveis orientados à meta de prova, sem simular a prova completa.
+- `controlled_intervals`: quatro blocos de 4 minutos com 3 minutos leves, liberados somente para o perfil avançado elegível.
+- `protected_recovery`: giro leve protegido quando existe uma limitação ativa.
+
+As referências associadas sustentam princípios como progressão gradual, monitoramento de carga e uso contextual de intervalos. Elas não devem ser interpretadas como validação de um número universal de minutos para todas as pessoas; os parâmetros continuam sujeitos às regras de segurança do produto.
+
 ## Avaliação inicial submáxima
 
 A rota `/avaliacao` apresenta um pedal de referência opcional: aquecimento leve, até 20 minutos de esforço controlado próximo de RPE 5 e desaquecimento. O atleta registra duração, RPE percebido e dor. Não há teste máximo, estimativa de VO₂max nem diagnóstico.

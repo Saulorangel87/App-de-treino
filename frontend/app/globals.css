@@ -3194,6 +3194,12 @@ a.footer-icon:hover {
   margin-top: 1px;
   color: var(--lime);
 }
+.workout-detail .evidence-scope {
+  margin: 7px 0 0;
+  color: #9fb8ad;
+  font-size: 10px;
+  line-height: 1.45;
+}
 @media (max-width: 900px) {
   .plan-layout {
     grid-template-columns: 1fr;

@@ -490,6 +490,9 @@ export default function PlanPage() {
                           return source ? <li key={key}><a href={source.url} target="_blank" rel="noreferrer">{source.authors} ({source.published_year})</a></li> : null;
                         })}
                       </ul>
+                      {selected.explanation.evidence_scope ? (
+                        <p className="evidence-scope">{selected.explanation.evidence_scope}</p>
+                      ) : null}
                     </>
                   ) : null}
                   </aside>

@@ -9,11 +9,14 @@ export type Workout = {
     warmup_minutes?: number;
     main?: string;
     cooldown_minutes?: number;
+    protocol_key?: string;
     steps?: WorkoutStep[];
   };
   explanation: {
     summary?: string;
     rules?: string[];
+    protocol_key?: string;
+    evidence_scope?: string;
     evidence_keys?: string[];
     adaptation?: {
       kind: 'safety' | 'recovery' | 'progression';

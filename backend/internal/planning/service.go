@@ -411,6 +411,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	if duration > slot.AvailableMinutes {
 		duration = slot.AvailableMinutes
 	}
+	protocol := protocolForWorkout(name)
 
 	rules := []string{
 		fmt.Sprintf("Agendado em um dia com %d minutos disponíveis.", slot.AvailableMinutes),
@@ -426,10 +427,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	if restricted {
 		rules = append(rules, "Intensidade limitada por uma condição de segurança ativa.")
 	}
-	evidenceKeys := []string{"acsm-1998"}
-	if usesControlledIntervals {
-		evidenceKeys = append(evidenceKeys, "rosenblat-2020")
-	}
+	evidenceKeys := append([]string(nil), protocol.EvidenceKeys...)
 	return Workout{
 		ScheduledOn:     date.Format("2006-01-02"),
 		Name:            name,
@@ -437,7 +435,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		DurationMinutes: duration,
 		TargetRPE:       targetRPE,
 		Structure:       buildStructure(duration, targetRPE, name, mainBlock),
-		Explanation:     map[string]any{"summary": summary, "rules": rules, "evidence_keys": evidenceKeys},
+		Explanation:     map[string]any{"summary": summary, "rules": rules, "protocol_key": protocol.Key, "evidence_keys": evidenceKeys, "evidence_scope": protocol.EvidenceScope},
 		Status:          "planned",
 	}
 }
@@ -450,19 +448,11 @@ func buildStructure(duration int, targetRPE float64, name, mainBlock string) map
 		{Order: 1, Kind: "warmup", Title: "Aquecimento", DurationMinutes: warmup, TargetRPE: 3, Instruction: "Pedale de forma confortável e aumente o ritmo aos poucos."},
 	}
 
+	protocol := protocolForWorkout(name)
 	var mainSteps []WorkoutStep
-	switch name {
-	case "Subidas controladas":
-		mainSteps = repeatedSteps(mainMinutes, 6, 3, 4, targetRPE, "Subida controlada", "Mantenha um esforço firme e controlado na subida, sem sprintar.")
-	case "Intervalos controlados":
-		mainSteps = repeatedSteps(mainMinutes, 4, 3, 4, targetRPE, "Intervalo forte-controlado", "Sustente o esforço forte com técnica estável; reduza o ritmo se perder o controle.")
-	case "Cadência técnica":
-		mainSteps = repeatedSteps(mainMinutes, 2, 2, 6, targetRPE, "Cadência técnica", "Aumente a cadência mantendo o movimento redondo e sem tensão excessiva.")
-	case "Sweet spot por potência", "Sweet spot progressivo":
-		mainSteps = repeatedSteps(mainMinutes, 8, 4, 3, targetRPE, "Bloco sustentável", "Mantenha um esforço forte e sustentável, sem transformar o bloco em um sprint.")
-	case "Tempo controlado", "Ritmo de prova controlado":
-		mainSteps = repeatedSteps(mainMinutes, 8, 3, 3, targetRPE, "Ritmo controlado", "Sustente um ritmo estável em que ainda consiga manter a técnica e a respiração sob controle.")
-	default:
+	if protocol.Repetitions > 1 {
+		mainSteps = repeatedSteps(mainMinutes, protocol.WorkMinutes, protocol.RecoveryMinutes, protocol.Repetitions, targetRPE, protocol.WorkTitle, protocol.WorkInstruction)
+	} else {
 		mainSteps = []WorkoutStep{{Kind: "main", Title: "Parte principal", DurationMinutes: mainMinutes, TargetRPE: targetRPE, Instruction: mainBlock + "."}}
 	}
 
@@ -479,6 +469,7 @@ func buildStructure(duration int, targetRPE float64, name, mainBlock string) map
 		"warmup_minutes":   warmup,
 		"main":             mainBlock,
 		"cooldown_minutes": cooldown,
+		"protocol_key":     protocol.Key,
 		"steps":            steps,
 	}
 }
