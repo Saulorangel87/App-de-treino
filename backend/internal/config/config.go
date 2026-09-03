@@ -22,6 +22,8 @@ type Config struct {
 	AIProvider      string
 	AIBaseURL       string
 	AIModel         string
+	AIWorkerURL     string
+	AIWorkerToken   string
 	AITimeout       time.Duration
 	AIMaxTokens     int
 	AIMaxConcurrent int
@@ -66,6 +68,8 @@ func Load() (Config, error) {
 		AIProvider:      valueOrDefault("AI_PROVIDER", "ollama"),
 		AIBaseURL:       valueOrDefault("AI_BASE_URL", "http://127.0.0.1:11434"),
 		AIModel:         valueOrDefault("AI_MODEL", "qwen3:4b-instruct"),
+		AIWorkerURL:     strings.TrimRight(strings.TrimSpace(os.Getenv("AI_WORKER_URL")), "/"),
+		AIWorkerToken:   strings.TrimSpace(os.Getenv("AI_WORKER_TOKEN")),
 		AITimeout:       time.Duration(aiTimeoutSeconds) * time.Second,
 		AIMaxTokens:     aiMaxTokens,
 		AIMaxConcurrent: aiMaxConcurrent,

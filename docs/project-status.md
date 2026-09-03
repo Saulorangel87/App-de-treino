@@ -87,7 +87,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 - Sessões específicas para perfis adequados: cadência, subidas, sweet spot, ritmo de prova e intervalos controlados.
 - Histórico em `/atividades` e agregações observadas em `/evolucao`.
 - Indicadores de consistência, carga semanal, prontidão e explicabilidade.
-- Contrato inicial da IA explicativa no backend, com Ollama opcional, limites de recurso e fallback para as regras; ainda não habilitado nem instalado na VPS.
+- Contrato inicial da IA explicativa no backend, com Ollama opcional, limites de recurso e fallback para as regras. O cliente do Worker Cloudflare está preparado como fallback remoto, e a rota protegida `/cadencia/explanation` foi publicada sem alterar o endpoint legado; ainda falta cadastrar `CADENCIA_WORKER_TOKEN`, validar a chamada autenticada e decidir a ativação na VPS.
 
 ### Interface e PWA
 
@@ -174,7 +174,7 @@ Pendências, sem executar bloqueios automáticos:
 
 1. Concluir o hardening da VPS.
 2. Validar visualmente e publicar o ajuste aplicado na tela inicial desktop: texto de privacidade mais amigável e menos altura/scroll.
-3. Habilitar e validar a IA explicativa no backend usando Ollama local, sempre subordinada ao motor de regras e às proteções de segurança. O contrato, os limites de recurso, o fallback determinístico e a ação opcional na interface já estão implementados; ainda falta medir a VPS, instalar/testar o modelo e ativar a variável somente se houver folga.
+3. Cadastrar o segredo do Worker e validar a rota remota como fallback; em seguida habilitar e validar a IA explicativa no backend usando Ollama local, sempre subordinada ao motor de regras e às proteções de segurança. O contrato, os limites de recurso, o fallback determinístico, o cliente remoto e a ação opcional na interface já estão implementados; ainda falta configurar os segredos, medir a VPS, instalar/testar o modelo e ativar a variável somente se houver folga.
 4. Expandir a coleta progressiva de dados do ciclista. O motor já incorpora o resumo observado de sessões e recuperação sem transformar relatos em metas rígidas; a próxima ampliação deve adicionar métricas de desempenho com validação específica.
 5. Evoluir sessões específicas de cadência, tiros, subidas, potência e preparação para provas com regras próprias e validação científica. As preferências agora orientam a sessão de qualidade quando há contexto compatível; a ampliação do catálogo de evidências específicas de ciclismo fica registrada como etapa futura, sem migração aplicada. Ainda falta ampliar a cobertura e revisar parâmetros com profissional habilitado.
 6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.

@@ -81,7 +81,7 @@ O uso é deliberadamente conservador: dor relatada protege todas as sessões do 
 
 ## IA explicativa opcional
 
-O endpoint de explicação envia ao modelo apenas o nome, objetivo, duração, RPE-alvo, regras e escopo de evidência do treino. O modelo deve explicar a decisão em duas ou três frases; não recebe autorização para criar etapas, alterar carga, inventar referências ou interpretar sintomas. A integração usa Ollama local com limites de tempo, saída e concorrência. Enquanto `AI_ENABLED=false`, ou quando o modelo estiver indisponível, a API devolve o resumo validado pelo `rules-v1`.
+O endpoint de explicação envia ao modelo apenas o nome, objetivo, duração, RPE-alvo, regras e escopo de evidência do treino. O modelo deve explicar a decisão em duas ou três frases; não recebe autorização para criar etapas, alterar carga, inventar referências ou interpretar sintomas. A integração usa Ollama local com limites de tempo, saída e concorrência e pode usar a rota protegida do Worker como fallback. Enquanto `AI_ENABLED=false`, ou quando os provedores estiverem indisponíveis, a API devolve o resumo validado pelo `rules-v1`.
 
 ## Transparência e segurança
 

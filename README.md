@@ -57,7 +57,7 @@ A tela `/plano` gera, apresenta e ativa ciclos de quatro semanas. O motor `rules
 
 O feedback de uma sessão concluída adapta de forma conservadora os próximos treinos planejados. Dor, fadiga, dificuldade e diferença entre RPE planejado e realizado podem reduzir duração ou esforço; uma resposta claramente fácil permite somente uma progressão pequena de duração. A decisão fica registrada no treino e é apresentada na interface. As regras completas estão em `docs/training-adaptation-rules.md`.
 
-A camada de IA explicativa é opcional e fica desligada por padrão. A primeira integração prevista usa Ollama local, com modelo pequeno, limite de uma chamada simultânea, timeout curto e limite de saída. Se o modelo não responder, o usuário continua recebendo a explicação determinística do motor; nenhuma chamada externa é feita pelo frontend.
+A camada de IA explicativa é opcional e fica desligada por padrão. A primeira opção é o Ollama local, com modelo pequeno, limite de uma chamada simultânea, timeout curto e limite de saída. Quando configurado, o backend pode usar como fallback a rota protegida `/cadencia/explanation` do Worker Cloudflare, nunca diretamente pelo navegador. Se os provedores não responderem, o usuário continua recebendo a explicação determinística do motor.
 
 A rota `/avaliacao` permite registrar opcionalmente um pedal de referência submáximo, sem teste máximo ou diagnóstico. Para atletas avançados com objetivo de desempenho/prova, sem limitação ativa e com tempo suficiente, uma referência apta libera apenas intervalos controlados nas semanas de construção; não libera sprints nem esforço máximo.
 

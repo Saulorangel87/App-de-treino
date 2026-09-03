@@ -48,16 +48,44 @@ func main() {
 	planningService := planning.NewService(store)
 	var aiService *ai.Service
 	if cfg.AIEnabled {
-		if cfg.AIProvider != "ollama" {
+		var primary ai.Provider
+		switch cfg.AIProvider {
+		case "ollama":
+			ollamaClient, err := ai.NewOllamaClient(cfg.AIBaseURL, cfg.AIModel, cfg.AITimeout, cfg.AIMaxTokens, cfg.AIMaxConcurrent)
+			if err != nil {
+				logger.Error("invalid Ollama configuration", "error", err)
+				os.Exit(1)
+			}
+			primary = ollamaClient
+		case "worker":
+			if cfg.AIWorkerURL == "" || cfg.AIWorkerToken == "" {
+				logger.Error("AI Worker provider requires AI_WORKER_URL and AI_WORKER_TOKEN")
+				os.Exit(1)
+			}
+			workerClient, err := ai.NewWorkerClient(cfg.AIWorkerURL, cfg.AIWorkerToken, cfg.AITimeout, cfg.AIMaxConcurrent)
+			if err != nil {
+				logger.Error("invalid AI Worker configuration", "error", err)
+				os.Exit(1)
+			}
+			primary = workerClient
+		default:
 			logger.Error("unsupported AI provider", "provider", cfg.AIProvider)
 			os.Exit(1)
 		}
-		ollamaClient, err := ai.NewOllamaClient(cfg.AIBaseURL, cfg.AIModel, cfg.AITimeout, cfg.AIMaxTokens, cfg.AIMaxConcurrent)
-		if err != nil {
-			logger.Error("invalid AI configuration", "error", err)
-			os.Exit(1)
+
+		if cfg.AIProvider != "worker" && cfg.AIWorkerURL != "" {
+			if cfg.AIWorkerToken == "" {
+				logger.Warn("AI Worker fallback ignored because AI_WORKER_TOKEN is empty")
+			} else {
+				workerClient, err := ai.NewWorkerClient(cfg.AIWorkerURL, cfg.AIWorkerToken, cfg.AITimeout, cfg.AIMaxConcurrent)
+				if err != nil {
+					logger.Error("invalid AI Worker fallback configuration", "error", err)
+					os.Exit(1)
+				}
+				primary = ai.NewFallbackProvider(primary, workerClient)
+			}
 		}
-		aiService = ai.NewService(ollamaClient)
+		aiService = ai.NewService(primary)
 	} else {
 		aiService = ai.NewService(nil)
 	}

@@ -51,7 +51,7 @@ Os formatos das sessões são mantidos em uma biblioteca de protocolos com chave
 
 O contexto de ciclismo permanece em JSONB para evoluir sem migrações a cada pergunta opcional. Atualmente inclui horas semanais, pedais por semana, distância semanal recente, semanas de regularidade, maior distância e pedal, preferências de sessão, equipamento, terreno e sensores. Além dele, o motor consulta um resumo agregado dos últimos 28 dias de sessões concluídas e check-ins de recuperação. Esses dados são preservados no snapshot do plano; sinais de dor, fadiga elevada ou recuperação insuficiente apenas protegem a sessão de forma conservadora, sem criar metas rígidas ou diagnósticos. Novas fórmulas de carga só serão ativadas após revisão e testes específicos.
 
-A primeira implementação de IA usa Ollama local como provedor opcional. `AI_ENABLED=false` é o padrão; quando habilitado, o backend aplica timeout de até 60 segundos, saída limitada a 512 tokens e no máximo duas chamadas simultâneas (padrão: uma). A API local do Ollama não é exposta ao navegador ou à internet. Se o provedor falhar, a API retorna o resumo determinístico do motor.
+A primeira implementação de IA usa Ollama local como provedor opcional. `AI_ENABLED=false` é o padrão; quando habilitado, o backend aplica timeout de até 60 segundos, saída limitada a 512 tokens e no máximo duas chamadas simultâneas (padrão: uma). A API local do Ollama não é exposta ao navegador ou à internet. Uma rota separada e protegida do Worker Cloudflare (`/cadencia/explanation`) foi publicada para fallback, com autenticação por segredo, allowlist de campos, limite de corpo, timeout, limite de requisições por janela e resposta sanitizada. O contrato legado do Worker permanece inalterado para não interromper outros projetos. Se os provedores falharem, a API retorna o resumo determinístico do motor.
 
 ## ADR-004 — Autenticação e e-mail
 
@@ -107,5 +107,5 @@ Nenhuma porta de outro aplicativo deve ser bloqueada sem mapear antes seus domí
 1. Definir cópia externa dos backups e o monitoramento de falhas.
 2. Escolher a política de firewall e a lista mínima de portas públicas da VPS.
 3. Registrar monitoramento e alertas de saúde/backup.
-4. Medir a folga da VPS e, se aprovada, ativar a IA explicativa local com limites explícitos; o contrato e o fallback já estão implementados.
+4. Configurar o segredo do Worker e validar o fallback no backend; depois medir a folga da VPS e, se aprovada, ativar a IA explicativa local com limites explícitos.
 5. Evoluir coleta de dados e sessões específicas de ciclismo.
