@@ -398,7 +398,7 @@ components:
         recent_best_distance_km: { type: number, minimum: 0, maximum: 2000 }
         preferred_session_types:
           type: array
-          maxItems: 5
+          maxItems: 6
           uniqueItems: true
           items: { type: string, enum: [base, cadence, hills, intervals, sweet_spot, recovery] }
         bike_type: { type: string, enum: ['', road, mtb, gravel, indoor] }

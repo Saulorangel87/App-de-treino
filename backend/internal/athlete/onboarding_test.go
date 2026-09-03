@@ -89,6 +89,13 @@ func TestSaveCyclingContextAcceptsOptionalContext(t *testing.T) {
 	}
 }
 
+func TestSaveCyclingContextAcceptsAllSessionPreferences(t *testing.T) {
+	input := CyclingContext{PreferredSessionTypes: []string{"base", "cadence", "hills", "intervals", "sweet_spot", "recovery"}}
+	if _, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", input); err != nil {
+		t.Fatalf("expected all available session preferences to be accepted, got %v", err)
+	}
+}
+
 func TestSaveCyclingContextRejectsInvalidHistory(t *testing.T) {
 	service := NewOnboardingService(onboardingStore{})
 	if _, err := service.SaveCyclingContext(context.Background(), "user-1", CyclingContext{WeeklyRides: 22}); err != ErrInvalidOnboarding {
