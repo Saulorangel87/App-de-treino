@@ -8,7 +8,7 @@ Este é o documento principal de continuidade. Ele registra o que está implemen
 
 O MVP de ciclismo está em produção real e foi validado no navegador e em um celular. O fluxo de cadastro, confirmação de e-mail, perfil, geração e ativação de plano, execução, feedback, adaptação, histórico, evolução e logout está funcionando.
 
-O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e referências científicas. A camada opcional de IA explicativa foi preparada no backend e validada por uma rota remota protegida; ela continua desligada por padrão e só poderá ser ativada depois da medição/instalação do provedor local.
+O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e referências científicas. A camada opcional de IA explicativa foi preparada no backend, validada por uma rota remota protegida e instalada localmente com Ollama; ela continua desligada por padrão até uma ativação controlada.
 
 ## Repositório e produção
 
@@ -18,7 +18,7 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - API: <https://cadencia-api.devsaulo.com.br>
 - VPS: Oracle Cloud, Ubuntu, acesso administrativo por SSH na porta 22.
 - Código na VPS: `/home/ubuntu/apps/cadencia`.
-- Commit implantado: `41638da fix: atualiza dependencias Go vulneraveis`.
+- Commit implantado: `005107a feat: adiciona Ollama isolado à composição de produção`.
 - O Cloudflare Tunnel dedicado expõe somente frontend e API; o PostgreSQL não possui hostname, rota pública ou porta publicada.
 
 ## Arquitetura efetiva
@@ -87,7 +87,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 - Sessões específicas para perfis adequados: cadência, subidas, sweet spot, ritmo de prova e intervalos controlados.
 - Histórico em `/atividades` e agregações observadas em `/evolucao`.
 - Indicadores de consistência, carga semanal, prontidão e explicabilidade.
-- Contrato inicial da IA explicativa no backend, com Ollama opcional, limites de recurso e fallback determinístico para as regras. O cliente do Worker Cloudflare está preparado como fallback remoto, e a rota protegida `/cadencia/explanation` foi publicada sem alterar o endpoint legado. O segredo `CADENCIA_WORKER_TOKEN` foi configurado no Worker e na VPS; uma chamada sintética autenticada respondeu `200` usando `openai/gpt-oss-20b`. A variável `AI_ENABLED` permanece `false` e nenhum serviço foi reiniciado.
+- Contrato inicial da IA explicativa no backend, com Ollama opcional, limites de recurso e fallback determinístico para as regras. O cliente do Worker Cloudflare está preparado como fallback remoto, e a rota protegida `/cadencia/explanation` foi publicada sem alterar o endpoint legado. O segredo `CADENCIA_WORKER_TOKEN` foi configurado no Worker e na VPS; uma chamada sintética autenticada respondeu `200` usando `openai/gpt-oss-20b`. O serviço Ollama também foi instalado na composição de produção, sem porta pública, e o modelo `qwen3:4b-instruct` foi baixado e testado. A variável `AI_ENABLED` permanece `false`.
 
 ### Interface e PWA
 
@@ -159,7 +159,7 @@ O teste externo realizado a partir do ambiente atual confirmou acesso à porta 2
 
 Na auditoria somente leitura de 2 de setembro de 2026, o host também apresentou Home Assistant na porta 8123, além das portas já catalogadas. O processo nessa porta é o Python do Home Assistant (`/config`); a porta 8888 pertence ao `casaos-gateway` e a 2283 é a publicação Docker do Immich. O Nginx Proxy Manager possui os destinos `casaos.oraclecloud.com.br` → `100.67.151.30:8888` e `immich.photo.com.br` → `100.67.151.30:2283`, ambos por Tailscale. Existe um segundo container Cloudflare Tunnel, separado do túnel dedicado do Cadência, que encaminha o Immich; seus logs recentes registraram reconexão bem-sucedida e aviso de versão desatualizada. Os testes externos confirmaram inicialmente apenas 22 e 2283 acessíveis. Em seguida, foi aplicada uma regra persistente na cadeia `DOCKER-USER` para bloquear `tcp/2283` somente pela interface pública `enp0s6`; as regras TCP públicas `22`, `81`, `2283`, `8096` e `8097` também foram removidas da Oracle Cloud, restando somente ICMP. Immich continua respondendo via Tailscale e loopback, e Cadência foi validado após as alterações.
 
-Em 3 de setembro de 2026, uma auditoria somente leitura pelo Tailscale mediu 2 vCPUs, 11 GiB de RAM total, 8,2 GiB disponíveis, nenhum swap e 118 GiB livres no disco raiz (40% usado). A carga estava baixa (0,13 / 0,05 / 0,01), mas a ausência de swap exige cautela. Havia 23 containers ativos; os maiores consumos observados foram Immich (servidor e machine learning), n8n e Home Assistant. Ollama ainda não está instalado nem em execução. A IA será ativada somente após instalação isolada, limite de aproximadamente 4 GiB de memória, no máximo uma chamada simultânea e sem porta pública.
+Em 3 de setembro de 2026, uma auditoria somente leitura pelo Tailscale mediu 2 vCPUs, 11 GiB de RAM total, 8,2 GiB disponíveis, nenhum swap e 118 GiB livres no disco raiz (40% usado). A carga estava baixa (0,13 / 0,05 / 0,01), mas a ausência de swap exige cautela. Havia 23 containers ativos; os maiores consumos observados foram Immich (servidor e machine learning), n8n e Home Assistant. O Ollama foi instalado isoladamente no serviço `cadencia-ollama-1`, limitado a 4 GiB de memória, 1 CPU e uma chamada simultânea, somente na rede Docker interna e sem porta publicada. O modelo `qwen3:4b-instruct` foi baixado e uma inferência simples retornou `OK`. Com o modelo carregado, o container chegou a aproximadamente 3,3 GiB; por isso a IA permanece desligada até um teste controlado de ativação.
 
 Também em 3 de setembro, a versão ativa do Worker `flat-rice-6724` foi atualizada para o modelo Groq disponível `openai/gpt-oss-20b`, após o identificador anterior deixar de existir. A rota protegida foi testada com payload mínimo e token válido, sem expor o segredo; o endpoint legado do Worker permaneceu preservado.
 
@@ -176,7 +176,7 @@ Pendências, sem executar bloqueios automáticos:
 
 1. Concluir o hardening da VPS.
 2. Validar visualmente e publicar o ajuste aplicado na tela inicial desktop: texto de privacidade mais amigável e menos altura/scroll.
-3. Medir a VPS, instalar/testar o Ollama de forma isolada e, somente se houver folga, ativar e validar a IA explicativa no backend, sempre subordinada ao motor de regras e às proteções de segurança. O contrato, os limites de recurso, o fallback determinístico, o cliente remoto, os segredos e a rota autenticada já estão validados; `AI_ENABLED=false` continua sendo a configuração segura até essa decisão.
+3. Executar, se autorizado, um teste controlado de ativação da IA explicativa local. O contrato, os limites de recurso, o Ollama isolado, o modelo `qwen3:4b-instruct`, o fallback determinístico, o cliente remoto, os segredos e a rota autenticada já estão validados; `AI_ENABLED=false` continua sendo a configuração segura até medir latência e folga de memória durante uma chamada real.
 4. Expandir a coleta progressiva de dados do ciclista. O motor já incorpora o resumo observado de sessões e recuperação sem transformar relatos em metas rígidas; a próxima ampliação deve adicionar métricas de desempenho com validação específica.
 5. Evoluir sessões específicas de cadência, tiros, subidas, potência e preparação para provas com regras próprias e validação científica. As preferências agora orientam a sessão de qualidade quando há contexto compatível; a ampliação do catálogo de evidências específicas de ciclismo fica registrada como etapa futura, sem migração aplicada. Ainda falta ampliar a cobertura e revisar parâmetros com profissional habilitado.
 6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.

@@ -72,7 +72,7 @@ As migrações `000001` a `000012` foram aplicadas localmente e em produção. A
 
 ## Estado de produção
 
-Em 2 de setembro de 2026, o commit `41638da` foi implantado na VPS Oracle. A imagem da API foi reconstruída com Go 1.25 e somente o container `cadencia-api-1` foi recriado.
+Em 3 de setembro de 2026, o commit `005107a` foi implantado na VPS Oracle. A imagem da API foi reconstruída com Go 1.25; o serviço Ollama foi adicionado isoladamente e o modelo foi preparado sem publicar novas portas.
 
 Validações realizadas:
 
@@ -107,5 +107,5 @@ Nenhuma porta de outro aplicativo deve ser bloqueada sem mapear antes seus domí
 1. Definir cópia externa dos backups e o monitoramento de falhas.
 2. Escolher a política de firewall e a lista mínima de portas públicas da VPS.
 3. Registrar monitoramento e alertas de saúde/backup.
-4. Medir a folga da VPS, instalar/testar o Ollama em rede interna e, se aprovada, ativar a IA explicativa local com limites explícitos; manter o Worker remoto como fallback já validado.
+4. Fazer um teste controlado de ativação da IA explicativa local, somente após observar latência e memória em uma chamada real; manter o Worker remoto como fallback já validado.
 5. Evoluir coleta de dados e sessões específicas de ciclismo.

@@ -75,14 +75,14 @@ O MVP de ciclismo está publicado em produção real:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Produção implantada na VPS Oracle no commit `41638da`.
+- Produção implantada na VPS Oracle no commit `005107a`.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, confirmação de e-mail, recuperação de senha, onboarding, plano, treino, feedback, adaptação, atividades, evolução e logout foram validados.
 - Dependabot está com 0 alertas abertos; os testes Go, build Docker e `govulncheck` passaram.
 
-Ainda falta concluir a operação de produção: restauração completa do backup em ambiente isolado, cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.
+A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.
 
-Depois da estabilização, as próximas evoluções do produto são a integração controlada de IA no backend, a coleta progressiva de mais dados do ciclista e novas sessões específicas com regras e referências próprias. Consulte `docs/project-status.md` para o inventário completo.
+Depois da estabilização, as próximas evoluções do produto são validar a ativação controlada da IA explicativa local (Ollama já instalado e testado, mas ainda desligado), a coleta progressiva de mais dados do ciclista e novas sessões específicas com regras e referências próprias. Consulte `docs/project-status.md` para o inventário completo.
 
 ## PWA
 
