@@ -1096,10 +1096,10 @@ Pendências principais:
 - definir cópia externa dos backups e monitoramento de falhas;
 - concluir hardening das portas dos demais aplicativos hospedados na VPS, após mapear domínios, túneis, proxies e regras da Oracle Cloud;
 - validar visualmente e publicar o ajuste visual de privacidade e altura da tela inicial desktop;
-- ativar e validar de forma controlada a IA explicativa local; o Ollama já está instalado e testado, mas permanece desligado por segurança de memória;
+- concluir o teste controlado da IA explicativa local; o Ollama já está instalado e testado e foi temporariamente ativado na VPS, enquanto o padrão seguro permanece desligado por segurança de memória;
 - ampliar a coleta progressiva de dados e a variedade de sessões específicas de ciclismo;
 - avaliar integrações externas, como Strava, somente após definir consentimento, custos e segurança.
 
 ## Atualização operacional — 3 de setembro de 2026
 
-O commit `005107a` foi implantado na VPS. O serviço `cadencia-ollama-1` está isolado na rede Docker interna, limitado a 4 GiB de memória, 1 CPU e uma chamada simultânea, sem porta publicada. O modelo `qwen3:4b-instruct` foi baixado e uma inferência simples foi validada. Como o container utiliza aproximadamente 3,3 GiB quando o modelo está carregado e a VPS não possui swap, `AI_ENABLED=false` continua sendo a configuração segura. A próxima decisão é um teste controlado de uma chamada real pelo backend, com monitoramento de latência e memória.
+O commit `005107a` foi implantado na VPS. O serviço `cadencia-ollama-1` está isolado na rede Docker interna, limitado a 4 GiB de memória, 1 CPU e uma chamada simultânea, sem porta publicada. O modelo `qwen3:4b-instruct` foi baixado e uma inferência simples foi validada. Como o container utiliza aproximadamente 3,3 GiB quando o modelo está carregado e a VPS não possui swap, `AI_ENABLED=true` foi ligado apenas temporariamente para o teste controlado; o padrão seguro continua sendo `false`. A próxima decisão depende de uma chamada autenticada pelo backend, com monitoramento de latência e memória.
