@@ -163,6 +163,8 @@ Em 3 de setembro de 2026, uma auditoria somente leitura pelo Tailscale mediu 2 v
 
 Também em 3 de setembro, a versão ativa do Worker `flat-rice-6724` foi atualizada para o modelo Groq disponível `openai/gpt-oss-20b`, após o identificador anterior deixar de existir. A rota protegida foi testada com payload mínimo e token válido, sem expor o segredo; o endpoint legado do Worker permaneceu preservado.
 
+Após o teste autenticado mostrar respostas interrompidas, a versão `35f24685` do Worker passou a usar `max_completion_tokens: 512` e `reasoning_effort: 'low'`. A rota também rejeita respostas cujo `finish_reason` não seja `stop`, permitindo que a API use o fallback determinístico em vez de exibir texto incompleto. Os testes autenticados de 3 de setembro para “Giro de base” e “Subidas controladas” retornaram explicações completas.
+
 Pendências, sem executar bloqueios automáticos:
 
 1. Completar o mapa de cada domínio, túnel e proxy dos aplicativos existentes.
@@ -176,7 +178,7 @@ Pendências, sem executar bloqueios automáticos:
 
 1. Concluir o hardening da VPS.
 2. Validar visualmente e publicar o ajuste aplicado na tela inicial desktop: texto de privacidade mais amigável e menos altura/scroll.
-3. Validar a explicação pela sessão autenticada usando o Worker remoto, medir latência e observar limites de uso. O Ollama permanece instalado, mas parado; a tentativa local mostrou latência e consumo incompatíveis com a folga atual da VPS. O fallback determinístico continua disponível e o padrão seguro do código permanece `AI_ENABLED=false`.
+3. Monitorar a explicação autenticada pelo Worker remoto, sua latência e seus limites de uso. A versão ativa `35f24685` já foi validada em treinos de base e subidas. O Ollama permanece instalado, mas parado; a tentativa local mostrou latência e consumo incompatíveis com a folga atual da VPS. O fallback determinístico continua disponível e o padrão seguro do código permanece `AI_ENABLED=false`.
 4. Expandir a coleta progressiva de dados do ciclista. O motor já incorpora o resumo observado de sessões e recuperação sem transformar relatos em metas rígidas; a próxima ampliação deve adicionar métricas de desempenho com validação específica.
 5. Evoluir sessões específicas de cadência, tiros, subidas, potência e preparação para provas com regras próprias e validação científica. As preferências agora orientam a sessão de qualidade quando há contexto compatível; a ampliação do catálogo de evidências específicas de ciclismo fica registrada como etapa futura, sem migração aplicada. Ainda falta ampliar a cobertura e revisar parâmetros com profissional habilitado.
 6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.

@@ -74,6 +74,8 @@ As migrações `000001` a `000012` foram aplicadas localmente e em produção. A
 
 Em 3 de setembro de 2026, o commit `bef4e60` foi implantado na VPS Oracle. A imagem da API foi reconstruída com Go 1.25; o serviço Ollama foi adicionado isoladamente e o modelo foi preparado sem publicar novas portas. Após a medição de capacidade, o Ollama foi parado e a API passou a usar temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.
 
+Na mesma data, a versão `35f24685` do Worker ajustou o provedor Groq para `max_completion_tokens: 512` e `reasoning_effort: 'low'`. O Worker rejeita respostas com `finish_reason` diferente de `stop`, mantendo o fallback determinístico como proteção contra truncamento. A sessão autenticada confirmou explicações completas para treinos de base e subidas.
+
 Validações realizadas:
 
 - API interna `/health`: `200`.
@@ -107,5 +109,5 @@ Nenhuma porta de outro aplicativo deve ser bloqueada sem mapear antes seus domí
 1. Definir cópia externa dos backups e o monitoramento de falhas.
 2. Escolher a política de firewall e a lista mínima de portas públicas da VPS.
 3. Registrar monitoramento e alertas de saúde/backup.
-4. Validar o Worker remoto na sessão autenticada e monitorar seus limites; manter o Ollama parado até existir capacidade adequada ou uma otimização de inferência. Reverter para `AI_ENABLED=false` se o provedor remoto não for aprovado.
+4. Monitorar o Worker remoto na sessão autenticada e seus limites; manter o Ollama parado até existir capacidade adequada ou uma otimização de inferência. Reverter para `AI_ENABLED=false` se o provedor remoto não for aprovado.
 5. Evoluir coleta de dados e sessões específicas de ciclismo.

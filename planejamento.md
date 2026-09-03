@@ -1096,10 +1096,12 @@ Pendências principais:
 - definir cópia externa dos backups e monitoramento de falhas;
 - concluir hardening das portas dos demais aplicativos hospedados na VPS, após mapear domínios, túneis, proxies e regras da Oracle Cloud;
 - validar visualmente e publicar o ajuste visual de privacidade e altura da tela inicial desktop;
-- validar a IA explicativa com o Worker remoto; o Ollama foi instalado e testado, mas permanece parado porque a inferência local consumiu capacidade excessiva da VPS;
+- monitorar a IA explicativa com o Worker remoto; o Ollama foi instalado e testado, mas permanece parado porque a inferência local consumiu capacidade excessiva da VPS;
 - ampliar a coleta progressiva de dados e a variedade de sessões específicas de ciclismo;
 - avaliar integrações externas, como Strava, somente após definir consentimento, custos e segurança.
 
 ## Atualização operacional — 3 de setembro de 2026
 
 O commit `bef4e60` foi implantado na VPS. O serviço `cadencia-ollama-1` está isolado na rede Docker interna, limitado a 4 GiB de memória, 1 CPU e uma chamada simultânea, sem porta publicada. O modelo `qwen3:4b-instruct` foi baixado e uma inferência simples foi validada, mas uma chamada completa levou cerca de 72 segundos, usou praticamente 100% do limite de CPU e deixou a VPS com pouca memória livre. O serviço foi parado e a API passou a usar temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`; o padrão seguro continua sendo `false`. A próxima etapa é validar a explicação autenticada pelo Worker e monitorar seus limites.
+
+O Worker foi atualizado para a versão `35f24685` com `max_completion_tokens: 512` e `reasoning_effort: 'low'`. A rota rejeita respostas cujo `finish_reason` não seja `stop`, encaminhando a API ao fallback determinístico. Os testes autenticados de “Giro de base” e “Subidas controladas” retornaram texto completo; a próxima etapa é monitorar latência e limites em uso normal.

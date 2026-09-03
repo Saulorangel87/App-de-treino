@@ -82,7 +82,7 @@ O MVP de ciclismo está publicado em produção real:
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.
 
-Depois da estabilização, as próximas evoluções do produto são validar a explicação pela sessão autenticada usando o Worker remoto, monitorar latência e limites, ampliar a coleta progressiva de dados do ciclista e criar novas sessões específicas com regras e referências próprias. O Ollama já está instalado e testado, mas permanece desligado por consumo elevado na VPS. Consulte `docs/project-status.md` para o inventário completo.
+Depois da estabilização, as próximas evoluções do produto são monitorar a explicação autenticada pelo Worker remoto, sua latência e seus limites, ampliar a coleta progressiva de dados do ciclista e criar novas sessões específicas com regras e referências próprias. O Ollama já está instalado e testado, mas permanece desligado por consumo elevado na VPS. Consulte `docs/project-status.md` para o inventário completo.
 
 ## PWA
 
