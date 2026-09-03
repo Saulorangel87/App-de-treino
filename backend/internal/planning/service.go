@@ -33,16 +33,19 @@ type AvailabilitySlot struct {
 }
 
 type CyclingContext struct {
-	WeeklyHours            float64 `json:"weekly_hours"`
-	LongestRideMinutes     int     `json:"longest_ride_minutes"`
-	WeeklyRides            int     `json:"weekly_rides"`
-	RecentWeeklyDistanceKM float64 `json:"recent_weekly_distance_km"`
-	BikeType               string  `json:"bike_type"`
-	Terrain                string  `json:"terrain"`
-	UsesHeartRate          bool    `json:"uses_heart_rate"`
-	UsesPower              bool    `json:"uses_power"`
-	FTP                    *int    `json:"ftp,omitempty"`
-	EventGoal              bool    `json:"event_goal"`
+	WeeklyHours            float64  `json:"weekly_hours"`
+	LongestRideMinutes     int      `json:"longest_ride_minutes"`
+	WeeklyRides            int      `json:"weekly_rides"`
+	RecentWeeklyDistanceKM float64  `json:"recent_weekly_distance_km"`
+	RecentTrainingWeeks    int      `json:"recent_training_weeks"`
+	RecentBestDistanceKM   float64  `json:"recent_best_distance_km"`
+	PreferredSessionTypes  []string `json:"preferred_session_types"`
+	BikeType               string   `json:"bike_type"`
+	Terrain                string   `json:"terrain"`
+	UsesHeartRate          bool     `json:"uses_heart_rate"`
+	UsesPower              bool     `json:"uses_power"`
+	FTP                    *int     `json:"ftp,omitempty"`
+	EventGoal              bool     `json:"event_goal"`
 }
 
 type Context struct {
@@ -321,6 +324,9 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 				"longest_ride_minutes":      input.Cycling.LongestRideMinutes,
 				"weekly_rides":              input.Cycling.WeeklyRides,
 				"recent_weekly_distance_km": input.Cycling.RecentWeeklyDistanceKM,
+				"recent_training_weeks":     input.Cycling.RecentTrainingWeeks,
+				"recent_best_distance_km":   input.Cycling.RecentBestDistanceKM,
+				"preferred_session_types":   input.Cycling.PreferredSessionTypes,
 				"bike_type":                 input.Cycling.BikeType,
 				"terrain":                   input.Cycling.Terrain,
 				"uses_heart_rate":           input.Cycling.UsesHeartRate,

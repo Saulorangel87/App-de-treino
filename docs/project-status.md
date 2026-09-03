@@ -71,7 +71,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 - Perfil em quatro etapas: dados básicos, limitações, objetivos e disponibilidade.
 - Até dois objetivos priorizados.
 - Disponibilidade individual dos sete dias, com opções de duração até 8 horas.
-- Contexto opcional de ciclismo: horas, pedais e distância semanal recente, maior pedal, equipamento, terreno, sensores, FTP e meta de prova.
+- Contexto opcional de ciclismo: horas, pedais e distância semanal recente, semanas de regularidade, maior distância e pedal, preferências de sessão, equipamento, terreno, sensores, FTP e meta de prova.
 - Motor `rules-v1` com ciclos de quatro semanas, progressão, recuperação e datas calculadas para a semana corrente.
 - Geração de rascunho, revisão, ativação e geração do próximo ciclo sem apagar o histórico.
 
@@ -170,7 +170,7 @@ Pendências, sem executar bloqueios automáticos:
 1. Concluir o hardening da VPS.
 2. Validar visualmente e publicar o ajuste aplicado na tela inicial desktop: texto de privacidade mais amigável e menos altura/scroll.
 3. Integrar IA no backend para explicações, interpretação de feedback e comunicação personalizada, sempre subordinada ao motor de regras e às proteções de segurança. A primeira camada de sessões estruturadas já foi implementada: o motor envia etapas com duração, RPE e instruções acionáveis.
-4. Expandir a coleta progressiva de dados do ciclista. O perfil já coleta pedais por semana e distância semanal recente; ainda falta incorporar histórico de desempenho e preferências de sessão.
+4. Expandir a coleta progressiva de dados do ciclista. O perfil agora coleta volume recente, semanas de regularidade, maior distância e preferências de sessão; ainda falta incorporar histórico observado de desempenho sem transformar relatos em metas rígidas.
 5. Evoluir sessões específicas de cadência, tiros, subidas, potência e preparação para provas com regras próprias e validação científica. A biblioteca inicial de protocolos, o mapeamento de evidências e as etapas operacionais já estão implementados; ainda falta ampliar a cobertura de sessões e revisar parâmetros com profissional habilitado.
 6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
 

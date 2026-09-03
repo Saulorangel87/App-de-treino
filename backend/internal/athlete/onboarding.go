@@ -38,18 +38,21 @@ type Onboarding struct {
 }
 
 type CyclingContext struct {
-	WeeklyHours            float64 `json:"weekly_hours"`
-	LongestRideMinutes     int     `json:"longest_ride_minutes"`
-	WeeklyRides            int     `json:"weekly_rides"`
-	RecentWeeklyDistanceKM float64 `json:"recent_weekly_distance_km"`
-	BikeType               string  `json:"bike_type"`
-	Terrain                string  `json:"terrain"`
-	UsesHeartRate          bool    `json:"uses_heart_rate"`
-	UsesPower              bool    `json:"uses_power"`
-	FTP                    *int    `json:"ftp,omitempty"`
-	EventGoal              bool    `json:"event_goal"`
-	EventDistanceKM        *int    `json:"event_distance_km,omitempty"`
-	EventDate              *string `json:"event_date,omitempty"`
+	WeeklyHours            float64  `json:"weekly_hours"`
+	LongestRideMinutes     int      `json:"longest_ride_minutes"`
+	WeeklyRides            int      `json:"weekly_rides"`
+	RecentWeeklyDistanceKM float64  `json:"recent_weekly_distance_km"`
+	RecentTrainingWeeks    int      `json:"recent_training_weeks"`
+	RecentBestDistanceKM   float64  `json:"recent_best_distance_km"`
+	PreferredSessionTypes  []string `json:"preferred_session_types"`
+	BikeType               string   `json:"bike_type"`
+	Terrain                string   `json:"terrain"`
+	UsesHeartRate          bool     `json:"uses_heart_rate"`
+	UsesPower              bool     `json:"uses_power"`
+	FTP                    *int     `json:"ftp,omitempty"`
+	EventGoal              bool     `json:"event_goal"`
+	EventDistanceKM        *int     `json:"event_distance_km,omitempty"`
+	EventDate              *string  `json:"event_date,omitempty"`
 }
 
 type OnboardingStore interface {
@@ -61,8 +64,18 @@ type OnboardingStore interface {
 }
 
 func (s *OnboardingService) SaveCyclingContext(ctx context.Context, userID string, value CyclingContext) (CyclingContext, error) {
-	if value.WeeklyHours < 0 || value.WeeklyHours > 80 || value.LongestRideMinutes < 0 || value.LongestRideMinutes > 1440 || value.WeeklyRides < 0 || value.WeeklyRides > 21 || value.RecentWeeklyDistanceKM < 0 || value.RecentWeeklyDistanceKM > 2000 || (value.FTP != nil && (*value.FTP < 50 || *value.FTP > 600)) || (value.EventDistanceKM != nil && (*value.EventDistanceKM < 1 || *value.EventDistanceKM > 2000)) {
+	if value.WeeklyHours < 0 || value.WeeklyHours > 80 || value.LongestRideMinutes < 0 || value.LongestRideMinutes > 1440 || value.WeeklyRides < 0 || value.WeeklyRides > 21 || value.RecentWeeklyDistanceKM < 0 || value.RecentWeeklyDistanceKM > 2000 || value.RecentTrainingWeeks < 0 || value.RecentTrainingWeeks > 52 || value.RecentBestDistanceKM < 0 || value.RecentBestDistanceKM > 2000 || len(value.PreferredSessionTypes) > 5 || (value.FTP != nil && (*value.FTP < 50 || *value.FTP > 600)) || (value.EventDistanceKM != nil && (*value.EventDistanceKM < 1 || *value.EventDistanceKM > 2000)) {
 		return CyclingContext{}, ErrInvalidOnboarding
+	}
+	allowedPreferences := map[string]bool{"base": true, "cadence": true, "hills": true, "intervals": true, "sweet_spot": true, "recovery": true}
+	seenPreferences := map[string]bool{}
+	for index := range value.PreferredSessionTypes {
+		preference := strings.TrimSpace(value.PreferredSessionTypes[index])
+		if !allowedPreferences[preference] || seenPreferences[preference] {
+			return CyclingContext{}, ErrInvalidOnboarding
+		}
+		value.PreferredSessionTypes[index] = preference
+		seenPreferences[preference] = true
 	}
 	if value.FTP != nil && !value.UsesPower {
 		return CyclingContext{}, ErrInvalidOnboarding

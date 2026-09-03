@@ -49,7 +49,7 @@ O planejamento é gerado pelo motor determinístico `rules-v1`, com regras expl�
 
 Os formatos das sessões são mantidos em uma biblioteca de protocolos com chaves estáveis e referências associadas. A biblioteca define a forma do estímulo; o motor ainda aplica nível, disponibilidade, progressão, recuperação e limitações antes de gerar cada duração final.
 
-O contexto de ciclismo permanece em JSONB para evoluir sem migrações a cada pergunta opcional. Atualmente inclui horas semanais, pedais por semana, distância semanal recente, maior pedal, equipamento, terreno e sensores. Esses dados são preservados no snapshot do plano; novas fórmulas de carga só serão ativadas após revisão e testes específicos.
+O contexto de ciclismo permanece em JSONB para evoluir sem migrações a cada pergunta opcional. Atualmente inclui horas semanais, pedais por semana, distância semanal recente, semanas de regularidade, maior distância e pedal, preferências de sessão, equipamento, terreno e sensores. Esses dados são preservados no snapshot do plano; novas fórmulas de carga só serão ativadas após revisão e testes específicos.
 
 ## ADR-004 — Autenticação e e-mail
 
