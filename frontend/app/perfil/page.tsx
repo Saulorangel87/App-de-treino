@@ -78,7 +78,12 @@ export default function ProfilePage() {
         setStep(2);
 
         const { onboarding } = await apiRequest<{ onboarding: Onboarding }>('/v1/onboarding');
-        setCyclingContext({ ...initialCyclingContext, ...(onboarding.cycling_context || {}) });
+        const savedCyclingContext = onboarding.cycling_context || {};
+        setCyclingContext({
+          ...initialCyclingContext,
+          ...savedCyclingContext,
+          preferred_session_types: Array.isArray(savedCyclingContext.preferred_session_types) ? savedCyclingContext.preferred_session_types : [],
+        });
         if (onboarding.limitations.length) {
           const saved = onboarding.limitations[0];
           setHasLimitation(true);
@@ -127,9 +132,9 @@ export default function ProfilePage() {
   function toggleSessionPreference(value: string) {
     setCyclingContext((current) => ({
       ...current,
-      preferred_session_types: current.preferred_session_types.includes(value)
-        ? current.preferred_session_types.filter((item) => item !== value)
-        : [...current.preferred_session_types, value],
+      preferred_session_types: (current.preferred_session_types || []).includes(value)
+        ? (current.preferred_session_types || []).filter((item) => item !== value)
+        : [...(current.preferred_session_types || []), value],
     }));
   }
 

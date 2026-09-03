@@ -108,4 +108,14 @@ func TestSaveCyclingContextRejectsInvalidHistory(t *testing.T) {
 	}
 }
 
+func TestSaveCyclingContextNormalizesMissingPreferences(t *testing.T) {
+	result, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", CyclingContext{})
+	if err != nil {
+		t.Fatalf("expected empty optional context to be accepted, got %v", err)
+	}
+	if result.PreferredSessionTypes == nil {
+		t.Fatal("expected missing preferences to be normalized to an empty list")
+	}
+}
+
 func errorsIs(err, target error) bool { return err == target }
