@@ -359,7 +359,31 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		name = "Tempo controlado"
 		targetRPE = 6.0
 		mainBlock = "3 blocos sustentados com recuperação leve"
-		if input.ExperienceLevel == "advanced" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 50 && multiplier >= 0.95 {
+		preference := preferredQualityPreference(input.Cycling)
+		if preference == "cadence" && input.ExperienceLevel != "beginner" {
+			name = "Cadência técnica"
+			targetRPE = 5.0
+			mainBlock = "6 blocos de cadência controlada com recuperação leve"
+			summary = "A preferência por cadência orienta uma sessão técnica com esforço controlado."
+		} else if preference == "hills" && input.Cycling.Terrain == "hilly" && input.ExperienceLevel != "beginner" {
+			name = "Subidas controladas"
+			if input.ExperienceLevel == "advanced" {
+				targetRPE = 6.5
+			}
+			mainBlock = "4 blocos sustentados em subida, com recuperação leve"
+			summary = "A preferência por subidas e o terreno informado orientam um estímulo controlado."
+		} else if preference == "intervals" && input.ExperienceLevel == "advanced" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 50 && multiplier >= 0.95 {
+			name = "Intervalos controlados"
+			targetRPE = 7.0
+			mainBlock = "4 blocos de 4 min em esforço forte-controlado, com 3 min leves entre os blocos"
+			summary = "A preferência por intervalos foi combinada com uma avaliação submáxima apta e uma semana de construção."
+			usesControlledIntervals = true
+		} else if preference == "sweet_spot" && input.ExperienceLevel == "advanced" && input.Cycling.UsesPower && input.Cycling.FTP != nil {
+			name = "Sweet spot por potência"
+			targetRPE = 7.0
+			mainBlock = "3 blocos sustentados guiados pelo FTP informado, com recuperação leve"
+			summary = "A preferência por sweet spot foi combinada com o medidor de potência e o FTP informado."
+		} else if input.ExperienceLevel == "advanced" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 50 && multiplier >= 0.95 {
 			name = "Intervalos controlados"
 			targetRPE = 7.0
 			mainBlock = "4 blocos de 4 min em esforço forte-controlado, com 3 min leves entre os blocos"
@@ -435,6 +459,9 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	if input.Cycling.WeeklyRides > 0 || input.Cycling.RecentWeeklyDistanceKM > 0 {
 		rules = append(rules, "Histórico recente informado usado para contextualizar a sessão.")
 	}
+	if preference := preferredQualityPreference(input.Cycling); kind == "quality" && preference != "" {
+		rules = append(rules, fmt.Sprintf("Preferência por %s considerada dentro dos limites de segurança.", sessionPreferenceLabel(preference)))
+	}
 	if usesControlledIntervals {
 		rules = append(rules, "Intervalos liberados pela avaliação submáxima apta, apenas nas semanas de construção.")
 	}
@@ -455,6 +482,25 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		Explanation:     map[string]any{"summary": summary, "rules": rules, "protocol_key": protocol.Key, "evidence_keys": evidenceKeys, "evidence_scope": protocol.EvidenceScope},
 		Status:          "planned",
 	}
+}
+
+func preferredQualityPreference(context CyclingContext) string {
+	if len(context.PreferredSessionTypes) == 0 || len(context.PreferredSessionTypes) >= 6 {
+		return ""
+	}
+	for _, preference := range []string{"intervals", "sweet_spot", "hills", "cadence"} {
+		for _, selected := range context.PreferredSessionTypes {
+			if selected == preference {
+				return preference
+			}
+		}
+	}
+	return ""
+}
+
+func sessionPreferenceLabel(preference string) string {
+	labels := map[string]string{"cadence": "cadência", "hills": "subidas", "intervals": "intervalos", "sweet_spot": "sweet spot"}
+	return labels[preference]
 }
 
 func buildStructure(duration int, targetRPE float64, name, mainBlock string) map[string]any {

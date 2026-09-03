@@ -137,6 +137,42 @@ func TestBuildPlanUsesHillyTerrainForIntermediateQualitySession(t *testing.T) {
 	t.Fatalf("expected a hilly-terrain quality session, got %#v", plan.Workouts)
 }
 
+func TestBuildPlanUsesSelectedCadencePreference(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "intermediate", PrimaryGoal: "endurance",
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 75}, {Weekday: 6, AvailableMinutes: 150}},
+		Cycling:      CyclingContext{PreferredSessionTypes: []string{"cadence"}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name == "Cadência técnica" {
+			if workout.Explanation["protocol_key"] != "technical_cadence" {
+				t.Fatalf("expected cadence protocol metadata, got %#v", workout.Explanation)
+			}
+			return
+		}
+	}
+	t.Fatalf("expected selected cadence preference to guide quality session, got %#v", plan.Workouts)
+}
+
+func TestBuildPlanDoesNotBypassAssessmentForIntervalPreference(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance",
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		Cycling:      CyclingContext{PreferredSessionTypes: []string{"intervals"}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name == "Intervalos controlados" {
+			t.Fatalf("interval preference must not bypass assessment eligibility: %#v", workout)
+		}
+	}
+}
+
 func TestBuildPlanIncludesActionableStepsForSpecificSessions(t *testing.T) {
 	plan, err := buildPlan(Context{
 		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance",

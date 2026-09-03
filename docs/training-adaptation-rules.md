@@ -26,6 +26,8 @@ Na geração do plano, o motor mantém a frequência, os limites de duração, a
 - **Nível avançado + meta de prova:** ritmo de prova controlado, sustentável e sem tentar reproduzir a prova completa.
 - **Demais perfis:** mantém o tempo controlado; avançados sem contexto específico recebem sweet spot progressivo.
 
+Quando o ciclista informa preferências de sessão, elas orientam a escolha da sessão de qualidade dentro das mesmas proteções: cadência é elegível para intermediários e avançados; subidas exigem terreno com subidas; sweet spot exige nível avançado e, para potência, FTP informado; intervalos continuam exigindo avaliação submáxima apta, objetivo compatível e semana de construção. Se todas as opções forem marcadas, o motor interpreta isso como abertura a qualquer protocolo e mantém a seleção contextual padrão. Giro/base e recuperação permanecem preferências registradas, sem transformar todos os dias em sessões de qualidade.
+
 Se houver limitação ativa, a sessão específica é substituída pelo giro leve protegido. Iniciantes não recebem essas sessões de qualidade específicas ainda. Intervalos de alta intensidade ("tiros") continuam fora do motor até existir uma avaliação inicial de capacidade e regras próprias de progressão.
 
 ## Estrutura operacional das sessões
