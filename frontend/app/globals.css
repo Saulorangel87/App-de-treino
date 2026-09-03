@@ -3084,6 +3084,65 @@ a.footer-icon:hover {
   font-size: 11px;
   line-height: 1.55;
 }
+.workout-ai-explanation {
+  display: grid;
+  gap: 7px;
+  margin-top: 14px;
+}
+.workout-ai-trigger {
+  width: max-content;
+  max-width: 100%;
+  min-height: 34px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(196, 246, 60, 0.45);
+  border-radius: 8px;
+  background: rgba(196, 246, 60, 0.08);
+  color: var(--lime);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.workout-ai-trigger:hover {
+  background: rgba(196, 246, 60, 0.16);
+}
+.workout-ai-trigger:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+.workout-ai-result {
+  padding: 11px 12px;
+  border: 1px solid rgba(196, 246, 60, 0.3);
+  border-radius: 9px;
+  background: rgba(196, 246, 60, 0.08);
+}
+.workout-ai-result-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--lime);
+  font-size: 10px;
+}
+.workout-ai-result p {
+  margin: 7px 0 0;
+  color: #d5e4dd;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.workout-ai-result small,
+.workout-ai-error {
+  display: block;
+  margin-top: 7px;
+  color: #b5c9bf;
+  font-size: 9px;
+  line-height: 1.4;
+}
+.workout-ai-error {
+  color: #ffbea9;
+}
 .detail-metrics {
   display: grid;
   grid-template-columns: 1fr 1fr;

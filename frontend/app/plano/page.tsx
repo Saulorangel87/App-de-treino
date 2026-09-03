@@ -25,6 +25,7 @@ import {
   parseTrainingDate,
   type TrainingPlan,
   type Workout,
+  type WorkoutExplanationResponse,
 } from '@/lib/planning';
 
 type User = { display_name: string; email: string };
@@ -47,6 +48,9 @@ export default function PlanPage() {
   const [generating, setGenerating] = useState(false);
   const [activating, setActivating] = useState(false);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+  const [workoutExplanation, setWorkoutExplanation] = useState<WorkoutExplanationResponse | null>(null);
+  const [explainingWorkout, setExplainingWorkout] = useState(false);
+  const [explanationError, setExplanationError] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
@@ -107,12 +111,37 @@ export default function PlanPage() {
     setSelected(
       nextPlan.workouts.find((workout) => workout.id === workoutID) || null,
     );
+    setWorkoutExplanation(null);
+    setExplanationError('');
   }
 
   function selectWorkout(workout: Workout) {
     setSelected(workout);
+    setWorkoutExplanation(null);
+    setExplanationError('');
     if (window.matchMedia('(max-width: 900px)').matches) {
       setMobileDetailOpen(true);
+    }
+  }
+
+  async function explainSelectedWorkout() {
+    if (!selected || explainingWorkout) return;
+    setExplainingWorkout(true);
+    setExplanationError('');
+    try {
+      const result = await apiRequest<WorkoutExplanationResponse>(
+        `/v1/workouts/${selected.id}/explanation`,
+        { method: 'POST' },
+      );
+      setWorkoutExplanation(result);
+    } catch (caught) {
+      setExplanationError(
+        caught instanceof Error
+          ? caught.message
+          : 'Não foi possível carregar a explicação.',
+      );
+    } finally {
+      setExplainingWorkout(false);
     }
   }
 
@@ -134,6 +163,8 @@ export default function PlanPage() {
       );
       setPlan(result.plan);
       setSelected(result.plan.workouts[0] || null);
+      setWorkoutExplanation(null);
+      setExplanationError('');
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -162,6 +193,8 @@ export default function PlanPage() {
           result.plan.workouts[0] ||
           null,
       );
+      setWorkoutExplanation(null);
+      setExplanationError('');
       setMessage(
         'Plano ativado. Seus próximos treinos já estão disponíveis no painel.',
       );
@@ -451,6 +484,45 @@ export default function PlanPage() {
                   <span>SESSÃO SELECIONADA</span>
                   <h2 id="selected-workout-title">{selected.name}</h2>
                   <p>{selected.explanation.summary}</p>
+                  <div className="workout-ai-explanation">
+                    {!workoutExplanation ? (
+                      <button
+                        type="button"
+                        className="workout-ai-trigger"
+                        onClick={explainSelectedWorkout}
+                        disabled={explainingWorkout}
+                      >
+                        {explainingWorkout ? (
+                          <LoaderCircle className="spin" size={15} />
+                        ) : (
+                          <Sparkles size={15} />
+                        )}
+                        {explainingWorkout
+                          ? 'Preparando explicação…'
+                          : 'Explicar a escolha'}
+                      </button>
+                    ) : (
+                      <output className="workout-ai-result">
+                        <div className="workout-ai-result-heading">
+                          <Sparkles size={15} />
+                          <strong>
+                            {workoutExplanation.source === 'ollama'
+                              ? 'Explicação do assistente local'
+                              : 'Explicação das regras do plano'}
+                          </strong>
+                        </div>
+                        <p>{workoutExplanation.explanation}</p>
+                        {workoutExplanation.warning && (
+                          <small>{workoutExplanation.warning}</small>
+                        )}
+                      </output>
+                    )}
+                    {explanationError && (
+                      <small className="workout-ai-error" role="alert">
+                        {explanationError}
+                      </small>
+                    )}
+                  </div>
                   <div className="detail-metrics">
                     <div>
                       <Clock3 size={15} />

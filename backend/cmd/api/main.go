@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Saulorangel87/App-de-treino/backend/internal/ai"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/athlete"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/auth"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/config"
@@ -45,6 +46,21 @@ func main() {
 	recoveryService := athlete.NewRecoveryService(store)
 	evolutionService := evolution.NewService(store)
 	planningService := planning.NewService(store)
+	var aiService *ai.Service
+	if cfg.AIEnabled {
+		if cfg.AIProvider != "ollama" {
+			logger.Error("unsupported AI provider", "provider", cfg.AIProvider)
+			os.Exit(1)
+		}
+		ollamaClient, err := ai.NewOllamaClient(cfg.AIBaseURL, cfg.AIModel, cfg.AITimeout, cfg.AIMaxTokens, cfg.AIMaxConcurrent)
+		if err != nil {
+			logger.Error("invalid AI configuration", "error", err)
+			os.Exit(1)
+		}
+		aiService = ai.NewService(ollamaClient)
+	} else {
+		aiService = ai.NewService(nil)
+	}
 	var emailSender email.Sender = email.DevelopmentSender{}
 	if cfg.ResendAPIKey != "" && cfg.EmailFrom != "" {
 		emailSender = email.NewResendSender(cfg.ResendAPIKey, cfg.EmailFrom)
@@ -54,7 +70,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           httpapi.NewRouter(db, authService, athleteService, onboardingService, assessmentService, recoveryService, evolutionService, planningService, emailSender, cfg.AppBaseURL, cfg.AllowedOrigin, cfg.SecureCookies, !cfg.SecureCookies, cfg.SessionTTL, cfg.EmailTokenTTL),
+		Handler:           httpapi.NewRouter(db, authService, athleteService, onboardingService, assessmentService, recoveryService, evolutionService, planningService, aiService, emailSender, cfg.AppBaseURL, cfg.AllowedOrigin, cfg.SecureCookies, !cfg.SecureCookies, cfg.SessionTTL, cfg.EmailTokenTTL),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      30 * time.Second,

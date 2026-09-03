@@ -86,6 +86,7 @@ O diretório de produção é `/var/backups/cadencia`, com acesso do usuário `u
 - A conexão entre API e PostgreSQL fica na rede Docker privada. Por isso, `sslmode=disable` é aceitável apenas dentro dessa rede local; não use essa configuração para uma conexão externa.
 - O token do Cloudflare Tunnel deve ficar somente no `.env.production` da VPS.
 - A API usa Go 1.25 na imagem de build (`infrastructure/cadencia/Dockerfile.api`).
+- A IA explicativa permanece desligada por padrão (`AI_ENABLED=false`). O compose apenas encaminha os limites para a API; o serviço Ollama ainda não é iniciado. Só ative depois de medir a VPS e configurar o Ollama em uma rede Docker interna, sem publicar a porta 11434.
 - O PostgreSQL não deve receber porta publicada, hostname público ou regra no Cloudflare.
 - O hardening das portas dos demais aplicativos da VPS é uma atividade separada; não altere seus containers por este compose.
 

@@ -217,6 +217,22 @@ func (s *Service) Current(ctx context.Context, userID string) (Plan, error) {
 	return s.store.CurrentPlanByUserID(ctx, userID)
 }
 
+func (s *Service) Workout(ctx context.Context, userID, workoutID string) (Workout, error) {
+	if !planIDPattern.MatchString(workoutID) {
+		return Workout{}, ErrInvalidWorkoutID
+	}
+	plan, err := s.store.CurrentPlanByUserID(ctx, userID)
+	if err != nil {
+		return Workout{}, err
+	}
+	for _, workout := range plan.Workouts {
+		if workout.ID == workoutID {
+			return workout, nil
+		}
+	}
+	return Workout{}, ErrWorkoutMissing
+}
+
 func (s *Service) Activate(ctx context.Context, userID, planID string) (Plan, error) {
 	if !planIDPattern.MatchString(planID) {
 		return Plan{}, ErrInvalidPlanID

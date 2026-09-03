@@ -31,6 +31,13 @@ export type Workout = {
   session?: WorkoutSession;
 };
 
+export type WorkoutExplanationResponse = {
+  explanation: string;
+  source: 'rules' | 'rules_fallback' | 'ollama';
+  ai_enabled: boolean;
+  warning?: string;
+};
+
 export type WorkoutStep = {
   order: number;
   kind: string;

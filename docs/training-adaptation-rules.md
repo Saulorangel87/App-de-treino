@@ -79,6 +79,10 @@ Ao gerar um novo rascunho, o motor agrega os últimos 28 dias de sessões conclu
 
 O uso é deliberadamente conservador: dor relatada protege todas as sessões do novo ciclo com um giro leve; fadiga média igual ou superior a 4, ou fadiga média dos check-ins igual ou superior a 4, protege a sessão de qualidade. A proteção limita o alvo a RPE 3,5, reduz a duração e mantém o treino dentro da disponibilidade cadastrada. O histórico não aumenta intensidade, não substitui a avaliação submáxima e não representa diagnóstico clínico.
 
+## IA explicativa opcional
+
+O endpoint de explicação envia ao modelo apenas o nome, objetivo, duração, RPE-alvo, regras e escopo de evidência do treino. O modelo deve explicar a decisão em duas ou três frases; não recebe autorização para criar etapas, alterar carga, inventar referências ou interpretar sintomas. A integração usa Ollama local com limites de tempo, saída e concorrência. Enquanto `AI_ENABLED=false`, ou quando o modelo estiver indisponível, a API devolve o resumo validado pelo `rules-v1`.
+
 ## Transparência e segurança
 
 Cada treino alterado guarda em `workouts.explanation.adaptation`:

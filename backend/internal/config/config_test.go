@@ -23,6 +23,25 @@ func TestLoadUsesEnvironment(t *testing.T) {
 	}
 }
 
+func TestLoadKeepsAIDisabledByDefault(t *testing.T) {
+	t.Setenv("APP_ENV", "development")
+	t.Setenv("DATABASE_URL", "postgres://example")
+	t.Setenv("AI_ENABLED", "false")
+	t.Setenv("AI_PROVIDER", "")
+	t.Setenv("AI_BASE_URL", "")
+	t.Setenv("AI_MODEL", "")
+	t.Setenv("AI_TIMEOUT_SECONDS", "")
+	t.Setenv("AI_MAX_OUTPUT_TOKENS", "")
+	t.Setenv("AI_MAX_CONCURRENT", "")
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.AIEnabled || cfg.AIProvider != "ollama" || cfg.AIBaseURL != "http://127.0.0.1:11434" || cfg.AIModel != "qwen3:4b-instruct" {
+		t.Fatalf("unexpected AI defaults: %+v", cfg)
+	}
+}
+
 func TestLoadRequiresResendConfigurationInProduction(t *testing.T) {
 	t.Setenv("APP_ENV", "production")
 	t.Setenv("DATABASE_URL", "postgres://example")

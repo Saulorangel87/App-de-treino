@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Saulorangel87/App-de-treino/backend/internal/ai"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/athlete"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/auth"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/email"
@@ -28,6 +29,7 @@ type Server struct {
 	recovery      *athlete.RecoveryService
 	evolution     *evolution.Service
 	planning      *planning.Service
+	ai            *ai.Service
 	secureCookies bool
 	sessionTTL    time.Duration
 	emailSender   email.Sender

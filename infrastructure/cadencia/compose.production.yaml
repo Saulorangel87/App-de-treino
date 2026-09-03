@@ -57,6 +57,13 @@ services:
       EMAIL_TOKEN_HOURS: ${EMAIL_TOKEN_HOURS:-24}
       RESEND_API_KEY: ${RESEND_API_KEY}
       SESSION_DAYS: ${SESSION_DAYS:-7}
+      AI_ENABLED: ${AI_ENABLED:-false}
+      AI_PROVIDER: ${AI_PROVIDER:-ollama}
+      AI_BASE_URL: ${AI_BASE_URL:-http://ollama:11434}
+      AI_MODEL: ${AI_MODEL:-qwen3:4b-instruct}
+      AI_TIMEOUT_SECONDS: ${AI_TIMEOUT_SECONDS:-15}
+      AI_MAX_OUTPUT_TOKENS: ${AI_MAX_OUTPUT_TOKENS:-220}
+      AI_MAX_CONCURRENT: ${AI_MAX_CONCURRENT:-1}
     expose:
       - "8080"
     depends_on:

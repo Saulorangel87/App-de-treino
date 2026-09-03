@@ -286,6 +286,16 @@ paths:
         '401': { description: Sessão de usuário ausente ou expirada }
         '404': { description: Treino não encontrado no plano ativo }
         '409': { description: Transição de estado inválida }
+  /v1/workouts/{workoutID}/explanation:
+    post:
+      summary: Gera uma explicação em linguagem simples sem alterar a prescrição do treino
+      parameters:
+        - $ref: '#/components/parameters/WorkoutID'
+      responses:
+        '200': { description: Explicação gerada ou fallback validado pelas regras quando a IA estiver indisponível }
+        '400': { description: Identificador inválido }
+        '401': { description: Sessão de usuário ausente ou expirada }
+        '404': { description: Treino não encontrado no plano atual }
   /v1/workouts/{workoutID}/complete:
     post:
       summary: Conclui uma sessão em andamento e salva o feedback percebido
