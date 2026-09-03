@@ -28,7 +28,7 @@ func TestOllamaClientSendsBoundedPortugueseExplanationRequest(t *testing.T) {
 			http.Error(w, "invalid request", http.StatusBadRequest)
 			return
 		}
-		if request.Stream || request.Model != "qwen3:4b-instruct" || request.Options["num_predict"] != float64(180) {
+		if request.Stream || request.Think || request.Model != "qwen3:4b-instruct" || request.Options["num_predict"] != float64(180) {
 			http.Error(w, "unexpected model options", http.StatusBadRequest)
 			return
 		}

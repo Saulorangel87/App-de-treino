@@ -88,6 +88,7 @@ type ollamaChatRequest struct {
 	Model    string          `json:"model"`
 	Messages []ollamaMessage `json:"messages"`
 	Stream   bool            `json:"stream"`
+	Think    bool            `json:"think"`
 	Options  map[string]any  `json:"options"`
 }
 
@@ -113,6 +114,7 @@ func (c *OllamaClient) Explain(ctx context.Context, input ExplanationInput) (str
 			{Role: "user", Content: explanationPrompt(input)},
 		},
 		Stream:  false,
+		Think:   false,
 		Options: map[string]any{"num_predict": c.maxOutputTokens, "temperature": 0.2},
 	})
 	if err != nil {
