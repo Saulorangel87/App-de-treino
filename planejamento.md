@@ -1105,3 +1105,9 @@ Pendências principais:
 O commit `bef4e60` foi implantado na VPS. O serviço `cadencia-ollama-1` está isolado na rede Docker interna, limitado a 4 GiB de memória, 1 CPU e uma chamada simultânea, sem porta publicada. O modelo `qwen3:4b-instruct` foi baixado e uma inferência simples foi validada, mas uma chamada completa levou cerca de 72 segundos, usou praticamente 100% do limite de CPU e deixou a VPS com pouca memória livre. O serviço foi parado e a API passou a usar temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`; o padrão seguro continua sendo `false`. A próxima etapa é validar a explicação autenticada pelo Worker e monitorar seus limites.
 
 O Worker foi atualizado para a versão `35f24685` com `max_completion_tokens: 512` e `reasoning_effort: 'low'`. A rota rejeita respostas cujo `finish_reason` não seja `stop`, encaminhando a API ao fallback determinístico. Os testes autenticados de “Giro de base” e “Subidas controladas” retornaram texto completo; a próxima etapa é monitorar latência e limites em uso normal.
+
+## Atualização de produto — feedback dos primeiros ciclistas
+
+Foi incluída a rota `/feedback` para que atletas autenticados registrem a experiência com o app, um problema ou uma sugestão. O relato contém uma nota de 1 a 5 e uma mensagem validada, fica vinculado à conta na tabela `user_feedback` e não interfere no motor de treinos. A migração `000013_user_feedback` está versionada e deve ser aplicada no próximo deploy.
+
+O plano de recebimento desta primeira coleta é centralizar os relatos no PostgreSQL, sem e-mail a cada envio. Depois dos primeiros testes divulgados nos grupos de ciclismo, será avaliada uma tela administrativa protegida ou um resumo periódico pelo Resend, conforme o volume e a necessidade de resposta.

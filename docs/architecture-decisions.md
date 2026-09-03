@@ -68,7 +68,15 @@ A primeira implementação de IA usa Ollama local como provedor opcional. `AI_EN
 
 **Status:** Aplicada.
 
-As migrações `000001` a `000012` foram aplicadas localmente e em produção. A migração `000012` adicionou confirmação de e-mail e recuperação de senha. A proposta de catálogo ampliado de evidências específicas de ciclismo fica registrada como etapa futura e ainda não foi aplicada. Antes de uma mudança estrutural, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
+As migrações `000001` a `000012` foram aplicadas localmente e em produção. A migração `000012` adicionou confirmação de e-mail e recuperação de senha. A migração `000013` está versionada para os relatos de feedback de produto e aguarda o próximo deploy. A proposta de catálogo ampliado de evidências específicas de ciclismo fica registrada como etapa futura e ainda não foi aplicada. Antes de uma mudança estrutural, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
+
+## ADR-006 — Feedback de produto
+
+**Status:** Implementada no código; migração `000013` pendente de aplicação no próximo deploy.
+
+O feedback solicitado aos primeiros ciclistas é separado do feedback pós-treino. A rota autenticada `POST /v1/feedback` aceita somente uma categoria (`experience`, `bug` ou `suggestion`), uma nota de 1 a 5 e uma mensagem entre 10 e 2000 caracteres. O registro é vinculado ao usuário na tabela `user_feedback`, sem armazenar um e-mail duplicado ou permitir conteúdo anônimo nesta primeira versão.
+
+A tela `/feedback` é acessível pelo menu principal no desktop e por um atalho no cabeçalho em telas menores. O envio não chama a IA, não altera o plano e não envia um e-mail por relato. A decisão de recebimento inicial é consolidar os dados no PostgreSQL e, após observar volume e qualidade dos relatos, escolher entre um painel administrativo protegido, exportação controlada ou um resumo periódico via Resend.
 
 ## Estado de produção
 

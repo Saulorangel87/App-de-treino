@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Cadência API
-  version: 0.11.0
+  version: 0.12.0
   description: API do MVP de planejamento adaptativo de ciclismo.
 servers:
   - url: http://localhost:8080
@@ -241,6 +241,18 @@ paths:
       responses:
         '200': { description: Totais de sessões, semanas recentes com duração e distância, métricas agregadas e check-ins de recuperação }
         '401': { description: Sessão ausente ou expirada }
+  /v1/feedback:
+    post:
+      summary: Registra o relato de experiência do atleta autenticado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserFeedbackRequest' }
+      responses:
+        '201': { description: Feedback registrado }
+        '400': { description: Categoria, nota ou mensagem inválida }
+        '401': { description: Sessão ausente ou expirada }
   /v1/plans/generate:
     post:
       summary: Gera e salva um rascunho de quatro semanas usando regras explicáveis
@@ -437,6 +449,13 @@ components:
         stress_level: { type: integer, minimum: 1, maximum: 5 }
         fatigue_level: { type: integer, minimum: 1, maximum: 5 }
         notes: { type: string, maxLength: 1000 }
+    UserFeedbackRequest:
+      type: object
+      required: [category, rating, message]
+      properties:
+        category: { type: string, enum: [experience, bug, suggestion] }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        message: { type: string, minLength: 10, maxLength: 2000 }
     TrainingPlan:
       type: object
       required: [id, starts_on, ends_on, status, prescription_snapshot, workouts]

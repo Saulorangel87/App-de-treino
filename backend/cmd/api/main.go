@@ -17,6 +17,7 @@ import (
 	"github.com/Saulorangel87/App-de-treino/backend/internal/database"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/email"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/evolution"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/feedback"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/httpapi"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/repository"
@@ -45,6 +46,7 @@ func main() {
 	assessmentService := athlete.NewAssessmentService(store)
 	recoveryService := athlete.NewRecoveryService(store)
 	evolutionService := evolution.NewService(store)
+	feedbackService := feedback.NewService(store)
 	planningService := planning.NewService(store)
 	var aiService *ai.Service
 	if cfg.AIEnabled {
@@ -98,7 +100,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           httpapi.NewRouter(db, authService, athleteService, onboardingService, assessmentService, recoveryService, evolutionService, planningService, aiService, emailSender, cfg.AppBaseURL, cfg.AllowedOrigin, cfg.SecureCookies, !cfg.SecureCookies, cfg.SessionTTL, cfg.EmailTokenTTL),
+		Handler:           httpapi.NewRouter(db, authService, athleteService, onboardingService, assessmentService, recoveryService, evolutionService, feedbackService, planningService, aiService, emailSender, cfg.AppBaseURL, cfg.AllowedOrigin, cfg.SecureCookies, !cfg.SecureCookies, cfg.SessionTTL, cfg.EmailTokenTTL),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      30 * time.Second,

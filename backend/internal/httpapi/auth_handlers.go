@@ -16,6 +16,7 @@ import (
 	"github.com/Saulorangel87/App-de-treino/backend/internal/auth"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/email"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/evolution"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/feedback"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
 )
 
@@ -28,6 +29,7 @@ type Server struct {
 	assessments   *athlete.AssessmentService
 	recovery      *athlete.RecoveryService
 	evolution     *evolution.Service
+	feedback      *feedback.Service
 	planning      *planning.Service
 	ai            *ai.Service
 	secureCookies bool

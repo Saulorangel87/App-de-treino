@@ -15,6 +15,7 @@ import {
   LineChart,
   ListTree,
   LoaderCircle,
+  MessageSquareHeart,
   Settings,
   Sparkles,
 } from 'lucide-react';
@@ -104,6 +105,10 @@ function Sidebar({ user, plan }: { user: User; plan: TrainingPlan | null }) {
         <a className="nav-item" href="/evolucao">
           <LineChart size={18} />
           Evolução
+        </a>
+        <a className="nav-item feedback-nav-item" href="/feedback">
+          <MessageSquareHeart size={18} />
+          Feedback
         </a>
       </nav>
       <div className="sidebar-bottom">
@@ -335,6 +340,10 @@ export default function HomePage() {
             <a className={`recovery-pill ${recovery?.readiness || 'pending'}`} href="/recuperacao">
               <HeartPulse size={15} />
               {recovery ? recovery.readiness === 'ready' ? 'Recuperação ok' : recovery.readiness === 'caution' ? 'Atenção à recuperação' : 'Priorize recuperação' : 'Fazer check-in'}
+            </a>
+            <a className="feedback-quick-link" href="/feedback">
+              <MessageSquareHeart size={15} />
+              Feedback
             </a>
             <LogoutButton compact />
           </div>
