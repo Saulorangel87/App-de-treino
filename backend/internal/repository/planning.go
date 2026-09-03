@@ -27,6 +27,34 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 	if err := json.Unmarshal(cyclingContext, &input.Cycling); err != nil {
 		return planning.Context{}, err
 	}
+	input.Observed.WindowDays = 28
+	var completedSessions int64
+	if err := s.pool.QueryRow(ctx, `
+		SELECT
+			COUNT(*) FILTER (WHERE ws.status = 'completed'),
+			COALESCE(SUM(ws.duration_minutes) FILTER (WHERE ws.status = 'completed'), 0),
+			COALESCE(AVG(ws.actual_rpe) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
+			COALESCE(AVG(f.fatigue_after) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
+			COALESCE(BOOL_OR(f.pain_reported) FILTER (WHERE ws.status = 'completed'), false)
+		FROM workout_sessions ws
+		LEFT JOIN feedback f ON f.workout_session_id = ws.id
+		WHERE ws.athlete_profile_id = $1
+		  AND ws.completed_at >= now() - interval '28 days'`, input.ProfileID,
+	).Scan(&completedSessions, &input.Observed.CompletedMinutes, &input.Observed.AverageRPE,
+		&input.Observed.AverageFatigue, &input.Observed.PainReported); err != nil {
+		return planning.Context{}, err
+	}
+	input.Observed.CompletedSessions = int(completedSessions)
+	var recoveryCheckins int64
+	if err := s.pool.QueryRow(ctx, `
+		SELECT COUNT(*), COALESCE(AVG(fatigue_level), 0)::double precision
+		FROM recovery_data
+		WHERE athlete_profile_id = $1
+		  AND recorded_on >= CURRENT_DATE - 27`, input.ProfileID,
+	).Scan(&recoveryCheckins, &input.Observed.AverageRecoveryFatigue); err != nil {
+		return planning.Context{}, err
+	}
+	input.Observed.RecoveryCheckins = int(recoveryCheckins)
 	if err := s.pool.QueryRow(ctx, `SELECT count(*) FROM training_plans WHERE athlete_profile_id = $1`, input.ProfileID).Scan(&input.RotationIndex); err != nil {
 		return planning.Context{}, err
 	}

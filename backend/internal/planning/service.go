@@ -48,6 +48,28 @@ type CyclingContext struct {
 	EventGoal              bool     `json:"event_goal"`
 }
 
+// ObservedTrainingSummary is an aggregate of recent completed sessions and
+// recovery check-ins. The motor uses it only as a conservative readiness
+// signal, never as a diagnosis or a replacement for the athlete profile.
+type ObservedTrainingSummary struct {
+	WindowDays             int     `json:"window_days"`
+	CompletedSessions      int     `json:"completed_sessions"`
+	CompletedMinutes       int     `json:"completed_minutes"`
+	AverageRPE             float64 `json:"average_rpe"`
+	AverageFatigue         float64 `json:"average_fatigue"`
+	PainReported           bool    `json:"pain_reported"`
+	RecoveryCheckins       int     `json:"recovery_checkins"`
+	AverageRecoveryFatigue float64 `json:"average_recovery_fatigue"`
+}
+
+func (summary ObservedTrainingSummary) HasData() bool {
+	return summary.CompletedSessions > 0 || summary.RecoveryCheckins > 0
+}
+
+func (summary ObservedTrainingSummary) RequiresRecovery() bool {
+	return summary.PainReported || summary.AverageFatigue >= 4 || summary.AverageRecoveryFatigue >= 4
+}
+
 type Context struct {
 	ProfileID        string
 	ExperienceLevel  string
@@ -55,6 +77,7 @@ type Context struct {
 	Limitations      []LimitationContext
 	Availability     []AvailabilitySlot
 	Cycling          CyclingContext
+	Observed         ObservedTrainingSummary
 	BaselineEligible bool
 	RotationIndex    int
 }
@@ -335,6 +358,17 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 			},
 			"baseline_eligible": input.BaselineEligible,
 			"rotation_index":    input.RotationIndex,
+			"observed_training": map[string]any{
+				"window_days":              input.Observed.WindowDays,
+				"completed_sessions":       input.Observed.CompletedSessions,
+				"completed_minutes":        input.Observed.CompletedMinutes,
+				"average_rpe":              input.Observed.AverageRPE,
+				"average_fatigue":          input.Observed.AverageFatigue,
+				"pain_reported":            input.Observed.PainReported,
+				"recovery_checkins":        input.Observed.RecoveryCheckins,
+				"average_recovery_fatigue": input.Observed.AverageRecoveryFatigue,
+				"requires_recovery":        input.Observed.RequiresRecovery(),
+			},
 		},
 		Workouts: workouts,
 	}
@@ -349,6 +383,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	summary := explanationFor(kind, restricted)
 	usesControlledIntervals := false
 	rotationApplied := false
+	observedProtected := input.Observed.RequiresRecovery() && (input.Observed.PainReported || kind == "quality")
 	if kind == "long" {
 		baseMinutes = map[string]int{"beginner": 75, "intermediate": 90, "advanced": 120}[input.ExperienceLevel]
 		name = "Endurance contínuo"
@@ -441,6 +476,15 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		}
 		multiplier *= 0.8
 		summary = explanationFor(kind, true)
+	} else if observedProtected {
+		name = "Giro leve protegido"
+		targetRPE = 3.5
+		mainBlock = "Esforço leve; interromper diante de dor ou desconforto"
+		if baseMinutes > 45 {
+			baseMinutes = 45
+		}
+		multiplier *= 0.8
+		summary = "O histórico recente de esforço, fadiga ou dor recomenda uma sessão leve e protegida neste ciclo."
 	}
 	duration := int(float64(baseMinutes) * multiplier)
 	if duration < 20 {
@@ -459,6 +503,9 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	if input.Cycling.WeeklyRides > 0 || input.Cycling.RecentWeeklyDistanceKM > 0 {
 		rules = append(rules, "Histórico recente informado usado para contextualizar a sessão.")
 	}
+	if input.Observed.HasData() {
+		rules = append(rules, fmt.Sprintf("Histórico observado dos últimos %d dias considerado (%d sessões concluídas).", input.Observed.WindowDays, input.Observed.CompletedSessions))
+	}
 	if preference := preferredQualityPreference(input.Cycling); kind == "quality" && preference != "" {
 		rules = append(rules, fmt.Sprintf("Preferência por %s considerada dentro dos limites de segurança.", sessionPreferenceLabel(preference)))
 	}
@@ -470,6 +517,9 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	}
 	if restricted {
 		rules = append(rules, "Intensidade limitada por uma condição de segurança ativa.")
+	}
+	if observedProtected {
+		rules = append(rules, "Sessão protegida por sinais recentes de recuperação insuficiente ou dor relatada.")
 	}
 	evidenceKeys := append([]string(nil), protocol.EvidenceKeys...)
 	return Workout{

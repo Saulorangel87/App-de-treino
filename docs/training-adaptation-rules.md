@@ -73,6 +73,12 @@ Somente a próxima sessão `planned` ou `adapted` do plano ativo, na data do che
 
 Depois que uma redução é aplicada, editar o check-in não aumenta novamente a sessão de forma automática. Essa escolha evita que uma correção de formulário seja interpretada como autorização para progredir carga; um ajuste manual futuro deverá ser uma ação explícita e auditável.
 
+## Histórico observado na geração do ciclo
+
+Ao gerar um novo rascunho, o motor agrega os últimos 28 dias de sessões concluídas e check-ins de recuperação. São considerados minutos realizados, RPE médio, fadiga média, dor relatada, quantidade de check-ins e fadiga média informada nos check-ins. O resumo é salvo no `prescription_snapshot.observed_training` para permitir auditoria da decisão.
+
+O uso é deliberadamente conservador: dor relatada protege todas as sessões do novo ciclo com um giro leve; fadiga média igual ou superior a 4, ou fadiga média dos check-ins igual ou superior a 4, protege a sessão de qualidade. A proteção limita o alvo a RPE 3,5, reduz a duração e mantém o treino dentro da disponibilidade cadastrada. O histórico não aumenta intensidade, não substitui a avaliação submáxima e não representa diagnóstico clínico.
+
 ## Transparência e segurança
 
 Cada treino alterado guarda em `workouts.explanation.adaptation`:
@@ -92,3 +98,12 @@ Os percentuais e limiares acima são escolhas prudentes desta versão do produto
 - Bourdon et al. (2017), consenso sobre monitoramento de carga: https://pubmed.ncbi.nlm.nih.gov/28253038/
 - ACSM (1998), progressão gradual do exercício aeróbico: https://pubmed.ncbi.nlm.nih.gov/9624661/
 - Rosenblat, Perrotta e Thomas (2020), revisão e meta-análise sobre intervalos intensos versus sprints: https://pubmed.ncbi.nlm.nih.gov/32034701/
+
+### Etapa futura: ampliar evidências específicas de ciclismo
+
+As referências de ciclismo sobre periodização, cadência, testes submáximos e distribuição de intensidade foram mapeadas para uma próxima etapa. Elas ainda não estão cadastradas no banco nem associadas aos protocolos; a implementação deverá ocorrer depois de consolidar o uso do histórico observado pelo motor e revisar os parâmetros com profissional habilitado.
+
+- Galán-Rioja et al. (2023): https://pubmed.ncbi.nlm.nih.gov/36640771/
+- Mater, Clos e Lepers (2021): https://pubmed.ncbi.nlm.nih.gov/34360206/
+- Capostagno, Lambert e Lamberts (2016): https://pubmed.ncbi.nlm.nih.gov/27701968/
+- Seiler (2010): https://pubmed.ncbi.nlm.nih.gov/20861519/

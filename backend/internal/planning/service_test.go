@@ -157,6 +157,49 @@ func TestBuildPlanUsesSelectedCadencePreference(t *testing.T) {
 	t.Fatalf("expected selected cadence preference to guide quality session, got %#v", plan.Workouts)
 }
 
+func TestBuildPlanUsesObservedRecoverySignalsConservatively(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "intermediate", PrimaryGoal: "endurance",
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 75}, {Weekday: 6, AvailableMinutes: 150}},
+		Observed:     ObservedTrainingSummary{WindowDays: 28, CompletedSessions: 3, CompletedMinutes: 180, AverageRPE: 7.5, AverageFatigue: 4},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	observed, ok := plan.PrescriptionSnapshot["observed_training"].(map[string]any)
+	if !ok || observed["requires_recovery"] != true {
+		t.Fatalf("expected observed summary in snapshot, got %#v", plan.PrescriptionSnapshot)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name == "Giro leve protegido" {
+			if workout.TargetRPE > 4 || workout.DurationMinutes > 45 {
+				t.Fatalf("observed recovery signal must keep the quality session conservative: %#v", workout)
+			}
+			if workout.Explanation["summary"] == "" {
+				t.Fatal("protected session should explain the observed signal")
+			}
+			return
+		}
+	}
+	t.Fatal("expected the quality session to be protected by the observed signal")
+}
+
+func TestBuildPlanUsesObservedPainForAllSessions(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance",
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 75}, {Weekday: 6, AvailableMinutes: 150}},
+		Observed:     ObservedTrainingSummary{WindowDays: 28, CompletedSessions: 1, PainReported: true},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name != "Giro leve protegido" || workout.TargetRPE > 4 || workout.DurationMinutes > 45 {
+			t.Fatalf("observed pain must protect every future session: %#v", workout)
+		}
+	}
+}
+
 func TestBuildPlanDoesNotBypassAssessmentForIntervalPreference(t *testing.T) {
 	plan, err := buildPlan(Context{
 		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance",

@@ -49,7 +49,7 @@ O planejamento é gerado pelo motor determinístico `rules-v1`, com regras expl�
 
 Os formatos das sessões são mantidos em uma biblioteca de protocolos com chaves estáveis e referências associadas. A biblioteca define a forma do estímulo; o motor ainda aplica nível, disponibilidade, progressão, recuperação e limitações antes de gerar cada duração final.
 
-O contexto de ciclismo permanece em JSONB para evoluir sem migrações a cada pergunta opcional. Atualmente inclui horas semanais, pedais por semana, distância semanal recente, semanas de regularidade, maior distância e pedal, preferências de sessão, equipamento, terreno e sensores. Esses dados são preservados no snapshot do plano; novas fórmulas de carga só serão ativadas após revisão e testes específicos.
+O contexto de ciclismo permanece em JSONB para evoluir sem migrações a cada pergunta opcional. Atualmente inclui horas semanais, pedais por semana, distância semanal recente, semanas de regularidade, maior distância e pedal, preferências de sessão, equipamento, terreno e sensores. Além dele, o motor consulta um resumo agregado dos últimos 28 dias de sessões concluídas e check-ins de recuperação. Esses dados são preservados no snapshot do plano; sinais de dor, fadiga elevada ou recuperação insuficiente apenas protegem a sessão de forma conservadora, sem criar metas rígidas ou diagnósticos. Novas fórmulas de carga só serão ativadas após revisão e testes específicos.
 
 ## ADR-004 — Autenticação e e-mail
 
@@ -66,7 +66,7 @@ O contexto de ciclismo permanece em JSONB para evoluir sem migrações a cada pe
 
 **Status:** Aplicada.
 
-As migrações `000001` a `000012` foram aplicadas localmente e em produção. A migração `000012` adicionou confirmação de e-mail e recuperação de senha. Antes de uma mudança estrutural, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
+As migrações `000001` a `000012` foram aplicadas localmente e em produção. A migração `000012` adicionou confirmação de e-mail e recuperação de senha. A proposta de catálogo ampliado de evidências específicas de ciclismo fica registrada como etapa futura e ainda não foi aplicada. Antes de uma mudança estrutural, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
 
 ## Estado de produção
 

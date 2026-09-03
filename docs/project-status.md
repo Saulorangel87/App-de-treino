@@ -72,6 +72,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 - Até dois objetivos priorizados.
 - Disponibilidade individual dos sete dias, com opções de duração até 8 horas.
 - Contexto opcional de ciclismo: horas, pedais e distância semanal recente, semanas de regularidade, maior distância e pedal, preferências de sessão, equipamento, terreno, sensores, FTP e meta de prova.
+- Resumo observado dos últimos 28 dias: sessões concluídas, minutos realizados, RPE e fadiga médios, dor relatada e check-ins de recuperação.
 - Motor `rules-v1` com ciclos de quatro semanas, progressão, recuperação e datas calculadas para a semana corrente.
 - Geração de rascunho, revisão, ativação e geração do próximo ciclo sem apagar o histórico.
 
@@ -82,6 +83,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 - Métricas opcionais: distância, elevação, frequência cardíaca média e potência média.
 - Adaptação conservadora após feedback e check-in diário de sono, estresse e fadiga.
 - Avaliação inicial submáxima, sem teste máximo ou diagnóstico.
+- O histórico observado agora participa da geração: sinais recentes de dor, fadiga ou recuperação insuficiente protegem as sessões futuras de forma conservadora e ficam no snapshot do plano.
 - Sessões específicas para perfis adequados: cadência, subidas, sweet spot, ritmo de prova e intervalos controlados.
 - Histórico em `/atividades` e agregações observadas em `/evolucao`.
 - Indicadores de consistência, carga semanal, prontidão e explicabilidade.
@@ -170,8 +172,8 @@ Pendências, sem executar bloqueios automáticos:
 1. Concluir o hardening da VPS.
 2. Validar visualmente e publicar o ajuste aplicado na tela inicial desktop: texto de privacidade mais amigável e menos altura/scroll.
 3. Integrar IA no backend para explicações, interpretação de feedback e comunicação personalizada, sempre subordinada ao motor de regras e às proteções de segurança. A primeira camada de sessões estruturadas já foi implementada: o motor envia etapas com duração, RPE e instruções acionáveis.
-4. Expandir a coleta progressiva de dados do ciclista. O perfil já coleta volume recente, semanas de regularidade, maior distância e preferências de sessão; ainda falta incorporar histórico observado de desempenho sem transformar relatos em metas rígidas.
-5. Evoluir sessões específicas de cadência, tiros, subidas, potência e preparação para provas com regras próprias e validação científica. As preferências agora orientam a sessão de qualidade quando há contexto compatível; a biblioteca inicial de protocolos, o mapeamento de evidências e as etapas operacionais já estão implementados. Ainda falta ampliar a cobertura e revisar parâmetros com profissional habilitado.
+4. Expandir a coleta progressiva de dados do ciclista. O motor já incorpora o resumo observado de sessões e recuperação sem transformar relatos em metas rígidas; a próxima ampliação deve adicionar métricas de desempenho com validação específica.
+5. Evoluir sessões específicas de cadência, tiros, subidas, potência e preparação para provas com regras próprias e validação científica. As preferências agora orientam a sessão de qualidade quando há contexto compatível; a ampliação do catálogo de evidências específicas de ciclismo fica registrada como etapa futura, sem migração aplicada. Ainda falta ampliar a cobertura e revisar parâmetros com profissional habilitado.
 6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
 
 ## Como iniciar localmente
