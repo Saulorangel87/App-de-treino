@@ -36,7 +36,7 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `PUT /v1/onboarding/limitations`: salva informações de segurança.
 - `PUT /v1/onboarding/goals`: salva até dois objetivos priorizados.
 - `PUT /v1/onboarding/availability`: salva a disponibilidade semanal.
-- `PUT /v1/onboarding/cycling-context`: salva histórico resumido, equipamento, terreno e meta opcional de prova.
+- `PUT /v1/onboarding/cycling-context`: salva histórico resumido (horas, pedais e distância semanal recente), equipamento, terreno e meta opcional de prova.
 - `GET /v1/assessments/current` e `POST /v1/assessments/submaximal`: consultam e registram o pedal de referência submáximo.
 - `GET /v1/recovery/today` e `PUT /v1/recovery/today`: consultam e salvam o check-in diário de sono, estresse e fadiga percebida.
 - `GET /v1/evolution/summary`: retorna totais observados, oito semanas de duração e métricas de pedal registradas, além de check-ins recentes para o atleta autenticado.

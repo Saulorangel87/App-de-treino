@@ -33,12 +33,16 @@ type AvailabilitySlot struct {
 }
 
 type CyclingContext struct {
-	BikeType      string `json:"bike_type"`
-	Terrain       string `json:"terrain"`
-	UsesHeartRate bool   `json:"uses_heart_rate"`
-	UsesPower     bool   `json:"uses_power"`
-	FTP           *int   `json:"ftp,omitempty"`
-	EventGoal     bool   `json:"event_goal"`
+	WeeklyHours            float64 `json:"weekly_hours"`
+	LongestRideMinutes     int     `json:"longest_ride_minutes"`
+	WeeklyRides            int     `json:"weekly_rides"`
+	RecentWeeklyDistanceKM float64 `json:"recent_weekly_distance_km"`
+	BikeType               string  `json:"bike_type"`
+	Terrain                string  `json:"terrain"`
+	UsesHeartRate          bool    `json:"uses_heart_rate"`
+	UsesPower              bool    `json:"uses_power"`
+	FTP                    *int    `json:"ftp,omitempty"`
+	EventGoal              bool    `json:"event_goal"`
 }
 
 type Context struct {
@@ -313,11 +317,15 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 			"restricted":        restricted,
 			"sessions_per_week": len(slots),
 			"cycling_context": map[string]any{
-				"bike_type":       input.Cycling.BikeType,
-				"terrain":         input.Cycling.Terrain,
-				"uses_heart_rate": input.Cycling.UsesHeartRate,
-				"uses_power":      input.Cycling.UsesPower,
-				"event_goal":      input.Cycling.EventGoal,
+				"weekly_hours":              input.Cycling.WeeklyHours,
+				"longest_ride_minutes":      input.Cycling.LongestRideMinutes,
+				"weekly_rides":              input.Cycling.WeeklyRides,
+				"recent_weekly_distance_km": input.Cycling.RecentWeeklyDistanceKM,
+				"bike_type":                 input.Cycling.BikeType,
+				"terrain":                   input.Cycling.Terrain,
+				"uses_heart_rate":           input.Cycling.UsesHeartRate,
+				"uses_power":                input.Cycling.UsesPower,
+				"event_goal":                input.Cycling.EventGoal,
 			},
 			"baseline_eligible": input.BaselineEligible,
 			"rotation_index":    input.RotationIndex,
@@ -417,6 +425,9 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		fmt.Sprintf("Agendado em um dia com %d minutos disponíveis.", slot.AvailableMinutes),
 		fmt.Sprintf("Carga compatível com experiência %s.", experienceLabel(input.ExperienceLevel)),
 		"Progressão de três semanas seguida por uma semana de recuperação.",
+	}
+	if input.Cycling.WeeklyRides > 0 || input.Cycling.RecentWeeklyDistanceKM > 0 {
+		rules = append(rules, "Histórico recente informado usado para contextualizar a sessão.")
 	}
 	if usesControlledIntervals {
 		rules = append(rules, "Intervalos liberados pela avaliação submáxima apta, apenas nas semanas de construção.")

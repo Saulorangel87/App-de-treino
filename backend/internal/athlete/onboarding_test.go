@@ -89,4 +89,14 @@ func TestSaveCyclingContextAcceptsOptionalContext(t *testing.T) {
 	}
 }
 
+func TestSaveCyclingContextRejectsInvalidHistory(t *testing.T) {
+	service := NewOnboardingService(onboardingStore{})
+	if _, err := service.SaveCyclingContext(context.Background(), "user-1", CyclingContext{WeeklyRides: 22}); err != ErrInvalidOnboarding {
+		t.Fatalf("expected weekly ride history to be bounded, got %v", err)
+	}
+	if _, err := service.SaveCyclingContext(context.Background(), "user-1", CyclingContext{RecentWeeklyDistanceKM: 2001}); err != ErrInvalidOnboarding {
+		t.Fatalf("expected weekly distance history to be bounded, got %v", err)
+	}
+}
+
 func errorsIs(err, target error) bool { return err == target }

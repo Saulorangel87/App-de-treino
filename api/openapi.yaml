@@ -392,6 +392,8 @@ components:
       properties:
         weekly_hours: { type: number, minimum: 0, maximum: 80 }
         longest_ride_minutes: { type: integer, minimum: 0, maximum: 1440 }
+        weekly_rides: { type: integer, minimum: 0, maximum: 21 }
+        recent_weekly_distance_km: { type: number, minimum: 0, maximum: 2000 }
         bike_type: { type: string, enum: ['', road, mtb, gravel, indoor] }
         terrain: { type: string, enum: ['', flat, rolling, hilly] }
         uses_heart_rate: { type: boolean }
