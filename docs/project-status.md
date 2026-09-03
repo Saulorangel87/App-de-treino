@@ -8,7 +8,7 @@ Este é o documento principal de continuidade. Ele registra o que está implemen
 
 O MVP de ciclismo está em produção real e foi validado no navegador e em um celular. O fluxo de cadastro, confirmação de e-mail, perfil, geração e ativação de plano, execução, feedback, adaptação, histórico, evolução e logout está funcionando.
 
-O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e referências científicas. A integração com um modelo externo de IA ainda não foi implementada; a próxima fase poderá usar IA para explicações e interpretação dentro dos limites do motor.
+O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e referências científicas. A camada opcional de IA explicativa foi preparada no backend e validada por uma rota remota protegida; ela continua desligada por padrão e só poderá ser ativada depois da medição/instalação do provedor local.
 
 ## Repositório e produção
 
@@ -87,7 +87,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 - Sessões específicas para perfis adequados: cadência, subidas, sweet spot, ritmo de prova e intervalos controlados.
 - Histórico em `/atividades` e agregações observadas em `/evolucao`.
 - Indicadores de consistência, carga semanal, prontidão e explicabilidade.
-- Contrato inicial da IA explicativa no backend, com Ollama opcional, limites de recurso e fallback para as regras. O cliente do Worker Cloudflare está preparado como fallback remoto, e a rota protegida `/cadencia/explanation` foi publicada sem alterar o endpoint legado; ainda falta cadastrar `CADENCIA_WORKER_TOKEN`, validar a chamada autenticada e decidir a ativação na VPS.
+- Contrato inicial da IA explicativa no backend, com Ollama opcional, limites de recurso e fallback determinístico para as regras. O cliente do Worker Cloudflare está preparado como fallback remoto, e a rota protegida `/cadencia/explanation` foi publicada sem alterar o endpoint legado. O segredo `CADENCIA_WORKER_TOKEN` foi configurado no Worker e na VPS; uma chamada sintética autenticada respondeu `200` usando `openai/gpt-oss-20b`. A variável `AI_ENABLED` permanece `false` e nenhum serviço foi reiniciado.
 
 ### Interface e PWA
 
@@ -161,6 +161,8 @@ Na auditoria somente leitura de 2 de setembro de 2026, o host também apresentou
 
 Em 3 de setembro de 2026, uma auditoria somente leitura pelo Tailscale mediu 2 vCPUs, 11 GiB de RAM total, 8,2 GiB disponíveis, nenhum swap e 118 GiB livres no disco raiz (40% usado). A carga estava baixa (0,13 / 0,05 / 0,01), mas a ausência de swap exige cautela. Havia 23 containers ativos; os maiores consumos observados foram Immich (servidor e machine learning), n8n e Home Assistant. Ollama ainda não está instalado nem em execução. A IA será ativada somente após instalação isolada, limite de aproximadamente 4 GiB de memória, no máximo uma chamada simultânea e sem porta pública.
 
+Também em 3 de setembro, a versão ativa do Worker `flat-rice-6724` foi atualizada para o modelo Groq disponível `openai/gpt-oss-20b`, após o identificador anterior deixar de existir. A rota protegida foi testada com payload mínimo e token válido, sem expor o segredo; o endpoint legado do Worker permaneceu preservado.
+
 Pendências, sem executar bloqueios automáticos:
 
 1. Completar o mapa de cada domínio, túnel e proxy dos aplicativos existentes.
@@ -174,7 +176,7 @@ Pendências, sem executar bloqueios automáticos:
 
 1. Concluir o hardening da VPS.
 2. Validar visualmente e publicar o ajuste aplicado na tela inicial desktop: texto de privacidade mais amigável e menos altura/scroll.
-3. Cadastrar o segredo do Worker e validar a rota remota como fallback; em seguida habilitar e validar a IA explicativa no backend usando Ollama local, sempre subordinada ao motor de regras e às proteções de segurança. O contrato, os limites de recurso, o fallback determinístico, o cliente remoto e a ação opcional na interface já estão implementados; ainda falta configurar os segredos, medir a VPS, instalar/testar o modelo e ativar a variável somente se houver folga.
+3. Medir a VPS, instalar/testar o Ollama de forma isolada e, somente se houver folga, ativar e validar a IA explicativa no backend, sempre subordinada ao motor de regras e às proteções de segurança. O contrato, os limites de recurso, o fallback determinístico, o cliente remoto, os segredos e a rota autenticada já estão validados; `AI_ENABLED=false` continua sendo a configuração segura até essa decisão.
 4. Expandir a coleta progressiva de dados do ciclista. O motor já incorpora o resumo observado de sessões e recuperação sem transformar relatos em metas rígidas; a próxima ampliação deve adicionar métricas de desempenho com validação específica.
 5. Evoluir sessões específicas de cadência, tiros, subidas, potência e preparação para provas com regras próprias e validação científica. As preferências agora orientam a sessão de qualidade quando há contexto compatível; a ampliação do catálogo de evidências específicas de ciclismo fica registrada como etapa futura, sem migração aplicada. Ainda falta ampliar a cobertura e revisar parâmetros com profissional habilitado.
 6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.

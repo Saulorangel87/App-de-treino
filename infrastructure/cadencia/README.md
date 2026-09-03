@@ -87,7 +87,7 @@ O diretório de produção é `/var/backups/cadencia`, com acesso do usuário `u
 - O token do Cloudflare Tunnel deve ficar somente no `.env.production` da VPS.
 - A API usa Go 1.25 na imagem de build (`infrastructure/cadencia/Dockerfile.api`).
 - A IA explicativa permanece desligada por padrão (`AI_ENABLED=false`). O compose encaminha os limites e, opcionalmente, `AI_WORKER_URL`/`AI_WORKER_TOKEN` para a API; o serviço Ollama ainda não é iniciado. Só ative depois de medir a VPS e configurar o Ollama em uma rede Docker interna, sem publicar a porta 11434.
-- O Worker Cloudflare possui a rota protegida `/cadencia/explanation`, separada do endpoint legado usado por outros projetos. O segredo `CADENCIA_WORKER_TOKEN` deve existir no Worker e o valor correspondente deve ficar somente no `.env.production` do Cadência. Nunca coloque esse token no frontend ou no repositório.
+- O Worker Cloudflare possui a rota protegida `/cadencia/explanation`, separada do endpoint legado usado por outros projetos. O segredo `CADENCIA_WORKER_TOKEN` está configurado no Worker e o valor correspondente fica somente no `.env.production` do Cadência; uma chamada sintética autenticada foi validada com o modelo `openai/gpt-oss-20b`. Nunca coloque esse token no frontend ou no repositório.
 - O PostgreSQL não deve receber porta publicada, hostname público ou regra no Cloudflare.
 - O hardening das portas dos demais aplicativos da VPS é uma atividade separada; não altere seus containers por este compose.
 
