@@ -1,6 +1,6 @@
 # Decisões de arquitetura
 
-Última revisão: 2 de setembro de 2026.
+Última revisão: 3 de setembro de 2026.
 
 ## ADR-001 — Banco de dados próprio
 
@@ -43,7 +43,7 @@ PostgreSQL (cadencia_data)
 
 ## ADR-003 — Motor de treinamento e IA
 
-**Status:** Motor aplicado; camada explicativa local e fallback remoto implementados, ativação local em teste controlado.
+**Status:** Motor aplicado; camada explicativa local e fallback remoto implementados, Worker remoto selecionado em produção para preservar a capacidade da VPS.
 
 O planejamento é gerado pelo motor determinístico `rules-v1`, com regras explícitas, limitações de segurança, disponibilidade e evidências científicas. As prescrições também carregam etapas operacionais estruturadas para que cada sessão seja executável e explicável. Uma futura integração de IA ficará no backend e poderá explicar decisões, interpretar feedback e adaptar a comunicação, mas não poderá inventar estudos, ultrapassar as regras ou diagnosticar condições clínicas.
 
@@ -72,7 +72,7 @@ As migrações `000001` a `000012` foram aplicadas localmente e em produção. A
 
 ## Estado de produção
 
-Em 3 de setembro de 2026, o commit `005107a` foi implantado na VPS Oracle. A imagem da API foi reconstruída com Go 1.25; o serviço Ollama foi adicionado isoladamente e o modelo foi preparado sem publicar novas portas.
+Em 3 de setembro de 2026, o commit `bef4e60` foi implantado na VPS Oracle. A imagem da API foi reconstruída com Go 1.25; o serviço Ollama foi adicionado isoladamente e o modelo foi preparado sem publicar novas portas. Após a medição de capacidade, o Ollama foi parado e a API passou a usar temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.
 
 Validações realizadas:
 
@@ -107,5 +107,5 @@ Nenhuma porta de outro aplicativo deve ser bloqueada sem mapear antes seus domí
 1. Definir cópia externa dos backups e o monitoramento de falhas.
 2. Escolher a política de firewall e a lista mínima de portas públicas da VPS.
 3. Registrar monitoramento e alertas de saúde/backup.
-4. Concluir o teste controlado de ativação da IA explicativa local, observando latência e memória em uma chamada autenticada; manter o Worker remoto como fallback já validado e reverter para `AI_ENABLED=false` se a folga for insuficiente.
+4. Validar o Worker remoto na sessão autenticada e monitorar seus limites; manter o Ollama parado até existir capacidade adequada ou uma otimização de inferência. Reverter para `AI_ENABLED=false` se o provedor remoto não for aprovado.
 5. Evoluir coleta de dados e sessões específicas de ciclismo.

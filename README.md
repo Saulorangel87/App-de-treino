@@ -57,7 +57,7 @@ A tela `/plano` gera, apresenta e ativa ciclos de quatro semanas. O motor `rules
 
 O feedback de uma sessão concluída adapta de forma conservadora os próximos treinos planejados. Dor, fadiga, dificuldade e diferença entre RPE planejado e realizado podem reduzir duração ou esforço; uma resposta claramente fácil permite somente uma progressão pequena de duração. A decisão fica registrada no treino e é apresentada na interface. As regras completas estão em `docs/training-adaptation-rules.md`.
 
-A camada de IA explicativa é opcional e fica desligada por padrão. A primeira opção é o Ollama local, com modelo pequeno, limite de uma chamada simultânea, timeout curto e limite de saída. O backend também pode usar como fallback a rota protegida `/cadencia/explanation` do Worker Cloudflare, que foi validada com o modelo Groq `openai/gpt-oss-20b`; a chamada ocorre somente no backend, nunca diretamente pelo navegador. Se os provedores não responderem, o usuário continua recebendo a explicação determinística do motor.
+A camada de IA explicativa é opcional e fica desligada por padrão. Em produção, o backend usa temporariamente a rota protegida `/cadencia/explanation` do Worker Cloudflare, que foi validada com o modelo Groq `openai/gpt-oss-20b`, para preservar a capacidade da VPS. O Ollama local permanece instalado, mas parado após uma medição de capacidade; a chamada ocorre somente no backend, nunca diretamente pelo navegador. Se os provedores não responderem, o usuário continua recebendo a explicação determinística do motor.
 
 A rota `/avaliacao` permite registrar opcionalmente um pedal de referência submáximo, sem teste máximo ou diagnóstico. Para atletas avançados com objetivo de desempenho/prova, sem limitação ativa e com tempo suficiente, uma referência apta libera apenas intervalos controlados nas semanas de construção; não libera sprints nem esforço máximo.
 
@@ -75,14 +75,14 @@ O MVP de ciclismo está publicado em produção real:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Produção implantada na VPS Oracle no commit `005107a`.
+- Produção implantada na VPS Oracle no commit `bef4e60`.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, confirmação de e-mail, recuperação de senha, onboarding, plano, treino, feedback, adaptação, atividades, evolução e logout foram validados.
 - Dependabot está com 0 alertas abertos; os testes Go, build Docker e `govulncheck` passaram.
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.
 
-Depois da estabilização, as próximas evoluções do produto são validar a ativação controlada da IA explicativa local (Ollama já instalado e testado, mas ainda desligado), a coleta progressiva de mais dados do ciclista e novas sessões específicas com regras e referências próprias. Consulte `docs/project-status.md` para o inventário completo.
+Depois da estabilização, as próximas evoluções do produto são validar a explicação pela sessão autenticada usando o Worker remoto, monitorar latência e limites, ampliar a coleta progressiva de dados do ciclista e criar novas sessões específicas com regras e referências próprias. O Ollama já está instalado e testado, mas permanece desligado por consumo elevado na VPS. Consulte `docs/project-status.md` para o inventário completo.
 
 ## PWA
 

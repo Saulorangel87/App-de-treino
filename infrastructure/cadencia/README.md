@@ -53,7 +53,7 @@ docker compose --env-file infrastructure/cadencia/.env.production \
   -f infrastructure/cadencia/compose.production.yaml up -d api frontend tunnel
 ```
 
-O Ollama é opcional e não é iniciado pelo comando acima. Ele já foi instalado na VPS e está temporariamente habilitado apenas para o teste controlado desta etapa. O padrão seguro continua sendo `AI_ENABLED=false`. Para preparar o serviço somente na rede interna do Cadência:
+O Ollama é opcional e não é iniciado pelo comando acima. Ele foi instalado na VPS e permanece parado após o teste de capacidade; a produção usa temporariamente o Worker remoto para evitar sobrecarga. O padrão seguro continua sendo `AI_ENABLED=false`. Para preparar o serviço somente na rede interna do Cadência:
 
 ```sh
 docker compose --env-file infrastructure/cadencia/.env.production \
@@ -63,7 +63,7 @@ docker compose --env-file infrastructure/cadencia/.env.production \
   ollama pull qwen3:4b-instruct
 ```
 
-O serviço tem limite de 4 GiB de memória, uma execução simultânea e nenhum `ports:` publicado; `11434` fica acessível somente pela rede Docker privada. O modelo `qwen3:4b-instruct` já foi baixado e testado. Com o modelo carregado, o container chegou a aproximadamente 3,3 GiB. Após o teste, reavalie a folga e mantenha `AI_ENABLED=false` se a VPS não comportar a integração com segurança.
+O serviço tem limite de 4 GiB de memória, uma execução simultânea e nenhum `ports:` publicado; `11434` fica acessível somente pela rede Docker privada. O modelo `qwen3:4b-instruct` já foi baixado e testado, mas uma chamada levou cerca de 72 segundos e consumiu praticamente 100% do limite de CPU. Mantenha o serviço parado até existir folga ou otimização suficiente; a produção usa o Worker remoto durante esta fase.
 
 Após o deploy, valide:
 
@@ -98,7 +98,7 @@ O diretório de produção é `/var/backups/cadencia`, com acesso do usuário `u
 - A conexão entre API e PostgreSQL fica na rede Docker privada. Por isso, `sslmode=disable` é aceitável apenas dentro dessa rede local; não use essa configuração para uma conexão externa.
 - O token do Cloudflare Tunnel deve ficar somente no `.env.production` da VPS.
 - A API usa Go 1.25 na imagem de build (`infrastructure/cadencia/Dockerfile.api`).
-- A IA explicativa permanece desligada por padrão (`AI_ENABLED=false`). Na VPS, ela está temporariamente ativa para um teste controlado. O compose encaminha os limites e, opcionalmente, `AI_WORKER_URL`/`AI_WORKER_TOKEN` para a API. O serviço Ollama está instalado na rede Docker interna, com `qwen3:4b-instruct` baixado e testado, sem publicar a porta 11434. Após o teste, reavalie a configuração com monitoramento de memória.
+- A IA explicativa permanece desligada por padrão (`AI_ENABLED=false`). Na VPS, ela está temporariamente ativa com `AI_PROVIDER=worker`, usando a rota protegida do Cloudflare; o serviço Ollama está instalado, mas parado após o teste de capacidade. O compose encaminha os limites e, opcionalmente, `AI_WORKER_URL`/`AI_WORKER_TOKEN` para a API, sem publicar a porta 11434. Reavalie a ativação local somente após uma nova medição de capacidade.
 - O Worker Cloudflare possui a rota protegida `/cadencia/explanation`, separada do endpoint legado usado por outros projetos. O segredo `CADENCIA_WORKER_TOKEN` está configurado no Worker e o valor correspondente fica somente no `.env.production` do Cadência; uma chamada sintética autenticada foi validada com o modelo `openai/gpt-oss-20b`. Nunca coloque esse token no frontend ou no repositório.
 - O PostgreSQL não deve receber porta publicada, hostname público ou regra no Cloudflare.
 - O hardening das portas dos demais aplicativos da VPS é uma atividade separada; não altere seus containers por este compose.
