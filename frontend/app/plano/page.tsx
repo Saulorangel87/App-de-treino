@@ -19,6 +19,7 @@ import { AccountActions } from '@/components/account-actions';
 import { AdaptationCard } from '@/components/adaptation-card';
 import { RpeHelp } from '@/components/rpe-help';
 import { WorkoutSessionActions } from '@/components/workout-session-actions';
+import { WorkoutStructure } from '@/components/workout-structure';
 import { apiRequest } from '@/lib/api';
 import {
   parseTrainingDate,
@@ -470,20 +471,7 @@ export default function PlanPage() {
                     onPlanUpdated={updateSessionPlan}
                   />
                   <h3>Estrutura</h3>
-                  <ol>
-                    <li>
-                      <b>{selected.structure.warmup_minutes} min</b>Aquecimento
-                      progressivo
-                    </li>
-                    <li>
-                      <b>Principal</b>
-                      {selected.structure.main}
-                    </li>
-                    <li>
-                      <b>{selected.structure.cooldown_minutes} min</b>
-                      Desaquecimento leve
-                    </li>
-                  </ol>
+                  <WorkoutStructure structure={selected.structure} durationMinutes={selected.duration_minutes} />
                   <h3>Por que este treino?</h3>
                   <ul>
                     {selected.explanation.rules?.map((rule) => (

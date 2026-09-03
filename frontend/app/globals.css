@@ -954,6 +954,107 @@ button {
   font-style: normal;
   text-align: right;
 }
+.structured-workout {
+  padding: 0;
+  margin: 18px 0;
+  display: grid;
+  gap: 0;
+  list-style: none;
+}
+.structured-workout-step {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 14px 0;
+  border-top: 1px solid #e0e7df;
+}
+.structured-workout-index {
+  color: #92a198;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+.structured-workout-content {
+  min-width: 0;
+}
+.structured-workout-content strong,
+.structured-workout-content small,
+.structured-workout-content p {
+  display: block;
+}
+.structured-workout-content strong {
+  color: #29463a;
+  font-size: 13px;
+  line-height: 1.3;
+}
+.structured-workout-content small {
+  margin-top: 5px;
+  color: #6e8076;
+  font-size: 11px;
+  line-height: 1.35;
+}
+.structured-workout-content p {
+  margin: 7px 0 0;
+  color: #5b6b62;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.structured-workout-recovery .structured-workout-index,
+.structured-workout-easy .structured-workout-index {
+  color: #70a88e;
+}
+.structured-workout-fallback li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 14px 0;
+  border-top: 1px solid #e0e7df;
+}
+.structured-workout-fallback li > div {
+  min-width: 0;
+}
+.structured-workout-fallback strong,
+.structured-workout-fallback small {
+  display: block;
+}
+.structured-workout-fallback strong {
+  color: #29463a;
+  font-size: 13px;
+  line-height: 1.3;
+}
+.structured-workout-fallback small {
+  margin-top: 5px;
+  color: #6e8076;
+  font-size: 11px;
+  line-height: 1.35;
+}
+.workout-detail .structured-workout {
+  margin: 0;
+}
+.workout-detail .structured-workout-step,
+.workout-detail .structured-workout-fallback li {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.workout-detail .structured-workout-content strong {
+  color: #eef6f2;
+}
+.workout-detail .structured-workout-content small {
+  color: #b1c7bd;
+}
+.workout-detail .structured-workout-content p {
+  color: #a9bfb6;
+}
+.workout-detail .structured-workout-fallback strong {
+  color: #eef6f2;
+}
+.workout-detail .structured-workout-fallback small {
+  color: #b1c7bd;
+}
+.workout-detail .structured-workout-index {
+  color: #d4ef49;
+}
 .modal-start {
   width: 100%;
   justify-content: center;
@@ -2922,7 +3023,7 @@ a.footer-icon:hover {
 }
 .workout-detail > span {
   color: var(--lime);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 1px;
 }
@@ -2935,7 +3036,7 @@ a.footer-icon:hover {
 .workout-detail > p {
   margin: 0;
   color: #aac0b7;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.55;
 }
 .detail-metrics {
@@ -2955,7 +3056,7 @@ a.footer-icon:hover {
 }
 .detail-metrics strong {
   color: white;
-  font-size: 10px;
+  font-size: 11px;
 }
 .rpe-help-wrap {
   position: relative;
@@ -3060,7 +3161,7 @@ a.footer-icon:hover {
 .workout-detail h3 {
   margin: 18px 0 9px;
   color: #d8e5df;
-  font-size: 10px;
+  font-size: 11px;
 }
 .workout-detail ol,
 .workout-detail ul {
@@ -3072,7 +3173,7 @@ a.footer-icon:hover {
 }
 .workout-detail li {
   color: #a9bfb6;
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1.45;
 }
 .workout-detail ol li {

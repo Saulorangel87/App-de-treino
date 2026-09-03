@@ -28,6 +28,12 @@ Na geração do plano, o motor mantém a frequência, os limites de duração, a
 
 Se houver limitação ativa, a sessão específica é substituída pelo giro leve protegido. Iniciantes não recebem essas sessões de qualidade específicas ainda. Intervalos de alta intensidade ("tiros") continuam fora do motor até existir uma avaliação inicial de capacidade e regras próprias de progressão.
 
+## Estrutura operacional das sessões
+
+As sessões geradas agora carregam uma sequência de etapas acionáveis em `workout.structure.steps`, além dos campos antigos de aquecimento, parte principal e desaquecimento. Cada etapa informa ordem, tipo, duração, RPE-alvo e uma instrução curta para execução.
+
+Uma sessão de subida, por exemplo, pode apresentar quatro esforços separados por recuperações leves, em vez de apenas o texto "4 blocos sustentados em subida". A soma das etapas é igual à duração prescrita e continua limitada à disponibilidade do dia. Em uma adaptação de duração, a interface ajusta proporcionalmente a exibição das etapas até que uma futura versão do motor passe a recalcular os blocos no próprio banco.
+
 ## Avaliação inicial submáxima
 
 A rota `/avaliacao` apresenta um pedal de referência opcional: aquecimento leve, até 20 minutos de esforço controlado próximo de RPE 5 e desaquecimento. O atleta registra duração, RPE percebido e dor. Não há teste máximo, estimativa de VO₂max nem diagnóstico.

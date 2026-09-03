@@ -9,6 +9,7 @@ export type Workout = {
     warmup_minutes?: number;
     main?: string;
     cooldown_minutes?: number;
+    steps?: WorkoutStep[];
   };
   explanation: {
     summary?: string;
@@ -25,6 +26,15 @@ export type Workout = {
   };
   status: 'planned' | 'in_progress' | 'completed' | 'skipped' | 'adapted';
   session?: WorkoutSession;
+};
+
+export type WorkoutStep = {
+  order: number;
+  kind: string;
+  title: string;
+  duration_minutes: number;
+  target_rpe: number;
+  instruction: string;
 };
 
 export type WorkoutFeedback = {

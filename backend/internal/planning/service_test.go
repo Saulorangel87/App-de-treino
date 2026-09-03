@@ -137,6 +137,40 @@ func TestBuildPlanUsesHillyTerrainForIntermediateQualitySession(t *testing.T) {
 	t.Fatalf("expected a hilly-terrain quality session, got %#v", plan.Workouts)
 }
 
+func TestBuildPlanIncludesActionableStepsForSpecificSessions(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance",
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		Cycling:      CyclingContext{Terrain: "hilly"},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		steps, ok := workout.Structure["steps"].([]WorkoutStep)
+		if !ok || len(steps) == 0 {
+			t.Fatalf("expected actionable steps, got %#v", workout.Structure)
+		}
+		total := 0
+		for index, step := range steps {
+			if step.Order != index+1 || step.DurationMinutes <= 0 {
+				t.Fatalf("invalid step ordering or duration: %#v", steps)
+			}
+			total += step.DurationMinutes
+		}
+		if total != workout.DurationMinutes {
+			t.Fatalf("step total %d does not match workout duration %d: %#v", total, workout.DurationMinutes, steps)
+		}
+		if workout.Name == "Subidas controladas" {
+			if steps[1].Title != "Subida controlada 1 de 4" || steps[2].Kind != "recovery" {
+				t.Fatalf("expected explicit hill blocks and recovery: %#v", steps)
+			}
+			return
+		}
+	}
+	t.Fatal("expected a specific hill workout")
+}
+
 func TestBuildPlanRestrictionOverridesSpecificCyclingContext(t *testing.T) {
 	ftp := 250
 	plan, err := buildPlan(Context{

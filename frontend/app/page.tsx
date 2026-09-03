@@ -22,6 +22,7 @@ import { AdaptationCard } from '@/components/adaptation-card';
 import { LogoutButton } from '@/components/account-actions';
 import { RpeHelp } from '@/components/rpe-help';
 import { WorkoutSessionActions } from '@/components/workout-session-actions';
+import { WorkoutStructure } from '@/components/workout-structure';
 import { apiRequest } from '@/lib/api';
 import {
   parseTrainingDate,
@@ -556,39 +557,7 @@ export default function HomePage() {
             <h2 id="workout-title">{selected.name}</h2>
             <p>{selected.explanation.summary}</p>
             <AdaptationCard workout={selected} />
-            <ol className="workout-steps">
-              <li>
-                <b>01</b>
-                <span>
-                  <strong>Aquecimento</strong>
-                  <small>
-                    {selected.structure.warmup_minutes} min · esforço
-                    progressivo
-                  </small>
-                </span>
-                <em>Cadência confortável</em>
-              </li>
-              <li>
-                <b>02</b>
-                <span>
-                  <strong>Bloco principal</strong>
-                  <small>
-                    RPE {selected.target_rpe} <RpeHelp compact />
-                  </small>
-                </span>
-                <em>{selected.structure.main}</em>
-              </li>
-              <li>
-                <b>03</b>
-                <span>
-                  <strong>Desaquecimento</strong>
-                  <small>
-                    {selected.structure.cooldown_minutes} min · esforço leve
-                  </small>
-                </span>
-                <em>Giro confortável</em>
-              </li>
-            </ol>
+            <WorkoutStructure structure={selected.structure} durationMinutes={selected.duration_minutes} />
             <WorkoutSessionActions
               workout={selected}
               planStatus={activePlan.status}

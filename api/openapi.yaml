@@ -440,13 +440,34 @@ components:
         objective: { type: string }
         duration_minutes: { type: integer, minimum: 1 }
         target_rpe: { type: number, minimum: 0, maximum: 10 }
-        structure: { type: object, additionalProperties: true }
+        structure: { $ref: '#/components/schemas/WorkoutStructure' }
         explanation: { type: object, additionalProperties: true }
         status: { type: string, enum: [planned, in_progress, completed, skipped, adapted] }
         session:
           oneOf:
             - { $ref: '#/components/schemas/WorkoutSession' }
             - { type: 'null' }
+    WorkoutStructure:
+      type: object
+      required: [warmup_minutes, main, cooldown_minutes]
+      properties:
+        warmup_minutes: { type: integer, minimum: 1 }
+        main: { type: string }
+        cooldown_minutes: { type: integer, minimum: 1 }
+        steps:
+          type: array
+          items: { $ref: '#/components/schemas/WorkoutStep' }
+      additionalProperties: true
+    WorkoutStep:
+      type: object
+      required: [order, kind, title, duration_minutes, target_rpe, instruction]
+      properties:
+        order: { type: integer, minimum: 1 }
+        kind: { type: string, enum: [warmup, work, recovery, easy, main, cooldown] }
+        title: { type: string }
+        duration_minutes: { type: integer, minimum: 1 }
+        target_rpe: { type: number, minimum: 0, maximum: 10 }
+        instruction: { type: string }
     WorkoutSession:
       type: object
       required: [id, status]

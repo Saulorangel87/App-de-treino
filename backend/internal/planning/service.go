@@ -65,6 +65,18 @@ type Workout struct {
 	Session         *WorkoutSession `json:"session,omitempty"`
 }
 
+// WorkoutStep is the actionable sequence shown to the athlete. Keeping the
+// steps in the prescription (rather than only in the interface) lets every
+// client explain the same validated workout structure.
+type WorkoutStep struct {
+	Order           int     `json:"order"`
+	Kind            string  `json:"kind"`
+	Title           string  `json:"title"`
+	DurationMinutes int     `json:"duration_minutes"`
+	TargetRPE       float64 `json:"target_rpe"`
+	Instruction     string  `json:"instruction"`
+}
+
 type WorkoutSession struct {
 	ID               string     `json:"id"`
 	Status           string     `json:"status"`
@@ -424,14 +436,81 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		Objective:       objectiveFor(input.PrimaryGoal),
 		DurationMinutes: duration,
 		TargetRPE:       targetRPE,
-		Structure: map[string]any{
-			"warmup_minutes":   minInt(10, maxInt(5, duration/6)),
-			"main":             mainBlock,
-			"cooldown_minutes": minInt(10, maxInt(5, duration/8)),
-		},
-		Explanation: map[string]any{"summary": summary, "rules": rules, "evidence_keys": evidenceKeys},
-		Status:      "planned",
+		Structure:       buildStructure(duration, targetRPE, name, mainBlock),
+		Explanation:     map[string]any{"summary": summary, "rules": rules, "evidence_keys": evidenceKeys},
+		Status:          "planned",
 	}
+}
+
+func buildStructure(duration int, targetRPE float64, name, mainBlock string) map[string]any {
+	warmup := minInt(10, maxInt(5, duration/6))
+	cooldown := minInt(10, maxInt(5, duration/8))
+	mainMinutes := maxInt(1, duration-warmup-cooldown)
+	steps := []WorkoutStep{
+		{Order: 1, Kind: "warmup", Title: "Aquecimento", DurationMinutes: warmup, TargetRPE: 3, Instruction: "Pedale de forma confortável e aumente o ritmo aos poucos."},
+	}
+
+	var mainSteps []WorkoutStep
+	switch name {
+	case "Subidas controladas":
+		mainSteps = repeatedSteps(mainMinutes, 6, 3, 4, targetRPE, "Subida controlada", "Mantenha um esforço firme e controlado na subida, sem sprintar.")
+	case "Intervalos controlados":
+		mainSteps = repeatedSteps(mainMinutes, 4, 3, 4, targetRPE, "Intervalo forte-controlado", "Sustente o esforço forte com técnica estável; reduza o ritmo se perder o controle.")
+	case "Cadência técnica":
+		mainSteps = repeatedSteps(mainMinutes, 2, 2, 6, targetRPE, "Cadência técnica", "Aumente a cadência mantendo o movimento redondo e sem tensão excessiva.")
+	case "Sweet spot por potência", "Sweet spot progressivo":
+		mainSteps = repeatedSteps(mainMinutes, 8, 4, 3, targetRPE, "Bloco sustentável", "Mantenha um esforço forte e sustentável, sem transformar o bloco em um sprint.")
+	case "Tempo controlado", "Ritmo de prova controlado":
+		mainSteps = repeatedSteps(mainMinutes, 8, 3, 3, targetRPE, "Ritmo controlado", "Sustente um ritmo estável em que ainda consiga manter a técnica e a respiração sob controle.")
+	default:
+		mainSteps = []WorkoutStep{{Kind: "main", Title: "Parte principal", DurationMinutes: mainMinutes, TargetRPE: targetRPE, Instruction: mainBlock + "."}}
+	}
+
+	for index := range mainSteps {
+		mainSteps[index].Order = len(steps) + 1
+		steps = append(steps, mainSteps[index])
+	}
+	steps = append(steps, WorkoutStep{
+		Order: len(steps) + 1, Kind: "cooldown", Title: "Desaquecimento", DurationMinutes: cooldown,
+		TargetRPE: 2.5, Instruction: "Reduza o ritmo gradualmente e termine pedalando leve.",
+	})
+
+	return map[string]any{
+		"warmup_minutes":   warmup,
+		"main":             mainBlock,
+		"cooldown_minutes": cooldown,
+		"steps":            steps,
+	}
+}
+
+func repeatedSteps(mainMinutes, workMinutes, recoveryMinutes, repetitions int, targetRPE float64, title, instruction string) []WorkoutStep {
+	if mainMinutes <= 0 {
+		return nil
+	}
+	for repetitions > 1 && repetitions*workMinutes+(repetitions-1)*recoveryMinutes > mainMinutes {
+		repetitions--
+	}
+	for workMinutes > 3 && repetitions*workMinutes+(repetitions-1)*recoveryMinutes > mainMinutes {
+		workMinutes--
+	}
+	if repetitions < 2 || repetitions*workMinutes+(repetitions-1)*recoveryMinutes > mainMinutes {
+		return []WorkoutStep{{Kind: "main", Title: "Parte principal", DurationMinutes: mainMinutes, TargetRPE: targetRPE, Instruction: instruction}}
+	}
+
+	steps := make([]WorkoutStep, 0, repetitions*2+1)
+	used := 0
+	for index := 0; index < repetitions; index++ {
+		steps = append(steps, WorkoutStep{Kind: "work", Title: fmt.Sprintf("%s %d de %d", title, index+1, repetitions), DurationMinutes: workMinutes, TargetRPE: targetRPE, Instruction: instruction})
+		used += workMinutes
+		if index < repetitions-1 {
+			steps = append(steps, WorkoutStep{Kind: "recovery", Title: "Recuperação leve", DurationMinutes: recoveryMinutes, TargetRPE: 2.5, Instruction: "Pedale bem leve até recuperar a respiração antes do próximo bloco."})
+			used += recoveryMinutes
+		}
+	}
+	if remaining := mainMinutes - used; remaining > 0 {
+		steps = append(steps, WorkoutStep{Kind: "easy", Title: "Pedal leve contínuo", DurationMinutes: remaining, TargetRPE: 3, Instruction: "Complete o tempo restante em ritmo confortável, sem forçar."})
+	}
+	return steps
 }
 
 func nextMonday(value time.Time) time.Time {
