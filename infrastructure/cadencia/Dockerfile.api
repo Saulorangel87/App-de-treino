@@ -7,6 +7,7 @@ RUN go mod download
 
 COPY backend/ ./
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/cadencia-api ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/cadencia-feedback-digest ./cmd/feedback-digest
 
 FROM alpine:3.21
 
@@ -15,6 +16,7 @@ RUN apk add --no-cache ca-certificates wget \
     && adduser -S -G cadencia cadencia
 
 COPY --from=build /out/cadencia-api /usr/local/bin/cadencia-api
+COPY --from=build /out/cadencia-feedback-digest /usr/local/bin/cadencia-feedback-digest
 
 USER cadencia
 EXPOSE 8080

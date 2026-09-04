@@ -1,0 +1,11 @@
+[Unit]
+Description=Resumo semanal de feedback do Cadência
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=docker
+WorkingDirectory=/home/ubuntu/apps/cadencia
+ExecStart=/usr/bin/docker compose --env-file /home/ubuntu/apps/cadencia/infrastructure/cadencia/.env.production -f /home/ubuntu/apps/cadencia/infrastructure/cadencia/compose.production.yaml --profile digest run --rm feedback-digest

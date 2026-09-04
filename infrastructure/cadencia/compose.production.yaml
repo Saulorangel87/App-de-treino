@@ -75,6 +75,26 @@ services:
       - cadencia_edge
       - cadencia_data
 
+  feedback-digest:
+    build:
+      context: ../..
+      dockerfile: infrastructure/cadencia/Dockerfile.api
+    profiles: ["digest"]
+    restart: "no"
+    command: ["/usr/local/bin/cadencia-feedback-digest"]
+    environment:
+      APP_ENV: production
+      APP_BASE_URL: ${APP_BASE_URL}
+      DATABASE_URL: ${DATABASE_URL}
+      EMAIL_FROM: ${EMAIL_FROM}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      FEEDBACK_DIGEST_TO: ${FEEDBACK_DIGEST_TO:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cadencia_data
+
   ollama:
     image: ollama/ollama:latest
     restart: unless-stopped

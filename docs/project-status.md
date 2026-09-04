@@ -49,7 +49,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
 - `backend/`: API REST em Go.
-- `database/migrations/`: migrações PostgreSQL até `000013` (a `000013` está pronta no código e aguarda aplicação no próximo deploy).
+- `database/migrations/`: migrações PostgreSQL até `000014` (as `000013` e `000014` estão prontas no código e aguardam aplicação no próximo deploy de produção).
 - `database/tests/`: verificações SQL.
 - `api/openapi.yaml`: contrato da API local e de produção.
 - `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.
@@ -88,6 +88,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 - Histórico em `/atividades` e agregações observadas em `/evolucao`.
 - Indicadores de consistência, carga semanal, prontidão e explicabilidade.
 - Aba `/feedback` para o atleta registrar uma experiência, problema ou sugestão com nota de 1 a 5. O relato fica vinculado à conta no PostgreSQL, sem coleta adicional de contato nesta primeira versão.
+- Resumo semanal de feedback implementado como comando separado (`cadencia-feedback-digest`). Ele busca até 50 relatos ainda não enviados, envia um único e-mail pelo Resend ao endereço `FEEDBACK_DIGEST_TO` e marca os registros somente depois de um envio bem-sucedido. O serviço não é iniciado junto da API e fica desativado quando o destinatário não está configurado.
 - Contrato inicial da IA explicativa no backend, com Ollama opcional, limites de recurso e fallback determinístico para as regras. O cliente do Worker Cloudflare está preparado como provedor remoto, e a rota protegida `/cadencia/explanation` foi publicada sem alterar o endpoint legado. O segredo `CADENCIA_WORKER_TOKEN` foi configurado no Worker e na VPS; uma chamada sintética autenticada respondeu `200` usando `openai/gpt-oss-20b`. O serviço Ollama foi instalado na composição de produção, sem porta pública, e o modelo `qwen3:4b-instruct` foi baixado e testado, mas permanece parado para não pressionar a VPS. A variável `AI_ENABLED` está `true` na VPS com `AI_PROVIDER=worker`; o valor seguro padrão permanece `false`.
 
 ### Interface e PWA
@@ -114,11 +115,11 @@ As rotas estão descritas em `api/openapi.yaml`. Os grupos principais são:
 
 ## Banco e migrações
 
-- Migrações aplicadas no projeto: `000001` a `000012`; a `000013` cria os relatos de feedback de produto e está pendente de aplicação no próximo deploy.
+- Migrações aplicadas no projeto: `000001` a `000012`; a `000013` cria os relatos de feedback de produto e a `000014` adiciona o controle de envio do resumo semanal. Ambas estão pendentes de aplicação no próximo deploy de produção.
 - `000012` adiciona confirmação de e-mail e recuperação de senha.
 - Produção possui registro de migrações em `cadencia_schema_migrations`.
 - O usuário da API não é superusuário; o proprietário do banco é reservado para operações administrativas.
-- A única alteração de esquema pendente é a `000013_user_feedback`, que deve ser executada pelo perfil `maintenance` após backup verificável.
+- As alterações de esquema pendentes são `000013_user_feedback` e `000014_feedback_digest`, que devem ser executadas em ordem pelo perfil `maintenance` após backup verificável.
 
 ## Produção validada
 
@@ -180,7 +181,7 @@ Pendências, sem executar bloqueios automáticos:
 
 O fluxo inicial foi desenhado para a divulgação do MVP em grupos de ciclismo: cada pessoa cria uma conta, abre a aba `Feedback` e envia uma categoria, uma nota e um relato livre. O backend exige autenticação, valida tamanho e categoria e armazena o registro em `user_feedback` ligado ao usuário; ele não altera o plano nem dispara IA.
 
-Nesta primeira etapa, os relatos serão recebidos de forma centralizada no banco para evitar ruído e custo de e-mail por envio. Depois de coletarmos uma amostra real, a decisão recomendada é criar uma tela administrativa protegida e, se necessário, um resumo periódico por e-mail. Não expor o banco nem liberar uma listagem administrativa ao usuário final faz parte do escopo de segurança.
+Nesta primeira etapa, os relatos continuam centralizados no banco e não geram um e-mail individual. O recebimento escolhido é um resumo semanal por e-mail, enviado pelo job separado ao endereço administrativo `FEEDBACK_DIGEST_TO`; os relatos são marcados como enviados para não reaparecerem no próximo resumo. O job será acionado por um timer systemd semanal, sem manter outro processo residente. Uma tela administrativa protegida ou exportação controlada pode ser avaliada depois, se o volume justificar. Não expor o banco nem liberar uma listagem administrativa ao usuário final faz parte do escopo de segurança.
 
 ## Próximas etapas do produto
 
@@ -190,7 +191,8 @@ Nesta primeira etapa, os relatos serão recebidos de forma centralizada no banco
 4. Expandir a coleta progressiva de dados do ciclista. O motor já incorpora o resumo observado de sessões e recuperação sem transformar relatos em metas rígidas; a próxima ampliação deve adicionar métricas de desempenho com validação específica.
 5. Evoluir sessões específicas de cadência, tiros, subidas, potência e preparação para provas com regras próprias e validação científica. As preferências agora orientam a sessão de qualidade quando há contexto compatível; a ampliação do catálogo de evidências específicas de ciclismo fica registrada como etapa futura, sem migração aplicada. Ainda falta ampliar a cobertura e revisar parâmetros com profissional habilitado.
 6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
-7. Coletar os primeiros relatos pela aba `/feedback` e, com volume real em mãos, escolher o recebimento administrativo (painel protegido, exportação controlada ou resumo periódico pelo Resend).
+7. Aplicar as migrações `000013` e `000014`, configurar `FEEDBACK_DIGEST_TO` na VPS, habilitar `cadencia-feedback-digest.timer` e validar o primeiro resumo semanal.
+8. Coletar os primeiros relatos pela aba `/feedback` e observar volume, entregabilidade e utilidade do resumo antes de considerar um painel administrativo.
 
 ## Como iniciar localmente
 

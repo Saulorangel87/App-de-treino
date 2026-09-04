@@ -38,6 +38,8 @@ Os nomes `frontend` e `api` são resolvidos somente dentro da rede Docker `caden
 4. Cole o token do túnel dedicado em `CLOUDFLARE_TUNNEL_TOKEN`.
 5. Nunca envie `.env.production`, backups ou tokens ao Git.
 
+Para receber o resumo semanal de feedback, preencha `FEEDBACK_DIGEST_TO` com um único endereço administrativo. Deixe a variável vazia para manter o recurso desativado. O endereço não é exibido aos atletas e não é usado pelo fluxo de feedback.
+
 ## Primeiro deploy
 
 Na raiz do repositório. O procedimento abaixo é reexecutável para uma instalação nova ou uma atualização controlada:
@@ -52,6 +54,27 @@ docker compose --env-file infrastructure/cadencia/.env.production \
 docker compose --env-file infrastructure/cadencia/.env.production \
   -f infrastructure/cadencia/compose.production.yaml up -d api frontend tunnel
 ```
+
+### Resumo semanal de feedback
+
+O resumo roda em um comando curto, fora do processo HTTP. Depois de aplicar as migrações e reconstruir a imagem, instale as duas unidades systemd no host e habilite o timer:
+
+```sh
+sudo cp infrastructure/cadencia/systemd/cadencia-feedback-digest.service /etc/systemd/system/
+sudo cp infrastructure/cadencia/systemd/cadencia-feedback-digest.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now cadencia-feedback-digest.timer
+sudo systemctl list-timers cadencia-feedback-digest.timer
+```
+
+O timer executa às segundas-feiras, às 11:00 UTC (08:00 no horário de São Paulo), e pode recuperar uma execução perdida por causa de `Persistent=true`. O job usa o perfil Compose `digest`, envia no máximo 50 relatos pendentes em uma única mensagem pelo Resend e marca cada relato depois do envio bem-sucedido. Ele não fica residente e não publica portas. Para testar manualmente na VPS:
+
+```sh
+docker compose --env-file infrastructure/cadencia/.env.production \
+  -f infrastructure/cadencia/compose.production.yaml --profile digest run --rm feedback-digest
+```
+
+O primeiro deploy que incluir o recurso deve executar as migrações `000013_user_feedback` e `000014_feedback_digest` pelo perfil `maintenance` antes de habilitar o timer. Se `FEEDBACK_DIGEST_TO` estiver vazio, o comando encerra sem enviar e-mail.
 
 O Ollama é opcional e não é iniciado pelo comando acima. Ele foi instalado na VPS e permanece parado após o teste de capacidade; a produção usa temporariamente o Worker remoto para evitar sobrecarga. O padrão seguro continua sendo `AI_ENABLED=false`. Para preparar o serviço somente na rede interna do Cadência:
 

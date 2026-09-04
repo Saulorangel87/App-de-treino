@@ -68,15 +68,23 @@ A primeira implementação de IA usa Ollama local como provedor opcional. `AI_EN
 
 **Status:** Aplicada.
 
-As migrações `000001` a `000012` foram aplicadas localmente e em produção. A migração `000012` adicionou confirmação de e-mail e recuperação de senha. A migração `000013` está versionada para os relatos de feedback de produto e aguarda o próximo deploy. A proposta de catálogo ampliado de evidências específicas de ciclismo fica registrada como etapa futura e ainda não foi aplicada. Antes de uma mudança estrutural, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
+As migrações `000001` a `000012` foram aplicadas localmente e em produção. A migração `000013` cria os relatos de feedback de produto e a `000014` adiciona o controle de envio do resumo semanal; ambas estão versionadas e aguardam o próximo deploy de produção. A proposta de catálogo ampliado de evidências específicas de ciclismo fica registrada como etapa futura e ainda não foi aplicada. Antes de uma mudança estrutural, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
 
 ## ADR-006 — Feedback de produto
 
-**Status:** Implementada no código; migração `000013` pendente de aplicação no próximo deploy.
+**Status:** Implementada no código; migrações `000013` e `000014` pendentes de aplicação no próximo deploy.
 
 O feedback solicitado aos primeiros ciclistas é separado do feedback pós-treino. A rota autenticada `POST /v1/feedback` aceita somente uma categoria (`experience`, `bug` ou `suggestion`), uma nota de 1 a 5 e uma mensagem entre 10 e 2000 caracteres. O registro é vinculado ao usuário na tabela `user_feedback`, sem armazenar um e-mail duplicado ou permitir conteúdo anônimo nesta primeira versão.
 
-A tela `/feedback` é acessível pelo menu principal no desktop e por um atalho no cabeçalho em telas menores. O envio não chama a IA, não altera o plano e não envia um e-mail por relato. A decisão de recebimento inicial é consolidar os dados no PostgreSQL e, após observar volume e qualidade dos relatos, escolher entre um painel administrativo protegido, exportação controlada ou um resumo periódico via Resend.
+A tela `/feedback` é acessível pelo menu principal no desktop e por um atalho no cabeçalho em telas menores. O envio não chama a IA e não altera o plano. Os relatos são consolidados no PostgreSQL e não geram e-mail individual; um job separado reúne até 50 relatos pendentes em um único resumo semanal via Resend, destinado somente ao endereço administrativo configurado em `FEEDBACK_DIGEST_TO`.
+
+## ADR-007 — Resumo semanal de feedback
+
+**Status:** Implementada no código; aguardando migrações `000013`/`000014`, configuração do destinatário e habilitação do timer na produção.
+
+O resumo é executado fora do processo HTTP, como um comando de curta duração (`cadencia-feedback-digest`) acionado semanalmente por systemd. O comando consulta no máximo 50 relatos ainda não enviados, escapa o conteúdo no HTML, envia uma mensagem HTML e texto pelo remetente Resend já verificado e só grava `digest_sent_at` depois de o envio retornar sucesso. Se `FEEDBACK_DIGEST_TO` estiver vazio, a execução termina sem consultar o banco nem enviar mensagens. O serviço usa a rede Docker interna, não publica portas e não fica residente, reduzindo consumo na VPS.
+
+O timer está agendado para segunda-feira às 11:00 UTC (08:00 no horário de São Paulo) e possui `Persistent=true` para executar após uma indisponibilidade. O endereço administrativo é único nesta primeira versão; a quantidade de mensagens permanece previsível e deve ser acompanhada junto das demais aplicações que usam a mesma conta Resend. Um painel administrativo protegido continua como possível evolução, não como dependência do MVP.
 
 ## Estado de produção
 

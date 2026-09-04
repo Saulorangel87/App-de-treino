@@ -1108,6 +1108,10 @@ O Worker foi atualizado para a versão `35f24685` com `max_completion_tokens: 51
 
 ## Atualização de produto — feedback dos primeiros ciclistas
 
-Foi incluída a rota `/feedback` para que atletas autenticados registrem a experiência com o app, um problema ou uma sugestão. O relato contém uma nota de 1 a 5 e uma mensagem validada, fica vinculado à conta na tabela `user_feedback` e não interfere no motor de treinos. A migração `000013_user_feedback` está versionada e deve ser aplicada no próximo deploy.
+Foi incluída a rota `/feedback` para que atletas autenticados registrem a experiência com o app, um problema ou uma sugestão. O relato contém uma nota de 1 a 5 e uma mensagem validada, fica vinculado à conta na tabela `user_feedback` e não interfere no motor de treinos. As migrações `000013_user_feedback` e `000014_feedback_digest` estão versionadas e devem ser aplicadas no próximo deploy.
 
-O plano de recebimento desta primeira coleta é centralizar os relatos no PostgreSQL, sem e-mail a cada envio. Depois dos primeiros testes divulgados nos grupos de ciclismo, será avaliada uma tela administrativa protegida ou um resumo periódico pelo Resend, conforme o volume e a necessidade de resposta.
+O plano de recebimento desta primeira coleta é centralizar os relatos no PostgreSQL, sem e-mail a cada envio. O comando separado `cadencia-feedback-digest` consolida até 50 relatos pendentes em um resumo semanal enviado pelo Resend ao endereço administrativo configurado em `FEEDBACK_DIGEST_TO`. Um timer systemd executará o job às segundas-feiras, às 08:00 no horário de São Paulo, sem manter processo adicional residente. Depois dos primeiros testes divulgados nos grupos de ciclismo, será avaliada a necessidade de uma tela administrativa protegida.
+
+## Atualização de identidade visual — favicon
+
+O favicon e os ícones instaláveis do PWA foram redesenhados com um símbolo próprio da Cadência: um arco de cadência em verde-lima, combinado a um núcleo de movimento em verde-claro sobre o fundo verde da marca. O mesmo desenho foi exportado para SVG e PNG (192, 512, maskable e Apple Touch Icon), evitando a aparência genérica do ícone anterior. A troca é local e será publicada junto do próximo build do frontend.

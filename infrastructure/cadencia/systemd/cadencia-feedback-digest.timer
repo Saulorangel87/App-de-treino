@@ -1,0 +1,10 @@
+[Unit]
+Description=Resumo semanal de feedback do Cadência
+
+[Timer]
+OnCalendar=Mon *-*-* 11:00:00 UTC
+Persistent=true
+Unit=cadencia-feedback-digest.service
+
+[Install]
+WantedBy=timers.target

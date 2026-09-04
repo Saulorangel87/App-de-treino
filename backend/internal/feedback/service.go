@@ -34,6 +34,30 @@ type CreateInput struct {
 	Message  string `json:"message"`
 }
 
+// DigestEntry is the small, owner-only projection used by the weekly digest.
+// It is never returned by the athlete-facing feedback endpoint.
+type DigestEntry struct {
+	ID          string
+	DisplayName string
+	Category    string
+	Rating      int
+	Message     string
+	CreatedAt   time.Time
+}
+
+func CategoryLabel(value string) string {
+	switch value {
+	case CategoryExperience:
+		return "Experiência"
+	case CategoryBug:
+		return "Problema"
+	case CategorySuggestion:
+		return "Sugestão"
+	default:
+		return "Feedback"
+	}
+}
+
 type Store interface {
 	CreateUserFeedback(context.Context, string, CreateInput) (Entry, error)
 }

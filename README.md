@@ -15,7 +15,7 @@ Aplicação de planejamento adaptativo de treinos de ciclismo.
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado chega à migração `000013` (feedback de produto).
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado chega à migração `000014` (resumo semanal de feedback).
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -48,11 +48,11 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `POST /v1/workouts/{workoutID}/explanation`: solicita uma explicação em linguagem simples; quando a IA está desligada ou indisponível, retorna o resumo validado pelo motor.
 - `POST /v1/workouts/{workoutID}/cancel`: cancela uma sessão em andamento e mantém esse histórico.
 - `GET /v1/activities`: lista, para o atleta autenticado, as sessões concluídas e canceladas.
-- `POST /v1/feedback`: registra, para o atleta autenticado, uma experiência, problema ou sugestão com nota e mensagem.
+- `POST /v1/feedback`: registra, para o atleta autenticado, uma experiência, problema ou sugestão com nota e mensagem. Os relatos pendentes podem entrar no resumo semanal do proprietário.
 
 As sessões são opacas, armazenadas no PostgreSQL apenas como hash e enviadas ao navegador em cookie `HttpOnly`. Em produção, `APP_ENV=production` ativa também a exigência de HTTPS no cookie. Os links de confirmação e redefinição são aleatórios, expiram e só têm o hash armazenado; a redefinição de senha revoga todas as sessões existentes. A geração e a ativação de planos exigem e-mail confirmado.
 
-As rotas atuais do frontend são `/`, `/entrar`, `/perfil`, `/plano`, `/atividades`, `/avaliacao`, `/recuperacao`, `/evolucao` e `/feedback`. A tela de atividades apresenta sessões concluídas e canceladas com data, duração, RPE e feedback. A aba de feedback de produto permite que atletas autenticados registrem a experiência, um problema ou uma sugestão; o relato é salvo no PostgreSQL sem expor o e-mail na resposta. O perfil possui quatro etapas e retoma dados já salvos. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
+As rotas atuais do frontend são `/`, `/entrar`, `/perfil`, `/plano`, `/atividades`, `/avaliacao`, `/recuperacao`, `/evolucao` e `/feedback`. A tela de atividades apresenta sessões concluídas e canceladas com data, duração, RPE e feedback. A aba de feedback de produto permite que atletas autenticados registrem a experiência, um problema ou uma sugestão; o relato é salvo no PostgreSQL sem expor o e-mail na resposta. Um job separado pode consolidar os relatos ainda não enviados em um resumo semanal pelo Resend, destinado somente ao endereço administrativo configurado na VPS. O perfil possui quatro etapas e retoma dados já salvos. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
 
 A tela `/plano` gera, apresenta e ativa ciclos de quatro semanas. O motor `rules-v1` é determinístico: considera experiência, objetivo, limitações, disponibilidade, o contexto opcional de ciclismo e um resumo observado dos últimos 28 dias de sessões e recuperação. Ele seleciona sessões específicas de forma gradual (cadência no indoor, subidas, sweet spot por potência/FTP e ritmo de prova), limita cada sessão ao tempo informado e reduz a intensidade quando há uma condição de segurança ativa ou sinais recentes de recuperação insuficiente. O dashboard usa o plano aprovado, explica a escala RPE e permite acompanhar a sessão do início ao feedback pós-treino.
 
@@ -80,11 +80,11 @@ O MVP de ciclismo está publicado em produção real:
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, confirmação de e-mail, recuperação de senha, onboarding, plano, treino, feedback, adaptação, atividades, evolução e logout foram validados.
 - Dependabot está com 0 alertas abertos; os testes Go, build Docker e `govulncheck` passaram.
-- A aba `/feedback` e o endpoint `POST /v1/feedback` estão implementados no código; a migração `000013` precisa ser aplicada junto do próximo deploy.
+- A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados no código; as migrações `000013` e `000014` precisam ser aplicadas junto do próximo deploy.
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.
 
-Depois da estabilização, as próximas evoluções do produto são monitorar a explicação autenticada pelo Worker remoto, sua latência e seus limites, coletar os primeiros relatos pela aba de feedback, escolher um canal administrativo para recebê-los, ampliar a coleta progressiva de dados do ciclista e criar novas sessões específicas com regras e referências próprias. O Ollama já está instalado e testado, mas permanece desligado por consumo elevado na VPS. Consulte `docs/project-status.md` para o inventário completo.
+Depois da estabilização, as próximas evoluções do produto são ativar e observar o resumo semanal de feedback, monitorar a explicação autenticada pelo Worker remoto, sua latência e seus limites, ampliar a coleta progressiva de dados do ciclista e criar novas sessões específicas com regras e referências próprias. O Ollama já está instalado e testado, mas permanece desligado por consumo elevado na VPS. Consulte `docs/project-status.md` para o inventário completo.
 
 ## PWA
 
