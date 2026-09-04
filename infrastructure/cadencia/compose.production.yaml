@@ -93,7 +93,10 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - cadencia_data
+      cadencia_data:
+        gw_priority: 0
+      cadencia_egress:
+        gw_priority: 100
 
   ollama:
     image: ollama/ollama:latest
@@ -140,6 +143,8 @@ networks:
   cadencia_data:
     name: cadencia_data
     internal: true
+  cadencia_egress:
+    name: cadencia_egress
 
 volumes:
   cadencia_postgres_data:

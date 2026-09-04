@@ -21,7 +21,7 @@ Containers atuais: `cadencia-api-1`, `cadencia-frontend-1`, `cadencia-postgres-1
 
 ## Pré-requisitos
 
-- Docker e Docker Compose Plugin na VPS;
+- Docker e Docker Compose Plugin na VPS, com suporte a `gw_priority` (Compose 2.33.1 ou superior);
 - repositório clonado em `/home/ubuntu/apps/cadencia`;
 - túnel Cloudflare **dedicado** criado no painel;
 - hostnames públicos configurados no túnel:
@@ -67,7 +67,7 @@ sudo systemctl enable --now cadencia-feedback-digest.timer
 sudo systemctl list-timers cadencia-feedback-digest.timer
 ```
 
-O timer executa às segundas-feiras, às 11:00 UTC (08:00 no horário de São Paulo), e pode recuperar uma execução perdida por causa de `Persistent=true`. O job usa o perfil Compose `digest`, envia no máximo 50 relatos pendentes em uma única mensagem pelo Resend e marca cada relato depois do envio bem-sucedido. Ele não fica residente e não publica portas. Para testar manualmente na VPS:
+O timer executa às segundas-feiras, às 11:00 UTC (08:00 no horário de São Paulo), e pode recuperar uma execução perdida por causa de `Persistent=true`. O job usa o perfil Compose `digest`, consulta o PostgreSQL pela rede interna e acessa o Resend por uma rede de saída dedicada; envia no máximo 50 relatos pendentes em uma única mensagem e marca cada relato depois do envio bem-sucedido. Ele não fica residente e não publica portas. Para testar manualmente na VPS:
 
 ```sh
 docker compose --env-file infrastructure/cadencia/.env.production \
