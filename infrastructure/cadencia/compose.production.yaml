@@ -81,7 +81,7 @@ services:
       dockerfile: infrastructure/cadencia/Dockerfile.api
     profiles: ["digest"]
     restart: "no"
-    command: ["/usr/local/bin/cadencia-feedback-digest"]
+    entrypoint: ["/usr/local/bin/cadencia-feedback-digest"]
     environment:
       APP_ENV: production
       APP_BASE_URL: ${APP_BASE_URL}
