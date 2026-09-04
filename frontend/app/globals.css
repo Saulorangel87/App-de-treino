@@ -2956,14 +2956,16 @@ a.footer-icon:hover {
   .volume-chart,
   .distance-chart {
     max-width: 100%;
-    grid-template-columns: repeat(8, minmax(46px, 1fr));
+    /* Mantém cada período legível e permite rolagem horizontal no celular. */
+    grid-template-columns: repeat(8, minmax(88px, 1fr));
+    padding-bottom: 34px;
     overflow-x: auto;
     overflow-y: hidden;
     overscroll-behavior-x: contain;
     scrollbar-width: thin;
     scrollbar-color: #a9bdb2 transparent;
   }
-  .volume-column { min-width: 0; }
+  .volume-column { min-width: 88px; }
   .cycling-chart-title { flex-wrap: wrap; }
   .recovery-history-item { grid-template-columns: 64px 100px minmax(0, 1fr); padding: 10px 0; }
   .recovery-history-item span { min-width: 0; }
