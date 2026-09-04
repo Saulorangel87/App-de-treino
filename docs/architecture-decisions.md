@@ -68,11 +68,11 @@ A primeira implementação de IA usa Ollama local como provedor opcional. `AI_EN
 
 **Status:** Aplicada.
 
-As migrações `000001` a `000012` foram aplicadas localmente e em produção. A migração `000013` cria os relatos de feedback de produto e a `000014` adiciona o controle de envio do resumo semanal; ambas estão versionadas e aguardam o próximo deploy de produção. A proposta de catálogo ampliado de evidências específicas de ciclismo fica registrada como etapa futura e ainda não foi aplicada. Antes de uma mudança estrutural, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
+As migrações `000001` a `000014` estão versionadas; em produção, todas já foram aplicadas. A `000013` cria os relatos de feedback de produto e a `000014` adiciona o controle de envio do resumo semanal. A proposta de catálogo ampliado de evidências específicas de ciclismo fica registrada como etapa futura e ainda não foi aplicada. Antes de uma mudança estrutural, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
 
 ## ADR-006 — Feedback de produto
 
-**Status:** Implementada no código; migrações `000013` e `000014` pendentes de aplicação no próximo deploy.
+**Status:** Implementada e publicada; migrações `000013` e `000014` aplicadas na produção.
 
 O feedback solicitado aos primeiros ciclistas é separado do feedback pós-treino. A rota autenticada `POST /v1/feedback` aceita somente uma categoria (`experience`, `bug` ou `suggestion`), uma nota de 1 a 5 e uma mensagem entre 10 e 2000 caracteres. O registro é vinculado ao usuário na tabela `user_feedback`, sem armazenar um e-mail duplicado ou permitir conteúdo anônimo nesta primeira versão.
 
@@ -80,15 +80,15 @@ A tela `/feedback` é acessível pelo menu principal no desktop e por um atalho 
 
 ## ADR-007 — Resumo semanal de feedback
 
-**Status:** Implementada no código; aguardando migrações `000013`/`000014`, configuração do destinatário e habilitação do timer na produção.
+**Status:** Implementada e ativa na produção.
 
-O resumo é executado fora do processo HTTP, como um comando de curta duração (`cadencia-feedback-digest`) acionado semanalmente por systemd. O comando consulta no máximo 50 relatos ainda não enviados, escapa o conteúdo no HTML, envia uma mensagem HTML e texto pelo remetente Resend já verificado e só grava `digest_sent_at` depois de o envio retornar sucesso. Se `FEEDBACK_DIGEST_TO` estiver vazio, a execução termina sem consultar o banco nem enviar mensagens. O serviço usa a rede Docker interna, não publica portas e não fica residente, reduzindo consumo na VPS.
+O resumo é executado fora do processo HTTP, como um comando de curta duração (`cadencia-feedback-digest`) acionado semanalmente por systemd. O comando consulta no máximo 50 relatos ainda não enviados, escapa o conteúdo no HTML, envia uma mensagem HTML e texto pelo remetente Resend já verificado e só grava `digest_sent_at` depois de o envio retornar sucesso. Se `FEEDBACK_DIGEST_TO` estiver vazio, a execução termina sem consultar o banco nem enviar mensagens. O serviço usa a rede Docker interna, não publica portas e não fica residente, reduzindo consumo na VPS. A migração e o timer já foram aplicados; o primeiro envio será acompanhado em operação.
 
 O timer está agendado para segunda-feira às 11:00 UTC (08:00 no horário de São Paulo) e possui `Persistent=true` para executar após uma indisponibilidade. O endereço administrativo é único nesta primeira versão; a quantidade de mensagens permanece previsível e deve ser acompanhada junto das demais aplicações que usam a mesma conta Resend. Um painel administrativo protegido continua como possível evolução, não como dependência do MVP.
 
 ## Estado de produção
 
-Em 3 de setembro de 2026, o commit `bef4e60` foi implantado na VPS Oracle. A imagem da API foi reconstruída com Go 1.25; o serviço Ollama foi adicionado isoladamente e o modelo foi preparado sem publicar novas portas. Após a medição de capacidade, o Ollama foi parado e a API passou a usar temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.
+Em 3 de setembro de 2026, o commit `57c241a` foi implantado na VPS Oracle. A imagem da API, do job de digest e do frontend foi reconstruída com Go 1.25; as migrações `000013` e `000014` foram aplicadas após backup preventivo. O serviço Ollama permanece isolado e parado após a medição de capacidade, e a API usa temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.
 
 Na mesma data, a versão `35f24685` do Worker ajustou o provedor Groq para `max_completion_tokens: 512` e `reasoning_effort: 'low'`. O Worker rejeita respostas com `finish_reason` diferente de `stop`, mantendo o fallback determinístico como proteção contra truncamento. A sessão autenticada confirmou explicações completas para treinos de base e subidas.
 

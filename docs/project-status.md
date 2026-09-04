@@ -18,7 +18,7 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - API: <https://cadencia-api.devsaulo.com.br>
 - VPS: Oracle Cloud, Ubuntu, acesso administrativo por SSH na porta 22.
 - Código na VPS: `/home/ubuntu/apps/cadencia`.
-- Commit implantado: `bef4e60 fix: evita truncamento nas explicações do Ollama`.
+- Commit implantado: `57c241a fix: executa digest no binario correto`.
 - O Cloudflare Tunnel dedicado expõe somente frontend e API; o PostgreSQL não possui hostname, rota pública ou porta publicada.
 
 ## Arquitetura efetiva
@@ -49,7 +49,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
 - `backend/`: API REST em Go.
-- `database/migrations/`: migrações PostgreSQL até `000014` (as `000013` e `000014` estão prontas no código e aguardam aplicação no próximo deploy de produção).
+- `database/migrations/`: migrações PostgreSQL até `000014`; as `000013` e `000014` já estão aplicadas na produção.
 - `database/tests/`: verificações SQL.
 - `api/openapi.yaml`: contrato da API local e de produção.
 - `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.
@@ -115,11 +115,11 @@ As rotas estão descritas em `api/openapi.yaml`. Os grupos principais são:
 
 ## Banco e migrações
 
-- Migrações aplicadas no projeto: `000001` a `000012`; a `000013` cria os relatos de feedback de produto e a `000014` adiciona o controle de envio do resumo semanal. Ambas estão pendentes de aplicação no próximo deploy de produção.
+- Migrações aplicadas no projeto: `000001` a `000014`; a `000013` cria os relatos de feedback de produto e a `000014` adiciona o controle de envio do resumo semanal.
 - `000012` adiciona confirmação de e-mail e recuperação de senha.
 - Produção possui registro de migrações em `cadencia_schema_migrations`.
 - O usuário da API não é superusuário; o proprietário do banco é reservado para operações administrativas.
-- As alterações de esquema pendentes são `000013_user_feedback` e `000014_feedback_digest`, que devem ser executadas em ordem pelo perfil `maintenance` após backup verificável.
+- Não há alterações de esquema pendentes na produção. Novas migrações devem continuar sendo executadas em ordem pelo perfil `maintenance`, após backup verificável.
 
 ## Produção validada
 
@@ -181,7 +181,7 @@ Pendências, sem executar bloqueios automáticos:
 
 O fluxo inicial foi desenhado para a divulgação do MVP em grupos de ciclismo: cada pessoa cria uma conta, abre a aba `Feedback` e envia uma categoria, uma nota e um relato livre. O backend exige autenticação, valida tamanho e categoria e armazena o registro em `user_feedback` ligado ao usuário; ele não altera o plano nem dispara IA.
 
-Nesta primeira etapa, os relatos continuam centralizados no banco e não geram um e-mail individual. O recebimento escolhido é um resumo semanal por e-mail, enviado pelo job separado ao endereço administrativo `FEEDBACK_DIGEST_TO`; os relatos são marcados como enviados para não reaparecerem no próximo resumo. O job será acionado por um timer systemd semanal, sem manter outro processo residente. Uma tela administrativa protegida ou exportação controlada pode ser avaliada depois, se o volume justificar. Não expor o banco nem liberar uma listagem administrativa ao usuário final faz parte do escopo de segurança.
+Nesta primeira etapa, os relatos continuam centralizados no banco e não geram um e-mail individual. O recebimento escolhido é um resumo semanal por e-mail, enviado pelo job separado ao endereço administrativo `FEEDBACK_DIGEST_TO`; os relatos são marcados como enviados para não reaparecerem no próximo resumo. O timer systemd está ativo na VPS e o primeiro ciclo será observado quanto a entrega e utilidade. Uma tela administrativa protegida ou exportação controlada pode ser avaliada depois, se o volume justificar. Não expor o banco nem liberar uma listagem administrativa ao usuário final faz parte do escopo de segurança.
 
 ## Próximas etapas do produto
 
@@ -191,8 +191,8 @@ Nesta primeira etapa, os relatos continuam centralizados no banco e não geram u
 4. Expandir a coleta progressiva de dados do ciclista. O motor já incorpora o resumo observado de sessões e recuperação sem transformar relatos em metas rígidas; a próxima ampliação deve adicionar métricas de desempenho com validação específica.
 5. Evoluir sessões específicas de cadência, tiros, subidas, potência e preparação para provas com regras próprias e validação científica. As preferências agora orientam a sessão de qualidade quando há contexto compatível; a ampliação do catálogo de evidências específicas de ciclismo fica registrada como etapa futura, sem migração aplicada. Ainda falta ampliar a cobertura e revisar parâmetros com profissional habilitado.
 6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
-7. Aplicar as migrações `000013` e `000014`, configurar `FEEDBACK_DIGEST_TO` na VPS, habilitar `cadencia-feedback-digest.timer` e validar o primeiro resumo semanal.
-8. Coletar os primeiros relatos pela aba `/feedback` e observar volume, entregabilidade e utilidade do resumo antes de considerar um painel administrativo.
+7. Observar o primeiro resumo semanal, sua entregabilidade e utilidade para organizar os relatos.
+8. Coletar os primeiros relatos pela aba `/feedback` antes de considerar um painel administrativo.
 
 ## Como iniciar localmente
 

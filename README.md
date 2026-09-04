@@ -2,6 +2,8 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
+Versão atual: `0.6.0` — resumo semanal de feedback, PWA e identidade visual Cadência. Consulte o [release v0.6.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.6.0).
+
 ## Estrutura
 
 - `frontend/`: aplicação React/TypeScript publicada com Sites.
@@ -76,15 +78,19 @@ O MVP de ciclismo está publicado em produção real:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Produção implantada na VPS Oracle no commit `bef4e60`.
+- Produção implantada na VPS Oracle no commit `57c241a`.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, confirmação de e-mail, recuperação de senha, onboarding, plano, treino, feedback, adaptação, atividades, evolução e logout foram validados.
 - Dependabot está com 0 alertas abertos; os testes Go, build Docker e `govulncheck` passaram.
-- A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados no código; as migrações `000013` e `000014` precisam ser aplicadas junto do próximo deploy.
+- A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013` e `000014` foram aplicadas na produção.
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.
 
-Depois da estabilização, as próximas evoluções do produto são ativar e observar o resumo semanal de feedback, monitorar a explicação autenticada pelo Worker remoto, sua latência e seus limites, ampliar a coleta progressiva de dados do ciclista e criar novas sessões específicas com regras e referências próprias. O Ollama já está instalado e testado, mas permanece desligado por consumo elevado na VPS. Consulte `docs/project-status.md` para o inventário completo.
+Depois da estabilização, as próximas evoluções do produto são observar a entregabilidade e utilidade do resumo semanal, monitorar a explicação autenticada pelo Worker remoto, sua latência e seus limites, ampliar a coleta progressiva de dados do ciclista e criar novas sessões específicas com regras e referências próprias. O Ollama já está instalado e testado, mas permanece desligado por consumo elevado na VPS. Consulte `docs/project-status.md` para o inventário completo.
+
+## Licença
+
+Este projeto é distribuído sob a licença [MIT](LICENSE).
 
 ## PWA
 
