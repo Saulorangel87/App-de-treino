@@ -86,6 +86,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 - O histórico observado agora participa da geração: sinais recentes de dor, fadiga ou recuperação insuficiente protegem as sessões futuras de forma conservadora e ficam no snapshot do plano.
 - Sessões específicas para perfis adequados: cadência, subidas, sweet spot, ritmo de prova e intervalos controlados.
 - Histórico em `/atividades` e agregações observadas em `/evolucao`.
+- O plano exibe o resumo do contexto observado usado na geração do ciclo, com sessões, minutos, RPE, check-ins e alertas conservadores de recuperação quando aplicável.
 - Indicadores de consistência, carga semanal, prontidão e explicabilidade.
 - Aba `/feedback` para o atleta registrar uma experiência, problema ou sugestão com nota de 1 a 5. O relato fica vinculado à conta no PostgreSQL, sem coleta adicional de contato nesta primeira versão.
 - Resumo semanal de feedback implementado como comando separado (`cadencia-feedback-digest`). Ele busca até 50 relatos ainda não enviados, envia um único e-mail pelo Resend ao endereço `FEEDBACK_DIGEST_TO` e marca os registros somente depois de um envio bem-sucedido. O serviço não é iniciado junto da API e fica desativado quando o destinatário não está configurado.

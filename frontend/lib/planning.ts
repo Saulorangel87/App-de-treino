@@ -99,6 +99,17 @@ export type TrainingPlan = {
     primary_goal?: string;
     restricted?: boolean;
     sessions_per_week?: number;
+    observed_training?: {
+      window_days?: number;
+      completed_sessions?: number;
+      completed_minutes?: number;
+      average_rpe?: number;
+      average_fatigue?: number;
+      pain_reported?: boolean;
+      recovery_checkins?: number;
+      average_recovery_fatigue?: number;
+      requires_recovery?: boolean;
+    };
     cycling_context?: {
       uses_heart_rate?: boolean;
       uses_power?: boolean;

@@ -384,6 +384,7 @@ export default function PlanPage() {
                 <a href="/">Ver painel</a>
               </output>
             )}
+            <ObservedTrainingCard observed={plan.prescription_snapshot.observed_training} />
             <div className="plan-stats">
               <div>
                 <strong>{plan.workouts.length}</strong>
@@ -576,4 +577,59 @@ export default function PlanPage() {
       </section>
     </main>
   );
+}
+
+function ObservedTrainingCard({ observed }: { observed?: TrainingPlan['prescription_snapshot']['observed_training'] }) {
+  if (!observed || (!observed.completed_sessions && !observed.recovery_checkins)) {
+    return null;
+  }
+
+  const completedSessions = observed.completed_sessions || 0;
+  const completedMinutes = observed.completed_minutes || 0;
+  const recoveryCheckins = observed.recovery_checkins || 0;
+  const averageRPE = observed.average_rpe || 0;
+  const averageFatigue = observed.average_fatigue || 0;
+  const recoveryFatigue = observed.average_recovery_fatigue || 0;
+  const needsRecovery = Boolean(observed.requires_recovery);
+
+  return (
+    <section className="plan-observed" aria-labelledby="plan-observed-title">
+      <div className="plan-observed-heading">
+        <div>
+          <span>CONTEXTO OBSERVADO</span>
+          <h2 id="plan-observed-title">O plano considerou seus registros recentes.</h2>
+        </div>
+        <small>Últimos {observed.window_days || 28} dias</small>
+      </div>
+      <p>
+        Esses dados ajudam a manter a progressão compatível com o que você vem conseguindo realizar. Eles descrevem registros do app e não são um diagnóstico.
+      </p>
+      <div className="plan-observed-metrics">
+        {completedSessions > 0 && <span><strong>{completedSessions}</strong> {completedSessions === 1 ? 'sessão concluída' : 'sessões concluídas'}</span>}
+        {completedMinutes > 0 && <span><strong>{formatObservedMinutes(completedMinutes)}</strong> realizados</span>}
+        {averageRPE > 0 && <span><strong>RPE {averageRPE.toFixed(1)}</strong> médio</span>}
+        {recoveryCheckins > 0 && <span><strong>{recoveryCheckins}</strong> {recoveryCheckins === 1 ? 'check-in de recuperação' : 'check-ins de recuperação'}</span>}
+      </div>
+      {needsRecovery && (
+        <div className="plan-observed-alert">
+          <ShieldAlert size={15} />
+          <span>
+            O motor identificou sinais de recuperação insuficiente{observed.pain_reported ? ' ou dor relatada' : ''} e manteve as próximas sessões mais conservadoras.
+          </span>
+        </div>
+      )}
+      {!needsRecovery && (averageFatigue > 0 || recoveryFatigue > 0) && (
+        <small className="plan-observed-note">
+          Fadiga média registrada: {(averageFatigue || recoveryFatigue).toFixed(1)}/5.
+        </small>
+      )}
+    </section>
+  );
+}
+
+function formatObservedMinutes(value: number) {
+  if (value < 60) return `${value} min`;
+  const hours = Math.floor(value / 60);
+  const minutes = value % 60;
+  return minutes ? `${hours}h${minutes}min` : `${hours}h`;
 }
