@@ -6,7 +6,7 @@ Versão atual: `0.6.0` — resumo semanal de feedback, PWA e identidade visual C
 
 ## Estrutura
 
-- `frontend/`: aplicação React/TypeScript publicada com Sites.
+- `frontend/`: aplicação React/TypeScript publicada na VPS Oracle por Docker e Cloudflare Tunnel.
 - `backend/`: API REST em Go.
 - `database/`: migrações PostgreSQL versionadas.
 - `api/`: contrato OpenAPI.
@@ -78,15 +78,18 @@ O MVP de ciclismo está publicado em produção real:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Produção implantada na VPS Oracle no commit `57c241a`.
+- Produção implantada na VPS Oracle no commit `33de28a` (`fix: ajusta gráficos da evolução no mobile`).
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, confirmação de e-mail, recuperação de senha, onboarding, plano, treino, feedback, adaptação, atividades, evolução e logout foram validados.
 - Dependabot está com 0 alertas abertos; os testes Go, build Docker e `govulncheck` passaram.
 - A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013` e `000014` foram aplicadas na produção.
+- O ajuste responsivo dos períodos nos gráficos da Evolução foi publicado e validado no domínio oficial; a rolagem horizontal interna agora preserva os rótulos no celular.
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.
 
-Depois da estabilização, as próximas evoluções do produto são observar a entregabilidade e utilidade do resumo semanal, monitorar a explicação autenticada pelo Worker remoto, sua latência e seus limites, ampliar a coleta progressiva de dados do ciclista e criar novas sessões específicas com regras e referências próprias. O Ollama já está instalado e testado, mas permanece desligado por consumo elevado na VPS. Consulte `docs/project-status.md` para o inventário completo.
+A publicação oficial do Cadência é feita somente pela composição Docker da VPS, com `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br` no Cloudflare Tunnel dedicado. Uma cópia privada criada acidentalmente no Sites durante uma tentativa de deploy foi excluída; o Sites não faz parte do fluxo de produção.
+
+Depois da estabilização, a próxima etapa é observar os primeiros relatos reais pela aba `/feedback`, a entregabilidade do resumo semanal e a latência/fallback da explicação pelo Worker remoto. Em seguida, o produto deve ampliar a coleta progressiva de dados e o catálogo de sessões específicas de ciclismo, sempre associando cada protocolo a regras e referências próprias. O Ollama já está instalado e testado, mas permanece desligado por consumo elevado na VPS. Consulte `docs/project-status.md` para o inventário completo e a ordem de execução.
 
 ## Licença
 

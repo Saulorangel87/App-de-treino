@@ -1,6 +1,6 @@
 # Adaptação do plano após o treino
 
-Última revisão: 2 de setembro de 2026.
+Última revisão: 4 de setembro de 2026.
 
 ## Objetivo
 
@@ -111,3 +111,7 @@ As referências de ciclismo sobre periodização, cadência, testes submáximos 
 - Mater, Clos e Lepers (2021): https://pubmed.ncbi.nlm.nih.gov/34360206/
 - Capostagno, Lambert e Lamberts (2016): https://pubmed.ncbi.nlm.nih.gov/27701968/
 - Seiler (2010): https://pubmed.ncbi.nlm.nih.gov/20861519/
+
+### Estado operacional para a próxima revisão
+
+O histórico observado, o feedback do usuário, o check-in de recuperação e o fallback da IA explicativa já estão disponíveis em produção. A próxima revisão deve usar relatos reais e o primeiro resumo semanal do Resend para avaliar se as adaptações estão compreensíveis e conservadoras antes de alterar os parâmetros do `rules-v1` ou ampliar o catálogo de protocolos.

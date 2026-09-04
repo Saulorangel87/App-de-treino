@@ -1,6 +1,6 @@
 # Produção do Cadência
 
-Esta estrutura implanta o Cadência de forma isolada na VPS Oracle. Ela está em produção desde 2 de setembro de 2026:
+Esta estrutura implanta o Cadência de forma isolada na VPS Oracle. A composição inicial entrou em produção em 2 de setembro de 2026 e recebeu o último ajuste de interface no commit `33de28a` em 3 de setembro:
 
 ```text
 Internet
@@ -101,6 +101,10 @@ docker compose --env-file infrastructure/cadencia/.env.production \
 
 Após revisar e atualizar o repositório, crie um backup, execute o `build`, aplique as migrações pelo perfil `maintenance` e só então reinicie os serviços de aplicação. O script registra cada arquivo SQL aplicado em `cadencia_schema_migrations`, portanto uma migração já concluída não é reaplicada. Para a atualização de dependências do commit `41638da`, não houve mudança de esquema e somente a API foi reconstruída.
 
+Para uma alteração somente de interface, como o ajuste dos gráficos mobile do commit `33de28a`, o procedimento usado em 3 de setembro de 2026 foi: atualizar o checkout por fast-forward, criar o backup preventivo, reconstruir somente `frontend`, executar `up -d frontend` e validar o domínio oficial. API, PostgreSQL, túnel e os demais aplicativos da VPS não precisam ser recriados quando não há mudança correspondente.
+
+O deploy oficial deve sempre terminar em `https://cadencia.devsaulo.com.br` e `https://cadencia-api.devsaulo.com.br`, pela composição Docker desta pasta e pelo Cloudflare Tunnel dedicado. O ambiente Sites não faz parte da produção do Cadência e não deve ser usado como destino alternativo.
+
 ## Backup e restauração
 
 O script `scripts/backup-postgres.sh` cria um dump PostgreSQL no formato customizado, verifica sua leitura com `pg_restore --list` e conserva 14 dias por padrão. A unidade `cadencia-backup.timer` está habilitada na VPS e executa essa rotina diariamente às 03:30 UTC, preservando a execução pendente depois de uma indisponibilidade da VPS.
@@ -112,7 +116,7 @@ sudo CADENCIA_BACKUP_DIR=/var/backups/cadencia \
   bash infrastructure/cadencia/scripts/backup-postgres.sh
 ```
 
-O diretório de produção é `/var/backups/cadencia`, com acesso do usuário `ubuntu`. O backup preventivo do deploy mais recente foi `cadencia-20260902T104801Z.dump`. A validação estrutural do arquivo ocorre automaticamente. Em 2 de setembro de 2026, esse dump também foi restaurado com sucesso em um PostgreSQL 17 temporário: foram confirmadas 15 tabelas públicas e `cadencia_schema_migrations`, e o ambiente temporário foi removido sem alterar a produção. A cópia externa dos dumps ainda está pendente.
+O diretório de produção é `/var/backups/cadencia`, com acesso do usuário `ubuntu`. O backup preventivo do deploy mais recente é `cadencia-20260904T023630Z.dump` (UTC). A validação estrutural do arquivo ocorre automaticamente. O backup anterior `cadencia-20260902T104801Z.dump` também foi restaurado com sucesso em um PostgreSQL 17 temporário: foram confirmadas 15 tabelas públicas e `cadencia_schema_migrations`, e o ambiente temporário foi removido sem alterar a produção. A cópia externa dos dumps ainda está pendente.
 
 ## Segurança operacional
 

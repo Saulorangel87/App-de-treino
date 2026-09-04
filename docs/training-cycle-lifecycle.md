@@ -1,6 +1,6 @@
 # Ciclo de vida dos planos de treino
 
-Última revisão: 2 de setembro de 2026.
+Última revisão: 4 de setembro de 2026.
 
 ## Estados
 
@@ -25,3 +25,5 @@ O início do novo ciclo é calculado assim:
 2. sessões da semana corrente que já ficaram no passado não são criadas.
 
 Isso mantém o plano útil no momento da geração e não apaga o histórico anterior. Depois de gerado, o novo plano permanece como rascunho até o usuário revisá-lo e aceitá-lo.
+
+O ciclo de vida permanece baseado no motor determinístico `rules-v1`. A observação de feedbacks reais e do resumo semanal é a próxima etapa antes de qualquer mudança na transição de estados ou na progressão automática.

@@ -1093,10 +1093,11 @@ A infraestrutura de produção usa PostgreSQL próprio na VPS Oracle, frontend e
 
 Pendências principais:
 
+- observar os primeiros relatos reais pela aba `/feedback`, incluindo a entrega e utilidade do resumo semanal do Resend;
 - definir cópia externa dos backups e monitoramento de falhas;
 - concluir hardening das portas dos demais aplicativos hospedados na VPS, após mapear domínios, túneis, proxies e regras da Oracle Cloud;
 - validar visualmente e publicar o ajuste visual de privacidade e altura da tela inicial desktop;
-- monitorar a IA explicativa com o Worker remoto; o Ollama foi instalado e testado, mas permanece parado porque a inferência local consumiu capacidade excessiva da VPS;
+- monitorar a IA explicativa com o Worker remoto, incluindo latência, limites e fallback; o Ollama foi instalado e testado, mas permanece parado porque a inferência local consumiu capacidade excessiva da VPS;
 - ampliar a coleta progressiva de dados e a variedade de sessões específicas de ciclismo;
 - avaliar integrações externas, como Strava, somente após definir consentimento, custos e segurança.
 
@@ -1114,4 +1115,16 @@ O plano de recebimento desta primeira coleta é centralizar os relatos no Postgr
 
 ## Atualização de identidade visual — favicon
 
-O favicon e os ícones instaláveis do PWA foram redesenhados com um símbolo próprio da Cadência: um arco de cadência em verde-lima, combinado a um núcleo de movimento em verde-claro sobre o fundo verde da marca. O mesmo desenho foi exportado para SVG e PNG (192, 512, maskable e Apple Touch Icon), evitando a aparência genérica do ícone anterior. A troca é local e será publicada junto do próximo build do frontend.
+O favicon e os ícones instaláveis do PWA foram redesenhados com um símbolo próprio da Cadência: um arco de cadência em verde-lima, combinado a um núcleo de movimento em verde-claro sobre o fundo verde da marca. O mesmo desenho foi exportado para SVG e PNG (192, 512, maskable e Apple Touch Icon), evitando a aparência genérica do ícone anterior. A troca foi publicada no deploy oficial do frontend (`33de28a`).
+
+## Atualização operacional — deploy oficial do ajuste mobile — 3 de setembro de 2026
+
+O commit `33de28a` foi publicado na VPS Oracle por fast-forward após o commit já estar sincronizado no GitHub. Foi criado e verificado o backup preventivo `cadencia-20260904T023630Z.dump` (UTC). Somente a imagem e o container `cadencia-frontend-1` foram reconstruídos/recriados; a API, o PostgreSQL, o túnel e os demais aplicativos da VPS não foram alterados. As rotas públicas `cadencia.devsaulo.com.br` e `/evolucao` retornaram HTTP 200 e o frontend permaneceu saudável.
+
+O ajuste resolve a sobreposição dos intervalos semanais e da barra de rolagem nos gráficos da Evolução em telas pequenas. Cada período mantém largura mínima legível e o gráfico usa rolagem interna horizontal quando necessário, sem criar rolagem horizontal indevida na página.
+
+Durante o processo, uma cópia privada foi publicada por engano no ambiente Sites. Ela foi excluída manualmente pelo proprietário. A produção oficial continua sendo exclusivamente a VPS Oracle com o Cloudflare Tunnel dedicado; o Sites não deve ser usado como destino de deploy deste projeto.
+
+## Próxima etapa registrada
+
+A próxima etapa é a estabilização acompanhada: coletar relatos reais pela aba `/feedback`, observar o primeiro resumo semanal enviado pelo Resend e medir latência, limites e fallback do Worker de IA em uso normal. Só depois dessa observação será ampliado o catálogo de protocolos específicos de ciclismo, com evidências e instruções operacionais mais amigáveis para cada sessão. Nenhuma etapa de IA generativa ou integração externa deve substituir o motor determinístico `rules-v1` antes dessa revisão.

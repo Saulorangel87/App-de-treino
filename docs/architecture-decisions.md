@@ -1,6 +1,6 @@
 # Decisões de arquitetura
 
-Última revisão: 3 de setembro de 2026.
+Última revisão: 4 de setembro de 2026.
 
 ## ADR-001 — Banco de dados próprio
 
@@ -90,6 +90,10 @@ O timer está agendado para segunda-feira às 11:00 UTC (08:00 no horário de S�
 
 Em 3 de setembro de 2026, o commit `57c241a` foi implantado na VPS Oracle. A imagem da API, do job de digest e do frontend foi reconstruída com Go 1.25; as migrações `000013` e `000014` foram aplicadas após backup preventivo. O serviço Ollama permanece isolado e parado após a medição de capacidade, e a API usa temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.
 
+Ainda em 3 de setembro, o commit `33de28a` foi publicado por fast-forward na mesma VPS para corrigir a legibilidade dos períodos e da barra de rolagem dos gráficos da Evolução em telas pequenas. Somente `cadencia-frontend-1` foi reconstruído e recriado; API, PostgreSQL e túnel permaneceram ativos e saudáveis. As rotas públicas principal e `/evolucao` retornaram HTTP 200. O backup preventivo correspondente foi `cadencia-20260904T023630Z.dump` (timestamp em UTC).
+
+O destino oficial de produção é a composição Docker na VPS Oracle, exposta pelos hostnames `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br` no Cloudflare Tunnel dedicado. Uma publicação privada acidental no Sites, feita durante uma tentativa de deploy, foi excluída pelo proprietário. O Sites não é um destino autorizado para futuras publicações do Cadência.
+
 Na mesma data, a versão `35f24685` do Worker ajustou o provedor Groq para `max_completion_tokens: 512` e `reasoning_effort: 'low'`. O Worker rejeita respostas com `finish_reason` diferente de `stop`, mantendo o fallback determinístico como proteção contra truncamento. A sessão autenticada confirmou explicações completas para treinos de base e subidas.
 
 Validações realizadas:
@@ -107,7 +111,8 @@ Validações realizadas:
 - `cadencia-backup.timer` está habilitado na VPS e executa diariamente às 03:30 UTC.
 - Os dumps ficam em `/var/backups/cadencia`, com retenção de 14 dias.
 - O script valida cada arquivo com `pg_restore --list`.
-- O backup preventivo do último deploy foi `cadencia-20260902T104801Z.dump`.
+- O backup preventivo do último deploy é `cadencia-20260904T023630Z.dump` (UTC).
+- O backup anterior, `cadencia-20260902T104801Z.dump`, permanece registrado e validado.
 - O teste completo de restauração foi concluído em 2 de setembro de 2026 com `cadencia-20260902T104801Z.dump`: a restauração em PostgreSQL 17 temporário terminou sem erro, validou 15 tabelas públicas e `cadencia_schema_migrations`, e o container temporário foi removido sem tocar a produção.
 
 ## Segurança operacional da VPS
@@ -122,8 +127,8 @@ Nenhuma porta de outro aplicativo deve ser bloqueada sem mapear antes seus domí
 
 ## Próximas decisões
 
-1. Definir cópia externa dos backups e o monitoramento de falhas.
-2. Escolher a política de firewall e a lista mínima de portas públicas da VPS.
-3. Registrar monitoramento e alertas de saúde/backup.
-4. Monitorar o Worker remoto na sessão autenticada e seus limites; manter o Ollama parado até existir capacidade adequada ou uma otimização de inferência. Reverter para `AI_ENABLED=false` se o provedor remoto não for aprovado.
-5. Evoluir coleta de dados e sessões específicas de ciclismo.
+1. Observar os primeiros relatos reais em `/feedback` e confirmar a entregabilidade/utilidade do resumo semanal pelo Resend.
+2. Monitorar a explicação autenticada pelo Worker remoto, sua latência, limites e acionamento do fallback determinístico; manter o Ollama parado.
+3. Evoluir a coleta de dados e o catálogo de sessões específicas de ciclismo com regras e referências próprias.
+4. Definir cópia externa dos backups, monitoramento de falhas e alertas de saúde.
+5. Escolher a política de firewall e a lista mínima de portas públicas da VPS, preservando Tailscale, Cloudflare e os demais aplicativos.

@@ -1,6 +1,6 @@
 # Estado atual do projeto Cadência
 
-Última atualização: 3 de setembro de 2026.
+Última atualização: 4 de setembro de 2026.
 
 Este é o documento principal de continuidade. Ele registra o que está implementado, validado, publicado e pendente. Não incluir senhas, tokens, chaves de API ou conteúdo de arquivos `.env`.
 
@@ -18,7 +18,7 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - API: <https://cadencia-api.devsaulo.com.br>
 - VPS: Oracle Cloud, Ubuntu, acesso administrativo por SSH na porta 22.
 - Código na VPS: `/home/ubuntu/apps/cadencia`.
-- Commit implantado: `57c241a fix: executa digest no binario correto`.
+- Commit implantado: `33de28a fix: ajusta gráficos da evolução no mobile`.
 - O Cloudflare Tunnel dedicado expõe somente frontend e API; o PostgreSQL não possui hostname, rota pública ou porta publicada.
 
 ## Arquitetura efetiva
@@ -102,7 +102,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 - Informativo de novidades versionado no primeiro acesso autenticado: aparece uma vez por conta e versão neste navegador, com linguagem simples e os principais recursos da atualização.
 - PWA instalável, manifesto, ícones e tela offline segura.
 - Cache offline limitado a recursos estáticos; dados autenticados não entram no cache.
-- Interface em português do Brasil, responsiva e sem rolagem horizontal no mobile.
+- Interface em português do Brasil, responsiva e sem rolagem horizontal indevida no mobile; os gráficos que precisam mostrar oito períodos usam rolagem interna controlada.
 
 ## API disponível
 
@@ -140,6 +140,10 @@ Em 2 de setembro de 2026:
 - Nenhuma porta do Cadência foi publicada no host.
 - Cadastro, confirmação de e-mail, ativação de plano e recuperação de senha foram testados em produção; uma mensagem de confirmação caiu em spam, sem falha funcional.
 
+Em 3 de setembro de 2026, o commit `33de28a` foi atualizado na VPS por fast-forward. Foi criado e verificado o backup preventivo `cadencia-20260904T023630Z.dump` (UTC), somente o container `cadencia-frontend-1` foi reconstruído e recriado, e o túnel permaneceu ativo. O frontend interno e as rotas públicas `/` e `/evolucao` retornaram HTTP 200; API, frontend, PostgreSQL e túnel permaneceram saudáveis. O ajuste corrige a sobreposição dos períodos e da barra de rolagem nos gráficos em telas pequenas.
+
+Durante uma tentativa inicial, uma cópia privada do frontend foi publicada por engano no ambiente Sites, fora da infraestrutura oficial. Ela foi excluída manualmente pelo proprietário e não tinha acesso público. O Sites não faz parte do fluxo de produção do Cadência; futuras publicações devem usar exclusivamente a VPS Oracle e o Cloudflare Tunnel dedicado.
+
 ## Dependências e segurança
 
 - GitHub Dependabot: 0 alertas abertos e 39 fechados após a atualização do commit `41638da`.
@@ -156,7 +160,8 @@ Em 2 de setembro de 2026:
 - Retenção configurada: 14 dias.
 - Dumps em formato customizado, validados por `pg_restore --list`.
 - Diretório de produção: `/var/backups/cadencia`.
-- Backup preventivo do deploy de 2 de setembro: `cadencia-20260902T104801Z.dump`.
+- Backup preventivo do deploy de 3 de setembro: `cadencia-20260904T023630Z.dump` (UTC).
+- O backup preventivo anterior, `cadencia-20260902T104801Z.dump`, permanece registrado e validado.
 - O teste de restauração completo foi concluído em 2 de setembro de 2026 com o dump `cadencia-20260902T104801Z.dump`: um PostgreSQL 17 temporário restaurou o arquivo com sucesso, apresentou 15 tabelas públicas e `cadencia_schema_migrations`, e foi removido ao final. O banco e os volumes de produção não foram alterados.
 
 ## Auditoria da VPS e pendências operacionais
