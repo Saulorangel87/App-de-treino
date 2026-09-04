@@ -81,9 +81,9 @@ O primeiro protocolo específico implementado localmente é `road_moderate_inter
 
 O motor só o seleciona quando a disciplina é explicitamente `road`, o atleta é intermediário ou avançado, a avaliação submáxima está apta, o objetivo é performance ou evento, há pelo menos 60 minutos disponíveis e a preferência está vazia ou indica intervalos. Dor, limitação ou recuperação insuficiente substituem o protocolo por uma sessão protegida.
 
-## Alterações de modelo necessárias antes do catálogo
+## Modelo e critérios de integração do catálogo
 
-O contexto agora guarda `bike_type`, `terrain` e uma disciplina explícita, opcional e validada. A disciplina não é inferida pelo tipo de bicicleta: XCO, gravel ou pista só podem ser usados quando o atleta os informa diretamente.
+O contexto agora guarda `bike_type`, `terrain` e uma disciplina explícita, opcional e validada. A disciplina não é inferida pelo tipo de bicicleta: XCO, gravel ou pista só podem ser usados quando o atleta os informa diretamente. A migração `000015` registra as fontes no checkout local; a produção ainda não recebeu essa migração. Cada protocolo continua dependendo de revisão de elegibilidade, segurança e transferência da evidência antes de ser publicado.
 
 Valores planejados para `cycling_context.discipline`:
 

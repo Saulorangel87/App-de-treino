@@ -21,6 +21,13 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - Commit implantado: `33de28a fix: ajusta gráficos da evolução no mobile`.
 - O Cloudflare Tunnel dedicado expõe somente frontend e API; o PostgreSQL não possui hostname, rota pública ou porta publicada.
 
+## Estado do checkout local
+
+- O checkout local está no commit `4683999 feat: adiciona piloto de intervalos moderados na estrada`.
+- A sequência local recente inclui `5461cd6` (contexto por modalidade), `49f1dbd` (catálogo de evidências) e `4683999` (piloto de estrada).
+- A migração `000015` e o protocolo `road_moderate_intervals` existem localmente, mas ainda não foram aplicados ou publicados na produção. A VPS continua em `33de28a`, com o esquema de produção até `000014`.
+- Qualquer promoção desses itens exige revisão, backup, autorização explícita e atualização das notas de versão do produto.
+
 ## Arquitetura efetiva
 
 ```text
@@ -84,7 +91,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 - Adaptação conservadora após feedback e check-in diário de sono, estresse e fadiga.
 - Avaliação inicial submáxima, sem teste máximo ou diagnóstico.
 - O histórico observado agora participa da geração: sinais recentes de dor, fadiga ou recuperação insuficiente protegem as sessões futuras de forma conservadora e ficam no snapshot do plano.
-- Sessões específicas para perfis adequados: cadência, subidas, sweet spot, ritmo de prova e intervalos controlados.
+- Sessões específicas para perfis adequados: cadência, subidas, sweet spot, ritmo de prova e intervalos controlados. O piloto `road_moderate_intervals` e suas referências estão disponíveis somente no checkout local até a revisão e publicação autorizada.
 - Histórico em `/atividades` e agregações observadas em `/evolucao`.
 - A aba `/evolucao` também compara as últimas sessões concluídas com a prescrição original (tempo, RPE e métricas registradas), sem transformar a diferença em ajuste automático.
 - O plano exibe o resumo do contexto observado usado na geração do ciclo, com sessões, minutos, RPE, check-ins e alertas conservadores de recuperação quando aplicável.
@@ -99,7 +106,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 - Modal de sessão no mobile, check visual de treinos concluídos e logout.
 - O painel principal prioriza a sessão em andamento antes de procurar o próximo treino planejado, mantendo o estado consistente após iniciar pela tela inicial.
 - Os gráficos semanais da Evolução exibem o intervalo completo de cada semana para deixar claro que os valores são agrupados por período de sete dias.
-- Informativo de novidades versionado no primeiro acesso autenticado: aparece uma vez por conta e versão neste navegador, com linguagem simples e os principais recursos da atualização.
+- Informativo de novidades versionado no primeiro acesso autenticado: aparece uma vez por conta e versão neste navegador, com linguagem simples e os principais recursos da atualização. Cada funcionalidade visível deve atualizar `APP_VERSION` e `UPDATE_NOTES` na mesma entrega; essa exigência ainda fica pendente para qualquer publicação do piloto local.
 - PWA instalável, manifesto, ícones e tela offline segura.
 - Cache offline limitado a recursos estáticos; dados autenticados não entram no cache.
 - Interface em português do Brasil, responsiva e sem rolagem horizontal indevida no mobile; os gráficos que precisam mostrar oito períodos usam rolagem interna controlada.
@@ -120,7 +127,8 @@ As rotas estão descritas em `api/openapi.yaml`. Os grupos principais são:
 
 ## Banco e migrações
 
-- Migrações aplicadas no projeto: `000001` a `000014`; a `000013` cria os relatos de feedback de produto e a `000014` adiciona o controle de envio do resumo semanal.
+- Migrações versionadas no checkout local: `000001` a `000015`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal e a `000015` registra fontes científicas do catálogo de ciclismo.
+- Em produção, estão aplicadas `000001` a `000014`; a `000015` permanece pendente e não deve ser aplicada sem revisão, backup verificável e autorização explícita.
 - `000012` adiciona confirmação de e-mail e recuperação de senha.
 - Produção possui registro de migrações em `cadencia_schema_migrations`.
 - O usuário da API não é superusuário; o proprietário do banco é reservado para operações administrativas.
@@ -195,14 +203,14 @@ Nesta primeira etapa, os relatos continuam centralizados no banco e não geram u
 
 ## Próximas etapas do produto
 
-1. Concluir o hardening da VPS.
-2. Validar visualmente e publicar o ajuste aplicado na tela inicial desktop: texto de privacidade mais amigável e menos altura/scroll.
-3. Monitorar a explicação autenticada pelo Worker remoto, sua latência e seus limites de uso. A versão ativa `35f24685` já foi validada em treinos de base e subidas. O Ollama permanece instalado, mas parado; a tentativa local mostrou latência e consumo incompatíveis com a folga atual da VPS. O fallback determinístico continua disponível e o padrão seguro do código permanece `AI_ENABLED=false`.
-4. Expandir a coleta progressiva de dados do ciclista. O motor já incorpora o resumo observado de sessões e recuperação sem transformar relatos em metas rígidas; a próxima ampliação deve adicionar métricas de desempenho com validação específica.
-5. Evoluir sessões específicas de cadência, tiros, subidas, potência e preparação para provas com regras próprias e validação científica. As preferências agora orientam a sessão de qualidade quando há contexto compatível; a ampliação do catálogo de evidências específicas de ciclismo fica registrada como etapa futura, sem migração aplicada. Ainda falta ampliar a cobertura e revisar parâmetros com profissional habilitado.
-6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
-7. Observar o primeiro resumo semanal, sua entregabilidade e utilidade para organizar os relatos.
-8. Coletar os primeiros relatos pela aba `/feedback` antes de considerar um painel administrativo.
+1. Manter a observação operacional: relatos em `/feedback`, primeiro resumo semanal do Resend e latência, limites e fallback do Worker.
+2. Implementar a primeira fatia do roadmap de `melhorias.md`: classificação de prontidão com dados ausentes tratados explicitamente.
+3. Evoluir as regras em versão paralela, preservando `rules-v1` até que a nova versão esteja testada e auditável.
+4. Trabalhar adaptação em ciclo fechado, carga/progressão e integridade dos dados antes de ampliar a prescrição.
+5. Reforçar segurança, feedback pós-treino, explicabilidade e auditabilidade das decisões.
+6. Ampliar o catálogo de modalidades e protocolos de ciclismo somente com critérios de elegibilidade e referências próprias revisados; o piloto atual é local.
+7. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
+8. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
 
 ## Como iniciar localmente
 
@@ -219,7 +227,7 @@ Para testar o PWA localmente, pare o servidor de desenvolvimento e execute `npm 
 
 Antes de alterar o projeto:
 
-1. Leia este arquivo, `README.md`, `docs/architecture-decisions.md`, `docs/training-cycle-lifecycle.md` e `docs/training-adaptation-rules.md`.
+1. Leia este arquivo, [`docs/README.md`](README.md), `README.md`, `docs/architecture-decisions.md`, `docs/training-cycle-lifecycle.md`, `docs/training-adaptation-rules.md` e `docs/cycling-evidence-catalog.md`.
 2. Confira `git status` e os commits recentes.
 3. Preserve os bancos PostgreSQL local e da VPS.
 4. Não publique, faça commit ou altere infraestrutura sem autorização explícita.

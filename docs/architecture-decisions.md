@@ -68,7 +68,7 @@ A primeira implementação de IA usa Ollama local como provedor opcional. `AI_EN
 
 **Status:** Aplicada.
 
-As migrações `000001` a `000014` estão versionadas; em produção, todas já foram aplicadas. A `000013` cria os relatos de feedback de produto e a `000014` adiciona o controle de envio do resumo semanal. A proposta de catálogo ampliado de evidências específicas de ciclismo fica registrada como etapa futura e ainda não foi aplicada. Antes de uma mudança estrutural, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
+As migrações `000001` a `000015` estão versionadas no checkout local; em produção, estão aplicadas somente `000001` a `000014`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal e a `000015` registra fontes científicas do catálogo de ciclismo. O catálogo e o piloto `road_moderate_intervals` permanecem locais até revisão e autorização de publicação. Antes de uma mudança estrutural em produção, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
 
 ## ADR-006 — Feedback de produto
 
@@ -85,6 +85,18 @@ A tela `/feedback` é acessível pelo menu principal no desktop e por um atalho 
 O resumo é executado fora do processo HTTP, como um comando de curta duração (`cadencia-feedback-digest`) acionado semanalmente por systemd. O comando consulta no máximo 50 relatos ainda não enviados, escapa o conteúdo no HTML, envia uma mensagem HTML e texto pelo remetente Resend já verificado e só grava `digest_sent_at` depois de o envio retornar sucesso. Se `FEEDBACK_DIGEST_TO` estiver vazio, a execução termina sem consultar o banco nem enviar mensagens. O serviço acessa o PostgreSQL pela rede Docker interna e o Resend por uma rede de saída dedicada; não publica portas e não fica residente, reduzindo consumo na VPS. A migração e o timer já foram aplicados; o primeiro envio será acompanhado em operação.
 
 O timer está agendado para segunda-feira às 11:00 UTC (08:00 no horário de São Paulo) e possui `Persistent=true` para executar após uma indisponibilidade. O endereço administrativo é único nesta primeira versão; a quantidade de mensagens permanece previsível e deve ser acompanhada junto das demais aplicações que usam a mesma conta Resend. Um painel administrativo protegido continua como possível evolução, não como dependência do MVP.
+
+## ADR-008 — Evolução pós-MVP do motor
+
+**Status:** Aceita como direção planejada; ainda não implementada como substituição do `rules-v1`.
+
+A próxima fase seguirá o roadmap de `melhorias.md` com foco exclusivo em ciclismo: classificação explícita de prontidão, regras versionadas, adaptação em ciclo fechado, progressão/carga, integridade dos dados, segurança, feedback e auditabilidade. O `rules-v1` continuará preservado até que uma evolução paralela esteja testada, comparável e auditável. Dados ausentes ou inconsistentes não devem ser tratados como autorização para aumentar carga. A IA continua explicativa e subordinada às regras validadas; não prescreve, inventa evidências ou diagnostica.
+
+## ADR-009 — Comunicação de atualizações no produto
+
+**Status:** Aceita e aplicada.
+
+Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a mudança em `UPDATE_NOTES`. O componente `UpdateNotice` apresenta as notas no primeiro acesso autenticado após a versão mudar e registra a confirmação por conta, versão e navegador usando armazenamento local. As notas não devem conter segredos. O piloto local de catálogo ainda precisa dessa atualização de release antes de qualquer publicação autorizada.
 
 ## Estado de produção
 
@@ -129,6 +141,8 @@ Nenhuma porta de outro aplicativo deve ser bloqueada sem mapear antes seus domí
 
 1. Observar os primeiros relatos reais em `/feedback` e confirmar a entregabilidade/utilidade do resumo semanal pelo Resend.
 2. Monitorar a explicação autenticada pelo Worker remoto, sua latência, limites e acionamento do fallback determinístico; manter o Ollama parado.
-3. Evoluir a coleta de dados e o catálogo de sessões específicas de ciclismo com regras e referências próprias.
-4. Definir cópia externa dos backups, monitoramento de falhas e alertas de saúde.
-5. Escolher a política de firewall e a lista mínima de portas públicas da VPS, preservando Tailscale, Cloudflare e os demais aplicativos.
+3. Implementar a classificação de prontidão e evoluir as regras em paralelo, sem remover o `rules-v1` antes da validação.
+4. Definir adaptação em ciclo fechado, progressão/carga e barreiras de integridade e segurança.
+5. Evoluir o catálogo de protocolos de ciclismo com elegibilidade e evidências próprias; o piloto local não é produção.
+6. Definir cópia externa dos backups, monitoramento de falhas e alertas de saúde.
+7. Escolher a política de firewall e a lista mínima de portas públicas da VPS, preservando Tailscale, Cloudflare e os demais aplicativos.

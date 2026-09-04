@@ -103,9 +103,9 @@ Os percentuais e limiares acima são escolhas prudentes desta versão do produto
 - ACSM (1998), progressão gradual do exercício aeróbico: https://pubmed.ncbi.nlm.nih.gov/9624661/
 - Rosenblat, Perrotta e Thomas (2020), revisão e meta-análise sobre intervalos intensos versus sprints: https://pubmed.ncbi.nlm.nih.gov/32034701/
 
-### Etapa futura: ampliar evidências específicas de ciclismo
+### Estado da expansão de evidências específicas de ciclismo
 
-As referências de ciclismo sobre periodização, cadência, testes submáximos e distribuição de intensidade foram mapeadas para uma próxima etapa. Elas ainda não estão cadastradas no banco nem associadas aos protocolos; a implementação deverá ocorrer depois de consolidar o uso do histórico observado pelo motor e revisar os parâmetros com profissional habilitado.
+As referências de ciclismo sobre periodização, cadência, testes submáximos e distribuição de intensidade foram mapeadas e estão descritas em [`cycling-evidence-catalog.md`](cycling-evidence-catalog.md). A migração `000015` e o primeiro protocolo `road_moderate_intervals` existem no checkout local; ainda não estão na produção, que permanece até `000014`. A ampliação deverá continuar após revisar elegibilidade, limites de transferência da evidência e parâmetros com profissional habilitado.
 
 - Galán-Rioja et al. (2023): https://pubmed.ncbi.nlm.nih.gov/36640771/
 - Mater, Clos e Lepers (2021): https://pubmed.ncbi.nlm.nih.gov/34360206/
@@ -115,3 +115,7 @@ As referências de ciclismo sobre periodização, cadência, testes submáximos 
 ### Estado operacional para a próxima revisão
 
 O histórico observado, o feedback do usuário, o check-in de recuperação e o fallback da IA explicativa já estão disponíveis em produção. A próxima revisão deve usar relatos reais e o primeiro resumo semanal do Resend para avaliar se as adaptações estão compreensíveis e conservadoras antes de alterar os parâmetros do `rules-v1` ou ampliar o catálogo de protocolos.
+
+### Próxima evolução planejada
+
+O roadmap atual prioriza prontidão, evolução versionada das regras, adaptação em ciclo fechado, integridade dos dados, segurança, feedback e auditabilidade. O `rules-v1` deve permanecer disponível durante a validação de qualquer evolução. O escopo desta fase é exclusivamente ciclismo; corrida e força não entram no catálogo atual. Toda entrega com mudança visível deve atualizar `APP_VERSION` e `UPDATE_NOTES` para informar o usuário na tela de novidades.

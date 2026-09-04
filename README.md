@@ -11,7 +11,9 @@ Versão atual: `0.6.0` — resumo semanal de feedback, PWA e identidade visual C
 - `database/`: migrações PostgreSQL versionadas.
 - `api/`: contrato OpenAPI.
 - `infrastructure/`: configuração versionada para a VPS Oracle.
-- `docs/`: decisões e regras do produto.
+- `docs/`: decisões, regras, ciclo de vida e catálogo científico do produto.
+- `docs/README.md`: índice da documentação e regra de atualização.
+- `melhorias.md`: roadmap atual da próxima fase; `planejamento.md` preserva a visão e o histórico do projeto.
 
 ## Ambiente local
 
@@ -56,7 +58,7 @@ As sessões são opacas, armazenadas no PostgreSQL apenas como hash e enviadas a
 
 As rotas atuais do frontend são `/`, `/entrar`, `/perfil`, `/plano`, `/atividades`, `/avaliacao`, `/recuperacao`, `/evolucao` e `/feedback`. A tela de atividades apresenta sessões concluídas e canceladas com data, duração, RPE e feedback. A aba de feedback de produto permite que atletas autenticados registrem a experiência, um problema ou uma sugestão; o relato é salvo no PostgreSQL sem expor o e-mail na resposta. Um job separado pode consolidar os relatos ainda não enviados em um resumo semanal pelo Resend, destinado somente ao endereço administrativo configurado na VPS. O perfil possui quatro etapas e retoma dados já salvos. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
 
-A tela `/plano` gera, apresenta e ativa ciclos de quatro semanas. O motor `rules-v1` é determinístico: considera experiência, objetivo, limitações, disponibilidade, o contexto opcional de ciclismo e um resumo observado dos últimos 28 dias de sessões e recuperação. Ele seleciona sessões específicas de forma gradual (cadência no indoor, subidas, sweet spot por potência/FTP e ritmo de prova), limita cada sessão ao tempo informado e reduz a intensidade quando há uma condição de segurança ativa ou sinais recentes de recuperação insuficiente. O dashboard usa o plano aprovado, explica a escala RPE e permite acompanhar a sessão do início ao feedback pós-treino.
+A tela `/plano` gera, apresenta e ativa ciclos de quatro semanas. O motor `rules-v1` é determinístico: considera experiência, objetivo, limitações, disponibilidade, o contexto opcional de ciclismo e um resumo observado dos últimos 28 dias de sessões e recuperação. Ele seleciona sessões específicas de forma gradual (cadência no indoor, subidas, sweet spot por potência/FTP, ritmo de prova e o piloto local de intervalos moderados de estrada), limita cada sessão ao tempo informado e reduz a intensidade quando há uma condição de segurança ativa ou sinais recentes de recuperação insuficiente. O dashboard usa o plano aprovado, explica a escala RPE e permite acompanhar a sessão do início ao feedback pós-treino.
 
 O feedback de uma sessão concluída adapta de forma conservadora os próximos treinos planejados. Dor, fadiga, dificuldade e diferença entre RPE planejado e realizado podem reduzir duração ou esforço; uma resposta claramente fácil permite somente uma progressão pequena de duração. A decisão fica registrada no treino e é apresentada na interface. As regras completas estão em `docs/training-adaptation-rules.md`.
 
@@ -84,12 +86,14 @@ O MVP de ciclismo está publicado em produção real:
 - Dependabot está com 0 alertas abertos; os testes Go, build Docker e `govulncheck` passaram.
 - A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013` e `000014` foram aplicadas na produção.
 - O ajuste responsivo dos períodos nos gráficos da Evolução foi publicado e validado no domínio oficial; a rolagem horizontal interna agora preserva os rótulos no celular.
+- O checkout local está no commit `4683999`; a sequência recente inclui `5461cd6` (contexto por modalidade), `49f1dbd` (catálogo científico) e `4683999` (piloto de estrada). Esse trabalho ainda não está em produção; a produção oficial permanece em `33de28a` e nas migrações até `000014`.
+- Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts` (`APP_VERSION` e `UPDATE_NOTES`) para que a novidade seja exibida na tela de primeiro acesso após a atualização. O modal é mostrado uma vez por conta, versão e navegador.
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.
 
 A publicação oficial do Cadência é feita somente pela composição Docker da VPS, com `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br` no Cloudflare Tunnel dedicado. Uma cópia privada criada acidentalmente no Sites durante uma tentativa de deploy foi excluída; o Sites não faz parte do fluxo de produção.
 
-Depois da estabilização, a próxima etapa é observar os primeiros relatos reais pela aba `/feedback`, a entregabilidade do resumo semanal e a latência/fallback da explicação pelo Worker remoto. Em seguida, o produto deve ampliar a coleta progressiva de dados e o catálogo de sessões específicas de ciclismo, sempre associando cada protocolo a regras e referências próprias. O Ollama já está instalado e testado, mas permanece desligado por consumo elevado na VPS. Consulte `docs/project-status.md` para o inventário completo e a ordem de execução.
+Depois da estabilização, a operação continua observando os primeiros relatos reais pela aba `/feedback`, a entregabilidade do resumo semanal e a latência/limites/fallback da explicação pelo Worker remoto. A próxima fase do produto segue o roadmap de `melhorias.md`: prontidão, evolução versionada das regras, adaptação em ciclo fechado, integridade dos dados, segurança, feedback e auditabilidade; depois, ampliação criteriosa do catálogo de ciclismo. O escopo permanece exclusivo de ciclismo nesta fase. O Ollama já está instalado e testado, mas permanece desligado por consumo elevado na VPS. Consulte `docs/README.md` e `docs/project-status.md` para a ordem completa.
 
 ## Licença
 

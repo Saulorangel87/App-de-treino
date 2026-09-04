@@ -1128,3 +1128,9 @@ Durante o processo, uma cópia privada foi publicada por engano no ambiente Site
 ## Próxima etapa registrada
 
 A próxima etapa é a estabilização acompanhada: coletar relatos reais pela aba `/feedback`, observar o primeiro resumo semanal enviado pelo Resend e medir latência, limites e fallback do Worker de IA em uso normal. Só depois dessa observação será ampliado o catálogo de protocolos específicos de ciclismo, com evidências e instruções operacionais mais amigáveis para cada sessão. Nenhuma etapa de IA generativa ou integração externa deve substituir o motor determinístico `rules-v1` antes dessa revisão.
+
+## Direção atual da próxima fase — 4 de setembro de 2026
+
+Após o piloto local do catálogo e de intervalos moderados de estrada, o roadmap vigente da próxima fase está em [`melhorias.md`](melhorias.md). A primeira fatia deve tratar prontidão e qualidade dos dados; depois vêm a evolução versionada das regras, adaptação em ciclo fechado, progressão/carga, segurança, feedback e auditabilidade. O `rules-v1` deve ser preservado durante a validação, e o escopo permanece exclusivo de ciclismo.
+
+Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a novidade em `UPDATE_NOTES`, para que ela apareça na tela de novidades após a atualização. A produção oficial continua no commit `33de28a`; os commits locais posteriores, a migração `000015` e o piloto de estrada ainda não foram publicados. Não fazer commit, deploy ou mudança de infraestrutura sem autorização explícita.
