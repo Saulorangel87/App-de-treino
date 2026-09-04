@@ -200,6 +200,7 @@ export default function HomePage() {
   const focusWorkout = useMemo(() => {
     if (!activePlan?.workouts.length) return null;
     return (
+      activePlan.workouts.find((workout) => workout.status === 'in_progress') ||
       activePlan.workouts.find(
         (workout) =>
           workout.status === 'planned' && workout.scheduled_on >= todayKey,
