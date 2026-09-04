@@ -124,6 +124,66 @@ func TestBuildPlanUsesCyclingContextForSpecificQualitySession(t *testing.T) {
 	t.Fatalf("expected a power-guided quality session, got %#v", plan.Workouts)
 }
 
+func TestBuildPlanUsesRoadModerateIntervalsForEligibleRoadContext(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		Cycling:      CyclingContext{Discipline: "road", PreferredSessionTypes: []string{"intervals"}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name == "Intervalos moderados de estrada" {
+			if workout.Structure["protocol_key"] != "road_moderate_intervals" || workout.Explanation["protocol_key"] != "road_moderate_intervals" {
+				t.Fatalf("expected road protocol metadata, got %#v", workout)
+			}
+			if workout.Explanation["evidence_keys"].([]string)[0] != "road-mit-block-2025" {
+				t.Fatalf("expected road evidence mapping, got %#v", workout.Explanation)
+			}
+			steps := workout.Structure["steps"].([]WorkoutStep)
+			if steps[1].Title != "Intervalo moderado 1 de 3" || steps[1].DurationMinutes != 10 || steps[2].Kind != "recovery" {
+				t.Fatalf("expected conservative road interval structure, got %#v", steps)
+			}
+			return
+		}
+	}
+	t.Fatalf("expected eligible road context to receive the road pilot, got %#v", plan.Workouts)
+}
+
+func TestBuildPlanDoesNotUseRoadProtocolOutsideRoadDiscipline(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		Cycling:      CyclingContext{Discipline: "mtb_xco", PreferredSessionTypes: []string{"intervals"}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name == "Intervalos moderados de estrada" || workout.Structure["protocol_key"] == "road_moderate_intervals" {
+			t.Fatalf("road protocol must not be selected for MTB: %#v", workout)
+		}
+	}
+}
+
+func TestBuildPlanRoadProtocolStillYieldsToPainProtection(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		Cycling:      CyclingContext{Discipline: "road", PreferredSessionTypes: []string{"intervals"}},
+		Observed:     ObservedTrainingSummary{WindowDays: 28, CompletedSessions: 2, PainReported: true},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name != "Giro leve protegido" || workout.Structure["protocol_key"] != "protected_recovery" {
+			t.Fatalf("pain must override the road protocol: %#v", workout)
+		}
+	}
+}
+
 func TestBuildPlanPreservesCyclingDisciplineInSnapshot(t *testing.T) {
 	plan, err := buildPlan(Context{
 		ProfileID: "profile-1", ExperienceLevel: "intermediate", PrimaryGoal: "endurance",
@@ -276,7 +336,7 @@ func TestSessionProtocolsKeepEvidenceMapping(t *testing.T) {
 	for _, name := range []string{
 		"Giro de base", "Endurance contínuo", "Giro leve protegido", "Tempo controlado",
 		"Ritmo de prova controlado", "Cadência técnica", "Subidas controladas",
-		"Sweet spot por potência", "Sweet spot progressivo", "Intervalos controlados",
+		"Sweet spot por potência", "Sweet spot progressivo", "Intervalos controlados", "Intervalos moderados de estrada",
 	} {
 		protocol := protocolForWorkout(name)
 		if protocol.Key == "" || len(protocol.EvidenceKeys) == 0 || protocol.EvidenceScope == "" {

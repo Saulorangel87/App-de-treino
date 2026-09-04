@@ -400,6 +400,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	mainBlock := "Ritmo confortável e contínuo"
 	summary := explanationFor(kind, restricted)
 	usesControlledIntervals := false
+	usesRoadModerateIntervals := false
 	rotationApplied := false
 	observedProtected := input.Observed.RequiresRecovery() && (input.Observed.PainReported || kind == "quality")
 	if kind == "long" {
@@ -413,7 +414,13 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		targetRPE = 6.0
 		mainBlock = "3 blocos sustentados com recuperação leve"
 		preference := preferredQualityPreference(input.Cycling)
-		if preference == "cadence" && input.ExperienceLevel != "beginner" {
+		if input.Cycling.Discipline == "road" && input.ExperienceLevel != "beginner" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 60 && multiplier >= 0.95 && (preference == "" || preference == "intervals") {
+			name = "Intervalos moderados de estrada"
+			targetRPE = 6.0
+			mainBlock = "3 blocos moderados de 10 min com 3 min leves entre os blocos"
+			summary = "A modalidade de estrada, o objetivo e a avaliação submáxima apta permitem um piloto intervalado moderado e conservador."
+			usesRoadModerateIntervals = true
+		} else if preference == "cadence" && input.ExperienceLevel != "beginner" {
 			name = "Cadência técnica"
 			targetRPE = 5.0
 			mainBlock = "6 blocos de cadência controlada com recuperação leve"
@@ -529,6 +536,9 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	}
 	if usesControlledIntervals {
 		rules = append(rules, "Intervalos liberados pela avaliação submáxima apta, apenas nas semanas de construção.")
+	}
+	if usesRoadModerateIntervals {
+		rules = append(rules, "Piloto de estrada moderado liberado por modalidade explícita, objetivo compatível, avaliação apta e disponibilidade suficiente.")
 	}
 	if rotationApplied {
 		rules = append(rules, "Sessão alternada pela rotação explicável entre ciclos.")

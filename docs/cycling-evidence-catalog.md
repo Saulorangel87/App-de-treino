@@ -65,7 +65,7 @@ São modalidades com exigências anaeróbicas, neuromusculares e de força muito
 | Candidato | Modalidade | Situação da evidência | Liberação inicial |
 | --- | --- | --- | --- |
 | Endurance de estrada | `road` | Base de endurance e distribuição de intensidade apoiadas por revisões | Todos os níveis, com progressão conservadora |
-| Intervalos moderados | `road` | Ensaios recentes em ciclistas bem treinados | Intermediário/avançado após revisão dos parâmetros |
+| Intervalos moderados | `road` | Ensaios recentes em ciclistas bem treinados | Piloto local: intermediário/avançado, objetivo compatível, avaliação apta, 60 min disponíveis e sem sinais de recuperação insuficiente |
 | Intervalos intensos controlados | `road` | Revisões e ensaios, com maior exigência fisiológica | Avançado, avaliação apta e objetivo compatível |
 | Esforços variáveis XCO | `mtb_xco` | Forte evidência de demanda; evidência de intervenção ainda limitada | Futuro piloto restrito, não padrão geral |
 | Endurance gravel/XCM | `gravel`, `mtb_xcm` | Evidência direta de prescrição ainda insuficiente | Usar somente base/endurance contextual |
@@ -75,9 +75,15 @@ São modalidades com exigências anaeróbicas, neuromusculares e de força muito
 
 As situações acima são decisões de produto provisórias. Antes de transformar qualquer candidato em regra do `rules-v1`, seus parâmetros, população-alvo e critérios de interrupção devem ser revisados por profissional habilitado.
 
+### Primeiro piloto local: intervalos moderados de estrada
+
+O primeiro protocolo específico implementado localmente é `road_moderate_intervals`, apresentado como **Intervalos moderados de estrada**. Ele usa três blocos de 10 minutos com três minutos de recuperação leve, alvo RPE 6 e uma sessão de qualidade por semana. Essa dose é uma adaptação conservadora do contexto dos estudos, não a reprodução do bloco de seis sessões em sete dias.
+
+O motor só o seleciona quando a disciplina é explicitamente `road`, o atleta é intermediário ou avançado, a avaliação submáxima está apta, o objetivo é performance ou evento, há pelo menos 60 minutos disponíveis e a preferência está vazia ou indica intervalos. Dor, limitação ou recuperação insuficiente substituem o protocolo por uma sessão protegida.
+
 ## Alterações de modelo necessárias antes do catálogo
 
-O contexto atual guarda `bike_type` e `terrain`, mas não distingue explicitamente a disciplina. A próxima alteração de dados deve adicionar um campo opcional e validado, sem inferir XCO, gravel ou pista apenas pelo tipo de bicicleta.
+O contexto agora guarda `bike_type`, `terrain` e uma disciplina explícita, opcional e validada. A disciplina não é inferida pelo tipo de bicicleta: XCO, gravel ou pista só podem ser usados quando o atleta os informa diretamente.
 
 Valores planejados para `cycling_context.discipline`:
 
@@ -118,7 +124,7 @@ Cada novo protocolo também deverá declarar, em código:
 - **`mtb-crash-mechanisms-2025`** — Bonte et al. *Injury Mechanisms in Mountain Biking: A Systematic Video Analysis of 534 Cases*. 2025. Estudo de mecanismos de queda; reforça que habilidade técnica e prevenção não devem ser reduzidas a carga aeróbica. https://pubmed.ncbi.nlm.nih.gov/40534393/
 - **`track-sprint-load-2023`** — *Training load and intensity distribution for sprinting among world-class track cyclists*. 2023. Descrição de treinamento de velocistas de pista; modalidade fora do escopo do primeiro catálogo ampliado. https://pubmed.ncbi.nlm.nih.gov/36961508/
 
-## Critérios para a próxima implementação
+## Critérios para os próximos protocolos
 
 Antes de adicionar um protocolo ao motor, ele deverá passar por esta lista:
 

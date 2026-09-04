@@ -69,6 +69,12 @@ var sessionProtocols = map[string]sessionProtocol{
 		WorkMinutes:   4, RecoveryMinutes: 3, Repetitions: 4,
 		WorkTitle: "Intervalo forte-controlado", WorkInstruction: "Sustente o esforço forte com técnica estável; reduza o ritmo se perder o controle.",
 	},
+	"Intervalos moderados de estrada": {
+		Key: "road_moderate_intervals", EvidenceKeys: []string{"road-mit-block-2025", "road-intensity-2024"},
+		EvidenceScope: "A evidência apoia estímulos intervalados moderados em ciclistas treinados e compara distribuições de intensidade, mas não valida esta dose para todos os perfis. A sessão é uma adaptação conservadora, não a reprodução dos blocos estudados.",
+		WorkMinutes:   10, RecoveryMinutes: 3, Repetitions: 3,
+		WorkTitle: "Intervalo moderado", WorkInstruction: "Sustente um esforço moderado e firme, mantendo a técnica e terminando o bloco sem sprintar; reduza o ritmo se perder o controle.",
+	},
 }
 
 func protocolForWorkout(name string) sessionProtocol {
