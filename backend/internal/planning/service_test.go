@@ -114,10 +114,29 @@ func TestBuildPlanUsesCyclingContextForSpecificQualitySession(t *testing.T) {
 	}
 	for _, workout := range plan.Workouts {
 		if workout.Name == "Sweet spot por potência" {
+			cyclingContext, ok := plan.PrescriptionSnapshot["cycling_context"].(map[string]any)
+			if !ok || cyclingContext["discipline"] != "" {
+				t.Fatalf("expected empty discipline to be preserved in snapshot, got %#v", plan.PrescriptionSnapshot)
+			}
 			return
 		}
 	}
 	t.Fatalf("expected a power-guided quality session, got %#v", plan.Workouts)
+}
+
+func TestBuildPlanPreservesCyclingDisciplineInSnapshot(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "intermediate", PrimaryGoal: "endurance",
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 75}, {Weekday: 6, AvailableMinutes: 150}},
+		Cycling:      CyclingContext{Discipline: "mtb_xco"},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	cyclingContext, ok := plan.PrescriptionSnapshot["cycling_context"].(map[string]any)
+	if !ok || cyclingContext["discipline"] != "mtb_xco" {
+		t.Fatalf("expected discipline in plan snapshot, got %#v", plan.PrescriptionSnapshot)
+	}
 }
 
 func TestBuildPlanUsesHillyTerrainForIntermediateQualitySession(t *testing.T) {

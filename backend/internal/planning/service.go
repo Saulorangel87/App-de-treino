@@ -40,6 +40,7 @@ type CyclingContext struct {
 	RecentTrainingWeeks    int      `json:"recent_training_weeks"`
 	RecentBestDistanceKM   float64  `json:"recent_best_distance_km"`
 	PreferredSessionTypes  []string `json:"preferred_session_types"`
+	Discipline             string   `json:"discipline"`
 	BikeType               string   `json:"bike_type"`
 	Terrain                string   `json:"terrain"`
 	UsesHeartRate          bool     `json:"uses_heart_rate"`
@@ -366,6 +367,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 				"recent_training_weeks":     input.Cycling.RecentTrainingWeeks,
 				"recent_best_distance_km":   input.Cycling.RecentBestDistanceKM,
 				"preferred_session_types":   input.Cycling.PreferredSessionTypes,
+				"discipline":                input.Cycling.Discipline,
 				"bike_type":                 input.Cycling.BikeType,
 				"terrain":                   input.Cycling.Terrain,
 				"uses_heart_rate":           input.Cycling.UsesHeartRate,

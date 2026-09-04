@@ -45,6 +45,7 @@ type CyclingContext struct {
 	RecentTrainingWeeks    int      `json:"recent_training_weeks"`
 	RecentBestDistanceKM   float64  `json:"recent_best_distance_km"`
 	PreferredSessionTypes  []string `json:"preferred_session_types"`
+	Discipline             string   `json:"discipline"`
 	BikeType               string   `json:"bike_type"`
 	Terrain                string   `json:"terrain"`
 	UsesHeartRate          bool     `json:"uses_heart_rate"`
@@ -67,7 +68,12 @@ func (s *OnboardingService) SaveCyclingContext(ctx context.Context, userID strin
 	if value.PreferredSessionTypes == nil {
 		value.PreferredSessionTypes = []string{}
 	}
+	value.Discipline = strings.TrimSpace(value.Discipline)
 	if value.WeeklyHours < 0 || value.WeeklyHours > 80 || value.LongestRideMinutes < 0 || value.LongestRideMinutes > 1440 || value.WeeklyRides < 0 || value.WeeklyRides > 21 || value.RecentWeeklyDistanceKM < 0 || value.RecentWeeklyDistanceKM > 2000 || value.RecentTrainingWeeks < 0 || value.RecentTrainingWeeks > 52 || value.RecentBestDistanceKM < 0 || value.RecentBestDistanceKM > 2000 || len(value.PreferredSessionTypes) > 6 || (value.FTP != nil && (*value.FTP < 50 || *value.FTP > 600)) || (value.EventDistanceKM != nil && (*value.EventDistanceKM < 1 || *value.EventDistanceKM > 2000)) {
+		return CyclingContext{}, ErrInvalidOnboarding
+	}
+	allowedDisciplines := map[string]bool{"": true, "general": true, "road": true, "mtb_xco": true, "mtb_xcm": true, "gravel": true, "indoor": true, "dh_enduro": true, "track_sprint": true}
+	if !allowedDisciplines[value.Discipline] {
 		return CyclingContext{}, ErrInvalidOnboarding
 	}
 	allowedPreferences := map[string]bool{"base": true, "cadence": true, "hills": true, "intervals": true, "sweet_spot": true, "recovery": true}

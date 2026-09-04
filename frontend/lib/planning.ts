@@ -111,6 +111,7 @@ export type TrainingPlan = {
       requires_recovery?: boolean;
     };
     cycling_context?: {
+      discipline?: string;
       uses_heart_rate?: boolean;
       uses_power?: boolean;
     };

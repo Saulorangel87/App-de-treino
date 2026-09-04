@@ -82,10 +82,19 @@ func TestSaveCyclingContextAcceptsOptionalContext(t *testing.T) {
 	ftp := 220
 	distance := 100
 	date := "2026-11-15"
-	input := CyclingContext{WeeklyHours: 6.5, LongestRideMinutes: 180, WeeklyRides: 4, RecentWeeklyDistanceKM: 160, RecentTrainingWeeks: 12, RecentBestDistanceKM: 95, PreferredSessionTypes: []string{"cadence", "hills"}, BikeType: "road", Terrain: "hilly", UsesHeartRate: true, UsesPower: true, FTP: &ftp, EventGoal: true, EventDistanceKM: &distance, EventDate: &date}
+	input := CyclingContext{WeeklyHours: 6.5, LongestRideMinutes: 180, WeeklyRides: 4, RecentWeeklyDistanceKM: 160, RecentTrainingWeeks: 12, RecentBestDistanceKM: 95, PreferredSessionTypes: []string{"cadence", "hills"}, Discipline: "road", BikeType: "road", Terrain: "hilly", UsesHeartRate: true, UsesPower: true, FTP: &ftp, EventGoal: true, EventDistanceKM: &distance, EventDate: &date}
 	result, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", input)
-	if err != nil || result.FTP == nil || *result.FTP != ftp || result.EventDate == nil || *result.EventDate != date {
+	if err != nil || result.Discipline != "road" || result.FTP == nil || *result.FTP != ftp || result.EventDate == nil || *result.EventDate != date {
 		t.Fatalf("expected valid cycling context, got %#v, %v", result, err)
+	}
+}
+
+func TestSaveCyclingContextAcceptsKnownDisciplines(t *testing.T) {
+	for _, discipline := range []string{"", "general", "road", "mtb_xco", "mtb_xcm", "gravel", "indoor", "dh_enduro", "track_sprint"} {
+		result, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", CyclingContext{Discipline: " " + discipline + " "})
+		if err != nil || result.Discipline != discipline {
+			t.Fatalf("expected discipline %q to be accepted and normalized, got %#v, %v", discipline, result, err)
+		}
 	}
 }
 
@@ -112,6 +121,19 @@ func TestSaveCyclingContextRejectsInvalidHistory(t *testing.T) {
 	}
 	if _, err := service.SaveCyclingContext(context.Background(), "user-1", CyclingContext{PreferredSessionTypes: []string{"unknown"}}); err != ErrInvalidOnboarding {
 		t.Fatalf("expected unknown session preference to be rejected, got %v", err)
+	}
+	if _, err := service.SaveCyclingContext(context.Background(), "user-1", CyclingContext{Discipline: "mtb"}); err != ErrInvalidOnboarding {
+		t.Fatalf("expected unknown discipline to be rejected, got %v", err)
+	}
+}
+
+func TestSaveCyclingContextDoesNotInferDisciplineFromBikeType(t *testing.T) {
+	result, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", CyclingContext{BikeType: "mtb"})
+	if err != nil {
+		t.Fatalf("expected bike type without discipline to remain valid, got %v", err)
+	}
+	if result.Discipline != "" {
+		t.Fatalf("expected discipline to remain unset instead of being inferred, got %q", result.Discipline)
 	}
 }
 
