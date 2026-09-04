@@ -7,7 +7,7 @@ import (
 )
 
 func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (evolution.Summary, error) {
-	result := evolution.Summary{Weeks: make([]evolution.Week, 0, 8), Recovery: make([]evolution.RecoveryPoint, 0, 14)}
+	result := evolution.Summary{Weeks: make([]evolution.Week, 0, 8), RecentSessions: make([]evolution.SessionComparison, 0, 12), Recovery: make([]evolution.RecoveryPoint, 0, 14)}
 	var completed, cancelled int64
 	if err := s.pool.QueryRow(ctx, `
 		SELECT
@@ -73,6 +73,51 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 		result.Weeks = append(result.Weeks, week)
 	}
 	if err := weeks.Err(); err != nil {
+		return evolution.Summary{}, err
+	}
+
+	recentRows, err := s.pool.Query(ctx, `
+		SELECT ws.completed_at::date::text, w.name, w.duration_minutes,
+			COALESCE(w.target_rpe, 0)::double precision,
+			ws.duration_minutes, ws.actual_rpe,
+			ws.distance_km::double precision, ws.average_power_watts,
+			ws.average_heart_rate, f.fatigue_after,
+			COALESCE(f.pain_reported, false)
+		FROM workout_sessions ws
+		JOIN athlete_profiles ap ON ap.id = ws.athlete_profile_id
+		JOIN workouts w ON w.id = ws.workout_id
+		LEFT JOIN feedback f ON f.workout_session_id = ws.id
+		WHERE ap.user_id = $1 AND ws.status = 'completed'
+		ORDER BY ws.completed_at DESC, ws.created_at DESC
+		LIMIT 12`, userID)
+	if err != nil {
+		return evolution.Summary{}, err
+	}
+	defer recentRows.Close()
+	for recentRows.Next() {
+		var session evolution.SessionComparison
+		var actualMinutes, fatigueAfter *int
+		var actualRPE *float64
+		var distanceKM *float64
+		var averagePowerW, averageHeartRate *int
+		if err := recentRows.Scan(&session.CompletedOn, &session.Name, &session.PlannedMinutes, &session.PlannedRPE,
+			&actualMinutes, &actualRPE, &distanceKM, &averagePowerW, &averageHeartRate, &fatigueAfter, &session.PainReported); err != nil {
+			return evolution.Summary{}, err
+		}
+		session.ActualMinutes, session.ActualRPE = actualMinutes, actualRPE
+		session.DistanceKM, session.AveragePowerW = distanceKM, averagePowerW
+		session.AverageHeartRate, session.FatigueAfter = averageHeartRate, fatigueAfter
+		if actualMinutes != nil {
+			delta := *actualMinutes - session.PlannedMinutes
+			session.DurationDeltaMinutes = &delta
+		}
+		if actualRPE != nil {
+			delta := *actualRPE - session.PlannedRPE
+			session.RPEDelta = &delta
+		}
+		result.RecentSessions = append(result.RecentSessions, session)
+	}
+	if err := recentRows.Err(); err != nil {
 		return evolution.Summary{}, err
 	}
 

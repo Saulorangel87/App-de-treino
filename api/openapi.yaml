@@ -239,7 +239,15 @@ paths:
     get:
       summary: Retorna indicadores históricos observados, incluindo métricas agregadas de pedal quando registradas
       responses:
-        '200': { description: Totais de sessões, semanas recentes com duração e distância, métricas agregadas e check-ins de recuperação }
+        '200':
+          description: Totais, semanas, comparação entre sessões planejadas e realizadas, métricas agregadas e check-ins de recuperação
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [summary]
+                properties:
+                  summary: { $ref: '#/components/schemas/EvolutionSummary' }
         '401': { description: Sessão ausente ou expirada }
   /v1/feedback:
     post:
@@ -449,6 +457,70 @@ components:
         stress_level: { type: integer, minimum: 1, maximum: 5 }
         fatigue_level: { type: integer, minimum: 1, maximum: 5 }
         notes: { type: string, maxLength: 1000 }
+    EvolutionSummary:
+      type: object
+      required: [completed_sessions, cancelled_sessions, total_minutes, average_rpe, average_fatigue, completion_rate, total_distance_km, total_elevation_m, average_power_watts, average_heart_rate, weeks, recent_sessions, recovery]
+      properties:
+        completed_sessions: { type: integer, minimum: 0 }
+        cancelled_sessions: { type: integer, minimum: 0 }
+        total_minutes: { type: integer, minimum: 0 }
+        average_rpe: { type: number, minimum: 0, maximum: 10 }
+        average_fatigue: { type: number, minimum: 0, maximum: 5 }
+        completion_rate: { type: number, minimum: 0, maximum: 100 }
+        total_distance_km: { type: number, minimum: 0 }
+        total_elevation_m: { type: integer, minimum: 0 }
+        average_power_watts: { type: number, minimum: 0 }
+        average_heart_rate: { type: number, minimum: 0 }
+        weeks:
+          type: array
+          items: { $ref: '#/components/schemas/EvolutionWeek' }
+        recent_sessions:
+          type: array
+          maxItems: 12
+          items: { $ref: '#/components/schemas/SessionComparison' }
+        recovery:
+          type: array
+          items: { $ref: '#/components/schemas/RecoveryPoint' }
+    EvolutionWeek:
+      type: object
+      required: [week_start, completed_sessions, cancelled_sessions, total_minutes, average_rpe, total_distance_km, total_elevation_m, average_power_watts, average_heart_rate]
+      properties:
+        week_start: { type: string, format: date }
+        completed_sessions: { type: integer, minimum: 0 }
+        cancelled_sessions: { type: integer, minimum: 0 }
+        total_minutes: { type: integer, minimum: 0 }
+        average_rpe: { type: number, minimum: 0, maximum: 10 }
+        total_distance_km: { type: number, minimum: 0 }
+        total_elevation_m: { type: integer, minimum: 0 }
+        average_power_watts: { type: number, minimum: 0 }
+        average_heart_rate: { type: number, minimum: 0 }
+    SessionComparison:
+      type: object
+      required: [completed_on, name, planned_minutes, planned_rpe, pain_reported]
+      properties:
+        completed_on: { type: string, format: date }
+        name: { type: string }
+        planned_minutes: { type: integer, minimum: 1 }
+        actual_minutes: { type: integer, minimum: 0 }
+        duration_delta_minutes: { type: integer }
+        planned_rpe: { type: number, minimum: 0, maximum: 10 }
+        actual_rpe: { type: number, minimum: 1, maximum: 10 }
+        rpe_delta: { type: number }
+        distance_km: { type: number, minimum: 0 }
+        average_power_watts: { type: integer, minimum: 0 }
+        average_heart_rate: { type: integer, minimum: 30, maximum: 250 }
+        fatigue_after: { type: integer, minimum: 1, maximum: 5 }
+        pain_reported: { type: boolean }
+    RecoveryPoint:
+      type: object
+      required: [recorded_on, sleep_minutes, sleep_quality, stress_level, fatigue_level, readiness]
+      properties:
+        recorded_on: { type: string, format: date }
+        sleep_minutes: { type: integer, minimum: 0 }
+        sleep_quality: { type: integer, minimum: 1, maximum: 5 }
+        stress_level: { type: integer, minimum: 1, maximum: 5 }
+        fatigue_level: { type: integer, minimum: 1, maximum: 5 }
+        readiness: { type: string, enum: [ready, caution, recovery_needed] }
     UserFeedbackRequest:
       type: object
       required: [category, rating, message]
