@@ -2,7 +2,9 @@ package httpapi
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/Saulorangel87/App-de-treino/backend/internal/ai"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
@@ -40,8 +42,10 @@ func (s *Server) explainWorkout(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	started := time.Now()
 	text, err := s.ai.Explain(r.Context(), input)
 	if err != nil {
+		slog.Default().Warn("ai explanation fallback", "provider", s.ai.ProviderName(), "duration_ms", time.Since(started).Milliseconds(), "error_kind", ai.ErrorKind(err))
 		writeJSON(w, http.StatusOK, map[string]any{
 			"explanation": fallback, "source": "rules_fallback", "ai_enabled": true,
 			"warning": "A explicação automática está indisponível; exibimos a explicação validada do motor.",

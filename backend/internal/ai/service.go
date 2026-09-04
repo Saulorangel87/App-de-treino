@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -45,6 +46,16 @@ func NewService(provider Provider) *Service {
 
 func (s *Service) Enabled() bool {
 	return s != nil && s.provider != nil
+}
+
+func (s *Service) ProviderName() string {
+	if !s.Enabled() {
+		return "rules"
+	}
+	if named, ok := s.provider.(interface{ Name() string }); ok {
+		return named.Name()
+	}
+	return "unknown"
 }
 
 func (s *Service) Explain(ctx context.Context, input ExplanationInput) (string, error) {
@@ -97,13 +108,19 @@ type ollamaChatResponse struct {
 }
 
 func (c *OllamaClient) Explain(ctx context.Context, input ExplanationInput) (string, error) {
+	started := time.Now()
+	var resultErr error
+	defer func() { logProviderRequest("ollama", started, resultErr) }()
+
 	if err := validateInput(input); err != nil {
+		resultErr = err
 		return "", err
 	}
 	select {
 	case c.concurrency <- struct{}{}:
 		defer func() { <-c.concurrency }()
 	case <-ctx.Done():
+		resultErr = ctx.Err()
 		return "", ctx.Err()
 	}
 
@@ -118,32 +135,70 @@ func (c *OllamaClient) Explain(ctx context.Context, input ExplanationInput) (str
 		Options: map[string]any{"num_predict": c.maxOutputTokens, "temperature": 0.2},
 	})
 	if err != nil {
+		resultErr = err
 		return "", err
 	}
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/api/chat", bytes.NewReader(payload))
 	if err != nil {
+		resultErr = err
 		return "", err
 	}
 	request.Header.Set("Content-Type", "application/json")
 	response, err := c.client.Do(request)
 	if err != nil {
-		return "", fmt.Errorf("%w: %v", ErrUnavailable, err)
+		resultErr = fmt.Errorf("%w: %v", ErrUnavailable, err)
+		return "", resultErr
 	}
 	defer response.Body.Close()
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
 		body, _ := io.ReadAll(io.LimitReader(response.Body, 2048))
-		return "", fmt.Errorf("%w: Ollama returned %d: %s", ErrUnavailable, response.StatusCode, strings.TrimSpace(string(body)))
+		resultErr = fmt.Errorf("%w: Ollama returned %d: %s", ErrUnavailable, response.StatusCode, strings.TrimSpace(string(body)))
+		return "", resultErr
 	}
 	var result ollamaChatResponse
 	if err := json.NewDecoder(io.LimitReader(response.Body, 16*1024)).Decode(&result); err != nil {
-		return "", fmt.Errorf("%w: %v", ErrInvalidResponse, err)
+		resultErr = fmt.Errorf("%w: %v", ErrInvalidResponse, err)
+		return "", resultErr
 	}
 	text := strings.TrimSpace(result.Message.Content)
 	if text == "" || len([]rune(text)) > 1200 {
+		resultErr = ErrInvalidResponse
 		return "", ErrInvalidResponse
 	}
 	return text, nil
+}
+
+func logProviderRequest(provider string, started time.Time, err error) {
+	attrs := []any{
+		"provider", provider,
+		"duration_ms", time.Since(started).Milliseconds(),
+		"outcome", "success",
+	}
+	if err != nil {
+		attrs[5] = "error"
+		attrs = append(attrs, "error_kind", ErrorKind(err))
+	}
+	slog.Default().Info("ai provider request", attrs...)
+}
+
+func ErrorKind(err error) string {
+	switch {
+	case err == nil:
+		return "none"
+	case errors.Is(err, context.DeadlineExceeded):
+		return "timeout"
+	case errors.Is(err, ErrUnavailable):
+		return "unavailable"
+	case errors.Is(err, ErrInvalidResponse):
+		return "invalid_response"
+	case errors.Is(err, ErrInvalidInput):
+		return "invalid_input"
+	case errors.Is(err, ErrDisabled):
+		return "disabled"
+	default:
+		return "other"
+	}
 }
 
 func validateInput(input ExplanationInput) error {

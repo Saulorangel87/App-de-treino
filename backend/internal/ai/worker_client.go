@@ -51,13 +51,19 @@ type workerExplanationResponse struct {
 }
 
 func (c *WorkerClient) Explain(ctx context.Context, input ExplanationInput) (string, error) {
+	started := time.Now()
+	var resultErr error
+	defer func() { logProviderRequest("worker", started, resultErr) }()
+
 	if err := validateInput(input); err != nil {
+		resultErr = err
 		return "", err
 	}
 	select {
 	case c.maxConcurrent <- struct{}{}:
 		defer func() { <-c.maxConcurrent }()
 	case <-ctx.Done():
+		resultErr = ctx.Err()
 		return "", ctx.Err()
 	}
 
@@ -70,29 +76,35 @@ func (c *WorkerClient) Explain(ctx context.Context, input ExplanationInput) (str
 		EvidenceScope: input.EvidenceScope,
 	})
 	if err != nil {
+		resultErr = err
 		return "", err
 	}
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, c.endpoint, bytes.NewReader(payload))
 	if err != nil {
+		resultErr = err
 		return "", err
 	}
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", "Bearer "+c.token)
 	response, err := c.client.Do(request)
 	if err != nil {
-		return "", fmt.Errorf("%w: Worker request failed: %v", ErrUnavailable, err)
+		resultErr = fmt.Errorf("%w: Worker request failed: %v", ErrUnavailable, err)
+		return "", resultErr
 	}
 	defer response.Body.Close()
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
-		return "", fmt.Errorf("%w: Worker returned %d", ErrUnavailable, response.StatusCode)
+		resultErr = fmt.Errorf("%w: Worker returned %d", ErrUnavailable, response.StatusCode)
+		return "", resultErr
 	}
 
 	var result workerExplanationResponse
 	if err := json.NewDecoder(io.LimitReader(response.Body, 16*1024)).Decode(&result); err != nil {
-		return "", fmt.Errorf("%w: %v", ErrInvalidResponse, err)
+		resultErr = fmt.Errorf("%w: %v", ErrInvalidResponse, err)
+		return "", resultErr
 	}
 	text := strings.TrimSpace(result.Explanation)
 	if text == "" || len([]rune(text)) > 1200 {
+		resultErr = ErrInvalidResponse
 		return "", ErrInvalidResponse
 	}
 	return text, nil
