@@ -49,7 +49,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
 - `backend/`: API REST em Go.
-- `database/migrations/`: migrações PostgreSQL até `000014`; as `000013` e `000014` já estão aplicadas na produção.
+- `database/migrations/`: migrações PostgreSQL até `000015`; as `000013` e `000014` já estão aplicadas na produção, enquanto a `000015` (fontes científicas do catálogo) permanece pendente de aplicação.
 - `database/tests/`: verificações SQL.
 - `api/openapi.yaml`: contrato da API local e de produção.
 - `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.

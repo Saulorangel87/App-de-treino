@@ -113,7 +113,7 @@ Cada novo protocolo também deverá declarar, em código:
 - **`xco-physiology-2026`** — Protzen et al. *The Physiology of Contemporary Olympic Cross-Country Mountain Biking: A Systematic Review*. 2026. Revisão de 53 estudos sobre o XCO contemporâneo; sustenta a especificidade intermitente, não uma receita fixa de séries. https://pubmed.ncbi.nlm.nih.gov/41739301/
 - **`xco-power-distribution-2021`** — *Aerobic and Anaerobic Power Distribution During Cross-Country Mountain Bike Racing*. 2021. Estudo de demanda de prova; descreve esforços curtos e repetidos acima da potência aeróbica máxima. https://pubmed.ncbi.nlm.nih.gov/33848975/
 - **`xco-pacing-2021`** — *Exercise Intensity and Pacing Pattern During a Cross-Country Olympic Mountain Bike Race*. 2021. Estudo de intensidade e pacing em prova XCO; usado somente para especificidade da modalidade. https://pubmed.ncbi.nlm.nih.gov/34349670/
-- **`gravel-field-2025`** — *Fluid Intake and Hydration Responses to Mass Participation Gravel Cycling*. 2025. Estudo de campo sobre gravel; informa contexto de distância e hidratação, não valida sozinho um protocolo de treino. https://pubmed.ncbi.nlm.nih.gov/39807388/
+- **`gravel-field-2024`** — *Fluid Intake and Hydration Responses to Mass Participation Gravel Cycling*. 2024. Estudo de campo sobre gravel; informa contexto de distância e hidratação, não valida sozinho um protocolo de treino. https://pubmed.ncbi.nlm.nih.gov/39807388/
 - **`dh-injury-2024`** — Fallon et al. *Downhill race for a rainbow jersey: the epidemiology of injuries in downhill mountain biking at the 2023 UCI cycling world championships*. 2024. Estudo observacional de lesões; usado como trava de segurança, não como prescrição. https://pubmed.ncbi.nlm.nih.gov/39411021/
 - **`mtb-crash-mechanisms-2025`** — Bonte et al. *Injury Mechanisms in Mountain Biking: A Systematic Video Analysis of 534 Cases*. 2025. Estudo de mecanismos de queda; reforça que habilidade técnica e prevenção não devem ser reduzidas a carga aeróbica. https://pubmed.ncbi.nlm.nih.gov/40534393/
 - **`track-sprint-load-2023`** — *Training load and intensity distribution for sprinting among world-class track cyclists*. 2023. Descrição de treinamento de velocistas de pista; modalidade fora do escopo do primeiro catálogo ampliado. https://pubmed.ncbi.nlm.nih.gov/36961508/
@@ -132,4 +132,3 @@ Antes de adicionar um protocolo ao motor, ele deverá passar por esta lista:
 8. Há teste automatizado para garantir que o protocolo não seja escolhido fora do contexto?
 
 Se uma resposta for “não”, a sessão permanece documentada como candidata e não entra no `rules-v1`.
-

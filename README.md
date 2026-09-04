@@ -17,7 +17,7 @@ Versão atual: `0.6.0` — resumo semanal de feedback, PWA e identidade visual C
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado chega à migração `000014` (resumo semanal de feedback).
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui a migração `000015` (fontes científicas do catálogo); ela ainda precisa ser aplicada nos ambientes que estiverem em `000014`.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
