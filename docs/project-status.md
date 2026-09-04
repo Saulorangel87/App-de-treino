@@ -96,6 +96,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - Dashboard, plano, atividades, avaliação, recuperação e evolução.
 - Modal de sessão no mobile, check visual de treinos concluídos e logout.
+- Informativo de novidades versionado no primeiro acesso autenticado: aparece uma vez por conta e versão neste navegador, com linguagem simples e os principais recursos da atualização.
 - PWA instalável, manifesto, ícones e tela offline segura.
 - Cache offline limitado a recursos estáticos; dados autenticados não entram no cache.
 - Interface em português do Brasil, responsiva e sem rolagem horizontal no mobile.

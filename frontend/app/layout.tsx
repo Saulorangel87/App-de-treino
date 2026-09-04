@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Geist, Newsreader } from 'next/font/google';
 import { AppFooter } from '@/components/app-footer';
+import { UpdateNotice } from '@/components/update-notice';
 import './globals.css';
 import './contrast-fixes.css';
 
@@ -93,6 +94,7 @@ export default function RootLayout({
       )}
       <body className={`${geist.variable} ${newsreader.variable}`}>
         {children}
+        <UpdateNotice />
         <AppFooter />
       </body>
     </html>

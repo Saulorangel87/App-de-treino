@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Code2, ContactRound, Download, Mail } from 'lucide-react';
+import { APP_VERSION } from '@/lib/release';
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -80,7 +81,7 @@ export function AppFooter() {
 
   return (
     <footer className="site-footer">
-      <p>© 2026 DESENVOLVIDO POR SAULO RANGEL <span>— V0.5.0</span></p>
+      <p>© 2026 DESENVOLVIDO POR SAULO RANGEL <span>— V{APP_VERSION}</span></p>
       <div className="footer-actions">
         {installPrompt && !installed && <button type="button" className="install-app" onClick={installApp}><Download size={14} />Instalar app</button>}
         {installed && <span className="installed-label"><span />App instalado</span>}
