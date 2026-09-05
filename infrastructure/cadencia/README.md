@@ -1,6 +1,6 @@
 # Produção do Cadência
 
-Esta estrutura implanta o Cadência de forma isolada na VPS Oracle. A composição inicial entrou em produção em 2 de setembro de 2026 e recebeu o último ajuste de interface no commit `33de28a` em 3 de setembro:
+Esta estrutura implanta o Cadência de forma isolada na VPS Oracle. A composição inicial entrou em produção em 2 de setembro de 2026. Em 4 de setembro, a versão funcional `5fbc668` foi publicada com a migração `000015`, seguida do commit `c768ef7`, que atualizou a comunicação da versão `0.7.0` no frontend:
 
 ```text
 Internet
@@ -76,7 +76,7 @@ docker compose --env-file infrastructure/cadencia/.env.production \
 
 O primeiro deploy que incluir o recurso deve executar as migrações `000013_user_feedback` e `000014_feedback_digest` pelo perfil `maintenance` antes de habilitar o timer. Se `FEEDBACK_DIGEST_TO` estiver vazio, o comando encerra sem enviar e-mail.
 
-No checkout atual, a migração `000015` registra as fontes científicas do catálogo e ainda está pendente na produção, que permanece até `000014`. Qualquer deploy que inclua o catálogo deve passar por revisão, backup verificável, execução ordenada pelo perfil `maintenance`, validação e autorização explícita; a atualização também deve registrar a novidade em `frontend/lib/release.ts` antes da publicação.
+No checkout atual e na produção, a migração `000015` registra as fontes científicas do catálogo. O catálogo inicial e o piloto `road_moderate_intervals` foram publicados após revisão, backup verificável, execução ordenada pelo perfil `maintenance`, validação e autorização explícita; a novidade foi registrada em `frontend/lib/release.ts` antes da publicação. Protocolos futuros continuam dependendo de revisão própria de elegibilidade, segurança e evidência.
 
 O Ollama é opcional e não é iniciado pelo comando acima. Ele foi instalado na VPS e permanece parado após o teste de capacidade; a produção usa temporariamente o Worker remoto para evitar sobrecarga. O padrão seguro continua sendo `AI_ENABLED=false`. Para preparar o serviço somente na rede interna do Cadência:
 
@@ -105,6 +105,8 @@ Após revisar e atualizar o repositório, crie um backup, execute o `build`, apl
 
 Para uma alteração somente de interface, como o ajuste dos gráficos mobile do commit `33de28a`, o procedimento usado em 3 de setembro de 2026 foi: atualizar o checkout por fast-forward, criar o backup preventivo, reconstruir somente `frontend`, executar `up -d frontend` e validar o domínio oficial. API, PostgreSQL, túnel e os demais aplicativos da VPS não precisam ser recriados quando não há mudança correspondente.
 
+No deploy funcional de 4 de setembro de 2026, o commit `5fbc668` foi atualizado por fast-forward, o backup `cadencia-20260905T003553Z.dump` foi criado e verificado, a migração `000015` foi aplicada pelo perfil `maintenance` e as imagens de API e frontend foram reconstruídas. Os containers `api` e `frontend` foram recriados; PostgreSQL e túnel permaneceram ativos. Em seguida, o commit `c768ef7` atualizou somente o frontend para publicar a nota da versão `0.7.0`.
+
 O deploy oficial deve sempre terminar em `https://cadencia.devsaulo.com.br` e `https://cadencia-api.devsaulo.com.br`, pela composição Docker desta pasta e pelo Cloudflare Tunnel dedicado. O ambiente Sites não faz parte da produção do Cadência e não deve ser usado como destino alternativo.
 
 ## Backup e restauração
@@ -118,7 +120,7 @@ sudo CADENCIA_BACKUP_DIR=/var/backups/cadencia \
   bash infrastructure/cadencia/scripts/backup-postgres.sh
 ```
 
-O diretório de produção é `/var/backups/cadencia`, com acesso do usuário `ubuntu`. O backup preventivo do deploy mais recente é `cadencia-20260904T023630Z.dump` (UTC). A validação estrutural do arquivo ocorre automaticamente. O backup anterior `cadencia-20260902T104801Z.dump` também foi restaurado com sucesso em um PostgreSQL 17 temporário: foram confirmadas 15 tabelas públicas e `cadencia_schema_migrations`, e o ambiente temporário foi removido sem alterar a produção. A cópia externa dos dumps ainda está pendente.
+O diretório de produção é `/var/backups/cadencia`, com acesso do usuário `ubuntu`. O backup preventivo do deploy funcional mais recente é `cadencia-20260905T003553Z.dump` (UTC). A validação estrutural do arquivo ocorre automaticamente. O backup anterior `cadencia-20260902T104801Z.dump` também foi restaurado com sucesso em um PostgreSQL 17 temporário: foram confirmadas 15 tabelas públicas e `cadencia_schema_migrations`, e o ambiente temporário foi removido sem alterar a produção. A cópia externa dos dumps ainda está pendente.
 
 ## Segurança operacional
 

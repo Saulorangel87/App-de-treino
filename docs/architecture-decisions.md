@@ -68,7 +68,7 @@ A primeira implementação de IA usa Ollama local como provedor opcional. `AI_EN
 
 **Status:** Aplicada.
 
-As migrações `000001` a `000015` estão versionadas no checkout local; em produção, estão aplicadas somente `000001` a `000014`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal e a `000015` registra fontes científicas do catálogo de ciclismo. O catálogo e o piloto `road_moderate_intervals` permanecem locais até revisão e autorização de publicação. Antes de uma mudança estrutural em produção, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
+As migrações `000001` a `000015` estão versionadas e aplicadas na produção. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal e a `000015` registra fontes científicas do catálogo de ciclismo. O catálogo inicial e o piloto `road_moderate_intervals` foram publicados após revisão e autorização; antes de qualquer nova mudança estrutural em produção, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
 
 ## ADR-006 — Feedback de produto
 
@@ -96,13 +96,17 @@ A próxima fase seguirá o roadmap de `melhorias.md` com foco exclusivo em cicli
 
 **Status:** Aceita e aplicada.
 
-Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a mudança em `UPDATE_NOTES`. O componente `UpdateNotice` apresenta as notas no primeiro acesso autenticado após a versão mudar e registra a confirmação por conta, versão e navegador usando armazenamento local. As notas não devem conter segredos. O piloto local de catálogo ainda precisa dessa atualização de release antes de qualquer publicação autorizada.
+Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a mudança em `UPDATE_NOTES`. O componente `UpdateNotice` apresenta as notas no primeiro acesso autenticado após a versão mudar e registra a confirmação por conta, versão e navegador usando armazenamento local. As notas não devem conter segredos. A versão `0.7.0` registrou o catálogo de ciclismo baseado em evidências e foi confirmada na produção.
 
 ## Estado de produção
 
 Em 3 de setembro de 2026, o commit `57c241a` foi implantado na VPS Oracle. A imagem da API, do job de digest e do frontend foi reconstruída com Go 1.25; as migrações `000013` e `000014` foram aplicadas após backup preventivo. O serviço Ollama permanece isolado e parado após a medição de capacidade, e a API usa temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.
 
 Ainda em 3 de setembro, o commit `33de28a` foi publicado por fast-forward na mesma VPS para corrigir a legibilidade dos períodos e da barra de rolagem dos gráficos da Evolução em telas pequenas. Somente `cadencia-frontend-1` foi reconstruído e recriado; API, PostgreSQL e túnel permaneceram ativos e saudáveis. As rotas públicas principal e `/evolucao` retornaram HTTP 200. O backup preventivo correspondente foi `cadencia-20260904T023630Z.dump` (timestamp em UTC).
+
+Em 4 de setembro de 2026, o commit `5fbc668` foi publicado por fast-forward na mesma VPS. O backup preventivo `cadencia-20260905T003553Z.dump` (UTC) foi criado e verificado, a migração `000015` foi aplicada pelo perfil `maintenance` e as imagens da API e do frontend foram reconstruídas. Os containers de API e frontend foram recriados; PostgreSQL e túnel permaneceram ativos e saudáveis. A API interna respondeu `{"status":"ready"}` e os dois domínios públicos retornaram HTTP 200.
+
+Na sequência, o commit `c768ef7` atualizou somente o frontend para publicar a versão `0.7.0` e a nota do catálogo. A nota apareceu no primeiro acesso autenticado de teste; o fluxo funcional do check-in de recuperação e os testes de latência, limites e fallback do Worker já haviam sido validados.
 
 O destino oficial de produção é a composição Docker na VPS Oracle, exposta pelos hostnames `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br` no Cloudflare Tunnel dedicado. Uma publicação privada acidental no Sites, feita durante uma tentativa de deploy, foi excluída pelo proprietário. O Sites não é um destino autorizado para futuras publicações do Cadência.
 
@@ -123,7 +127,7 @@ Validações realizadas:
 - `cadencia-backup.timer` está habilitado na VPS e executa diariamente às 03:30 UTC.
 - Os dumps ficam em `/var/backups/cadencia`, com retenção de 14 dias.
 - O script valida cada arquivo com `pg_restore --list`.
-- O backup preventivo do último deploy é `cadencia-20260904T023630Z.dump` (UTC).
+- O backup preventivo do último deploy funcional é `cadencia-20260905T003553Z.dump` (UTC).
 - O backup anterior, `cadencia-20260902T104801Z.dump`, permanece registrado e validado.
 - O teste completo de restauração foi concluído em 2 de setembro de 2026 com `cadencia-20260902T104801Z.dump`: a restauração em PostgreSQL 17 temporário terminou sem erro, validou 15 tabelas públicas e `cadencia_schema_migrations`, e o container temporário foi removido sem tocar a produção.
 
@@ -143,6 +147,6 @@ Nenhuma porta de outro aplicativo deve ser bloqueada sem mapear antes seus domí
 2. Monitorar a explicação autenticada pelo Worker remoto, sua latência, limites e acionamento do fallback determinístico; manter o Ollama parado.
 3. Implementar a classificação de prontidão e evoluir as regras em paralelo, sem remover o `rules-v1` antes da validação.
 4. Definir adaptação em ciclo fechado, progressão/carga e barreiras de integridade e segurança.
-5. Evoluir o catálogo de protocolos de ciclismo com elegibilidade e evidências próprias; o piloto local não é produção.
+5. Evoluir o catálogo de protocolos de ciclismo com elegibilidade e evidências próprias; o catálogo inicial e o piloto de estrada já estão em produção, enquanto novos protocolos permanecem condicionados à revisão.
 6. Definir cópia externa dos backups, monitoramento de falhas e alertas de saúde.
 7. Escolher a política de firewall e a lista mínima de portas públicas da VPS, preservando Tailscale, Cloudflare e os demais aplicativos.

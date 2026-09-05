@@ -1125,12 +1125,18 @@ O ajuste resolve a sobreposição dos intervalos semanais e da barra de rolagem 
 
 Durante o processo, uma cópia privada foi publicada por engano no ambiente Sites. Ela foi excluída manualmente pelo proprietário. A produção oficial continua sendo exclusivamente a VPS Oracle com o Cloudflare Tunnel dedicado; o Sites não deve ser usado como destino de deploy deste projeto.
 
+## Atualização operacional — publicação do catálogo e correção do check-in — 4 de setembro de 2026
+
+O commit `5fbc668` foi publicado na VPS Oracle por fast-forward. Foi criado e verificado o backup preventivo `cadencia-20260905T003553Z.dump` (UTC), a migração `000015` foi aplicada pelo perfil `maintenance` e as imagens da API e do frontend foram reconstruídas. Os containers de API e frontend foram recriados; PostgreSQL e túnel permaneceram ativos e saudáveis. A API interna respondeu `{"status":"ready"}` e os domínios públicos retornaram HTTP 200.
+
+Na sequência, o commit `c768ef7` atualizou somente o frontend para publicar a versão `0.7.0` e a nota sobre o catálogo de ciclismo baseado em evidências. A tela de novidades foi confirmada em uma conta autenticada. O check-in de recuperação foi validado em produção após a correção, com redução da próxima sessão para 20 minutos e RPE 4 quando os sinais combinados indicaram necessidade de recuperação.
+
 ## Próxima etapa registrada
 
-A próxima etapa é a estabilização acompanhada: coletar relatos reais pela aba `/feedback`, observar o primeiro resumo semanal enviado pelo Resend e medir latência, limites e fallback do Worker de IA em uso normal. Só depois dessa observação será ampliado o catálogo de protocolos específicos de ciclismo, com evidências e instruções operacionais mais amigáveis para cada sessão. Nenhuma etapa de IA generativa ou integração externa deve substituir o motor determinístico `rules-v1` antes dessa revisão.
+A próxima etapa é a observação acompanhada: aguardar relatos reais pela aba `/feedback` e observar o primeiro resumo semanal enviado pelo Resend. O fluxo de feedback já foi testado, e a latência, os limites e o fallback do Worker de IA já foram medidos; não há necessidade de repetir esses testes agora. A ampliação futura do catálogo de protocolos específicos de ciclismo deverá continuar com evidências e instruções operacionais mais amigáveis para cada sessão. Nenhuma etapa de IA generativa ou integração externa deve substituir o motor determinístico `rules-v1` antes dessa revisão.
 
 ## Direção atual da próxima fase — 4 de setembro de 2026
 
-Após o piloto local do catálogo e de intervalos moderados de estrada, o roadmap vigente da próxima fase está em [`melhorias.md`](melhorias.md). A primeira fatia deve tratar prontidão e qualidade dos dados; depois vêm a evolução versionada das regras, adaptação em ciclo fechado, progressão/carga, segurança, feedback e auditabilidade. O `rules-v1` deve ser preservado durante a validação, e o escopo permanece exclusivo de ciclismo.
+Após a publicação do catálogo inicial e do piloto de intervalos moderados de estrada, o roadmap vigente da próxima fase está em [`melhorias.md`](melhorias.md). A primeira fatia deve tratar prontidão e qualidade dos dados; depois vêm a evolução versionada das regras, adaptação em ciclo fechado, progressão/carga, segurança, feedback e auditabilidade. O `rules-v1` deve ser preservado durante a validação, e o escopo permanece exclusivo de ciclismo.
 
-Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a novidade em `UPDATE_NOTES`, para que ela apareça na tela de novidades após a atualização. A produção oficial continua no commit `33de28a`; os commits locais posteriores, a migração `000015` e o piloto de estrada ainda não foram publicados. Não fazer commit, deploy ou mudança de infraestrutura sem autorização explícita.
+Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a novidade em `UPDATE_NOTES`, para que ela apareça na tela de novidades após a atualização. A produção oficial está no commit `c768ef7`, com a API funcional publicada em `5fbc668`, a migração `000015` aplicada e a versão `0.7.0` confirmada na tela de novidades. Não fazer commit, deploy ou mudança de infraestrutura sem autorização explícita.

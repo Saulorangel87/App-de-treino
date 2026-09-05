@@ -18,15 +18,15 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - API: <https://cadencia-api.devsaulo.com.br>
 - VPS: Oracle Cloud, Ubuntu, acesso administrativo por SSH na porta 22.
 - Código na VPS: `/home/ubuntu/apps/cadencia`.
-- Commit implantado: `33de28a fix: ajusta gráficos da evolução no mobile`.
+- Commit implantado: `c768ef7 chore: registra novidades do catalogo de ciclismo`; a API funcional foi reconstruída a partir de `5fbc668`.
 - O Cloudflare Tunnel dedicado expõe somente frontend e API; o PostgreSQL não possui hostname, rota pública ou porta publicada.
 
 ## Estado do checkout local
 
-- O checkout local está no commit `4683999 feat: adiciona piloto de intervalos moderados na estrada`.
-- A sequência local recente inclui `5461cd6` (contexto por modalidade), `49f1dbd` (catálogo de evidências) e `4683999` (piloto de estrada).
-- A migração `000015` e o protocolo `road_moderate_intervals` existem localmente, mas ainda não foram aplicados ou publicados na produção. A VPS continua em `33de28a`, com o esquema de produção até `000014`.
-- Qualquer promoção desses itens exige revisão, backup, autorização explícita e atualização das notas de versão do produto.
+- O checkout local está no commit `c768ef7 chore: registra novidades do catalogo de ciclismo`, o mesmo commit ativo na VPS.
+- A sequência recente inclui `5461cd6` (contexto por modalidade), `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação) e `c768ef7` (nota de atualização).
+- A migração `000015`, o catálogo inicial e o protocolo `road_moderate_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
+- Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
 
 ## Arquitetura efetiva
 
@@ -56,7 +56,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
 - `backend/`: API REST em Go.
-- `database/migrations/`: migrações PostgreSQL até `000015`; as `000013` e `000014` já estão aplicadas na produção, enquanto a `000015` (fontes científicas do catálogo) permanece pendente de aplicação.
+- `database/migrations/`: migrações PostgreSQL até `000015`; as `000013` e `000014` sustentam feedback e resumo semanal, e a `000015` registra as fontes científicas do catálogo. Todas estão aplicadas na produção.
 - `database/tests/`: verificações SQL.
 - `api/openapi.yaml`: contrato da API local e de produção.
 - `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.
@@ -128,7 +128,7 @@ As rotas estão descritas em `api/openapi.yaml`. Os grupos principais são:
 ## Banco e migrações
 
 - Migrações versionadas no checkout local: `000001` a `000015`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal e a `000015` registra fontes científicas do catálogo de ciclismo.
-- Em produção, estão aplicadas `000001` a `000014`; a `000015` permanece pendente e não deve ser aplicada sem revisão, backup verificável e autorização explícita.
+- Em produção, estão aplicadas `000001` a `000015`. A `000015` foi executada pelo perfil `maintenance` após backup verificável, revisão e autorização explícita; novas migrações devem continuar seguindo essa ordem operacional.
 - `000012` adiciona confirmação de e-mail e recuperação de senha.
 - Produção possui registro de migrações em `cadencia_schema_migrations`.
 - O usuário da API não é superusuário; o proprietário do banco é reservado para operações administrativas.
@@ -149,6 +149,10 @@ Em 2 de setembro de 2026:
 - Cadastro, confirmação de e-mail, ativação de plano e recuperação de senha foram testados em produção; uma mensagem de confirmação caiu em spam, sem falha funcional.
 
 Em 3 de setembro de 2026, o commit `33de28a` foi atualizado na VPS por fast-forward. Foi criado e verificado o backup preventivo `cadencia-20260904T023630Z.dump` (UTC), somente o container `cadencia-frontend-1` foi reconstruído e recriado, e o túnel permaneceu ativo. O frontend interno e as rotas públicas `/` e `/evolucao` retornaram HTTP 200; API, frontend, PostgreSQL e túnel permaneceram saudáveis. O ajuste corrige a sobreposição dos períodos e da barra de rolagem nos gráficos em telas pequenas.
+
+Em 4 de setembro de 2026, o commit `5fbc668` foi atualizado na VPS por fast-forward. O backup preventivo `cadencia-20260905T003553Z.dump` (UTC) foi criado e verificado, a migração `000015` foi aplicada pelo perfil `maintenance` e as imagens de API e frontend foram reconstruídas. Os containers `cadencia-api-1` e `cadencia-frontend-1` foram recriados; PostgreSQL e túnel permaneceram ativos. A API respondeu `{"status":"ready"}` no endpoint interno `/ready`, e os domínios públicos retornaram HTTP 200.
+
+Na sequência, o commit `c768ef7` atualizou somente o frontend para publicar a versão `0.7.0` e a nota sobre o catálogo baseado em evidências. A página pública passou a entregar a versão `0.7.0`; a tela de novidades foi confirmada em uma conta autenticada.
 
 Durante uma tentativa inicial, uma cópia privada do frontend foi publicada por engano no ambiente Sites, fora da infraestrutura oficial. Ela foi excluída manualmente pelo proprietário e não tinha acesso público. O Sites não faz parte do fluxo de produção do Cadência; futuras publicações devem usar exclusivamente a VPS Oracle e o Cloudflare Tunnel dedicado.
 
@@ -208,7 +212,7 @@ Nesta primeira etapa, os relatos continuam centralizados no banco e não geram u
 3. Evoluir as regras em versão paralela, preservando `rules-v1` até que a nova versão esteja testada e auditável.
 4. Trabalhar adaptação em ciclo fechado, carga/progressão e integridade dos dados antes de ampliar a prescrição.
 5. Reforçar segurança, feedback pós-treino, explicabilidade e auditabilidade das decisões.
-6. Ampliar o catálogo de modalidades e protocolos de ciclismo somente com critérios de elegibilidade e referências próprias revisados; o piloto atual é local.
+6. Ampliar o catálogo de modalidades e protocolos de ciclismo somente com critérios de elegibilidade e referências próprias revisados; o catálogo inicial e o piloto atual já estão publicados.
 7. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
 8. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
 

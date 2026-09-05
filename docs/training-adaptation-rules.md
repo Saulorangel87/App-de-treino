@@ -105,7 +105,7 @@ Os percentuais e limiares acima são escolhas prudentes desta versão do produto
 
 ### Estado da expansão de evidências específicas de ciclismo
 
-As referências de ciclismo sobre periodização, cadência, testes submáximos e distribuição de intensidade foram mapeadas e estão descritas em [`cycling-evidence-catalog.md`](cycling-evidence-catalog.md). A migração `000015` e o primeiro protocolo `road_moderate_intervals` existem no checkout local; ainda não estão na produção, que permanece até `000014`. A ampliação deverá continuar após revisar elegibilidade, limites de transferência da evidência e parâmetros com profissional habilitado.
+As referências de ciclismo sobre periodização, cadência, testes submáximos e distribuição de intensidade foram mapeadas e estão descritas em [`cycling-evidence-catalog.md`](cycling-evidence-catalog.md). A migração `000015` e o primeiro protocolo `road_moderate_intervals` estão publicados na produção após revisão de elegibilidade, limites de transferência da evidência e parâmetros. A ampliação deverá continuar com revisão própria e profissional habilitado quando necessário.
 
 - Galán-Rioja et al. (2023): https://pubmed.ncbi.nlm.nih.gov/36640771/
 - Mater, Clos e Lepers (2021): https://pubmed.ncbi.nlm.nih.gov/34360206/
@@ -114,7 +114,7 @@ As referências de ciclismo sobre periodização, cadência, testes submáximos 
 
 ### Estado operacional para a próxima revisão
 
-O histórico observado, o feedback do usuário, o check-in de recuperação e o fallback da IA explicativa já estão disponíveis em produção. A próxima revisão deve usar relatos reais e o primeiro resumo semanal do Resend para avaliar se as adaptações estão compreensíveis e conservadoras antes de alterar os parâmetros do `rules-v1` ou ampliar o catálogo de protocolos.
+O histórico observado, o fluxo de feedback, o check-in de recuperação e o fallback da IA explicativa já estão disponíveis em produção. Os fluxos funcionais e a latência, os limites e o fallback do Worker já foram testados. A próxima revisão deve usar relatos reais e o primeiro resumo semanal do Resend para avaliar se as adaptações estão compreensíveis e conservadoras antes de alterar os parâmetros do `rules-v1` ou ampliar o catálogo de protocolos.
 
 ### Próxima evolução planejada
 

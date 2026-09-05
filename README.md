@@ -80,20 +80,20 @@ O MVP de ciclismo está publicado em produção real:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Produção implantada na VPS Oracle no commit `33de28a` (`fix: ajusta gráficos da evolução no mobile`).
+- Produção implantada na VPS Oracle no commit `c768ef7` (`chore: registra novidades do catalogo de ciclismo`), com a correção da API em `5fbc668` e a versão do produto `0.7.0`.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, confirmação de e-mail, recuperação de senha, onboarding, plano, treino, feedback, adaptação, atividades, evolução e logout foram validados.
 - Dependabot está com 0 alertas abertos; os testes Go, build Docker e `govulncheck` passaram.
-- A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013` e `000014` foram aplicadas na produção.
+- A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`, `000014` e `000015` foram aplicadas na produção.
 - O ajuste responsivo dos períodos nos gráficos da Evolução foi publicado e validado no domínio oficial; a rolagem horizontal interna agora preserva os rótulos no celular.
-- O checkout local está no commit `4683999`; a sequência recente inclui `5461cd6` (contexto por modalidade), `49f1dbd` (catálogo científico) e `4683999` (piloto de estrada). Esse trabalho ainda não está em produção; a produção oficial permanece em `33de28a` e nas migrações até `000014`.
+- O checkout local e a produção estão no commit `c768ef7`; a sequência inclui `5461cd6` (contexto por modalidade), `49f1dbd` (catálogo científico), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação) e `c768ef7` (nota de atualização). O catálogo inicial e o piloto de estrada estão publicados, sujeitos aos critérios de elegibilidade documentados.
 - Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts` (`APP_VERSION` e `UPDATE_NOTES`) para que a novidade seja exibida na tela de primeiro acesso após a atualização. O modal é mostrado uma vez por conta, versão e navegador.
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.
 
 A publicação oficial do Cadência é feita somente pela composição Docker da VPS, com `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br` no Cloudflare Tunnel dedicado. Uma cópia privada criada acidentalmente no Sites durante uma tentativa de deploy foi excluída; o Sites não faz parte do fluxo de produção.
 
-Depois da estabilização, a operação continua observando os primeiros relatos reais pela aba `/feedback`, a entregabilidade do resumo semanal e a latência/limites/fallback da explicação pelo Worker remoto. A próxima fase do produto segue o roadmap de `melhorias.md`: prontidão, evolução versionada das regras, adaptação em ciclo fechado, integridade dos dados, segurança, feedback e auditabilidade; depois, ampliação criteriosa do catálogo de ciclismo. O escopo permanece exclusivo de ciclismo nesta fase. O Ollama já está instalado e testado, mas permanece desligado por consumo elevado na VPS. Consulte `docs/README.md` e `docs/project-status.md` para a ordem completa.
+Depois da publicação, a operação aguarda os primeiros relatos reais pela aba `/feedback` e a confirmação da entregabilidade do resumo semanal na segunda-feira. O fluxo de feedback, a adaptação de recuperação e a latência, os limites e o fallback da explicação pelo Worker já foram testados. A próxima fase do produto segue o roadmap de `melhorias.md`: prontidão, evolução versionada das regras, adaptação em ciclo fechado, integridade dos dados, segurança, feedback e auditabilidade; depois, ampliação criteriosa do catálogo de ciclismo. O escopo permanece exclusivo de ciclismo nesta fase. O Ollama já está instalado e testado, mas permanece desligado por consumo elevado na VPS. Consulte `docs/README.md` e `docs/project-status.md` para a ordem completa.
 
 ## Licença
 
