@@ -10,6 +10,48 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+const planningTrainingHistoryQuery = `
+	WITH window_sizes(window_days) AS (VALUES (7), (28), (42)),
+	performed AS (
+		SELECT window_sizes.window_days,
+			COUNT(ws.id) AS performed_sessions,
+			COALESCE(SUM(COALESCE(ws.duration_minutes, 0)), 0) AS performed_minutes,
+			COUNT(ws.id) FILTER (WHERE ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10) AS sessions_with_load,
+			COUNT(ws.id) - COUNT(ws.id) FILTER (WHERE ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10) AS sessions_without_load,
+			COALESCE(SUM(ws.duration_minutes * ws.actual_rpe)
+				FILTER (WHERE ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10), 0)::double precision AS session_rpe_load
+		FROM window_sizes
+		LEFT JOIN workout_sessions ws
+			ON ws.athlete_profile_id = $1
+			AND ws.status = 'completed'
+			AND ws.completed_at >= now() - make_interval(days => window_sizes.window_days)
+			AND ws.completed_at <= now()
+		GROUP BY window_sizes.window_days
+	),
+	adherence AS (
+		SELECT window_sizes.window_days,
+			COUNT(w.id) FILTER (WHERE w.scheduled_on < CURRENT_DATE OR w.status IN ('completed', 'skipped')) AS expected_sessions,
+			COUNT(w.id) FILTER (WHERE w.status = 'completed') AS scheduled_completed_sessions,
+			COUNT(w.id) FILTER (WHERE w.status = 'skipped') AS cancelled_sessions,
+			COUNT(w.id) FILTER (WHERE w.scheduled_on < CURRENT_DATE AND w.status IN ('planned', 'adapted')) AS missed_sessions,
+			COUNT(w.id) FILTER (WHERE w.scheduled_on < CURRENT_DATE AND w.status = 'in_progress') AS overdue_in_progress_sessions
+		FROM window_sizes
+		LEFT JOIN training_plans tp
+			ON tp.athlete_profile_id = $1 AND tp.status IN ('active', 'completed')
+		LEFT JOIN workouts w
+			ON w.training_plan_id = tp.id
+			AND w.scheduled_on >= CURRENT_DATE - (window_sizes.window_days - 1)
+			AND w.scheduled_on <= CURRENT_DATE
+		GROUP BY window_sizes.window_days
+	)
+	SELECT performed.window_days, adherence.expected_sessions, adherence.scheduled_completed_sessions,
+		adherence.cancelled_sessions, adherence.missed_sessions, adherence.overdue_in_progress_sessions,
+		performed.performed_sessions, performed.performed_minutes, performed.sessions_with_load,
+		performed.sessions_without_load, performed.session_rpe_load
+	FROM performed
+	JOIN adherence USING (window_days)
+	ORDER BY performed.window_days`
+
 func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (planning.Context, error) {
 	var input planning.Context
 	var cyclingContext []byte
@@ -64,6 +106,10 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 		return planning.Context{}, err
 	}
 	input.Observed.RecoveryCheckins = int(recoveryCheckins)
+	input.TrainingHistory, err = s.trainingHistoryByProfileID(ctx, input.ProfileID)
+	if err != nil {
+		return planning.Context{}, err
+	}
 	if err := s.pool.QueryRow(ctx, `SELECT count(*) FROM training_plans WHERE athlete_profile_id = $1`, input.ProfileID).Scan(&input.RotationIndex); err != nil {
 		return planning.Context{}, err
 	}
@@ -119,6 +165,31 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 		return planning.Context{}, planning.ErrIncompleteOnboarding
 	}
 	return input, nil
+}
+
+func (s *Store) trainingHistoryByProfileID(ctx context.Context, profileID string) ([]planning.TrainingHistoryWindow, error) {
+	rows, err := s.pool.Query(ctx, planningTrainingHistoryQuery, profileID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	history := make([]planning.TrainingHistoryWindow, 0, 3)
+	for rows.Next() {
+		var window planning.TrainingHistoryWindow
+		if err := rows.Scan(
+			&window.WindowDays, &window.ExpectedSessions, &window.ScheduledCompletedSessions,
+			&window.CancelledSessions, &window.MissedSessions, &window.OverdueInProgressSessions,
+			&window.PerformedSessions, &window.PerformedMinutes, &window.SessionsWithSessionRPELoad,
+			&window.SessionsWithoutSessionRPELoad, &window.SessionRPELoad,
+		); err != nil {
+			return nil, err
+		}
+		history = append(history, window)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return history, nil
 }
 
 func (s *Store) SaveDraftPlan(ctx context.Context, profileID string, plan planning.Plan) (planning.Plan, error) {

@@ -47,7 +47,7 @@ func assessReadiness(input Context, now time.Time) ReadinessAssessment {
 		Reasons:           []ReadinessReason{},
 		MissingData:       []string{},
 		NotEvaluated: []string{
-			"adherence", "load_tolerance", "detraining", "trends_7_28_42d",
+			"adherence_for_prescription", "load_tolerance", "detraining", "trends_7_28_42d_for_prescription",
 			"latest_sleep_stress_fatigue", "assessment_recency", "within_window_variation",
 		},
 		ActiveLimitations: len(input.Limitations),

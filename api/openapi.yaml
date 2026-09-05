@@ -542,6 +542,8 @@ components:
           properties:
             readiness_assessment:
               $ref: '#/components/schemas/ReadinessAssessment'
+            training_history:
+              $ref: '#/components/schemas/TrainingHistorySnapshot'
         workouts:
           type: array
           items: { $ref: '#/components/schemas/Workout' }
@@ -580,6 +582,50 @@ components:
             sessions_with_feedback: { type: integer, minimum: 0 }
             complete_sessions: { type: integer, minimum: 0 }
             recovery_with_fatigue: { type: integer, minimum: 0 }
+    TrainingHistorySnapshot:
+      type: object
+      description: Medição observacional congelada na geração do plano. Não altera a prescrição do rules-v1.
+      required: [version, mode, captured_at, load_method, load_unit, adherence_basis, completion_time_basis, evidence_keys, windows, missing_data, data_issues, used_for_prescription]
+      properties:
+        version: { type: string, enum: [training-history-v1] }
+        mode: { type: string, enum: [observation] }
+        captured_at: { type: string, format: date-time }
+        load_method: { type: string, enum: [duration_minutes_x_actual_rpe] }
+        load_unit: { type: string, enum: [session_rpe_arbitrary_units] }
+        adherence_basis:
+          type: string
+          description: Sessões fechadas agrupadas pela data planejada; o treino aberto de hoje não reduz a taxa.
+        completion_time_basis:
+          type: string
+          description: Carga realizada em janela móvel pelo completed_at e relógio do banco.
+        evidence_keys: { type: array, items: { type: string } }
+        windows:
+          type: array
+          items: { $ref: '#/components/schemas/TrainingHistoryWindow' }
+        missing_data: { type: array, items: { type: string } }
+        data_issues: { type: array, items: { type: string } }
+        used_for_prescription:
+          type: boolean
+          enum: [false]
+    TrainingHistoryWindow:
+      type: object
+      required: [window_days, expected_sessions, scheduled_completed_sessions, cancelled_sessions, missed_sessions, overdue_in_progress_sessions, completion_rate_percent, performed_sessions, performed_minutes, sessions_with_session_rpe_load, sessions_without_session_rpe_load, session_rpe_load]
+      properties:
+        window_days: { type: integer, enum: [7, 28, 42] }
+        expected_sessions: { type: integer, minimum: 0 }
+        scheduled_completed_sessions: { type: integer, minimum: 0 }
+        cancelled_sessions: { type: integer, minimum: 0 }
+        missed_sessions: { type: integer, minimum: 0 }
+        overdue_in_progress_sessions: { type: integer, minimum: 0 }
+        completion_rate_percent:
+          oneOf:
+            - { type: number, minimum: 0, maximum: 100 }
+            - { type: 'null' }
+        performed_sessions: { type: integer, minimum: 0 }
+        performed_minutes: { type: integer, minimum: 0 }
+        sessions_with_session_rpe_load: { type: integer, minimum: 0 }
+        sessions_without_session_rpe_load: { type: integer, minimum: 0 }
+        session_rpe_load: { type: number, minimum: 0 }
     Workout:
       type: object
       required: [id, scheduled_on, name, objective, duration_minutes, target_rpe, structure, explanation, status]

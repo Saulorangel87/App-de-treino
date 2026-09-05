@@ -101,7 +101,7 @@ func TestReadinessClassification(t *testing.T) {
 			if result.ProgressionEligible || result.Mode != "observation" || result.ClassifierVersion != "readiness-v1" {
 				t.Fatalf("unexpected prescription authority: %+v", result)
 			}
-			for _, pending := range []string{"adherence", "load_tolerance", "detraining", "trends_7_28_42d", "latest_sleep_stress_fatigue"} {
+			for _, pending := range []string{"adherence_for_prescription", "load_tolerance", "detraining", "trends_7_28_42d_for_prescription", "latest_sleep_stress_fatigue"} {
 				if !slices.Contains(result.NotEvaluated, pending) {
 					t.Fatalf("missing limitation %q", pending)
 				}

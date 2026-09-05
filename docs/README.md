@@ -25,7 +25,7 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 
 ## Estado documentado neste ciclo
 
-A produção oficial registrada está no commit `c768ef7`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; a migração `000015`, o catálogo inicial e o piloto `road_moderate_intervals` foram publicados após backup, validação e autorização explícita. A versão comunicada ao usuário é `0.7.0`. A partir da base local `70103b0`, a primeira leitura observacional de prontidão foi implementada sem commit nem deploy. O estado e as lacunas de validação dessa entrega estão em [`project-status.md`](project-status.md); não confundir implementação local com produção.
+A produção oficial registrada está no commit `c768ef7`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; a migração `000015`, o catálogo inicial e o piloto `road_moderate_intervals` foram publicados após backup, validação e autorização explícita. A versão comunicada ao usuário é `0.7.0`. O checkout local está em `caea641`, que registra a primeira leitura observacional de prontidão, e contém uma segunda fatia ainda sem commit: histórico de aderência e carga em 7/28/42 dias. O estado e as lacunas de validação estão em [`project-status.md`](project-status.md); não confundir implementação local com produção.
 
 ## Organização avaliada
 

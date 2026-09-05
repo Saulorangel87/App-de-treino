@@ -98,7 +98,24 @@ Cobertura (`data_coverage`): sessões com duração positiva; RPE entre 1 e 10; 
 
 Testes automatizados em `backend/internal/planning/readiness_test.go`: contas novas, cobertura parcial/desconhecida, somente check-ins, duração zero, valores impossíveis/NaN/infinito, prioridades de dor/fadiga, limites existentes, independência de experiência/avaliação, determinismo, cópia dos dados, serialização JSON e invariância do plano quando muda apenas a cobertura. `go test -count=1 ./...` e `go vet ./...` passaram. O teste `pwsh -NoProfile -File scripts/test-readiness-queries.ps1` extrai as consultas do repositório e as executa no PostgreSQL local, com dados fictícios em CTEs e transação somente leitura: passaram histórico completo, campos incompletos, ausência de histórico e somente check-ins. Também verifica exclusão de sessões canceladas, antigas e de outro atleta, sem consultar ou alterar registros reais.
 
-Falta a conferência ponta a ponta da persistência via API/navegador: iniciar o ambiente local conforme `project-status.md`, gerar um rascunho em uma conta de teste, inspecionar `readiness_assessment` no response e reabrir o plano para comparar os dados. Não esperar mudança visual dos treinos. Não foi alterada a produção.
+Essa conferência foi concluída pelo proprietário: após gerar o rascunho, atualizar a tela e consultar `GET /v1/plans/current`, permaneceram iguais o ID do plano, `assessed_at`, a classificação, os motivos, as lacunas e os treinos. A prontidão observacional está persistindo no snapshot como previsto.
+
+## Histórico de aderência e carga em 7/28/42 dias (`training-history-v1`)
+
+Implementação local de 5 de setembro de 2026, ainda não publicada. Novos rascunhos congelam `prescription_snapshot.training_history` em modo `observation`; planos existentes não são recalculados. O campo é adjacente a `readiness_assessment` e mantém `used_for_prescription: false`, portanto não altera duração, RPE, estrutura ou escolha de sessão do `rules-v1`.
+
+Cada janela cumulativa de 7, 28 e 42 dias possui dois eixos:
+
+- aderência pelo `scheduled_on`: considera planos ativos ou concluídos e somente sessões cuja oportunidade já foi fechada. Uma sessão de hoje entra se estiver concluída ou cancelada; `planned`/`adapted` de hoje não prejudica a taxa. Em datas anteriores, `planned`/`adapted` contam como pendência vencida e `in_progress` fica identificado como em andamento vencido;
+- carga realizada pelo `completed_at`: considera sessões concluídas do atleta entre o início da janela móvel e o relógio atual do banco. Sessão futura é excluída. Duração nula/zero ou RPE fora de 1 a 10 impedem apenas o cálculo de carga daquela sessão e aumentam `sessions_without_session_rpe_load`.
+
+A taxa de conclusão é `scheduled_completed_sessions / expected_sessions × 100`; quando não existe sessão esperada, retorna `null`, não zero. `session_rpe_load` é a soma de `duração em minutos × RPE real`, em unidades arbitrárias. A base científica é o uso de session-RPE para monitoramento de carga interna (`foster-2001`, `haddad-2017`, `impellizzeri-2020`), com as limitações já documentadas: essa medida não representa sozinha resposta fisiológica, risco, recuperação ou prontidão para progredir.
+
+As janelas se sobrepõem e não são usadas como ACWR. Não existe nesta versão limiar automático para boa/baixa aderência, queda importante de volume, destreinamento ou tolerância. Pedais externos, atividades não iniciadas pelo Cadência e motivos da não conclusão não estão disponíveis; por isso a medição descreve o uso registrado no app e não deve ser apresentada como julgamento do atleta. A data planejada segue `CURRENT_DATE` do PostgreSQL e a janela realizada segue `now()` do banco; um fuso por atleta ainda não existe e deverá ser definido antes de decisões sensíveis à virada do dia.
+
+Testes: `backend/internal/planning/history_test.go` cobre ordenação, taxas, ausência de denominador, cobertura incompleta, entradas inconsistentes, determinismo, serialização e invariância da prescrição. `scripts/test-training-history-query.ps1` extrai a consulta usada pelo repositório e a executa com fixtures sintéticas em transação somente leitura. A suíte Go sem cache passou antes do último ajuste defensivo; depois dele, os pacotes alterados passaram novamente. Uma repetição de `internal/httpapi`, não alterado nesta fatia, foi impedida pelo Controle de Aplicativos do Windows ao abrir o executável temporário, embora o pacote já tivesse passado na suíte anterior. `go vet`, build do frontend e validação do OpenAPI passaram.
+
+A persistência foi confirmada manualmente no `GET /v1/plans/current`, com as três janelas, `data_issues` vazio e modo observacional preservado. Na conta usada, cinco sessões concluídas tinham duração zero e não havia sessão planejada já fechada nas janelas. O resultado correto foi taxa `null`, carga zero acompanhada de lacunas de cobertura e nenhuma mudança visual ou de prescrição.
 
 ## IA explicativa opcional
 

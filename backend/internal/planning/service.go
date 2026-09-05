@@ -80,6 +80,7 @@ type Context struct {
 	Availability     []AvailabilitySlot
 	Cycling          CyclingContext
 	Observed         ObservedTrainingSummary
+	TrainingHistory  []TrainingHistoryWindow
 	BaselineEligible bool
 	RotationIndex    int
 }
@@ -357,6 +358,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 		PrescriptionSnapshot: map[string]any{
 			"engine_version":       "rules-v1",
 			"readiness_assessment": assessReadiness(input, now),
+			"training_history":     buildTrainingHistorySnapshot(input.TrainingHistory, now),
 			"experience_level":     input.ExperienceLevel,
 			"primary_goal":         input.PrimaryGoal,
 			"restricted":           restricted,

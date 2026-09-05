@@ -88,6 +88,56 @@ export type Activity = {
   feedback?: WorkoutFeedback;
 };
 
+export type ReadinessAssessment = {
+  classifier_version: 'readiness-v1';
+  mode: 'observation';
+  scope: 'observed_history_28d';
+  assessed_at: string;
+  status: 'insufficient_data' | 'caution' | 'recovery_needed' | 'stable';
+  reasons: Array<{ code: string; message: string }>;
+  missing_data: string[];
+  not_evaluated: string[];
+  progression_eligible: false;
+  active_limitations: number;
+  data_coverage?: {
+    sessions_with_duration: number;
+    sessions_with_rpe: number;
+    sessions_with_feedback: number;
+    complete_sessions: number;
+    recovery_with_fatigue: number;
+  };
+};
+
+export type TrainingHistoryWindow = {
+  window_days: 7 | 28 | 42;
+  expected_sessions: number;
+  scheduled_completed_sessions: number;
+  cancelled_sessions: number;
+  missed_sessions: number;
+  overdue_in_progress_sessions: number;
+  completion_rate_percent: number | null;
+  performed_sessions: number;
+  performed_minutes: number;
+  sessions_with_session_rpe_load: number;
+  sessions_without_session_rpe_load: number;
+  session_rpe_load: number;
+};
+
+export type TrainingHistorySnapshot = {
+  version: 'training-history-v1';
+  mode: 'observation';
+  captured_at: string;
+  load_method: 'duration_minutes_x_actual_rpe';
+  load_unit: 'session_rpe_arbitrary_units';
+  adherence_basis: string;
+  completion_time_basis: string;
+  evidence_keys: string[];
+  windows: TrainingHistoryWindow[];
+  missing_data: string[];
+  data_issues: string[];
+  used_for_prescription: false;
+};
+
 export type TrainingPlan = {
   id: string;
   starts_on: string;
@@ -99,6 +149,8 @@ export type TrainingPlan = {
     primary_goal?: string;
     restricted?: boolean;
     sessions_per_week?: number;
+    readiness_assessment?: ReadinessAssessment;
+    training_history?: TrainingHistorySnapshot;
     observed_training?: {
       window_days?: number;
       completed_sessions?: number;
