@@ -108,6 +108,24 @@ export type ReadinessAssessment = {
   };
 };
 
+export type RulesV2ShadowAssessment = {
+  version: 'rules-v2';
+  mode: 'shadow';
+  scope: 'plan_generation_only';
+  assessed_at: string;
+  status: 'not_evaluated' | 'protective_signal' | 'observation_only';
+  candidate_response: 'not_evaluated' | 'prefer_recovery' | 'maintain_observed';
+  rules_evaluated: string[];
+  rules_deferred: string[];
+  reasons: Array<{ code: string; message: string }>;
+  missing_data: string[];
+  data_issues: string[];
+  not_evaluated: string[];
+  progression_eligible: false;
+  applied: false;
+  used_for_prescription: false;
+};
+
 export type TrainingHistoryWindow = {
   window_days: 7 | 28 | 42;
   expected_sessions: number;
@@ -208,6 +226,7 @@ export type TrainingPlan = {
     primary_goal?: string;
     restricted?: boolean;
     sessions_per_week?: number;
+    rules_v2_shadow?: RulesV2ShadowAssessment;
     readiness_assessment?: ReadinessAssessment;
     training_history?: TrainingHistorySnapshot;
     observed_training?: {

@@ -142,6 +142,18 @@ O contrato é `period-comparison-v1`, em `mode: observation`, com `used_for_pres
 
 Os testes unitários verificam ordenação, seis períodos, taxas, separação das medições, invariância da prescrição e rejeição de período que não tenha sete dias. `scripts/test-training-history-query.ps1` executa a consulta real com fixtures sintéticas em transação somente leitura e verifica os seis blocos, inclusive as fronteiras temporais e o isolamento do atleta. A validação manual via API ainda deve ser feita em um novo rascunho antes de qualquer commit ou publicação.
 
+### Avaliação shadow do motor (`rules-v2`)
+
+O `rules-v2` começou em paralelo, sem substituir o `rules-v1`. Durante a geração de um novo rascunho, `prescription_snapshot.rules_v2_shadow` avalia três gates determinísticos: integridade do período, sinais protetivos e evidência mínima para progressão. O resultado é congelado no snapshot com `mode: shadow` e escopo `plan_generation_only`.
+
+Os estados possíveis são:
+
+- `protective_signal` / `prefer_recovery`: há limitação ativa, dor, fadiga elevada ou necessidade de recuperação observada; a resposta candidata é protetiva, mas não é aplicada pelo shadow;
+- `observation_only` / `maintain_observed`: existem dois períodos recentes com sessão, carga session-RPE e feedback completos, além de um check-in de recuperação completo nos últimos 14 dias, sem sinal protetivo;
+- `not_evaluated`: faltam períodos, cobertura mínima ou integridade dos dados para comparar a resposta.
+
+Mesmo no segundo estado, não há autorização para progressão. A avaliação registra regras adiadas, motivos, lacunas e inconsistências, mantendo `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. Ela não calcula destreinamento, tolerância, mudança fisiológica, ACWR ou resposta fora do Cadência. O próximo passo é comparar os resultados em cenários controlados antes de permitir qualquer efeito prescritivo.
+
 ## IA explicativa opcional
 
 O endpoint de explicação envia ao modelo apenas o nome, objetivo, duração, RPE-alvo, regras e escopo de evidência do treino. O modelo deve explicar a decisão em duas ou três frases; não recebe autorização para criar etapas, alterar carga, inventar referências ou interpretar sintomas. A integração usa Ollama local com limites de tempo, saída e concorrência e pode usar a rota protegida do Worker como fallback (Groq `openai/gpt-oss-20b`). Enquanto `AI_ENABLED=false`, ou quando os provedores estiverem indisponíveis, a API devolve o resumo validado pelo `rules-v1`.
