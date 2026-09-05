@@ -23,8 +23,8 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 ## Estado do checkout local
 
-- Checkout local no commit `64e554d feat: adiciona avaliação shadow do rules-v2`. A validação manual e a matriz controlada da quinta fatia foram concluídas; o teste regressivo adicional descrito abaixo ainda está modificado localmente, sem commit nem deploy. Não confundir nenhuma delas com a versão publicada na VPS.
-- A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos) e `64e554d` (avaliação shadow do `rules-v2`).
+- Checkout local no commit `2359c3f test: amplia validação do rules-v2 shadow`. A validação manual e a matriz controlada da quinta fatia foram concluídas; a sexta fatia descrita abaixo está modificada localmente, sem commit nem deploy. Não confundir nenhuma delas com a versão publicada na VPS.
+- A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`) e `2359c3f` (matriz de validação ampliada).
 - A migração `000015`, o catálogo inicial e o protocolo `road_moderate_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
 
@@ -91,6 +91,16 @@ Arquivos desta fatia: `backend/internal/planning/history.go`, `backend/internal/
 - Validação concluída com uma ressalva operacional: os testes específicos e a suíte Go passaram nos pacotes executados; a execução agregada foi bloqueada apenas pelo Controle de Aplicativos do Windows ao abrir o executável temporário de `internal/repository`, mas o mesmo pacote passou quando compilado e executado dentro do workspace. `go vet`, build do frontend, validação do OpenAPI e a consulta PostgreSQL sintética também passaram. A conferência manual via API confirmou `protective_signal`, `prefer_recovery`, `applied: false`, `used_for_prescription: false`, `progression_eligible: false`, `missing_data: []` e `data_issues: []`. A matriz controlada confirmou cenários de evidência completa, sinal protetivo, dados insuficientes, período inconsistente e invariância dos treinos do `rules-v1` com ou sem dados do shadow.
 
 Arquivos desta fatia: `backend/internal/planning/rules_v2.go`, `backend/internal/planning/rules_v2_test.go`, `backend/internal/planning/service.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `README.md`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alterados `melhorias.md`, migrações, infraestrutura ou notas de versão.
+
+### Sexta fatia de melhorias — adaptação pós-treino em shadow (local, sem commit)
+
+- `backend/internal/planning/rules_v2_adaptation.go` cria `rules-v2-adaptation-v1`, uma avaliação pura e determinística da resposta ao feedback pós-treino. Ela não é chamada pelo salvamento do feedback e não altera o trigger ativo do `rules-v1`.
+- Dor, esforço muito alto, fadiga máxima ou sinal protetivo recente produzem a candidata `prefer_recovery`. Uma resposta dentro do esperado produz `maintain_observed`.
+- Uma resposta claramente fácil sozinha produz `defer_progression`; somente dois períodos recentes íntegros, com carga session-RPE, feedback completo e recuperação registrada, permitem registrar a candidata `progress_duration_5pct`. Mesmo nesse caso, `progression_eligible`, `applied` e `used_for_prescription` permanecem `false`.
+- Dados insuficientes ou inconsistentes ficam em `missing_data`/`data_issues`. Não são avaliados destreinamento, tolerância, mudança fisiológica, atividades fora do Cadência ou efeito da prescrição.
+- Testes direcionados passaram nos quatro cenários da adaptação shadow e nos cenários anteriores do `rules-v2`. Não houve migração, mudança visual, infraestrutura, publicação nem alteração de `APP_VERSION`/`UPDATE_NOTES`.
+
+Arquivos desta fatia: `backend/internal/planning/rules_v2_adaptation.go` e `backend/internal/planning/rules_v2_adaptation_test.go`, além desta atualização documental. O próximo passo é revisar a regra candidata e decidir se ela será apenas observacional por mais tempo ou integrada de forma transacional e explicitamente versionada.
 
 ### Topologia mantida
 

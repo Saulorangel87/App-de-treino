@@ -154,6 +154,19 @@ Os estados possíveis são:
 
 Mesmo no segundo estado, não há autorização para progressão. A avaliação registra regras adiadas, motivos, lacunas e inconsistências, mantendo `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. Ela não calcula destreinamento, tolerância, mudança fisiológica, ACWR ou resposta fora do Cadência. A conferência manual da API e a matriz controlada confirmaram os estados, as barreiras e a invariância dos treinos do `rules-v1`; um teste regressivo adicional mantém essa garantia localmente.
 
+### Primeiro desenho de adaptação pós-treino (`rules-v2-adaptation-v1`)
+
+O `rules-v1` já possui uma adaptação pós-feedback ativa no trigger `feedback_adapts_future_workouts`. A sexta fatia cria apenas uma avaliação paralela em Go, ainda não chamada pelo fluxo de conclusão e sem alteração de duração, RPE, estímulo ou status no banco. Isso permite revisar a regra candidata sem substituir o comportamento já testado.
+
+O avaliador recebe o RPE-alvo, o feedback validado da sessão e os períodos observados. Ele mantém quatro gates explícitos:
+
+- feedback e alvo precisam ser válidos;
+- dor, esforço muito alto, fadiga máxima ou sinal protetivo recente bloqueiam progressão e produzem `prefer_recovery`;
+- resposta dentro do esperado produz `maintain_observed`;
+- uma resposta claramente fácil só pode produzir `progress_duration_5pct` como candidata se houver seis períodos íntegros, dois períodos recentes com sessões, carga session-RPE e feedback completos, além de recuperação completa registrada nesses períodos. Sem isso, produz `defer_progression`.
+
+Mesmo com evidência suficiente, a candidata permanece em `mode: shadow`, com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. O módulo não infere destreinamento, tolerância, mudança fisiológica, efeito da prescrição ou dados de atividades fora do Cadência. Os testes cobrem resposta fácil isolada, evidência completa, dor e período inconsistente. O próximo passo de implementação, se aprovado, é definir a forma de observação transacional dessa avaliação no feedback antes de qualquer integração com a adaptação ativa.
+
 ## IA explicativa opcional
 
 O endpoint de explicação envia ao modelo apenas o nome, objetivo, duração, RPE-alvo, regras e escopo de evidência do treino. O modelo deve explicar a decisão em duas ou três frases; não recebe autorização para criar etapas, alterar carga, inventar referências ou interpretar sintomas. A integração usa Ollama local com limites de tempo, saída e concorrência e pode usar a rota protegida do Worker como fallback (Groq `openai/gpt-oss-20b`). Enquanto `AI_ENABLED=false`, ou quando os provedores estiverem indisponíveis, a API devolve o resumo validado pelo `rules-v1`.
