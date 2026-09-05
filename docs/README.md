@@ -25,7 +25,7 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 
 ## Estado documentado neste ciclo
 
-A produção oficial registrada está no commit `c768ef7`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; a migração `000015`, o catálogo inicial e o piloto `road_moderate_intervals` foram publicados após backup, validação e autorização explícita. A versão comunicada ao usuário é `0.7.0`. O checkout local está no commit `34efbe2`, que já versiona prontidão observacional, histórico 7/28/42, qualidade temporal, comparação por períodos, as avaliações shadow do `rules-v2`, a observação transacional pós-treino, o ajuste de inicialização local da API, a matriz controlada e o gate de integridade; o piloto `xco_aerobic_intervals` e a migração `000016` estão modificados localmente e ainda não foram publicados. O estado e as lacunas de validação estão em [`project-status.md`](project-status.md); não confundir implementação local com produção.
+A produção oficial registrada está no commit `9d8c624`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; as migrações `000015` e `000016`, o catálogo inicial, o piloto `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram publicados após backup, validação e autorização explícita. A versão comunicada ao usuário é `0.8.0`, e a release correspondente está no GitHub. O checkout local também está no commit `9d8c624`, com a mesma base publicada. O estado e as lacunas de validação estão em [`project-status.md`](project-status.md); não confundir implementação local com produção.
 
 ## Organização avaliada
 

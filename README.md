@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão atual: `0.6.0` — resumo semanal de feedback, PWA e identidade visual Cadência. Consulte o [release v0.6.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.6.0).
+Versão atual: `0.8.0` — piloto aeróbico específico para MTB XCO, com seleção baseada em evidências. Consulte o [release v0.8.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.8.0).
 
 ## Estrutura
 
@@ -82,13 +82,13 @@ O MVP de ciclismo está publicado em produção real:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Produção implantada na VPS Oracle no commit `c768ef7` (`chore: registra novidades do catalogo de ciclismo`), com a correção da API em `5fbc668` e a versão do produto `0.7.0`.
+- Produção implantada na VPS Oracle no commit `9d8c624` (`feat: adiciona piloto aeróbico para MTB XCO`), com a migração `000016` aplicada e a versão do produto `0.8.0`.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, confirmação de e-mail, recuperação de senha, onboarding, plano, treino, feedback, adaptação, atividades, evolução e logout foram validados.
 - Dependabot está com 0 alertas abertos; os testes Go, build Docker e `govulncheck` passaram.
-- A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`, `000014` e `000015` foram aplicadas na produção.
+- A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`, `000014`, `000015` e `000016` foram aplicadas na produção.
 - O ajuste responsivo dos períodos nos gráficos da Evolução foi publicado e validado no domínio oficial; a rolagem horizontal interna agora preserva os rótulos no celular.
-- A produção permanece em `c768ef7`, com a API funcional de `5fbc668`. O checkout local está no commit `34efbe2`, que versiona o gate observacional de integridade; o piloto de intervalos aeróbicos XCO e a migração `000016` estão modificados localmente e ainda não foram publicados. O catálogo inicial e o piloto de estrada estão publicados, sujeitos aos critérios de elegibilidade documentados.
+- A produção e o checkout local estão no commit `9d8c624`. O catálogo inicial, o piloto de estrada e o piloto de intervalos aeróbicos XCO estão publicados, sujeitos aos critérios de elegibilidade documentados.
 - Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts` (`APP_VERSION` e `UPDATE_NOTES`) para que a novidade seja exibida na tela de primeiro acesso após a atualização. O modal é mostrado uma vez por conta, versão e navegador.
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.

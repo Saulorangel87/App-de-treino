@@ -18,14 +18,15 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - API: <https://cadencia-api.devsaulo.com.br>
 - VPS: Oracle Cloud, Ubuntu, acesso administrativo por SSH na porta 22.
 - Código na VPS: `/home/ubuntu/apps/cadencia`.
-- Commit implantado: `c768ef7 chore: registra novidades do catalogo de ciclismo`; a API funcional foi reconstruída a partir de `5fbc668`.
+- Commit implantado: `9d8c624 feat: adiciona piloto aeróbico para MTB XCO`; a API e o frontend foram reconstruídos a partir desse commit.
+- O backup preventivo `cadencia-20260905T221541Z.dump` foi criado e verificado antes do deploy. A migração `000016` foi aplicada pelo perfil `maintenance`; API e frontend ficaram saudáveis, o PostgreSQL permaneceu saudável e o túnel continuou ativo. O endpoint interno `/ready` e os dois domínios públicos retornaram sucesso.
 - O Cloudflare Tunnel dedicado expõe somente frontend e API; o PostgreSQL não possui hostname, rota pública ou porta publicada.
 
 ## Estado do checkout local
 
-- Checkout local no commit `34efbe2 feat: adiciona gate observacional de integridade`. A validação manual e as matrizes controladas das fatias anteriores foram concluídas; a nona fatia está versionada localmente, sem deploy. A décima fatia, o piloto XCO descrito abaixo, está modificada localmente, sem commit nem deploy. Não confundir nenhuma delas com a versão publicada na VPS.
+- Checkout local no commit `9d8c624 feat: adiciona piloto aeróbico para MTB XCO`. A validação manual e as matrizes controladas das fatias anteriores foram concluídas; a nona fatia e a décima fatia, o piloto XCO descrito abaixo, foram versionadas e publicadas na VPS. A release `v0.8.0` também foi publicada no GitHub.
 - A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local) e `9034287` (matriz comparativa).
-- A migração `000015`, o catálogo inicial e o protocolo `road_moderate_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
+- As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
 
 ## Arquitetura efetiva
@@ -129,13 +130,13 @@ Arquivos desta fatia: `backend/internal/planning/rules_v2_adaptation.go`, `backe
 
 Arquivos desta fatia: `backend/internal/planning/data_integrity.go`, `backend/internal/planning/data_integrity_test.go`, `backend/internal/planning/rules_v2_adaptation.go`, `backend/internal/planning/rules_v2_adaptation_test.go`, `backend/internal/repository/workout_sessions.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `README.md`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alteradas migrações, infraestrutura ou notas de versão.
 
-### Décima fatia de melhorias — piloto local de intervalos aeróbicos XCO (sem commit; sem publicação)
+### Décima fatia de melhorias — piloto publicado de intervalos aeróbicos XCO
 
 - O catálogo passa a selecionar `xco_aerobic_intervals` somente quando a disciplina `mtb_xco` é informada explicitamente, o atleta é avançado, o objetivo é performance ou prova, a avaliação submáxima está apta, há pelo menos 75 minutos disponíveis, a semana não é de recuperação e não há proteção ativa por limitação, dor ou sinais recentes de recuperação insuficiente.
 - A sessão usa cinco blocos de 4 minutos com 4 minutos leves, alvo RPE 7 e uma única sessão de qualidade no ciclo. É uma adaptação conservadora do HIT estudado em mountain bikers treinados; não inclui sprint máximo, técnica de trilha, descida, salto ou meta rígida de potência.
-- A migração `000016` registra `xco-hit-2016`, um ensaio randomizado de 2016. A revisão sistemática contemporânea de XCO de 2026 orienta a especificidade intermitente, mas ressalta a escassez de avaliações diretas de desempenho; por isso, o protocolo ainda é piloto local e não está na produção.
+- A migração `000016` registra `xco-hit-2016`, um ensaio randomizado de 2016. A revisão sistemática contemporânea de XCO de 2026 orienta a especificidade intermitente, mas ressalta a escassez de avaliações diretas de desempenho; por isso, o protocolo permanece um piloto publicado apenas para o perfil elegível.
 - Gravel continua apenas como contexto de endurance, sem protocolo próprio baseado em um único estudo de campo. Pista sprint/BMX e downhill/enduro permanecem bloqueados nesta fase.
-- Como a seleção é visível ao atleta, `frontend/lib/release.ts` foi atualizado para a versão `0.8.0` e a tela de novidades passou a explicar o piloto XCO. A migração `000016`, a nova regra e a nota ainda precisam de validação local antes de qualquer publicação.
+- Como a seleção é visível ao atleta, `frontend/lib/release.ts` foi atualizado para a versão `0.8.0` e a tela de novidades passou a explicar o piloto XCO. A migração `000016`, a nova regra e a nota foram validadas localmente e publicadas após backup e autorização.
 
 Arquivos desta fatia: `backend/internal/planning/protocols.go`, `backend/internal/planning/service.go`, `backend/internal/planning/service_test.go`, `database/migrations/000016_xco_catalog_evidence.up.sql`, `database/migrations/000016_xco_catalog_evidence.down.sql`, `docs/cycling-evidence-catalog.md`, `docs/training-adaptation-rules.md`, `docs/architecture-decisions.md`, `frontend/lib/release.ts`, `README.md`, `docs/README.md` e `planejamento.md`. Não foram alteradas infraestrutura ou regras prescritivas do shadow.
 
@@ -167,7 +168,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
 - `backend/`: API REST em Go.
-- `database/migrations/`: migrações PostgreSQL até `000016`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes científicas do catálogo inicial e a `000016` registra a fonte do piloto XCO. Em produção, somente até `000015` está aplicado.
+- `database/migrations/`: migrações PostgreSQL até `000016`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes científicas do catálogo inicial e a `000016` registra a fonte do piloto XCO. Em produção, todas até `000016` estão aplicadas.
 - `database/tests/`: verificações SQL.
 - `api/openapi.yaml`: contrato da API local e de produção.
 - `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.
@@ -217,7 +218,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 - Modal de sessão no mobile, check visual de treinos concluídos e logout.
 - O painel principal prioriza a sessão em andamento antes de procurar o próximo treino planejado, mantendo o estado consistente após iniciar pela tela inicial.
 - Os gráficos semanais da Evolução exibem o intervalo completo de cada semana para deixar claro que os valores são agrupados por período de sete dias.
-- Informativo de novidades versionado no primeiro acesso autenticado: aparece uma vez por conta e versão neste navegador, com linguagem simples e os principais recursos da atualização. Cada funcionalidade visível deve atualizar `APP_VERSION` e `UPDATE_NOTES` na mesma entrega; essa exigência ainda fica pendente para qualquer publicação do piloto local.
+- Informativo de novidades versionado no primeiro acesso autenticado: aparece uma vez por conta e versão neste navegador, com linguagem simples e os principais recursos da atualização. Cada funcionalidade visível deve atualizar `APP_VERSION` e `UPDATE_NOTES` na mesma entrega; essa exigência foi cumprida na publicação do piloto XCO em `0.8.0`.
 - PWA instalável, manifesto, ícones e tela offline segura.
 - Cache offline limitado a recursos estáticos; dados autenticados não entram no cache.
 - Interface em português do Brasil, responsiva e sem rolagem horizontal indevida no mobile; os gráficos que precisam mostrar oito períodos usam rolagem interna controlada.
@@ -326,7 +327,7 @@ Nesta primeira etapa, os relatos continuam centralizados no banco e não geram u
 6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
 7. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
 
-O feedback real e o primeiro envio automático do Resend seguem em paralelo, sem bloquear as melhorias. Os testes manuais de e-mail e de latência/limites/fallback já foram realizados e não precisam ser repetidos como condição para avançar. A operação de produção não foi alterada nesta etapa.
+O feedback real e o primeiro envio automático do Resend seguem em paralelo, sem bloquear as melhorias. Os testes manuais de e-mail e de latência/limites/fallback já foram realizados e não precisam ser repetidos como condição para avançar. O deploy do piloto XCO foi concluído e a operação deve observar seu uso somente dentro dos critérios de elegibilidade documentados.
 
 ## Como iniciar localmente
 

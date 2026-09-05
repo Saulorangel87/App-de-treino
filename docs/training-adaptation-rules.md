@@ -49,7 +49,7 @@ O motor mantém uma biblioteca explícita de protocolos em código. Cada protoco
 - `power_sweet_spot` e `progressive_sweet_spot`: blocos sustentáveis; o FTP contextualiza a sessão, mas não cria metas rígidas automaticamente.
 - `controlled_event_pace`: blocos sustentáveis orientados à meta de prova, sem simular a prova completa.
 - `controlled_intervals`: quatro blocos de 4 minutos com 3 minutos leves, liberados somente para o perfil avançado elegível.
-- `xco_aerobic_intervals`: cinco blocos de 4 minutos com 4 minutos leves, piloto local restrito a XCO avançado elegível; não inclui sprint máximo, descida ou técnica de trilha.
+- `xco_aerobic_intervals`: cinco blocos de 4 minutos com 4 minutos leves, piloto publicado restrito a XCO avançado elegível; não inclui sprint máximo, descida ou técnica de trilha.
 - `protected_recovery`: giro leve protegido quando existe uma limitação ativa.
 
 As referências associadas sustentam princípios como progressão gradual, monitoramento de carga e uso contextual de intervalos. O ensaio de HIT em mountain bikers treinados e a revisão sistemática contemporânea de XCO orientam o piloto, mas não validam a mesma carga para todas as pessoas; os parâmetros continuam sujeitos às regras de segurança do produto.

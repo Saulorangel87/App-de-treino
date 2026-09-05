@@ -76,7 +76,7 @@ docker compose --env-file infrastructure/cadencia/.env.production \
 
 O primeiro deploy que incluir o recurso deve executar as migrações `000013_user_feedback` e `000014_feedback_digest` pelo perfil `maintenance` antes de habilitar o timer. Se `FEEDBACK_DIGEST_TO` estiver vazio, o comando encerra sem enviar e-mail.
 
-No checkout atual e na produção, a migração `000015` registra as fontes científicas do catálogo. O catálogo inicial e o piloto `road_moderate_intervals` foram publicados após revisão, backup verificável, execução ordenada pelo perfil `maintenance`, validação e autorização explícita; a novidade foi registrada em `frontend/lib/release.ts` antes da publicação. Protocolos futuros continuam dependendo de revisão própria de elegibilidade, segurança e evidência.
+No checkout atual e na produção, as migrações `000015` e `000016` registram as fontes científicas do catálogo. O catálogo inicial, o piloto `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram publicados após revisão, backup verificável, execução ordenada pelo perfil `maintenance`, validação e autorização explícita; a novidade foi registrada em `frontend/lib/release.ts` antes da publicação. Protocolos futuros continuam dependendo de revisão própria de elegibilidade, segurança e evidência.
 
 O Ollama é opcional e não é iniciado pelo comando acima. Ele foi instalado na VPS e permanece parado após o teste de capacidade; a produção usa temporariamente o Worker remoto para evitar sobrecarga. O padrão seguro continua sendo `AI_ENABLED=false`. Para preparar o serviço somente na rede interna do Cadência:
 
@@ -106,6 +106,8 @@ Após revisar e atualizar o repositório, crie um backup, execute o `build`, apl
 Para uma alteração somente de interface, como o ajuste dos gráficos mobile do commit `33de28a`, o procedimento usado em 3 de setembro de 2026 foi: atualizar o checkout por fast-forward, criar o backup preventivo, reconstruir somente `frontend`, executar `up -d frontend` e validar o domínio oficial. API, PostgreSQL, túnel e os demais aplicativos da VPS não precisam ser recriados quando não há mudança correspondente.
 
 No deploy funcional de 4 de setembro de 2026, o commit `5fbc668` foi atualizado por fast-forward, o backup `cadencia-20260905T003553Z.dump` foi criado e verificado, a migração `000015` foi aplicada pelo perfil `maintenance` e as imagens de API e frontend foram reconstruídas. Os containers `api` e `frontend` foram recriados; PostgreSQL e túnel permaneceram ativos. Em seguida, o commit `c768ef7` atualizou somente o frontend para publicar a nota da versão `0.7.0`.
+
+No deploy de 5 de setembro de 2026, o commit `9d8c624` foi atualizado por fast-forward, o backup `cadencia-20260905T221541Z.dump` foi criado e verificado, a migração `000016` foi aplicada pelo perfil `maintenance` e as imagens da API e do frontend foram reconstruídas. API e frontend ficaram saudáveis; PostgreSQL e túnel permaneceram ativos. A versão `0.8.0` e a release `v0.8.0` publicam o piloto de intervalos aeróbicos XCO.
 
 O deploy oficial deve sempre terminar em `https://cadencia.devsaulo.com.br` e `https://cadencia-api.devsaulo.com.br`, pela composição Docker desta pasta e pelo Cloudflare Tunnel dedicado. O ambiente Sites não faz parte da produção do Cadência e não deve ser usado como destino alternativo.
 

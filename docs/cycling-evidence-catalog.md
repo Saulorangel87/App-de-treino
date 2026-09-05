@@ -81,17 +81,17 @@ O primeiro protocolo específico implementado e publicado é `road_moderate_inte
 
 O motor só o seleciona quando a disciplina é explicitamente `road`, o atleta é intermediário ou avançado, a avaliação submáxima está apta, o objetivo é performance ou evento, há pelo menos 60 minutos disponíveis e a preferência está vazia ou indica intervalos. Dor, limitação ou recuperação insuficiente substituem o protocolo por uma sessão protegida.
 
-### Segundo piloto local: intervalos aeróbicos XCO
+### Segundo piloto publicado: intervalos aeróbicos XCO
 
-O segundo protocolo específico em validação local é `xco_aerobic_intervals`, apresentado como **Intervalos aeróbicos XCO**. Ele usa cinco blocos de quatro minutos com quatro minutos de recuperação leve, alvo RPE 7 e uma única sessão de qualidade no ciclo. A estrutura é uma adaptação conservadora do HIT estudado em mountain bikers treinados; não reproduz a frequência, a progressão de seis semanas ou a carga do ensaio e não inclui sprint máximo.
+O segundo protocolo específico publicado como piloto é `xco_aerobic_intervals`, apresentado como **Intervalos aeróbicos XCO**. Ele usa cinco blocos de quatro minutos com quatro minutos de recuperação leve, alvo RPE 7 e uma única sessão de qualidade no ciclo. A estrutura é uma adaptação conservadora do HIT estudado em mountain bikers treinados; não reproduz a frequência, a progressão de seis semanas ou a carga do ensaio e não inclui sprint máximo.
 
 O motor só o seleciona quando a disciplina é explicitamente `mtb_xco`, o atleta é avançado, a avaliação submáxima está apta, o objetivo é performance ou evento, há pelo menos 75 minutos disponíveis, a semana não é de recuperação e a preferência está vazia ou indica intervalos. Limitação, dor, recuperação insuficiente, dados ausentes ou inconsistentes e qualquer outro perfil substituem ou impedem o piloto. A sessão não prescreve descidas, saltos, técnica de trilha, força complementar ou metas rígidas de potência.
 
-O estudo randomizado de Inoue et al. encontrou melhora do desempenho de MTB após seis semanas de HIT ou SIT, com vantagem provável do HIT; a revisão sistemática contemporânea de XCO de 2026 confirma a combinação de alta demanda aeróbica e esforços intermitentes, mas ressalta que avaliações diretas de desempenho das intervenções ainda são escassas. Por isso, a implementação permanece local e condicionada a revisão, sem alterar o protocolo ativo para perfis gerais.
+O estudo randomizado de Inoue et al. encontrou melhora do desempenho de MTB após seis semanas de HIT ou SIT, com vantagem provável do HIT; a revisão sistemática contemporânea de XCO de 2026 confirma a combinação de alta demanda aeróbica e esforços intermitentes, mas ressalta que avaliações diretas de desempenho das intervenções ainda são escassas. Por isso, a implementação permanece um piloto restrito ao perfil elegível e não altera o protocolo ativo para perfis gerais.
 
 ## Modelo e critérios de integração do catálogo
 
-O contexto agora guarda `bike_type`, `terrain` e uma disciplina explícita, opcional e validada. A disciplina não é inferida pelo tipo de bicicleta: XCO, gravel ou pista só podem ser usados quando o atleta os informa diretamente. A migração `000015` registra as fontes do catálogo inicial na produção; a `000016` registra a fonte do piloto XCO local e ainda não foi aplicada na produção. Cada protocolo continua dependendo de revisão de elegibilidade, segurança e transferência da evidência antes de ser publicado.
+O contexto agora guarda `bike_type`, `terrain` e uma disciplina explícita, opcional e validada. A disciplina não é inferida pelo tipo de bicicleta: XCO, gravel ou pista só podem ser usados quando o atleta os informa diretamente. As migrações `000015` e `000016` registram as fontes do catálogo inicial e do piloto XCO na produção. Cada protocolo continua dependendo de revisão de elegibilidade, segurança e transferência da evidência antes de ser publicado.
 
 Valores planejados para `cycling_context.discipline`:
 

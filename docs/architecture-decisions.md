@@ -68,7 +68,7 @@ A primeira implementação de IA usa Ollama local como provedor opcional. `AI_EN
 
 **Status:** Aplicada.
 
-As migrações `000001` a `000016` estão versionadas no checkout; somente `000001` a `000015` estão aplicadas na produção. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes científicas do catálogo inicial e a `000016` registra a fonte do piloto XCO local. O catálogo inicial e o piloto `road_moderate_intervals` foram publicados após revisão e autorização; o piloto XCO ainda não foi publicado. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
+As migrações `000001` a `000016` estão versionadas no checkout e aplicadas na produção. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes científicas do catálogo inicial e a `000016` registra a fonte do piloto XCO. O catálogo inicial, o piloto `road_moderate_intervals` e o piloto XCO foram publicados após revisão e autorização. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
 
 ## ADR-006 — Feedback de produto
 
@@ -110,13 +110,13 @@ Oitava fatia no commit local `9034287`, ainda sem publicação: uma matriz regre
 
 Nona fatia no commit local `34efbe2`, ainda sem publicação: `data-integrity-v1` classifica sessões concluídas como válidas, incompletas ou inconsistentes. O gate separa campos ausentes de valores incompatíveis, preserva o registro original e é anexado à explicação do treino. O shadow não produz candidato quando a sessão atual não é elegível para histórico; o `rules-v1` permanece inalterado até uma decisão específica sobre uma barreira prescritiva.
 
-Décima fatia local, ainda sem commit ou publicação: o piloto `xco_aerobic_intervals` adiciona uma sessão aeróbica específica para XCO avançado elegível, com disciplina explícita, avaliação submáxima apta, objetivo compatível, disponibilidade mínima e proteções de recuperação. A migração `000016` registra o ensaio de HIT em mountain bikers que sustenta o formato, enquanto a revisão contemporânea de XCO delimita a transferência da evidência. O piloto não inclui sprint máximo, técnica de trilha, descida, salto ou metas rígidas de potência. Como a escolha é visível, a versão local do frontend passa a `0.8.0`; produção continua em `0.7.0` até revisão, validação e autorização.
+Décima fatia publicada no commit `9d8c624`: o piloto `xco_aerobic_intervals` adiciona uma sessão aeróbica específica para XCO avançado elegível, com disciplina explícita, avaliação submáxima apta, objetivo compatível, disponibilidade mínima e proteções de recuperação. A migração `000016` registra o ensaio de HIT em mountain bikers que sustenta o formato, enquanto a revisão contemporânea de XCO delimita a transferência da evidência. O piloto não inclui sprint máximo, técnica de trilha, descida, salto ou metas rígidas de potência. Como a escolha é visível, a versão `0.8.0` do frontend e a nota de novidades foram publicadas após validação e autorização.
 
 ## ADR-009 — Comunicação de atualizações no produto
 
 **Status:** Aceita e aplicada.
 
-Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a mudança em `UPDATE_NOTES`. O componente `UpdateNotice` apresenta as notas no primeiro acesso autenticado após a versão mudar e registra a confirmação por conta, versão e navegador usando armazenamento local. As notas não devem conter segredos. A versão `0.7.0` registrou o catálogo de ciclismo baseado em evidências e foi confirmada na produção.
+Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a mudança em `UPDATE_NOTES`. O componente `UpdateNotice` apresenta as notas no primeiro acesso autenticado após a versão mudar e registra a confirmação por conta, versão e navegador usando armazenamento local. As notas não devem conter segredos. A versão `0.7.0` registrou o catálogo de ciclismo baseado em evidências e foi confirmada na produção. A versão `0.8.0` registra o piloto aeróbico de MTB XCO e foi publicada junto do commit `9d8c624`.
 
 ## Estado de produção
 
@@ -127,6 +127,8 @@ Ainda em 3 de setembro, o commit `33de28a` foi publicado por fast-forward na mes
 Em 4 de setembro de 2026, o commit `5fbc668` foi publicado por fast-forward na mesma VPS. O backup preventivo `cadencia-20260905T003553Z.dump` (UTC) foi criado e verificado, a migração `000015` foi aplicada pelo perfil `maintenance` e as imagens da API e do frontend foram reconstruídas. Os containers de API e frontend foram recriados; PostgreSQL e túnel permaneceram ativos e saudáveis. A API interna respondeu `{"status":"ready"}` e os dois domínios públicos retornaram HTTP 200.
 
 Na sequência, o commit `c768ef7` atualizou somente o frontend para publicar a versão `0.7.0` e a nota do catálogo. A nota apareceu no primeiro acesso autenticado de teste; o fluxo funcional do check-in de recuperação e os testes de latência, limites e fallback do Worker já haviam sido validados.
+
+Em 5 de setembro de 2026, o commit `9d8c624` foi publicado por fast-forward na VPS Oracle. O backup `cadencia-20260905T221541Z.dump` foi criado e verificado, a migração `000016` foi aplicada pelo perfil `maintenance` e as imagens da API e do frontend foram reconstruídas. API e frontend ficaram saudáveis; PostgreSQL e túnel permaneceram ativos. A release `v0.8.0` foi publicada no GitHub como a versão mais recente.
 
 O destino oficial de produção é a composição Docker na VPS Oracle, exposta pelos hostnames `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br` no Cloudflare Tunnel dedicado. Uma publicação privada acidental no Sites, feita durante uma tentativa de deploy, foi excluída pelo proprietário. O Sites não é um destino autorizado para futuras publicações do Cadência.
 
