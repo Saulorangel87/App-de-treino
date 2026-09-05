@@ -1186,3 +1186,7 @@ Os cinco testes do novo avaliador passaram junto dos testes anteriores do shadow
 ### Continuidade — matriz controlada entre `rules-v1` e shadow
 
 A oitava fatia cria uma matriz regressiva em `rules_v2_adaptation_comparison_test.go`. Ela compara dor, esforço alto, resposta neutra, recuperação recente, resposta fácil sem evidência, resposta fácil com evidência completa e histórico inconsistente. A proteção do `rules-v1` deve coincidir com a candidata protetiva do shadow; a progressão deve ser adiada sem evidência e continuar não aplicada mesmo quando a evidência é suficiente. O teste não altera prescrição, trigger, migração ou interface. A validação automatizada é o próximo passo desta fatia.
+
+### Continuidade — integridade observacional da sessão
+
+A nona fatia cria `data-integrity-v1` para classificar cada sessão concluída como `valid`, `incomplete` ou `inconsistent`. O gate separa dados ausentes de valores incompatíveis, verifica duração positiva, RPE, feedback, fadiga e métricas opcionais, e grava a leitura em `workouts.explanation.data_integrity` sem substituir o registro original. O shadow não produz candidato quando a sessão atual não é elegível para histórico; o `rules-v1` continua inalterado enquanto essa barreira é revisada. O próximo passo é validar o campo no `GET /v1/plans/current` com uma sessão curta e outra com duração positiva.

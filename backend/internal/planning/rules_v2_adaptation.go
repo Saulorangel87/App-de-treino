@@ -35,6 +35,10 @@ type RulesV2AdaptationShadowAssessment struct {
 // response is never enough for a progression candidate; protective feedback
 // can still produce a protective candidate without waiting for history.
 func assessRulesV2AdaptationShadow(targetRPE float64, input CompletionInput, periods []TrainingHistoryPeriod, now time.Time) RulesV2AdaptationShadowAssessment {
+	return assessRulesV2AdaptationShadowWithIntegrity(targetRPE, input, periods, nil, now)
+}
+
+func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input CompletionInput, periods []TrainingHistoryPeriod, integrity *WorkoutDataIntegrityAssessment, now time.Time) RulesV2AdaptationShadowAssessment {
 	result := RulesV2AdaptationShadowAssessment{
 		Version:           rulesV2AdaptationVersion,
 		Mode:              rulesV2AdaptationMode,
@@ -85,6 +89,11 @@ func assessRulesV2AdaptationShadow(targetRPE float64, input CompletionInput, per
 	if targetRPE < 1 || targetRPE > 10 || !validCompletion(input) {
 		result.DataIssues = append(result.DataIssues, "invalid_feedback_or_target_rpe")
 		addReason("invalid_feedback", "O feedback ou o RPE planejado não passou pela validação mínima; nenhuma resposta de adaptação é produzida.")
+		return result
+	}
+	if integrity != nil && !integrity.EligibleForHistory {
+		result.DataIssues = appendUniqueString(result.DataIssues, "current_session_data_integrity")
+		addReason("current_session_data_integrity", "Os dados do treino concluído não estão íntegros o suficiente para avaliar uma resposta de adaptação.")
 		return result
 	}
 
@@ -158,4 +167,11 @@ func assessRulesV2AdaptationShadow(targetRPE float64, input CompletionInput, per
 // repository transaction that records completed-workout feedback.
 func AssessRulesV2AdaptationShadow(targetRPE float64, input CompletionInput, periods []TrainingHistoryPeriod, now time.Time) RulesV2AdaptationShadowAssessment {
 	return assessRulesV2AdaptationShadow(targetRPE, input, periods, now)
+}
+
+// AssessRulesV2AdaptationShadowWithIntegrity keeps incomplete or inconsistent
+// completed-session data out of the shadow candidate while rules-v1 remains
+// the only active prescriptive engine.
+func AssessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input CompletionInput, periods []TrainingHistoryPeriod, integrity WorkoutDataIntegrityAssessment, now time.Time) RulesV2AdaptationShadowAssessment {
+	return assessRulesV2AdaptationShadowWithIntegrity(targetRPE, input, periods, &integrity, now)
 }

@@ -167,6 +167,14 @@ O avaliador recebe o RPE-alvo, o feedback validado da sessão e os períodos obs
 
 Mesmo com evidência suficiente, a candidata permanece em `mode: shadow`, com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. O módulo não infere destreinamento, tolerância, mudança fisiológica, efeito da prescrição ou dados de atividades fora do Cadência. Se a consulta dos períodos falhar, um savepoint impede que a observação bloqueie o feedback: o resultado fica `not_evaluated` e recebe `history_query_failed`. Os testes cobrem resposta fácil isolada, evidência completa, dor, período inconsistente e a invariância de não produzir candidata com observação inconsistente. A conferência manual de `explanation.adaptation_shadow` no `GET /v1/plans/current` após concluir um treino local é a próxima validação, sem ativar o resultado.
 
+### Integridade observacional da sessão (`data-integrity-v1`)
+
+Antes de uma futura adaptação prescritiva, a sessão concluída recebe uma leitura separada de integridade. O gate classifica os dados como `valid`, `incomplete` ou `inconsistent` e grava o resultado em `workouts.explanation.data_integrity`, sem rejeitar, corrigir ou sobrescrever o registro original.
+
+São verificados os dados mínimos de duração positiva, RPE realizado, feedback e fadiga, além das faixas das métricas opcionais. Também são registradas combinações incompatíveis, como duração zero com distância ou elevação. Um valor ausente é lacuna; um valor impossível ou incompatível é inconsistência. Sessões incompletas ou inconsistentes não entram como elegíveis no shadow do pós-treino, e a decisão continua sem aplicação.
+
+Esta fatia não altera o trigger `feedback_adapts_future_workouts` nem a prescrição `rules-v1`. Portanto, a barreira ativa contra progressão de registros inconsistentes continua sendo uma decisão posterior, depois de validar a observação e sua integração com o histórico.
+
 ## IA explicativa opcional
 
 O endpoint de explicação envia ao modelo apenas o nome, objetivo, duração, RPE-alvo, regras e escopo de evidência do treino. O modelo deve explicar a decisão em duas ou três frases; não recebe autorização para criar etapas, alterar carga, inventar referências ou interpretar sintomas. A integração usa Ollama local com limites de tempo, saída e concorrência e pode usar a rota protegida do Worker como fallback (Groq `openai/gpt-oss-20b`). Enquanto `AI_ENABLED=false`, ou quando os provedores estiverem indisponíveis, a API devolve o resumo validado pelo `rules-v1`.

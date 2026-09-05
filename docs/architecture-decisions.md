@@ -106,7 +106,9 @@ Sexta fatia no commit local `de23add`, ainda sem publicação: `rules-v2-adaptat
 
 Sétima fatia no commit local `b6ea8bd`, ainda sem publicação: o repositório executa essa avaliação dentro da mesma transação que conclui a sessão e grava o resultado somente em `workouts.explanation.adaptation_shadow`. A consulta dos períodos usa um savepoint para que uma falha produza `not_evaluated`/`history_query_failed` sem impedir o feedback principal. A tipagem do frontend e o contrato OpenAPI foram atualizados para leitura do campo, sem mudança visual ou de versão do produto. A conferência manual confirmou a resposta protetiva e as barreiras de não aplicação.
 
-Oitava fatia local, ainda sem commit ou publicação: uma matriz regressiva compara o resultado do `rules-v1` com o candidato do `rules-v2-adaptation-v1` em cenários protetivos, neutros, de progressão com evidência suficiente, de progressão sem evidência e de histórico inconsistente. A matriz exige coincidência nas proteções e mantém o shadow não autoritativo em todos os casos. Ela não altera carga, banco, trigger ou interface.
+Oitava fatia no commit local `9034287`, ainda sem publicação: uma matriz regressiva compara o resultado do `rules-v1` com o candidato do `rules-v2-adaptation-v1` em cenários protetivos, neutros, de progressão com evidência suficiente, de progressão sem evidência e de histórico inconsistente. A matriz exige coincidência nas proteções e mantém o shadow não autoritativo em todos os casos. Ela não altera carga, banco, trigger ou interface.
+
+Nona fatia local, ainda sem commit ou publicação: `data-integrity-v1` classifica sessões concluídas como válidas, incompletas ou inconsistentes. O gate separa campos ausentes de valores incompatíveis, preserva o registro original e é anexado à explicação do treino. O shadow não produz candidato quando a sessão atual não é elegível para histórico; o `rules-v1` permanece inalterado até uma decisão específica sobre uma barreira prescritiva.
 
 ## ADR-009 — Comunicação de atualizações no produto
 

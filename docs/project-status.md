@@ -23,8 +23,8 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 ## Estado do checkout local
 
-- Checkout local no commit `b6ea8bd feat: registra shadow e corrige inicialização local da API`. A validação manual e a matriz controlada da quinta fatia foram concluídas; a oitava fatia descrita abaixo está modificada localmente, sem commit nem deploy. Não confundir nenhuma delas com a versão publicada na VPS.
-- A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino) e `b6ea8bd` (observação transacional e inicialização local).
+- Checkout local no commit `9034287 test: adiciona matriz comparativa do shadow pós-treino`. A validação manual e as matrizes controladas da quinta e da oitava fatias foram concluídas; a nona fatia descrita abaixo está modificada localmente, sem commit nem deploy. Não confundir nenhuma delas com a versão publicada na VPS.
+- A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local) e `9034287` (matriz comparativa).
 - A migração `000015`, o catálogo inicial e o protocolo `road_moderate_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
 
@@ -113,12 +113,21 @@ Arquivos desta fatia: `backend/internal/planning/rules_v2_adaptation.go`, `backe
 
 Arquivos desta fatia: `backend/internal/planning/rules_v2_adaptation.go`, `backend/internal/repository/planning.go`, `backend/internal/repository/workout_sessions.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `scripts/run-api.ps1`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alteradas migrações, infraestrutura ou notas de versão.
 
-### Oitava fatia de melhorias — matriz controlada entre `rules-v1` e shadow (local, sem commit)
+### Oitava fatia de melhorias — matriz controlada entre `rules-v1` e shadow (commit local; sem publicação)
 
 - `backend/internal/planning/rules_v2_adaptation_comparison_test.go` compara cenários determinísticos de dor, esforço alto, resposta neutra, necessidade recente de recuperação, resposta fácil sem evidência, resposta fácil com evidência completa e histórico inconsistente.
 - A matriz exige que a proteção do `rules-v1` e a candidata protetiva do shadow coincidam. Para progressão, exige que o shadow seja mais restritivo: sem evidência suficiente ou com inconsistência, a candidata fica adiada ou não avaliada; com evidência completa, continua somente como proposta.
 - Cada caso confirma `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. O teste é regressivo e não altera geração de plano, trigger SQL, banco ou interface.
-- A validação automatizada desta fatia ainda está pendente. O próximo passo é executar os testes e revisar se a matriz representa as regras atuais antes de qualquer integração prescritiva.
+- A validação automatizada passou em `go test -count=1 ./internal/planning ./internal/repository ./internal/httpapi` e `go vet ./internal/planning ./internal/repository ./internal/httpapi`. A matriz representa as regras atuais e permanece como regressão antes de qualquer integração prescritiva.
+
+### Nona fatia de melhorias — integridade observacional dos dados (local, sem commit)
+
+- `backend/internal/planning/data_integrity.go` cria `data-integrity-v1` para classificar sessões concluídas como `valid`, `incomplete` ou `inconsistent`, separando ausência de dados de valores incompatíveis.
+- O gate verifica duração positiva, RPE realizado, feedback, fadiga, faixas das métricas opcionais e combinações como duração zero com distância ou elevação registradas. O registro original não é rejeitado nem sobrescrito; a leitura é armazenada em `workouts.explanation.data_integrity` para auditoria.
+- O shadow do pós-treino consulta esse resultado: uma sessão incompleta ou inconsistente não produz candidata de adaptação. O `rules-v1` e o trigger SQL continuam inalterados nesta fatia, portanto a observação ainda não é uma barreira prescritiva ativa.
+- O contrato OpenAPI e a tipagem do frontend expõem a nova leitura. Os testes cobrem sessão coerente, duração zero, distância sem tempo, feedback ausente, métrica fora da faixa e RPE não finito. Ainda falta validar manualmente a nova chave no `GET /v1/plans/current` com uma sessão local curta e outra com duração positiva.
+
+Arquivos desta fatia: `backend/internal/planning/data_integrity.go`, `backend/internal/planning/data_integrity_test.go`, `backend/internal/planning/rules_v2_adaptation.go`, `backend/internal/planning/rules_v2_adaptation_test.go`, `backend/internal/repository/workout_sessions.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `README.md`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alteradas migrações, infraestrutura ou notas de versão.
 
 ### Topologia mantida
 

@@ -135,7 +135,8 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 		return err
 	}
 
-	if _, err := tx.Exec(ctx, `
+	var durationMinutes int
+	if err := tx.QueryRow(ctx, `
 		UPDATE workout_sessions
 		SET status = 'completed',
 			completed_at = now(),
@@ -145,9 +146,25 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 			elevation_gain_m = $4,
 			average_power_watts = $5,
 			average_heart_rate = $6
-		WHERE id = $1`, sessionID, input.ActualRPE, input.DistanceKM, input.ElevationGainM, input.AveragePowerW, input.AverageHeartRate); err != nil {
+		WHERE id = $1
+		RETURNING duration_minutes`, sessionID, input.ActualRPE, input.DistanceKM, input.ElevationGainM, input.AveragePowerW, input.AverageHeartRate).Scan(&durationMinutes); err != nil {
 		return err
 	}
+	actualRPE := input.ActualRPE
+	fatigueAfter := input.FatigueAfter
+	integrityAssessedAt := time.Now()
+	integrity := planning.AssessWorkoutDataIntegrity(planning.WorkoutDataIntegrityInput{
+		DurationMinutes:  &durationMinutes,
+		ActualRPE:        &actualRPE,
+		DistanceKM:       input.DistanceKM,
+		ElevationGainM:   input.ElevationGainM,
+		AveragePowerW:    input.AveragePowerW,
+		AverageHeartRate: input.AverageHeartRate,
+		FeedbackPresent:  true,
+		Difficulty:       input.Difficulty,
+		PainReported:     input.PainReported,
+		FatigueAfter:     &fatigueAfter,
+	}, integrityAssessedAt)
 	if _, err := tx.Exec(ctx, `
 		INSERT INTO feedback (workout_session_id, difficulty, pain_reported, fatigue_after, notes)
 		VALUES ($1, $2, $3, $4, NULLIF($5, ''))`,
@@ -159,7 +176,7 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 		return err
 	}
 	periods, historyErr := trainingHistoryPeriodsFrom(ctx, tx, profileID)
-	shadow := planning.AssessRulesV2AdaptationShadow(sourceTargetRPE, input, periods, time.Now())
+	shadow := planning.AssessRulesV2AdaptationShadowWithIntegrity(sourceTargetRPE, input, periods, integrity, integrityAssessedAt)
 	if historyErr != nil {
 		if _, rollbackErr := tx.Exec(ctx, `ROLLBACK TO SAVEPOINT rules_v2_adaptation_shadow`); rollbackErr != nil {
 			return rollbackErr
@@ -175,14 +192,20 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 	if _, err := tx.Exec(ctx, `RELEASE SAVEPOINT rules_v2_adaptation_shadow`); err != nil {
 		return err
 	}
+	integrityJSON, err := json.Marshal(integrity)
+	if err != nil {
+		return err
+	}
 	shadowJSON, err := json.Marshal(shadow)
 	if err != nil {
 		return err
 	}
 	if _, err := tx.Exec(ctx, `
 		UPDATE workouts
-		SET explanation = jsonb_set(COALESCE(explanation, '{}'::jsonb), '{adaptation_shadow}', $2::jsonb, true)
-		WHERE id = $1`, workoutID, shadowJSON); err != nil {
+		SET explanation = jsonb_set(
+			jsonb_set(COALESCE(explanation, '{}'::jsonb), '{data_integrity}', $2::jsonb, true),
+			'{adaptation_shadow}', $3::jsonb, true)
+		WHERE id = $1`, workoutID, integrityJSON, shadowJSON); err != nil {
 		return err
 	}
 	if _, err := tx.Exec(ctx, `UPDATE workouts SET status = 'completed' WHERE id = $1`, workoutID); err != nil {

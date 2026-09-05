@@ -18,6 +18,21 @@ export type Workout = {
     protocol_key?: string;
     evidence_scope?: string;
     evidence_keys?: string[];
+    data_integrity?: {
+      version: 'data-integrity-v1';
+      mode: 'observation';
+      scope: 'completed_workout';
+      assessed_at: string;
+      status: 'valid' | 'incomplete' | 'inconsistent' | 'not_evaluated';
+      rules_evaluated: string[];
+      reasons: { code: string; message: string }[];
+      missing_data: string[];
+      data_issues: string[];
+      not_evaluated: string[];
+      eligible_for_history: boolean;
+      progression_eligible: false;
+      used_for_prescription: false;
+    };
     adaptation?: {
       kind: 'safety' | 'recovery' | 'progression';
       reason: string;

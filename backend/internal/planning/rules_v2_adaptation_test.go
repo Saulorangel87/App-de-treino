@@ -78,3 +78,23 @@ func TestAssessRulesV2AdaptationShadowDoesNotMaintainOnInconsistentEvidence(t *t
 		t.Fatalf("neutral feedback produced a candidate with inconsistent evidence: %+v", assessment)
 	}
 }
+
+func TestAssessRulesV2AdaptationShadowDefersWhenCurrentSessionIsNotEligible(t *testing.T) {
+	input := CompletionInput{ActualRPE: 4, Difficulty: "easy", FatigueAfter: 2}
+	duration := 0
+	integrity := AssessWorkoutDataIntegrity(WorkoutDataIntegrityInput{
+		DurationMinutes: &duration,
+		ActualRPE:       &input.ActualRPE,
+		FeedbackPresent: true,
+		Difficulty:      input.Difficulty,
+		FatigueAfter:    &input.FatigueAfter,
+	}, time.Unix(0, 0))
+	assessment := AssessRulesV2AdaptationShadowWithIntegrity(6, input, validHistoryPeriods(), integrity, time.Unix(0, 0))
+
+	if assessment.Status != "not_evaluated" || assessment.CandidateResponse != "not_evaluated" {
+		t.Fatalf("ineligible current session produced an adaptation candidate: %+v", assessment)
+	}
+	if !slices.Contains(assessment.DataIssues, "current_session_data_integrity") {
+		t.Fatalf("current-session integrity issue was not propagated: %+v", assessment.DataIssues)
+	}
+}
