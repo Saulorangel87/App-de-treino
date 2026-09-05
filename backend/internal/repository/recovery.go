@@ -8,6 +8,47 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+const recoveryAdjustmentQuery = `
+	WITH candidate AS (
+		SELECT w.id
+		FROM workouts w
+		JOIN training_plans tp ON tp.id = w.training_plan_id
+		WHERE tp.athlete_profile_id = $1 AND tp.status = 'active'
+			AND w.status IN ('planned', 'adapted') AND w.scheduled_on >= $2::date
+			AND NOT EXISTS (
+				SELECT 1 FROM workouts prior
+				JOIN training_plans prior_plan ON prior_plan.id = prior.training_plan_id
+				WHERE prior_plan.athlete_profile_id = $1
+					AND COALESCE(prior.explanation #> '{pre_session_recovery,applied_dates}', '[]'::jsonb) ? ($6::text)
+			)
+		ORDER BY w.scheduled_on, w.created_at
+		LIMIT 1
+		FOR UPDATE
+	)
+	UPDATE workouts w SET
+		duration_minutes = GREATEST(20, ROUND(w.duration_minutes * $3)::integer),
+		target_rpe = LEAST(w.target_rpe, $4),
+		status = 'adapted',
+		explanation = jsonb_set(
+			jsonb_set(w.explanation, '{pre_session_recovery}', jsonb_build_object(
+				'recorded_on', $6::text, 'readiness', $5::text,
+				'applied_dates', COALESCE(w.explanation #> '{pre_session_recovery,applied_dates}', '[]'::jsonb) || jsonb_build_array($6::text),
+				'summary', CASE WHEN $5::text = 'recovery_needed'
+					THEN 'Carga reduzida porque o check-in indicou necessidade de recuperação.'
+					ELSE 'Carga ajustada com cautela por um sinal de recuperação abaixo do habitual.' END
+			), true),
+			'{evidence_keys}', CASE
+				WHEN COALESCE(w.explanation->'evidence_keys', '[]'::jsonb) ? 'bourdon-2017'
+					THEN COALESCE(w.explanation->'evidence_keys', '[]'::jsonb)
+				ELSE COALESCE(w.explanation->'evidence_keys', '[]'::jsonb) || '["bourdon-2017"]'::jsonb
+			END, true)
+	FROM candidate c WHERE w.id = c.id
+	RETURNING w.id::text, w.scheduled_on::text, w.name, w.duration_minutes, w.target_rpe::double precision`
+
+func recoveryAdjustmentArgs(profileID string, input athlete.RecoveryCheckin, factor, rpeCap float64) []any {
+	return []any{profileID, input.RecordedOn, factor, rpeCap, input.Readiness, input.RecordedOn}
+}
+
 func (s *Store) RecoveryByUserIDAndDate(ctx context.Context, userID, recordedOn string) (*athlete.RecoveryCheckin, error) {
 	result := &athlete.RecoveryCheckin{}
 	err := s.pool.QueryRow(ctx, `
@@ -63,43 +104,8 @@ func (s *Store) SaveRecovery(ctx context.Context, userID string, input athlete.R
 			factor, rpeCap = 0.80, 4.0
 		}
 		adapted := &athlete.AdaptedWorkout{}
-		err = tx.QueryRow(ctx, `
-			WITH candidate AS (
-				SELECT w.id
-				FROM workouts w
-				JOIN training_plans tp ON tp.id = w.training_plan_id
-				WHERE tp.athlete_profile_id = $1 AND tp.status = 'active'
-					AND w.status IN ('planned', 'adapted') AND w.scheduled_on >= $2::date
-					AND NOT EXISTS (
-						SELECT 1 FROM workouts prior
-						JOIN training_plans prior_plan ON prior_plan.id = prior.training_plan_id
-						WHERE prior_plan.athlete_profile_id = $1
-							AND COALESCE(prior.explanation #> '{pre_session_recovery,applied_dates}', '[]'::jsonb) ? $2
-					)
-				ORDER BY w.scheduled_on, w.created_at
-				LIMIT 1
-				FOR UPDATE
-			)
-			UPDATE workouts w SET
-				duration_minutes = GREATEST(20, ROUND(w.duration_minutes * $3)::integer),
-				target_rpe = LEAST(w.target_rpe, $4),
-				status = 'adapted',
-				explanation = jsonb_set(
-					jsonb_set(w.explanation, '{pre_session_recovery}', jsonb_build_object(
-						'recorded_on', $2, 'readiness', $5,
-						'applied_dates', COALESCE(w.explanation #> '{pre_session_recovery,applied_dates}', '[]'::jsonb) || jsonb_build_array($2::text),
-						'summary', CASE WHEN $5 = 'recovery_needed'
-							THEN 'Carga reduzida porque o check-in indicou necessidade de recuperação.'
-							ELSE 'Carga ajustada com cautela por um sinal de recuperação abaixo do habitual.' END
-					), true),
-					'{evidence_keys}', CASE
-						WHEN COALESCE(w.explanation->'evidence_keys', '[]'::jsonb) ? 'bourdon-2017'
-							THEN COALESCE(w.explanation->'evidence_keys', '[]'::jsonb)
-						ELSE COALESCE(w.explanation->'evidence_keys', '[]'::jsonb) || '["bourdon-2017"]'::jsonb
-					END, true)
-			FROM candidate c WHERE w.id = c.id
-			RETURNING w.id::text, w.scheduled_on::text, w.name, w.duration_minutes, w.target_rpe::double precision`,
-			profileID, input.RecordedOn, factor, rpeCap, input.Readiness,
+		err = tx.QueryRow(ctx, recoveryAdjustmentQuery,
+			recoveryAdjustmentArgs(profileID, input, factor, rpeCap)...,
 		).Scan(&adapted.ID, &adapted.ScheduledOn, &adapted.Name, &adapted.DurationMinutes, &adapted.TargetRPE)
 		if err == nil {
 			input.AdaptationApplied = true
