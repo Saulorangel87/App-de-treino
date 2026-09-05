@@ -1,6 +1,7 @@
 package planning
 
 import (
+	"reflect"
 	"slices"
 	"testing"
 	"time"
@@ -83,5 +84,29 @@ func TestBuildPlanStoresRulesV2ShadowWithoutChangingRulesV1(t *testing.T) {
 	}
 	if plan.PrescriptionSnapshot["engine_version"] != "rules-v1" {
 		t.Fatalf("rules-v1 was replaced: %#v", plan.PrescriptionSnapshot["engine_version"])
+	}
+}
+
+func TestRulesV2ShadowDoesNotChangeRulesV1Workouts(t *testing.T) {
+	input := Context{
+		ProfileID:              "profile-1",
+		ExperienceLevel:        "advanced",
+		PrimaryGoal:            "performance",
+		BaselineEligible:       true,
+		Availability:           []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		TrainingHistoryPeriods: validHistoryPeriods(),
+	}
+	now := time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
+	withShadow, err := buildPlan(input, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	input.TrainingHistoryPeriods = nil
+	withoutShadow, err := buildPlan(input, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(withShadow.Workouts, withoutShadow.Workouts) {
+		t.Fatalf("shadow evaluation changed rules-v1 workouts:\nwith=%#v\nwithout=%#v", withShadow.Workouts, withoutShadow.Workouts)
 	}
 }

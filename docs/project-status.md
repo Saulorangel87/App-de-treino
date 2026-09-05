@@ -23,8 +23,8 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 ## Estado do checkout local
 
-- Checkout local no commit `810183c feat: adiciona comparação observacional por períodos`. A quinta fatia descrita abaixo está modificada localmente, sem commit nem deploy; não confundir nenhuma delas com a versão publicada na VPS.
-- A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização) e `810183c` (comparação observacional por períodos).
+- Checkout local no commit `64e554d feat: adiciona avaliação shadow do rules-v2`. A validação manual e a matriz controlada da quinta fatia foram concluídas; o teste regressivo adicional descrito abaixo ainda está modificado localmente, sem commit nem deploy. Não confundir nenhuma delas com a versão publicada na VPS.
+- A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos) e `64e554d` (avaliação shadow do `rules-v2`).
 - A migração `000015`, o catálogo inicial e o protocolo `road_moderate_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
 
@@ -81,14 +81,14 @@ Arquivos desta fatia: `backend/internal/planning/history.go`, `backend/internal/
 
 Arquivos desta fatia: `backend/internal/planning/history.go`, `backend/internal/planning/history_test.go`, `backend/internal/planning/service.go`, `backend/internal/repository/planning.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `scripts/test-training-history-query.ps1`, `README.md`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alterados `melhorias.md`, migrações, infraestrutura ou notas de versão.
 
-### Quinta fatia de melhorias — avaliação shadow do `rules-v2` (local, sem commit)
+### Quinta fatia de melhorias — avaliação shadow do `rules-v2` (commit local; validação ampliada)
 
 - Novos rascunhos registram `prescription_snapshot.rules_v2_shadow` com versão `rules-v2`, modo `shadow` e escopo `plan_generation_only`. O `engine_version` continua sendo `rules-v1`.
 - A avaliação aplica somente gates determinísticos de integridade dos períodos, sinais protetivos e evidência mínima para progressão. Ela pode registrar `protective_signal`, `observation_only` ou `not_evaluated`, além de uma resposta candidata explicitamente não aplicada.
 - A resposta protetiva considera limitações ativas, dor, fadiga elevada, necessidade de recuperação e sinais do período mais recente. Para chegar a `observation_only`, exige dois períodos recentes com sessões, carga session-RPE e feedback completos, além de check-in de recuperação completo nos últimos 14 dias. Isso é um critério de validação do shadow, não uma regra de prescrição.
 - Dados insuficientes ou inconsistentes permanecem em `missing_data`/`data_issues`. A avaliação não conclui destreinamento, tolerância, mudança de condicionamento, progressão ou resposta fisiológica; `progression_eligible`, `applied` e `used_for_prescription` permanecem `false`.
 - Nenhum treino, duração, RPE, protocolo, migração, infraestrutura ou tela foi alterado. Como não há mudança visual, `APP_VERSION` e `UPDATE_NOTES` continuam em `0.7.0`.
-- Validação concluída com uma ressalva operacional: os testes específicos e a suíte Go passaram nos pacotes executados; a execução agregada foi bloqueada apenas pelo Controle de Aplicativos do Windows ao abrir o executável temporário de `internal/repository`, mas o mesmo pacote passou quando compilado e executado dentro do workspace. `go vet`, build do frontend, validação do OpenAPI e a consulta PostgreSQL sintética também passaram. A conferência manual via API será feita depois de reiniciar a API e gerar novo rascunho.
+- Validação concluída com uma ressalva operacional: os testes específicos e a suíte Go passaram nos pacotes executados; a execução agregada foi bloqueada apenas pelo Controle de Aplicativos do Windows ao abrir o executável temporário de `internal/repository`, mas o mesmo pacote passou quando compilado e executado dentro do workspace. `go vet`, build do frontend, validação do OpenAPI e a consulta PostgreSQL sintética também passaram. A conferência manual via API confirmou `protective_signal`, `prefer_recovery`, `applied: false`, `used_for_prescription: false`, `progression_eligible: false`, `missing_data: []` e `data_issues: []`. A matriz controlada confirmou cenários de evidência completa, sinal protetivo, dados insuficientes, período inconsistente e invariância dos treinos do `rules-v1` com ou sem dados do shadow.
 
 Arquivos desta fatia: `backend/internal/planning/rules_v2.go`, `backend/internal/planning/rules_v2_test.go`, `backend/internal/planning/service.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `README.md`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alterados `melhorias.md`, migrações, infraestrutura ou notas de versão.
 

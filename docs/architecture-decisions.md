@@ -100,7 +100,7 @@ Terceira fatia local, ainda sem commit ou publicação: `training-history-v2` ac
 
 Quarta fatia no commit local `810183c`, ainda sem publicação: `training-history-v3` acrescenta `period_comparison` com seis blocos semanais não sobrepostos, do mais recente ao mais antigo. Cada bloco repete medições brutas de aderência, sessões, carga session-RPE, feedback, sinais protetivos e recuperação; não calcula tendência, ACWR ou qualquer razão que autorize carga. Sessões e carga usam intervalos de `completed_at` no relógio do banco, enquanto aderência e recuperação usam datas de `CURRENT_DATE`, mantendo as bases explícitas. O contrato registra `period-comparison-v1`, lacunas e inconsistências, mantém `used_for_prescription: false` e deixa a tendência para prescrição em `not_evaluated`. Snapshots antigos continuam legíveis sem recálculo. A conferência manual via API foi concluída.
 
-Quinta fatia local, ainda sem commit ou publicação: `rules-v2` é executado em modo `shadow` durante a geração do plano. Ele avalia integridade dos períodos, sinais protetivos e evidência mínima de dois períodos recentes, registrando regras avaliadas, regras adiadas, motivos, lacunas e uma resposta candidata. Os estados são `protective_signal`, `observation_only` e `not_evaluated`; nenhum deles altera a prescrição. `engine_version` continua `rules-v1`, e `progression_eligible`, `applied` e `used_for_prescription` permanecem `false`. A decisão permite comparar o comportamento antes de qualquer migração para um motor prescritivo.
+Quinta fatia no commit local `64e554d`, ainda sem publicação: `rules-v2` é executado em modo `shadow` durante a geração do plano. Ele avalia integridade dos períodos, sinais protetivos e evidência mínima de dois períodos recentes, registrando regras avaliadas, regras adiadas, motivos, lacunas e uma resposta candidata. Os estados são `protective_signal`, `observation_only` e `not_evaluated`; nenhum deles altera a prescrição. `engine_version` continua `rules-v1`, e `progression_eligible`, `applied` e `used_for_prescription` permanecem `false`. A conferência manual no `GET /v1/plans/current` e a matriz controlada confirmaram esse isolamento; o teste regressivo adicional ainda está sem commit. A decisão permite comparar o comportamento antes de qualquer migração para um motor prescritivo.
 
 ## ADR-009 — Comunicação de atualizações no produto
 
@@ -155,8 +155,8 @@ Nenhuma porta de outro aplicativo deve ser bloqueada sem mapear antes seus domí
 
 1. Observar os primeiros relatos reais em `/feedback` e confirmar a entregabilidade/utilidade do resumo semanal pelo Resend.
 2. Monitorar a explicação autenticada pelo Worker remoto, sua latência, limites e acionamento do fallback determinístico; manter o Ollama parado.
-3. Validar manualmente a avaliação `rules-v2` shadow no `GET /v1/plans/current`, sem remover o `rules-v1` nem alterar carga.
-4. Comparar os resultados shadow em cenários controlados e só então definir adaptação em ciclo fechado, progressão/carga e barreiras de integridade e segurança.
+3. Comparar os resultados shadow em cenários controlados, preservando `rules-v1` e sem alterar carga; essa validação já foi concluída no commit `64e554d` e deve ser mantida como regressão.
+4. Só então definir adaptação em ciclo fechado, progressão/carga e barreiras de integridade e segurança.
 5. Evoluir o catálogo de protocolos de ciclismo com elegibilidade e evidências próprias; o catálogo inicial e o piloto de estrada já estão em produção, enquanto novos protocolos permanecem condicionados à revisão.
 6. Definir cópia externa dos backups, monitoramento de falhas e alertas de saúde.
 7. Escolher a política de firewall e a lista mínima de portas públicas da VPS, preservando Tailscale, Cloudflare e os demais aplicativos.

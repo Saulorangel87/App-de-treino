@@ -140,11 +140,11 @@ Cada período repete medições brutas de aderência, sessões realizadas, minut
 
 O contrato é `period-comparison-v1`, em `mode: observation`, com `used_for_prescription: false`. Não há tendência calculada, razão aguda:crônica, inferência de destreinamento, limiar de tolerância, progressão ou regressão. Dados ausentes continuam sendo lacunas; dados inconsistentes entram em `data_issues`. O item `period_trend_for_prescription` permanece explicitamente não avaliado, e `rules-v1` não lê essa estrutura.
 
-Os testes unitários verificam ordenação, seis períodos, taxas, separação das medições, invariância da prescrição e rejeição de período que não tenha sete dias. `scripts/test-training-history-query.ps1` executa a consulta real com fixtures sintéticas em transação somente leitura e verifica os seis blocos, inclusive as fronteiras temporais e o isolamento do atleta. A validação manual via API ainda deve ser feita em um novo rascunho antes de qualquer commit ou publicação.
+Os testes unitários verificam ordenação, seis períodos, taxas, separação das medições, invariância da prescrição e rejeição de período que não tenha sete dias. `scripts/test-training-history-query.ps1` executa a consulta real com fixtures sintéticas em transação somente leitura e verifica os seis blocos, inclusive as fronteiras temporais e o isolamento do atleta. A validação manual via API foi concluída em um novo rascunho antes do commit `64e554d`.
 
 ### Avaliação shadow do motor (`rules-v2`)
 
-O `rules-v2` começou em paralelo, sem substituir o `rules-v1`. Durante a geração de um novo rascunho, `prescription_snapshot.rules_v2_shadow` avalia três gates determinísticos: integridade do período, sinais protetivos e evidência mínima para progressão. O resultado é congelado no snapshot com `mode: shadow` e escopo `plan_generation_only`.
+O `rules-v2` começou em paralelo, sem substituir o `rules-v1`. Durante a geração de um novo rascunho, `prescription_snapshot.rules_v2_shadow` avalia três gates determinísticos: integridade do período, sinais protetivos e evidência mínima para progressão. O resultado é congelado no snapshot com `mode: shadow` e escopo `plan_generation_only`. Essa avaliação foi versionada no commit `64e554d`; não está publicada na produção.
 
 Os estados possíveis são:
 
@@ -152,7 +152,7 @@ Os estados possíveis são:
 - `observation_only` / `maintain_observed`: existem dois períodos recentes com sessão, carga session-RPE e feedback completos, além de um check-in de recuperação completo nos últimos 14 dias, sem sinal protetivo;
 - `not_evaluated`: faltam períodos, cobertura mínima ou integridade dos dados para comparar a resposta.
 
-Mesmo no segundo estado, não há autorização para progressão. A avaliação registra regras adiadas, motivos, lacunas e inconsistências, mantendo `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. Ela não calcula destreinamento, tolerância, mudança fisiológica, ACWR ou resposta fora do Cadência. O próximo passo é comparar os resultados em cenários controlados antes de permitir qualquer efeito prescritivo.
+Mesmo no segundo estado, não há autorização para progressão. A avaliação registra regras adiadas, motivos, lacunas e inconsistências, mantendo `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. Ela não calcula destreinamento, tolerância, mudança fisiológica, ACWR ou resposta fora do Cadência. A conferência manual da API e a matriz controlada confirmaram os estados, as barreiras e a invariância dos treinos do `rules-v1`; um teste regressivo adicional mantém essa garantia localmente.
 
 ## IA explicativa opcional
 
