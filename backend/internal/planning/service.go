@@ -407,6 +407,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	summary := explanationFor(kind, restricted)
 	usesControlledIntervals := false
 	usesRoadModerateIntervals := false
+	usesXCOAerobicIntervals := false
 	rotationApplied := false
 	observedProtected := input.Observed.RequiresRecovery() && (input.Observed.PainReported || kind == "quality")
 	if kind == "long" {
@@ -426,6 +427,12 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 			mainBlock = "3 blocos moderados de 10 min com 3 min leves entre os blocos"
 			summary = "A modalidade de estrada, o objetivo e a avaliação submáxima apta permitem um piloto intervalado moderado e conservador."
 			usesRoadModerateIntervals = true
+		} else if input.Cycling.Discipline == "mtb_xco" && input.ExperienceLevel == "advanced" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 75 && multiplier >= 0.95 && (preference == "" || preference == "intervals") {
+			name = "Intervalos aeróbicos XCO"
+			targetRPE = 7.0
+			mainBlock = "5 blocos aeróbicos de 4 min com 4 min leves entre os blocos"
+			summary = "A modalidade XCO explícita, o objetivo compatível e a avaliação submáxima apta liberam um piloto aeróbico conservador; o treino não simula trechos técnicos nem usa sprint máximo."
+			usesXCOAerobicIntervals = true
 		} else if preference == "cadence" && input.ExperienceLevel != "beginner" {
 			name = "Cadência técnica"
 			targetRPE = 5.0
@@ -545,6 +552,9 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	}
 	if usesRoadModerateIntervals {
 		rules = append(rules, "Piloto de estrada moderado liberado por modalidade explícita, objetivo compatível, avaliação apta e disponibilidade suficiente.")
+	}
+	if usesXCOAerobicIntervals {
+		rules = append(rules, "Piloto aeróbico XCO liberado por modalidade explícita, objetivo compatível, avaliação apta e disponibilidade suficiente; sem sprint máximo ou simulação técnica.")
 	}
 	if rotationApplied {
 		rules = append(rules, "Sessão alternada pela rotação explicável entre ciclos.")

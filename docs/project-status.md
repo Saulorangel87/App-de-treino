@@ -23,7 +23,7 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 ## Estado do checkout local
 
-- Checkout local no commit `9034287 test: adiciona matriz comparativa do shadow pós-treino`. A validação manual e as matrizes controladas da quinta e da oitava fatias foram concluídas; a nona fatia descrita abaixo está modificada localmente, sem commit nem deploy. Não confundir nenhuma delas com a versão publicada na VPS.
+- Checkout local no commit `34efbe2 feat: adiciona gate observacional de integridade`. A validação manual e as matrizes controladas das fatias anteriores foram concluídas; a nona fatia está versionada localmente, sem deploy. A décima fatia, o piloto XCO descrito abaixo, está modificada localmente, sem commit nem deploy. Não confundir nenhuma delas com a versão publicada na VPS.
 - A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local) e `9034287` (matriz comparativa).
 - A migração `000015`, o catálogo inicial e o protocolo `road_moderate_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
@@ -120,14 +120,24 @@ Arquivos desta fatia: `backend/internal/planning/rules_v2_adaptation.go`, `backe
 - Cada caso confirma `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. O teste é regressivo e não altera geração de plano, trigger SQL, banco ou interface.
 - A validação automatizada passou em `go test -count=1 ./internal/planning ./internal/repository ./internal/httpapi` e `go vet ./internal/planning ./internal/repository ./internal/httpapi`. A matriz representa as regras atuais e permanece como regressão antes de qualquer integração prescritiva.
 
-### Nona fatia de melhorias — integridade observacional dos dados (local, sem commit)
+### Nona fatia de melhorias — integridade observacional dos dados (commit local; sem publicação)
 
 - `backend/internal/planning/data_integrity.go` cria `data-integrity-v1` para classificar sessões concluídas como `valid`, `incomplete` ou `inconsistent`, separando ausência de dados de valores incompatíveis.
 - O gate verifica duração positiva, RPE realizado, feedback, fadiga, faixas das métricas opcionais e combinações como duração zero com distância ou elevação registradas. O registro original não é rejeitado nem sobrescrito; a leitura é armazenada em `workouts.explanation.data_integrity` para auditoria.
 - O shadow do pós-treino consulta esse resultado: uma sessão incompleta ou inconsistente não produz candidata de adaptação. O `rules-v1` e o trigger SQL continuam inalterados nesta fatia, portanto a observação ainda não é uma barreira prescritiva ativa.
-- O contrato OpenAPI e a tipagem do frontend expõem a nova leitura. Os testes cobrem sessão coerente, duração zero, distância sem tempo, feedback ausente, métrica fora da faixa e RPE não finito. Ainda falta validar manualmente a nova chave no `GET /v1/plans/current` com uma sessão local curta e outra com duração positiva.
+- O contrato OpenAPI e a tipagem do frontend expõem a nova leitura. Os testes cobrem sessão coerente, duração zero, distância sem tempo, feedback ausente, métrica fora da faixa e RPE não finito. A validação manual no `GET /v1/plans/current` confirmou uma sessão curta como `incomplete` e uma sessão com duração positiva como `valid`, mantendo `used_for_prescription: false`.
 
 Arquivos desta fatia: `backend/internal/planning/data_integrity.go`, `backend/internal/planning/data_integrity_test.go`, `backend/internal/planning/rules_v2_adaptation.go`, `backend/internal/planning/rules_v2_adaptation_test.go`, `backend/internal/repository/workout_sessions.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `README.md`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alteradas migrações, infraestrutura ou notas de versão.
+
+### Décima fatia de melhorias — piloto local de intervalos aeróbicos XCO (sem commit; sem publicação)
+
+- O catálogo passa a selecionar `xco_aerobic_intervals` somente quando a disciplina `mtb_xco` é informada explicitamente, o atleta é avançado, o objetivo é performance ou prova, a avaliação submáxima está apta, há pelo menos 75 minutos disponíveis, a semana não é de recuperação e não há proteção ativa por limitação, dor ou sinais recentes de recuperação insuficiente.
+- A sessão usa cinco blocos de 4 minutos com 4 minutos leves, alvo RPE 7 e uma única sessão de qualidade no ciclo. É uma adaptação conservadora do HIT estudado em mountain bikers treinados; não inclui sprint máximo, técnica de trilha, descida, salto ou meta rígida de potência.
+- A migração `000016` registra `xco-hit-2016`, um ensaio randomizado de 2016. A revisão sistemática contemporânea de XCO de 2026 orienta a especificidade intermitente, mas ressalta a escassez de avaliações diretas de desempenho; por isso, o protocolo ainda é piloto local e não está na produção.
+- Gravel continua apenas como contexto de endurance, sem protocolo próprio baseado em um único estudo de campo. Pista sprint/BMX e downhill/enduro permanecem bloqueados nesta fase.
+- Como a seleção é visível ao atleta, `frontend/lib/release.ts` foi atualizado para a versão `0.8.0` e a tela de novidades passou a explicar o piloto XCO. A migração `000016`, a nova regra e a nota ainda precisam de validação local antes de qualquer publicação.
+
+Arquivos desta fatia: `backend/internal/planning/protocols.go`, `backend/internal/planning/service.go`, `backend/internal/planning/service_test.go`, `database/migrations/000016_xco_catalog_evidence.up.sql`, `database/migrations/000016_xco_catalog_evidence.down.sql`, `docs/cycling-evidence-catalog.md`, `docs/training-adaptation-rules.md`, `docs/architecture-decisions.md`, `frontend/lib/release.ts`, `README.md`, `docs/README.md` e `planejamento.md`. Não foram alteradas infraestrutura ou regras prescritivas do shadow.
 
 ### Topologia mantida
 
@@ -157,7 +167,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
 - `backend/`: API REST em Go.
-- `database/migrations/`: migrações PostgreSQL até `000015`; as `000013` e `000014` sustentam feedback e resumo semanal, e a `000015` registra as fontes científicas do catálogo. Todas estão aplicadas na produção.
+- `database/migrations/`: migrações PostgreSQL até `000016`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes científicas do catálogo inicial e a `000016` registra a fonte do piloto XCO. Em produção, somente até `000015` está aplicado.
 - `database/tests/`: verificações SQL.
 - `api/openapi.yaml`: contrato da API local e de produção.
 - `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.
@@ -228,7 +238,7 @@ As rotas estão descritas em `api/openapi.yaml`. Os grupos principais são:
 
 ## Banco e migrações
 
-- Migrações versionadas no checkout local: `000001` a `000015`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal e a `000015` registra fontes científicas do catálogo de ciclismo.
+- Migrações versionadas no checkout local: `000001` a `000016`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes científicas do catálogo inicial e a `000016` registra a fonte do piloto XCO.
 - Em produção, estão aplicadas `000001` a `000015`. A `000015` foi executada pelo perfil `maintenance` após backup verificável, revisão e autorização explícita; novas migrações devem continuar seguindo essa ordem operacional.
 - `000012` adiciona confirmação de e-mail e recuperação de senha.
 - Produção possui registro de migrações em `cadencia_schema_migrations`.

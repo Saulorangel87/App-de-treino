@@ -19,7 +19,7 @@ Versão atual: `0.6.0` — resumo semanal de feedback, PWA e identidade visual C
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui a migração `000015` (fontes científicas do catálogo); ela ainda precisa ser aplicada nos ambientes que estiverem em `000014`.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui a migração `000015` (fontes do catálogo inicial) e a `000016` (fonte do piloto XCO); elas ainda precisam ser aplicadas nos ambientes que estiverem em uma versão anterior.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -88,7 +88,7 @@ O MVP de ciclismo está publicado em produção real:
 - Dependabot está com 0 alertas abertos; os testes Go, build Docker e `govulncheck` passaram.
 - A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`, `000014` e `000015` foram aplicadas na produção.
 - O ajuste responsivo dos períodos nos gráficos da Evolução foi publicado e validado no domínio oficial; a rolagem horizontal interna agora preserva os rótulos no celular.
-- A produção permanece em `c768ef7`, com a API funcional de `5fbc668`. O checkout local está no commit `9034287`, que versiona a matriz controlada entre `rules-v1` e o shadow; o gate de integridade dos dados está modificado localmente e não altera o plano. O catálogo inicial e o piloto de estrada estão publicados, sujeitos aos critérios de elegibilidade documentados.
+- A produção permanece em `c768ef7`, com a API funcional de `5fbc668`. O checkout local está no commit `34efbe2`, que versiona o gate observacional de integridade; o piloto de intervalos aeróbicos XCO e a migração `000016` estão modificados localmente e ainda não foram publicados. O catálogo inicial e o piloto de estrada estão publicados, sujeitos aos critérios de elegibilidade documentados.
 - Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts` (`APP_VERSION` e `UPDATE_NOTES`) para que a novidade seja exibida na tela de primeiro acesso após a atualização. O modal é mostrado uma vez por conta, versão e navegador.
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.

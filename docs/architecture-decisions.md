@@ -1,6 +1,6 @@
 # Decisões de arquitetura
 
-Última revisão: 4 de setembro de 2026.
+Última revisão: 5 de setembro de 2026.
 
 ## ADR-001 — Banco de dados próprio
 
@@ -49,7 +49,7 @@ O planejamento é gerado pelo motor determinístico `rules-v1`, com regras expl�
 
 Os formatos das sessões são mantidos em uma biblioteca de protocolos com chaves estáveis e referências associadas. A biblioteca define a forma do estímulo; o motor ainda aplica nível, disponibilidade, progressão, recuperação e limitações antes de gerar cada duração final. A IA explicativa recebe somente fatos já validados do treino, suas regras e o escopo da evidência; ela não pode alterar a prescrição.
 
-O contexto de ciclismo permanece em JSONB para evoluir sem migrações a cada pergunta opcional. Atualmente inclui horas semanais, pedais por semana, distância semanal recente, semanas de regularidade, maior distância e pedal, preferências de sessão, equipamento, terreno e sensores. Além dele, o motor consulta um resumo agregado dos últimos 28 dias de sessões concluídas e check-ins de recuperação. Esses dados são preservados no snapshot do plano; sinais de dor, fadiga elevada ou recuperação insuficiente apenas protegem a sessão de forma conservadora, sem criar metas rígidas ou diagnósticos. Novas fórmulas de carga só serão ativadas após revisão e testes específicos.
+O contexto de ciclismo permanece em JSONB para evoluir sem migrações a cada pergunta opcional. Atualmente inclui horas semanais, pedais por semana, distância semanal recente, semanas de regularidade, maior distância e pedal, preferências de sessão, equipamento, terreno e sensores. Além dele, o motor consulta um resumo agregado dos últimos 28 dias de sessões concluídas e check-ins de recuperação. Esses dados são preservados no snapshot do plano; sinais de dor, fadiga elevada ou recuperação insuficiente apenas protegem a sessão de forma conservadora, sem criar metas rígidas ou diagnósticos. O catálogo agora também valida localmente um piloto aeróbico XCO com disciplina explícita, evidência própria e limites mais restritos; isso não libera sprint, técnica de trilha ou outras modalidades. Novas fórmulas de carga só serão ativadas após revisão e testes específicos.
 
 A primeira implementação de IA usa Ollama local como provedor opcional. `AI_ENABLED=false` é o padrão; quando habilitado, o backend aplica timeout de até 60 segundos, saída limitada a 512 tokens e no máximo duas chamadas simultâneas (padrão: uma). A API local do Ollama não é exposta ao navegador ou à internet. Uma rota separada e protegida do Worker Cloudflare (`/cadencia/explanation`) foi publicada para fallback, com autenticação por segredo, allowlist de campos, limite de corpo, timeout, limite de requisições por janela e resposta sanitizada. O Worker usa `openai/gpt-oss-20b` na Groq, com o segredo mantido somente no Worker e no `.env.production` da VPS; uma chamada sintética autenticada foi validada. O contrato legado do Worker permanece inalterado para não interromper outros projetos. Se os provedores falharem, a API retorna o resumo determinístico do motor.
 
@@ -68,7 +68,7 @@ A primeira implementação de IA usa Ollama local como provedor opcional. `AI_EN
 
 **Status:** Aplicada.
 
-As migrações `000001` a `000015` estão versionadas e aplicadas na produção. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal e a `000015` registra fontes científicas do catálogo de ciclismo. O catálogo inicial e o piloto `road_moderate_intervals` foram publicados após revisão e autorização; antes de qualquer nova mudança estrutural em produção, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
+As migrações `000001` a `000016` estão versionadas no checkout; somente `000001` a `000015` estão aplicadas na produção. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes científicas do catálogo inicial e a `000016` registra a fonte do piloto XCO local. O catálogo inicial e o piloto `road_moderate_intervals` foram publicados após revisão e autorização; o piloto XCO ainda não foi publicado. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
 
 ## ADR-006 — Feedback de produto
 
@@ -108,7 +108,9 @@ Sétima fatia no commit local `b6ea8bd`, ainda sem publicação: o repositório 
 
 Oitava fatia no commit local `9034287`, ainda sem publicação: uma matriz regressiva compara o resultado do `rules-v1` com o candidato do `rules-v2-adaptation-v1` em cenários protetivos, neutros, de progressão com evidência suficiente, de progressão sem evidência e de histórico inconsistente. A matriz exige coincidência nas proteções e mantém o shadow não autoritativo em todos os casos. Ela não altera carga, banco, trigger ou interface.
 
-Nona fatia local, ainda sem commit ou publicação: `data-integrity-v1` classifica sessões concluídas como válidas, incompletas ou inconsistentes. O gate separa campos ausentes de valores incompatíveis, preserva o registro original e é anexado à explicação do treino. O shadow não produz candidato quando a sessão atual não é elegível para histórico; o `rules-v1` permanece inalterado até uma decisão específica sobre uma barreira prescritiva.
+Nona fatia no commit local `34efbe2`, ainda sem publicação: `data-integrity-v1` classifica sessões concluídas como válidas, incompletas ou inconsistentes. O gate separa campos ausentes de valores incompatíveis, preserva o registro original e é anexado à explicação do treino. O shadow não produz candidato quando a sessão atual não é elegível para histórico; o `rules-v1` permanece inalterado até uma decisão específica sobre uma barreira prescritiva.
+
+Décima fatia local, ainda sem commit ou publicação: o piloto `xco_aerobic_intervals` adiciona uma sessão aeróbica específica para XCO avançado elegível, com disciplina explícita, avaliação submáxima apta, objetivo compatível, disponibilidade mínima e proteções de recuperação. A migração `000016` registra o ensaio de HIT em mountain bikers que sustenta o formato, enquanto a revisão contemporânea de XCO delimita a transferência da evidência. O piloto não inclui sprint máximo, técnica de trilha, descida, salto ou metas rígidas de potência. Como a escolha é visível, a versão local do frontend passa a `0.8.0`; produção continua em `0.7.0` até revisão, validação e autorização.
 
 ## ADR-009 — Comunicação de atualizações no produto
 

@@ -75,6 +75,12 @@ var sessionProtocols = map[string]sessionProtocol{
 		WorkMinutes:   10, RecoveryMinutes: 3, Repetitions: 3,
 		WorkTitle: "Intervalo moderado", WorkInstruction: "Sustente um esforço moderado e firme, mantendo a técnica e terminando o bloco sem sprintar; reduza o ritmo se perder o controle.",
 	},
+	"Intervalos aeróbicos XCO": {
+		Key: "xco_aerobic_intervals", EvidenceKeys: []string{"xco-hit-2016", "xco-physiology-2026"},
+		EvidenceScope: "Um ensaio com mountain bikers treinados observou benefício do HIT para desempenho de MTB, e a revisão de XCO de 2026 confirma a demanda aeróbica intermitente. Esta é uma adaptação conservadora, sem sprint máximo ou simulação técnica de prova.",
+		WorkMinutes:   4, RecoveryMinutes: 4, Repetitions: 5,
+		WorkTitle: "Bloco aeróbico XCO", WorkInstruction: "Sustente um esforço forte e controlado por quatro minutos; reduza o ritmo se perder a técnica ou o controle da respiração.",
+	},
 }
 
 func protocolForWorkout(name string) sessionProtocol {

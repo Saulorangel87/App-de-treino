@@ -1,6 +1,6 @@
 # Mapa de evidências do catálogo de ciclismo
 
-Última revisão: 4 de setembro de 2026.
+Última revisão: 5 de setembro de 2026.
 
 ## Objetivo
 
@@ -34,7 +34,7 @@ Existe a base mais aproveitável para a primeira expansão. A literatura recente
 
 O XCO contemporâneo combina alta capacidade aeróbica, esforços curtos acima da potência aeróbica máxima, largadas rápidas, subidas e trechos técnicos. A revisão sistemática de 2026 reuniu 53 estudos e destaca a natureza intermitente da modalidade, mas também informa que avaliações diretas de desempenho das intervenções ainda são escassas.
 
-**Uso previsto no Cadência:** um futuro protocolo de esforços variáveis, inicialmente experimental e restrito a atletas com contexto XCO explícito, nível suficiente, avaliação apta e ausência de sinais de recuperação insuficiente.
+**Uso nesta fatia:** piloto local de intervalos aeróbicos controlados, restrito a atletas avançados com contexto XCO explícito, objetivo de performance ou prova, avaliação submáxima apta, disponibilidade suficiente e ausência de sinais de recuperação insuficiente.
 
 **Limite:** a distribuição observada em uma prova não será convertida diretamente em séries universais. A parte técnica permanece instrução de habilidade e não deve ser simulada automaticamente pelo aplicativo.
 
@@ -67,7 +67,7 @@ São modalidades com exigências anaeróbicas, neuromusculares e de força muito
 | Endurance de estrada | `road` | Base de endurance e distribuição de intensidade apoiadas por revisões | Todos os níveis, com progressão conservadora |
 | Intervalos moderados | `road` | Ensaios recentes em ciclistas bem treinados | Piloto local: intermediário/avançado, objetivo compatível, avaliação apta, 60 min disponíveis e sem sinais de recuperação insuficiente |
 | Intervalos intensos controlados | `road` | Revisões e ensaios, com maior exigência fisiológica | Avançado, avaliação apta e objetivo compatível |
-| Esforços variáveis XCO | `mtb_xco` | Forte evidência de demanda; evidência de intervenção ainda limitada | Futuro piloto restrito, não padrão geral |
+| Intervalos aeróbicos XCO | `mtb_xco` | Demanda bem descrita; intervenção direta favorável ao HIT, mas em população treinada | Piloto local restrito, sem sprint máximo ou técnica de trilha |
 | Endurance gravel/XCM | `gravel`, `mtb_xcm` | Evidência direta de prescrição ainda insuficiente | Usar somente base/endurance contextual |
 | Força complementar | `road`, `mtb_xco` | Meta-análise recente favorável, mas com baixa certeza | Módulo opcional e separado do treino de bike |
 | Downhill/enduro técnico | `dh_enduro` | Evidência de risco, não de protocolo automatizado seguro | Bloqueado nesta fase |
@@ -81,9 +81,17 @@ O primeiro protocolo específico implementado e publicado é `road_moderate_inte
 
 O motor só o seleciona quando a disciplina é explicitamente `road`, o atleta é intermediário ou avançado, a avaliação submáxima está apta, o objetivo é performance ou evento, há pelo menos 60 minutos disponíveis e a preferência está vazia ou indica intervalos. Dor, limitação ou recuperação insuficiente substituem o protocolo por uma sessão protegida.
 
+### Segundo piloto local: intervalos aeróbicos XCO
+
+O segundo protocolo específico em validação local é `xco_aerobic_intervals`, apresentado como **Intervalos aeróbicos XCO**. Ele usa cinco blocos de quatro minutos com quatro minutos de recuperação leve, alvo RPE 7 e uma única sessão de qualidade no ciclo. A estrutura é uma adaptação conservadora do HIT estudado em mountain bikers treinados; não reproduz a frequência, a progressão de seis semanas ou a carga do ensaio e não inclui sprint máximo.
+
+O motor só o seleciona quando a disciplina é explicitamente `mtb_xco`, o atleta é avançado, a avaliação submáxima está apta, o objetivo é performance ou evento, há pelo menos 75 minutos disponíveis, a semana não é de recuperação e a preferência está vazia ou indica intervalos. Limitação, dor, recuperação insuficiente, dados ausentes ou inconsistentes e qualquer outro perfil substituem ou impedem o piloto. A sessão não prescreve descidas, saltos, técnica de trilha, força complementar ou metas rígidas de potência.
+
+O estudo randomizado de Inoue et al. encontrou melhora do desempenho de MTB após seis semanas de HIT ou SIT, com vantagem provável do HIT; a revisão sistemática contemporânea de XCO de 2026 confirma a combinação de alta demanda aeróbica e esforços intermitentes, mas ressalta que avaliações diretas de desempenho das intervenções ainda são escassas. Por isso, a implementação permanece local e condicionada a revisão, sem alterar o protocolo ativo para perfis gerais.
+
 ## Modelo e critérios de integração do catálogo
 
-O contexto agora guarda `bike_type`, `terrain` e uma disciplina explícita, opcional e validada. A disciplina não é inferida pelo tipo de bicicleta: XCO, gravel ou pista só podem ser usados quando o atleta os informa diretamente. A migração `000015` registra as fontes na produção. Cada protocolo continua dependendo de revisão de elegibilidade, segurança e transferência da evidência antes de ser publicado.
+O contexto agora guarda `bike_type`, `terrain` e uma disciplina explícita, opcional e validada. A disciplina não é inferida pelo tipo de bicicleta: XCO, gravel ou pista só podem ser usados quando o atleta os informa diretamente. A migração `000015` registra as fontes do catálogo inicial na produção; a `000016` registra a fonte do piloto XCO local e ainda não foi aplicada na produção. Cada protocolo continua dependendo de revisão de elegibilidade, segurança e transferência da evidência antes de ser publicado.
 
 Valores planejados para `cycling_context.discipline`:
 
@@ -119,6 +127,7 @@ Cada novo protocolo também deverá declarar, em código:
 - **`xco-physiology-2026`** — Protzen et al. *The Physiology of Contemporary Olympic Cross-Country Mountain Biking: A Systematic Review*. 2026. Revisão de 53 estudos sobre o XCO contemporâneo; sustenta a especificidade intermitente, não uma receita fixa de séries. https://pubmed.ncbi.nlm.nih.gov/41739301/
 - **`xco-power-distribution-2021`** — *Aerobic and Anaerobic Power Distribution During Cross-Country Mountain Bike Racing*. 2021. Estudo de demanda de prova; descreve esforços curtos e repetidos acima da potência aeróbica máxima. https://pubmed.ncbi.nlm.nih.gov/33848975/
 - **`xco-pacing-2021`** — *Exercise Intensity and Pacing Pattern During a Cross-Country Olympic Mountain Bike Race*. 2021. Estudo de intensidade e pacing em prova XCO; usado somente para especificidade da modalidade. https://pubmed.ncbi.nlm.nih.gov/34349670/
+- **`xco-hit-2016`** — Inoue et al. *Effects of Sprint versus High-Intensity Aerobic Interval Training on Cross-Country Mountain Biking Performance: A Randomized Controlled Trial*. 2016. Ensaio randomizado com 16 mountain bikers treinados; compara HIT e SIT por seis semanas e informa a escolha de um piloto aeróbico XCO conservador. https://pubmed.ncbi.nlm.nih.gov/26789124/
 - **`gravel-field-2024`** — *Fluid Intake and Hydration Responses to Mass Participation Gravel Cycling*. 2024. Estudo de campo sobre gravel; informa contexto de distância e hidratação, não valida sozinho um protocolo de treino. https://pubmed.ncbi.nlm.nih.gov/39807388/
 - **`dh-injury-2024`** — Fallon et al. *Downhill race for a rainbow jersey: the epidemiology of injuries in downhill mountain biking at the 2023 UCI cycling world championships*. 2024. Estudo observacional de lesões; usado como trava de segurança, não como prescrição. https://pubmed.ncbi.nlm.nih.gov/39411021/
 - **`mtb-crash-mechanisms-2025`** — Bonte et al. *Injury Mechanisms in Mountain Biking: A Systematic Video Analysis of 534 Cases*. 2025. Estudo de mecanismos de queda; reforça que habilidade técnica e prevenção não devem ser reduzidas a carga aeróbica. https://pubmed.ncbi.nlm.nih.gov/40534393/

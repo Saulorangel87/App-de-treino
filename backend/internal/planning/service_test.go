@@ -336,7 +336,7 @@ func TestSessionProtocolsKeepEvidenceMapping(t *testing.T) {
 	for _, name := range []string{
 		"Giro de base", "Endurance contínuo", "Giro leve protegido", "Tempo controlado",
 		"Ritmo de prova controlado", "Cadência técnica", "Subidas controladas",
-		"Sweet spot por potência", "Sweet spot progressivo", "Intervalos controlados", "Intervalos moderados de estrada",
+		"Sweet spot por potência", "Sweet spot progressivo", "Intervalos controlados", "Intervalos moderados de estrada", "Intervalos aeróbicos XCO",
 	} {
 		protocol := protocolForWorkout(name)
 		if protocol.Key == "" || len(protocol.EvidenceKeys) == 0 || protocol.EvidenceScope == "" {
@@ -345,6 +345,46 @@ func TestSessionProtocolsKeepEvidenceMapping(t *testing.T) {
 	}
 	if protocolForWorkout("unknown").Key != "continuous_base" {
 		t.Fatal("unknown sessions should use the safe continuous fallback protocol")
+	}
+}
+
+func TestBuildPlanUsesXCOAerobicIntervalsForEligibleXCOContext(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		Cycling:      CyclingContext{Discipline: "mtb_xco", PreferredSessionTypes: []string{"intervals"}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name == "Intervalos aeróbicos XCO" {
+			if workout.Structure["protocol_key"] != "xco_aerobic_intervals" || workout.Explanation["protocol_key"] != "xco_aerobic_intervals" {
+				t.Fatalf("expected XCO protocol metadata, got %#v", workout)
+			}
+			steps := workout.Structure["steps"].([]WorkoutStep)
+			if steps[1].Title != "Bloco aeróbico XCO 1 de 5" || steps[1].DurationMinutes != 4 || steps[2].Kind != "recovery" {
+				t.Fatalf("expected conservative XCO interval structure, got %#v", steps)
+			}
+			return
+		}
+	}
+	t.Fatalf("expected eligible XCO context to receive the XCO pilot, got %#v", plan.Workouts)
+}
+
+func TestBuildPlanDoesNotUseXCOProtocolOutsideXCODiscipline(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		Cycling:      CyclingContext{Discipline: "road", PreferredSessionTypes: []string{"intervals"}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name == "Intervalos aeróbicos XCO" || workout.Structure["protocol_key"] == "xco_aerobic_intervals" {
+			t.Fatalf("XCO protocol must not be selected outside XCO: %#v", workout)
+		}
 	}
 }
 

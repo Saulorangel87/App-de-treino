@@ -1,6 +1,11 @@
-export const APP_VERSION = '0.7.0';
+export const APP_VERSION = '0.8.0';
 
 export const UPDATE_NOTES = [
+  {
+    title: 'Piloto de intervalos aeróbicos para MTB XCO',
+    description:
+      'Atletas avançados com avaliação submáxima apta, objetivo compatível e contexto XCO explícito podem receber um piloto aeróbico com blocos controlados, sem sprint máximo ou simulação técnica de prova.',
+  },
   {
     title: 'Catálogo de ciclismo baseado em evidências',
     description:

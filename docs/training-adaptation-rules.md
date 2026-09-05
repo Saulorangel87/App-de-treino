@@ -1,6 +1,6 @@
 # Adaptação do plano após o treino
 
-Última revisão: 4 de setembro de 2026.
+Última revisão: 5 de setembro de 2026.
 
 ## Objetivo
 
@@ -25,6 +25,7 @@ Na geração do plano, o motor mantém a frequência, os limites de duração, a
 - **Nível avançado + medidor de potência e FTP informado:** sweet spot orientado pelo dado disponível, sem converter automaticamente o FTP em metas rígidas de watts nesta versão.
 - **Nível avançado + meta de prova:** ritmo de prova controlado, sustentável e sem tentar reproduzir a prova completa.
 - **Demais perfis:** mantém o tempo controlado; avançados sem contexto específico recebem sweet spot progressivo.
+- **MTB XCO avançado elegível:** contexto `mtb_xco` explícito, objetivo de performance/prova, avaliação submáxima apta, pelo menos 75 minutos disponíveis e semana de construção liberam o piloto de intervalos aeróbicos XCO. Ele usa cinco blocos de 4 minutos com 4 minutos leves, RPE 7, sem sprint máximo ou técnica de trilha.
 
 Quando o ciclista informa preferências de sessão, elas orientam a escolha da sessão de qualidade dentro das mesmas proteções: cadência é elegível para intermediários e avançados; subidas exigem terreno com subidas; sweet spot exige nível avançado e, para potência, FTP informado; intervalos continuam exigindo avaliação submáxima apta, objetivo compatível e semana de construção. Se todas as opções forem marcadas, o motor interpreta isso como abertura a qualquer protocolo e mantém a seleção contextual padrão. Giro/base e recuperação permanecem preferências registradas, sem transformar todos os dias em sessões de qualidade.
 
@@ -48,9 +49,10 @@ O motor mantém uma biblioteca explícita de protocolos em código. Cada protoco
 - `power_sweet_spot` e `progressive_sweet_spot`: blocos sustentáveis; o FTP contextualiza a sessão, mas não cria metas rígidas automaticamente.
 - `controlled_event_pace`: blocos sustentáveis orientados à meta de prova, sem simular a prova completa.
 - `controlled_intervals`: quatro blocos de 4 minutos com 3 minutos leves, liberados somente para o perfil avançado elegível.
+- `xco_aerobic_intervals`: cinco blocos de 4 minutos com 4 minutos leves, piloto local restrito a XCO avançado elegível; não inclui sprint máximo, descida ou técnica de trilha.
 - `protected_recovery`: giro leve protegido quando existe uma limitação ativa.
 
-As referências associadas sustentam princípios como progressão gradual, monitoramento de carga e uso contextual de intervalos. Elas não devem ser interpretadas como validação de um número universal de minutos para todas as pessoas; os parâmetros continuam sujeitos às regras de segurança do produto.
+As referências associadas sustentam princípios como progressão gradual, monitoramento de carga e uso contextual de intervalos. O ensaio de HIT em mountain bikers treinados e a revisão sistemática contemporânea de XCO orientam o piloto, mas não validam a mesma carga para todas as pessoas; os parâmetros continuam sujeitos às regras de segurança do produto.
 
 ## Avaliação inicial submáxima
 
