@@ -23,7 +23,7 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 ## Estado do checkout local
 
-- Checkout local no commit `caea641 feat: adiciona classificação observacional de prontidão ao plano`. A segunda fatia descrita abaixo está modificada localmente, sem commit nem deploy; não confundir nenhuma delas com a versão publicada na VPS.
+- Checkout local no commit `a4e5f9f feat: registra histórico de aderência e carga em 7 28 e 42 dias`. A terceira fatia descrita abaixo está modificada localmente, sem commit nem deploy; não confundir nenhuma delas com a versão publicada na VPS.
 - A sequência recente inclui `5461cd6` (contexto por modalidade), `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação) e `c768ef7` (nota de atualização).
 - A migração `000015`, o catálogo inicial e o protocolo `road_moderate_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
@@ -44,7 +44,7 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 Arquivos desta fatia: `backend/internal/planning/readiness.go`, `backend/internal/planning/readiness_test.go`, `backend/internal/planning/service.go`, `backend/internal/repository/planning.go`, `scripts/test-readiness-queries.ps1`, `api/openapi.yaml`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. `melhorias.md`, as migrações e os arquivos de infraestrutura não foram alterados.
 
-### Segunda fatia de melhorias — histórico 7/28/42 e aderência (local)
+### Segunda fatia de melhorias — histórico 7/28/42 e aderência (commit local)
 
 - Novos rascunhos registram `prescription_snapshot.training_history`, versão `training-history-v1`, com janelas cumulativas de 7, 28 e 42 dias. `used_for_prescription` permanece `false`; `rules-v1` não foi alterado.
 - Aderência observada separa sessões previstas já fechadas em concluídas, canceladas, pendentes vencidas e em andamento vencidas. Treino aberto na data atual não reduz antecipadamente a taxa. Rascunhos e planos cancelados ficam fora do denominador.
@@ -56,6 +56,18 @@ Arquivos desta fatia: `backend/internal/planning/readiness.go`, `backend/interna
 - Verificação manual concluída no `GET /v1/plans/current`: retornaram `training-history-v1`, as três janelas 7/28/42, `data_issues: []` e `used_for_prescription: false`. Na conta de teste, as cinco sessões realizadas tinham duração zero e nenhuma sessão planejada já fechada dentro das janelas; por isso a taxa veio `null`, a carga veio zero e as lacunas de histórico/cobertura foram registradas. Esse resultado é esperado e evita interpretar dados ausentes como carga real igual a zero.
 
 Arquivos desta fatia: `backend/internal/planning/history.go`, `backend/internal/planning/history_test.go`, `backend/internal/planning/readiness.go`, `backend/internal/planning/readiness_test.go`, `backend/internal/planning/service.go`, `backend/internal/repository/planning.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `scripts/test-training-history-query.ps1`, `README.md`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alterados `melhorias.md`, migrações, infraestrutura ou notas de versão.
+
+### Terceira fatia de melhorias — qualidade temporal e sinais protetivos (local)
+
+- Novos rascunhos usam `training-history-v2`. Planos já persistidos com `training-history-v1` continuam válidos e não são recalculados.
+- `temporal_quality` registra a última sessão concluída, a última sessão com carga session-RPE válida, o último check-in e os dias desde cada registro. Sessões concluídas no futuro e check-ins com data futura são excluídos e sinalizados em `data_issues`.
+- Cada janela passa a separar registros de feedback, feedbacks completos, dor, fadiga de 4 a 5 e RPE real pelo menos dois pontos acima do planejado. Também conta check-ins totais/completos, check-ins com ao menos um sinal protetivo e aqueles que já atendem à regra existente de necessidade de recuperação.
+- Os limiares são somente os já usados pelo `rules-v1`; não foi criado um novo corte fisiológico. Dor continua contada mesmo se outro campo do feedback estiver ausente, e a falta parcial entra em `missing_data`.
+- `not_evaluated` mantém explícitos tolerância à carga, destreinamento, mudança de condicionamento, atividades fora do Cadência, fuso do atleta e progressão. A ausência de atividade no app significa apenas lacuna de registros, não interrupção comprovada do treino.
+- `used_for_prescription` continua `false`; o `rules-v1`, a prontidão, os treinos e as adaptações não foram alterados. Não há ACWR, mudança visual, migração ou infraestrutura; `APP_VERSION` e `UPDATE_NOTES` permanecem em `0.7.0`.
+- Validação concluída: `go test -count=1 ./...`, `go vet ./...`, build do frontend, carregamento do OpenAPI e a consulta PostgreSQL com fixtures sintéticas em transação somente leitura passaram. A consulta cobre janelas, cobertura incompleta, sinais protetivos, registros futuros e isolamento de outro atleta. O lint geral mantém erros preexistentes em telas/componentes fora desta fatia; `frontend/lib/planning.ts` não acrescentou erro. Na conferência manual, um novo rascunho retornou `training-history-v2`, `data_issues: []` e `used_for_prescription: false`; os cinco feedbacks apareceram completos, o check-in entrou como sinal protetivo/necessidade de recuperação e a carga permaneceu indisponível porque as cinco sessões realizadas tinham duração zero.
+
+Arquivos desta fatia: `backend/internal/planning/history.go`, `backend/internal/planning/history_test.go`, `backend/internal/repository/planning.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `scripts/test-training-history-query.ps1`, `README.md`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alterados `melhorias.md`, migrações, infraestrutura ou notas de versão.
 
 ### Topologia mantida
 
@@ -120,7 +132,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 - Adaptação conservadora após feedback e check-in diário de sono, estresse e fadiga.
 - Avaliação inicial submáxima, sem teste máximo ou diagnóstico.
 - O histórico observado agora participa da geração: sinais recentes de dor, fadiga ou recuperação insuficiente protegem as sessões futuras de forma conservadora e ficam no snapshot do plano.
-- Sessões específicas para perfis adequados: cadência, subidas, sweet spot, ritmo de prova e intervalos controlados. O piloto `road_moderate_intervals` e suas referências estão disponíveis somente no checkout local até a revisão e publicação autorizada.
+- Sessões específicas para perfis adequados: cadência, subidas, sweet spot, ritmo de prova e intervalos controlados. O piloto `road_moderate_intervals` e suas referências estão publicados, com a elegibilidade e os limites documentados.
 - Histórico em `/atividades` e agregações observadas em `/evolucao`.
 - A aba `/evolucao` também compara as últimas sessões concluídas com a prescrição original (tempo, RPE e métricas registradas), sem transformar a diferença em ajuste automático.
 - O plano exibe o resumo do contexto observado usado na geração do ciclo, com sessões, minutos, RPE, check-ins e alertas conservadores de recuperação quando aplicável.
@@ -236,14 +248,13 @@ Nesta primeira etapa, os relatos continuam centralizados no banco e não geram u
 
 ## Próximas etapas do produto
 
-1. Definir qualidade temporal e critérios conservadores de tolerância/destreinamento antes de interpretar as janelas 7/28/42 ou a aderência. A geração, consulta e persistência de `training_history` já foram validadas localmente.
-2. Preparar a comparação observacional entre janelas sem transformar uma razão isolada em autorização de carga.
-3. Evoluir as regras em versão paralela, preservando `rules-v1` até que a nova versão esteja testada, comparável e auditável.
-4. Trabalhar adaptação em ciclo fechado, carga/progressão e integridade dos dados antes de ampliar a prescrição.
-5. Reforçar segurança, feedback pós-treino, explicabilidade e auditabilidade das decisões.
-6. Ampliar o catálogo de modalidades e protocolos de ciclismo somente com critérios de elegibilidade e referências próprias revisados; o catálogo inicial e o piloto atual já estão publicados.
-7. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
-8. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
+1. Preparar a comparação observacional entre períodos não sobrepostos, sem transformar uma razão isolada em autorização de carga ou chamar ausência de registros de destreinamento.
+2. Evoluir as regras em versão paralela, preservando `rules-v1` até que a nova versão esteja testada, comparável e auditável.
+3. Trabalhar adaptação em ciclo fechado, carga/progressão e integridade dos dados antes de ampliar a prescrição.
+4. Reforçar segurança, feedback pós-treino, explicabilidade e auditabilidade das decisões.
+5. Ampliar o catálogo de modalidades e protocolos de ciclismo somente com critérios de elegibilidade e referências próprias revisados; o catálogo inicial e o piloto atual já estão publicados.
+6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
+7. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
 
 O feedback real e o primeiro envio automático do Resend seguem em paralelo, sem bloquear as melhorias. Os testes manuais de e-mail e de latência/limites/fallback já foram realizados e não precisam ser repetidos como condição para avançar. A operação de produção não foi alterada nesta etapa.
 

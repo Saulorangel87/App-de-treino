@@ -19,14 +19,59 @@ const planningTrainingHistoryQuery = `
 			COUNT(ws.id) FILTER (WHERE ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10) AS sessions_with_load,
 			COUNT(ws.id) - COUNT(ws.id) FILTER (WHERE ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10) AS sessions_without_load,
 			COALESCE(SUM(ws.duration_minutes * ws.actual_rpe)
-				FILTER (WHERE ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10), 0)::double precision AS session_rpe_load
+				FILTER (WHERE ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10), 0)::double precision AS session_rpe_load,
+			COUNT(ws.id) FILTER (WHERE f.id IS NOT NULL) AS feedback_records,
+			COUNT(ws.id) FILTER (WHERE f.id IS NOT NULL AND f.fatigue_after BETWEEN 1 AND 5) AS sessions_with_complete_feedback,
+			COUNT(ws.id) FILTER (WHERE f.pain_reported = true) AS pain_reported_sessions,
+			COUNT(ws.id) FILTER (WHERE f.fatigue_after BETWEEN 4 AND 5) AS high_fatigue_sessions,
+			COUNT(ws.id) FILTER (WHERE ws.actual_rpe BETWEEN 1 AND 10 AND source_workout.target_rpe IS NOT NULL
+				AND ws.actual_rpe >= source_workout.target_rpe + 2) AS above_target_rpe_sessions
 		FROM window_sizes
 		LEFT JOIN workout_sessions ws
 			ON ws.athlete_profile_id = $1
 			AND ws.status = 'completed'
 			AND ws.completed_at >= now() - make_interval(days => window_sizes.window_days)
 			AND ws.completed_at <= now()
+		LEFT JOIN workouts source_workout ON source_workout.id = ws.workout_id
+		LEFT JOIN feedback f ON f.workout_session_id = ws.id
 		GROUP BY window_sizes.window_days
+	),
+	recovery AS (
+		SELECT window_sizes.window_days,
+			COUNT(rd.id) AS recovery_checkins,
+			COUNT(rd.id) FILTER (WHERE rd.sleep_minutes >= 0 AND rd.sleep_quality BETWEEN 1 AND 5
+				AND rd.stress_level BETWEEN 1 AND 5 AND rd.fatigue_level BETWEEN 1 AND 5) AS complete_recovery_checkins,
+			COUNT(rd.id) FILTER (WHERE rd.sleep_minutes >= 0 AND rd.sleep_quality BETWEEN 1 AND 5
+				AND rd.stress_level BETWEEN 1 AND 5 AND rd.fatigue_level BETWEEN 1 AND 5
+				AND (rd.sleep_minutes < 360 OR rd.sleep_quality <= 2 OR rd.stress_level >= 4 OR rd.fatigue_level >= 4)) AS checkins_with_protective_signal,
+			COUNT(rd.id) FILTER (WHERE rd.sleep_minutes >= 0 AND rd.sleep_quality BETWEEN 1 AND 5
+				AND rd.stress_level BETWEEN 1 AND 5 AND rd.fatigue_level BETWEEN 1 AND 5
+				AND (rd.fatigue_level = 5 OR
+					(CASE WHEN rd.sleep_minutes < 360 OR rd.sleep_quality <= 2 THEN 1 ELSE 0 END +
+					 CASE WHEN rd.stress_level >= 4 THEN 1 ELSE 0 END +
+					 CASE WHEN rd.fatigue_level >= 4 THEN 1 ELSE 0 END) >= 2)) AS recovery_needed_checkins
+		FROM window_sizes
+		LEFT JOIN recovery_data rd
+			ON rd.athlete_profile_id = $1
+			AND rd.recorded_on >= CURRENT_DATE - (window_sizes.window_days - 1)
+			AND rd.recorded_on <= CURRENT_DATE
+		GROUP BY window_sizes.window_days
+	),
+	temporal AS (
+		SELECT
+			MAX(ws.completed_at) FILTER (WHERE ws.status = 'completed' AND ws.completed_at <= now()) AS latest_completed_at,
+			MAX(ws.completed_at) FILTER (WHERE ws.status = 'completed' AND ws.completed_at <= now()
+				AND ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10) AS latest_session_rpe_load_at,
+			COUNT(ws.id) FILTER (WHERE ws.status = 'completed' AND ws.completed_at > now()) AS future_completed_sessions_excluded
+		FROM workout_sessions ws
+		WHERE ws.athlete_profile_id = $1
+	),
+	recovery_temporal AS (
+		SELECT
+			MAX(rd.recorded_on) FILTER (WHERE rd.recorded_on <= CURRENT_DATE) AS latest_recovery_recorded_on,
+			COUNT(rd.id) FILTER (WHERE rd.recorded_on > CURRENT_DATE) AS future_recovery_checkins_excluded
+		FROM recovery_data rd
+		WHERE rd.athlete_profile_id = $1
 	),
 	adherence AS (
 		SELECT window_sizes.window_days,
@@ -47,9 +92,26 @@ const planningTrainingHistoryQuery = `
 	SELECT performed.window_days, adherence.expected_sessions, adherence.scheduled_completed_sessions,
 		adherence.cancelled_sessions, adherence.missed_sessions, adherence.overdue_in_progress_sessions,
 		performed.performed_sessions, performed.performed_minutes, performed.sessions_with_load,
-		performed.sessions_without_load, performed.session_rpe_load
+		performed.sessions_without_load, performed.session_rpe_load, performed.feedback_records,
+		performed.sessions_with_complete_feedback, performed.pain_reported_sessions,
+		performed.high_fatigue_sessions, performed.above_target_rpe_sessions,
+		recovery.recovery_checkins, recovery.complete_recovery_checkins,
+		recovery.checkins_with_protective_signal, recovery.recovery_needed_checkins,
+		temporal.latest_completed_at,
+		CASE WHEN temporal.latest_completed_at IS NULL THEN NULL
+			ELSE FLOOR(EXTRACT(EPOCH FROM (now() - temporal.latest_completed_at)) / 86400)::integer END,
+		temporal.latest_session_rpe_load_at,
+		CASE WHEN temporal.latest_session_rpe_load_at IS NULL THEN NULL
+			ELSE FLOOR(EXTRACT(EPOCH FROM (now() - temporal.latest_session_rpe_load_at)) / 86400)::integer END,
+		recovery_temporal.latest_recovery_recorded_on,
+		CASE WHEN recovery_temporal.latest_recovery_recorded_on IS NULL THEN NULL
+			ELSE CURRENT_DATE - recovery_temporal.latest_recovery_recorded_on END,
+		temporal.future_completed_sessions_excluded, recovery_temporal.future_recovery_checkins_excluded
 	FROM performed
 	JOIN adherence USING (window_days)
+	JOIN recovery USING (window_days)
+	CROSS JOIN temporal
+	CROSS JOIN recovery_temporal
 	ORDER BY performed.window_days`
 
 func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (planning.Context, error) {
@@ -180,7 +242,15 @@ func (s *Store) trainingHistoryByProfileID(ctx context.Context, profileID string
 			&window.WindowDays, &window.ExpectedSessions, &window.ScheduledCompletedSessions,
 			&window.CancelledSessions, &window.MissedSessions, &window.OverdueInProgressSessions,
 			&window.PerformedSessions, &window.PerformedMinutes, &window.SessionsWithSessionRPELoad,
-			&window.SessionsWithoutSessionRPELoad, &window.SessionRPELoad,
+			&window.SessionsWithoutSessionRPELoad, &window.SessionRPELoad, &window.FeedbackRecords,
+			&window.SessionsWithCompleteFeedback, &window.PainReportedSessions,
+			&window.HighFatigueSessions, &window.AboveTargetRPESessions,
+			&window.RecoveryCheckins, &window.CompleteRecoveryCheckins,
+			&window.CheckinsWithProtectiveSignal, &window.RecoveryNeededCheckins,
+			&window.LatestCompletedAt, &window.DaysSinceLatestCompleted,
+			&window.LatestSessionRPELoadAt, &window.DaysSinceLatestSessionRPELoad,
+			&window.LatestRecoveryRecordedOn, &window.DaysSinceLatestRecoveryCheckin,
+			&window.FutureCompletedSessionsExcluded, &window.FutureRecoveryCheckinsExcluded,
 		); err != nil {
 			return nil, err
 		}

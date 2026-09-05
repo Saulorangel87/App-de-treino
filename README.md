@@ -86,7 +86,7 @@ O MVP de ciclismo está publicado em produção real:
 - Dependabot está com 0 alertas abertos; os testes Go, build Docker e `govulncheck` passaram.
 - A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`, `000014` e `000015` foram aplicadas na produção.
 - O ajuste responsivo dos períodos nos gráficos da Evolução foi publicado e validado no domínio oficial; a rolagem horizontal interna agora preserva os rótulos no celular.
-- A produção permanece em `c768ef7`, com a API funcional de `5fbc668`. O checkout local avançou até `caea641` e possui uma segunda fatia de histórico 7/28/42 ainda sem commit nem deploy. O catálogo inicial e o piloto de estrada estão publicados, sujeitos aos critérios de elegibilidade documentados.
+- A produção permanece em `c768ef7`, com a API funcional de `5fbc668`. O checkout local está em `a4e5f9f`, que registra o histórico observacional 7/28/42, e contém uma evolução local para `training-history-v2` ainda sem commit nem deploy. O catálogo inicial e o piloto de estrada estão publicados, sujeitos aos critérios de elegibilidade documentados.
 - Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts` (`APP_VERSION` e `UPDATE_NOTES`) para que a novidade seja exibida na tela de primeiro acesso após a atualização. O modal é mostrado uma vez por conta, versão e navegador.
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.

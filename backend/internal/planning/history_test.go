@@ -59,8 +59,75 @@ func TestBuildTrainingHistorySnapshotCalculatesAdherenceAndCoverage(t *testing.T
 	if len(snapshot.DataIssues) != 0 {
 		t.Fatalf("unexpected data issues: %v", snapshot.DataIssues)
 	}
-	if !reflect.DeepEqual(snapshot.EvidenceKeys, []string{"foster-2001", "haddad-2017", "impellizzeri-2020"}) {
+	if !reflect.DeepEqual(snapshot.EvidenceKeys, []string{"foster-2001", "haddad-2017", "impellizzeri-2020", "bourdon-2017"}) {
 		t.Fatalf("unexpected evidence keys: %v", snapshot.EvidenceKeys)
+	}
+}
+
+func TestBuildTrainingHistorySnapshotRecordsTemporalQualityAndProtectiveSignals(t *testing.T) {
+	latestCompleted := time.Date(2026, 9, 4, 10, 0, 0, 0, time.FixedZone("BRT", -3*60*60))
+	latestLoad := time.Date(2026, 9, 3, 9, 0, 0, 0, time.FixedZone("BRT", -3*60*60))
+	latestRecovery := time.Date(2026, 9, 5, 0, 0, 0, 0, time.UTC)
+	one, two, zero := 1, 2, 0
+	windows := make([]TrainingHistoryWindow, 0, 3)
+	for _, days := range []int{7, 28, 42} {
+		window := validHistoryWindow(days)
+		window.FeedbackRecords = 3
+		window.SessionsWithCompleteFeedback = 3
+		window.PainReportedSessions = 1
+		window.HighFatigueSessions = 2
+		window.AboveTargetRPESessions = 1
+		window.RecoveryCheckins = 3
+		window.CompleteRecoveryCheckins = 3
+		window.CheckinsWithProtectiveSignal = 2
+		window.RecoveryNeededCheckins = 1
+		window.LatestCompletedAt = &latestCompleted
+		window.DaysSinceLatestCompleted = &one
+		window.LatestSessionRPELoadAt = &latestLoad
+		window.DaysSinceLatestSessionRPELoad = &two
+		window.LatestRecoveryRecordedOn = &latestRecovery
+		window.DaysSinceLatestRecoveryCheckin = &zero
+		windows = append(windows, window)
+	}
+
+	snapshot := buildTrainingHistorySnapshot(windows, time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC))
+	temporal := snapshot.TemporalQuality
+	if temporal.LatestCompletedAt == nil || *temporal.LatestCompletedAt != "2026-09-04T13:00:00Z" ||
+		temporal.DaysSinceLatestCompleted == nil || *temporal.DaysSinceLatestCompleted != 1 {
+		t.Fatalf("unexpected latest completed session: %+v", temporal)
+	}
+	if temporal.LatestSessionRPELoadAt == nil || *temporal.LatestSessionRPELoadAt != "2026-09-03T12:00:00Z" ||
+		temporal.LatestRecoveryRecordedOn == nil || *temporal.LatestRecoveryRecordedOn != "2026-09-05" {
+		t.Fatalf("unexpected temporal quality: %+v", temporal)
+	}
+	if temporal.AthleteTimezoneAvailable || temporal.AppRecordingGapInterpretation != "recorded_activity_gap_only_not_confirmed_training_cessation" {
+		t.Fatalf("unsafe temporal interpretation: %+v", temporal)
+	}
+	if !slices.Contains(snapshot.NotEvaluated, "load_tolerance") || !slices.Contains(snapshot.NotEvaluated, "detraining") || snapshot.UsedForPrescription {
+		t.Fatalf("history became authoritative: %+v", snapshot)
+	}
+	if snapshot.Windows[0].PainReportedSessions != 1 || snapshot.Windows[0].RecoveryNeededCheckins != 1 {
+		t.Fatalf("protective signals not preserved: %+v", snapshot.Windows[0])
+	}
+	if len(snapshot.MissingData) != 0 || len(snapshot.DataIssues) != 0 {
+		t.Fatalf("unexpected quality flags: missing=%v issues=%v", snapshot.MissingData, snapshot.DataIssues)
+	}
+}
+
+func TestBuildTrainingHistorySnapshotFlagsFutureRecordsAndTemporalMismatch(t *testing.T) {
+	seven := validHistoryWindow(7)
+	seven.FutureCompletedSessionsExcluded = 1
+	seven.FutureRecoveryCheckinsExcluded = 2
+	twentyEight := validHistoryWindow(28)
+	fortyTwo := validHistoryWindow(42)
+	snapshot := buildTrainingHistorySnapshot([]TrainingHistoryWindow{seven, twentyEight, fortyTwo}, time.Unix(0, 0))
+	for _, issue := range []string{
+		"inconsistent_temporal_metadata_28d", "inconsistent_temporal_metadata_42d",
+		"future_completed_sessions_excluded", "future_recovery_checkins_excluded",
+	} {
+		if !slices.Contains(snapshot.DataIssues, issue) {
+			t.Fatalf("missing issue %q: %v", issue, snapshot.DataIssues)
+		}
 	}
 }
 

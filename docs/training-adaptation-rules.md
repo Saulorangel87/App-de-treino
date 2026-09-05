@@ -100,7 +100,7 @@ Testes automatizados em `backend/internal/planning/readiness_test.go`: contas no
 
 Essa conferência foi concluída pelo proprietário: após gerar o rascunho, atualizar a tela e consultar `GET /v1/plans/current`, permaneceram iguais o ID do plano, `assessed_at`, a classificação, os motivos, as lacunas e os treinos. A prontidão observacional está persistindo no snapshot como previsto.
 
-## Histórico de aderência e carga em 7/28/42 dias (`training-history-v1`)
+## Histórico de aderência e carga em 7/28/42 dias (`training-history-v1` e `v2`)
 
 Implementação local de 5 de setembro de 2026, ainda não publicada. Novos rascunhos congelam `prescription_snapshot.training_history` em modo `observation`; planos existentes não são recalculados. O campo é adjacente a `readiness_assessment` e mantém `used_for_prescription: false`, portanto não altera duração, RPE, estrutura ou escolha de sessão do `rules-v1`.
 
@@ -116,6 +116,21 @@ As janelas se sobrepõem e não são usadas como ACWR. Não existe nesta versão
 Testes: `backend/internal/planning/history_test.go` cobre ordenação, taxas, ausência de denominador, cobertura incompleta, entradas inconsistentes, determinismo, serialização e invariância da prescrição. `scripts/test-training-history-query.ps1` extrai a consulta usada pelo repositório e a executa com fixtures sintéticas em transação somente leitura. A suíte Go sem cache passou antes do último ajuste defensivo; depois dele, os pacotes alterados passaram novamente. Uma repetição de `internal/httpapi`, não alterado nesta fatia, foi impedida pelo Controle de Aplicativos do Windows ao abrir o executável temporário, embora o pacote já tivesse passado na suíte anterior. `go vet`, build do frontend e validação do OpenAPI passaram.
 
 A persistência foi confirmada manualmente no `GET /v1/plans/current`, com as três janelas, `data_issues` vazio e modo observacional preservado. Na conta usada, cinco sessões concluídas tinham duração zero e não havia sessão planejada já fechada nas janelas. O resultado correto foi taxa `null`, carga zero acompanhada de lacunas de cobertura e nenhuma mudança visual ou de prescrição.
+
+### Qualidade temporal e sinais protetivos (`training-history-v2`)
+
+A terceira fatia local mantém as janelas e acrescenta fatos necessários para uma interpretação futura segura:
+
+- recência da última sessão concluída, da última carga session-RPE válida e do último check-in;
+- contagem e exclusão de sessões concluídas no futuro e check-ins com data futura;
+- registros de feedback, cobertura completa dos campos, dor, fadiga de 4 a 5 e RPE realizado pelo menos dois pontos acima do planejado;
+- check-ins totais/completos, presença de sinais que já geram cautela e presença da combinação que já gera necessidade de recuperação.
+
+Essas contagens reutilizam somente definições já existentes no produto. Não constituem uma classificação de tolerância e não alteram o plano. Feedback ausente e feedback incompleto são lacunas diferentes; dor é preservada mesmo se fadiga estiver ausente. `not_evaluated` lista tolerância à carga, destreinamento, mudança de condicionamento, atividades externas, fuso do atleta e progressão, enquanto `app_recording_gap_interpretation` declara que o intervalo significa somente ausência de atividade registrada no Cadência.
+
+Essa cautela é deliberada. O session-RPE é uma medida útil e validada para monitorar carga interna, mas fatores contextuais afetam a percepção e a interpretação deve considerar outros sinais. A relação aguda:crônica não é usada porque há críticas conceituais e estatísticas fortes contra transformá-la em recomendação de carga ou risco. Estudos de destreinamento avaliam cessação ou redução controlada de treino; não sustentam concluir perda de condicionamento apenas porque uma atividade não foi registrada no aplicativo. Referências: Haddad et al. (2017), https://pubmed.ncbi.nlm.nih.gov/29163016/; Impellizzeri et al. (2020), https://pubmed.ncbi.nlm.nih.gov/32502973/; Zheng et al. (2022), https://pubmed.ncbi.nlm.nih.gov/36017396/; Rietjens et al. (2001), https://pubmed.ncbi.nlm.nih.gov/11726481/; Maldonado-Martín et al. (2017), https://pubmed.ncbi.nlm.nih.gov/27476326/.
+
+Testes automatizados cobrem recência, cópia defensiva, metadados temporais divergentes, registros futuros, cobertura parcial e invariância da prescrição. A consulta real foi executada no PostgreSQL local com CTEs sintéticas e transação somente leitura; `go test -count=1 ./...`, `go vet ./...`, build do frontend e validação estrutural do OpenAPI passaram. A conferência manual de um novo rascunho confirmou `training-history-v2`, as três janelas, recência, cobertura e sinais protetivos com `data_issues: []` e `used_for_prescription: false`. Os cinco registros sem duração continuaram sem carga calculada, como esperado. Snapshots `training-history-v1` existentes não são atualizados retroativamente.
 
 ## IA explicativa opcional
 

@@ -121,10 +121,19 @@ export type TrainingHistoryWindow = {
   sessions_with_session_rpe_load: number;
   sessions_without_session_rpe_load: number;
   session_rpe_load: number;
+  feedback_records?: number;
+  sessions_with_complete_feedback?: number;
+  pain_reported_sessions?: number;
+  high_fatigue_sessions?: number;
+  above_target_rpe_sessions?: number;
+  recovery_checkins?: number;
+  complete_recovery_checkins?: number;
+  checkins_with_protective_signal?: number;
+  recovery_needed_checkins?: number;
 };
 
 export type TrainingHistorySnapshot = {
-  version: 'training-history-v1';
+  version: 'training-history-v1' | 'training-history-v2';
   mode: 'observation';
   captured_at: string;
   load_method: 'duration_minutes_x_actual_rpe';
@@ -133,8 +142,21 @@ export type TrainingHistorySnapshot = {
   completion_time_basis: string;
   evidence_keys: string[];
   windows: TrainingHistoryWindow[];
+  temporal_quality?: {
+    athlete_timezone_available: false;
+    latest_completed_at: string | null;
+    days_since_latest_completed: number | null;
+    latest_session_rpe_load_at: string | null;
+    days_since_latest_session_rpe_load: number | null;
+    latest_recovery_recorded_on: string | null;
+    days_since_latest_recovery_checkin: number | null;
+    future_completed_sessions_excluded: number;
+    future_recovery_checkins_excluded: number;
+    app_recording_gap_interpretation: 'recorded_activity_gap_only_not_confirmed_training_cessation';
+  };
   missing_data: string[];
   data_issues: string[];
+  not_evaluated?: string[];
   used_for_prescription: false;
 };
 

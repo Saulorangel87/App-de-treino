@@ -587,7 +587,7 @@ components:
       description: Medição observacional congelada na geração do plano. Não altera a prescrição do rules-v1.
       required: [version, mode, captured_at, load_method, load_unit, adherence_basis, completion_time_basis, evidence_keys, windows, missing_data, data_issues, used_for_prescription]
       properties:
-        version: { type: string, enum: [training-history-v1] }
+        version: { type: string, enum: [training-history-v1, training-history-v2] }
         mode: { type: string, enum: [observation] }
         captured_at: { type: string, format: date-time }
         load_method: { type: string, enum: [duration_minutes_x_actual_rpe] }
@@ -602,8 +602,14 @@ components:
         windows:
           type: array
           items: { $ref: '#/components/schemas/TrainingHistoryWindow' }
+        temporal_quality:
+          $ref: '#/components/schemas/TrainingHistoryTemporalQuality'
         missing_data: { type: array, items: { type: string } }
         data_issues: { type: array, items: { type: string } }
+        not_evaluated:
+          type: array
+          items: { type: string }
+          description: Interpretações que os dados ainda não autorizam, incluindo tolerância, destreinamento e progressão.
         used_for_prescription:
           type: boolean
           enum: [false]
@@ -626,6 +632,65 @@ components:
         sessions_with_session_rpe_load: { type: integer, minimum: 0 }
         sessions_without_session_rpe_load: { type: integer, minimum: 0 }
         session_rpe_load: { type: number, minimum: 0 }
+        feedback_records: { type: integer, minimum: 0 }
+        sessions_with_complete_feedback:
+          type: integer
+          minimum: 0
+          description: Feedbacks com os campos necessários para interpretar fadiga e dor.
+        pain_reported_sessions: { type: integer, minimum: 0 }
+        high_fatigue_sessions:
+          type: integer
+          minimum: 0
+          description: Feedbacks com fadiga de 4 a 5, reutilizando o limiar protetivo já existente.
+        above_target_rpe_sessions:
+          type: integer
+          minimum: 0
+          description: Sessões com RPE real pelo menos dois pontos acima do planejado.
+        recovery_checkins: { type: integer, minimum: 0 }
+        complete_recovery_checkins: { type: integer, minimum: 0 }
+        checkins_with_protective_signal:
+          type: integer
+          minimum: 0
+          description: Check-ins completos com ao menos um sinal que já gera cautela no rules-v1.
+        recovery_needed_checkins:
+          type: integer
+          minimum: 0
+          description: Check-ins completos que já atendem à regra de necessidade de recuperação do rules-v1.
+    TrainingHistoryTemporalQuality:
+      type: object
+      description: Recência e exclusões temporais observadas pelo relógio do banco. Uma lacuna representa apenas ausência de atividade registrada no Cadência.
+      required: [athlete_timezone_available, latest_completed_at, days_since_latest_completed, latest_session_rpe_load_at, days_since_latest_session_rpe_load, latest_recovery_recorded_on, days_since_latest_recovery_checkin, future_completed_sessions_excluded, future_recovery_checkins_excluded, app_recording_gap_interpretation]
+      properties:
+        athlete_timezone_available: { type: boolean, enum: [false] }
+        latest_completed_at:
+          oneOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+        days_since_latest_completed:
+          oneOf:
+            - { type: integer, minimum: 0 }
+            - { type: 'null' }
+        latest_session_rpe_load_at:
+          oneOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+        days_since_latest_session_rpe_load:
+          oneOf:
+            - { type: integer, minimum: 0 }
+            - { type: 'null' }
+        latest_recovery_recorded_on:
+          oneOf:
+            - { type: string, format: date }
+            - { type: 'null' }
+        days_since_latest_recovery_checkin:
+          oneOf:
+            - { type: integer, minimum: 0 }
+            - { type: 'null' }
+        future_completed_sessions_excluded: { type: integer, minimum: 0 }
+        future_recovery_checkins_excluded: { type: integer, minimum: 0 }
+        app_recording_gap_interpretation:
+          type: string
+          enum: [recorded_activity_gap_only_not_confirmed_training_cessation]
     Workout:
       type: object
       required: [id, scheduled_on, name, objective, duration_minutes, target_rpe, structure, explanation, status]
