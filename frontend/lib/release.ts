@@ -1,6 +1,11 @@
-export const APP_VERSION = '0.6.0';
+export const APP_VERSION = '0.7.0';
 
 export const UPDATE_NOTES = [
+  {
+    title: 'Catálogo de ciclismo baseado em evidências',
+    description:
+      'As referências científicas agora são organizadas por modalidade e sustentam protocolos elegíveis, começando pelo piloto de intervalos moderados de estrada.',
+  },
   {
     title: 'Contexto observado no plano',
     description:
