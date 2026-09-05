@@ -536,10 +536,50 @@ components:
         starts_on: { type: string, format: date }
         ends_on: { type: string, format: date }
         status: { type: string, enum: [draft, active, completed, cancelled] }
-        prescription_snapshot: { type: object, additionalProperties: true }
+        prescription_snapshot:
+          type: object
+          additionalProperties: true
+          properties:
+            readiness_assessment:
+              $ref: '#/components/schemas/ReadinessAssessment'
         workouts:
           type: array
           items: { $ref: '#/components/schemas/Workout' }
+    ReadinessAssessment:
+      type: object
+      description: Leitura observacional congelada na geração do plano, opcional em planos antigos. Não altera rules-v1 nem substitui o check-in diário. stable significa apenas ausência de alertas nos agregados disponíveis.
+      required: [classifier_version, mode, scope, assessed_at, status, reasons, missing_data, not_evaluated, progression_eligible, active_limitations]
+      properties:
+        classifier_version: { type: string, enum: [readiness-v1] }
+        mode: { type: string, enum: [observation] }
+        scope: { type: string, enum: [observed_history_28d] }
+        assessed_at: { type: string, format: date-time }
+        status: { type: string, enum: [insufficient_data, caution, recovery_needed, stable] }
+        reasons:
+          type: array
+          items:
+            type: object
+            required: [code, message]
+            properties:
+              code: { type: string }
+              message: { type: string }
+        missing_data: { type: array, items: { type: string } }
+        not_evaluated: { type: array, items: { type: string } }
+        progression_eligible:
+          type: boolean
+          enum: [false]
+          description: Esta versão não autoriza progressão; campo informativo, sem alterar a elegibilidade já usada pelo rules-v1.
+        active_limitations: { type: integer, minimum: 0 }
+        data_coverage:
+          type: object
+          description: Cobertura dos campos usados na leitura, não mede aderência. Check-ins contam apenas a presença de fadiga válida, não sono ou estresse.
+          required: [sessions_with_duration, sessions_with_rpe, sessions_with_feedback, complete_sessions, recovery_with_fatigue]
+          properties:
+            sessions_with_duration: { type: integer, minimum: 0 }
+            sessions_with_rpe: { type: integer, minimum: 0 }
+            sessions_with_feedback: { type: integer, minimum: 0 }
+            complete_sessions: { type: integer, minimum: 0 }
+            recovery_with_fatigue: { type: integer, minimum: 0 }
     Workout:
       type: object
       required: [id, scheduled_on, name, objective, duration_minutes, target_rpe, structure, explanation, status]

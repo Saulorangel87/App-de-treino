@@ -1,6 +1,6 @@
 # Estado atual do projeto Cadência
 
-Última atualização: 4 de setembro de 2026.
+Última atualização: 5 de setembro de 2026.
 
 Este é o documento principal de continuidade. Ele registra o que está implementado, validado, publicado e pendente. Não incluir senhas, tokens, chaves de API ou conteúdo de arquivos `.env`.
 
@@ -23,12 +23,28 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 ## Estado do checkout local
 
-- O checkout local está no commit `c768ef7 chore: registra novidades do catalogo de ciclismo`, o mesmo commit ativo na VPS.
+- Base desta etapa local: `70103b0` (documentação já commitada pelo proprietário). A implementação observacional de prontidão descrita abaixo está local, sem commit nem deploy; não confundir com a versão publicada na VPS.
 - A sequência recente inclui `5461cd6` (contexto por modalidade), `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação) e `c768ef7` (nota de atualização).
 - A migração `000015`, o catálogo inicial e o protocolo `road_moderate_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
 
 ## Arquitetura efetiva
+
+### Primeira fatia de melhorias — prontidão observacional (local)
+
+- Novos rascunhos registram `prescription_snapshot.readiness_assessment`, com versão `readiness-v1`, modo `observation`, horário UTC, estado, motivos, dados ausentes, cobertura e fatores ainda não avaliados.
+- Classificação independente de experiência e avaliação submáxima: `insufficient_data`, `caution`, `recovery_needed` ou `stable`. `stable` significa apenas ausência de alertas nos agregados disponíveis, não aptidão atual ou liberação de carga.
+- O repositório passou a contar campos válidos de sessões e fadiga dos check-ins. Médias que ignoram campos nulos não são tratadas como cobertura completa.
+- `progression_eligible` permanece `false` nesta leitura. O campo não é uma nova trava do motor: os treinos e as proteções existentes continuam sendo prescritos pelo `rules-v1`, sem alteração de duração, RPE ou blocos nesta entrega.
+- Baixa consistência e prontidão para progressão não são inferidas da quantidade de registros. Faltam aderência, tolerância, destreinamento, tendências 7/28/42 dias, recência da avaliação e sinais recentes de sono/estresse/fadiga.
+- Planos antigos não são reclassificados; o snapshot só nasce ao gerar outro rascunho. Não há migração, nova infraestrutura nem mudança visual, portanto a nota do produto continua em `0.7.0`. A próxima mudança visível deverá atualizar `APP_VERSION` e `UPDATE_NOTES`.
+- Validação: `go test -count=1 ./...` e `go vet ./...` passaram, incluindo cenários de dados ausentes/inconsistentes, dor, fadiga, independência de experiência, serialização do snapshot e regressão do plano. O YAML do OpenAPI foi carregado com sucesso e a referência de `ReadinessAssessment` foi conferida. A indisponibilidade temporária do Go não persistiu na execução final; sua instalação não foi alterada por esta tarefa.
+- Após o proprietário ligar o Docker, `pwsh -NoProfile -File scripts/test-readiness-queries.ps1` passou nos quatro cenários: completo, campos incompletos/zero/nulos, ausência de histórico e somente check-ins. O script extrai as consultas reais do repositório e as executa no PostgreSQL com CTEs fictícias em transação somente leitura, verificando também exclusão de sessões canceladas, antigas e de outro atleta. Nenhum dado real foi lido ou alterado. Ainda não foi testado o fluxo HTTP/navegador de gerar e reabrir o plano, nem a persistência ponta a ponta desse novo campo.
+- Detalhes e limites em [`training-adaptation-rules.md`](training-adaptation-rules.md#leitura-observacional-de-prontidão-readiness-v1).
+
+Arquivos desta fatia: `backend/internal/planning/readiness.go`, `backend/internal/planning/readiness_test.go`, `backend/internal/planning/service.go`, `backend/internal/repository/planning.go`, `scripts/test-readiness-queries.ps1`, `api/openapi.yaml`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. `melhorias.md`, as migrações e os arquivos de infraestrutura não foram alterados.
+
+### Topologia mantida
 
 ```text
 Navegador / PWA
@@ -207,14 +223,16 @@ Nesta primeira etapa, os relatos continuam centralizados no banco e não geram u
 
 ## Próximas etapas do produto
 
-1. Manter a observação operacional: relatos em `/feedback`, primeiro resumo semanal do Resend e latência, limites e fallback do Worker.
-2. Implementar a primeira fatia do roadmap de `melhorias.md`: classificação de prontidão com dados ausentes tratados explicitamente.
+1. Conferir o novo campo no fluxo local de gerar e reabrir um rascunho com conta de teste. As consultas PostgreSQL já foram validadas com dados fictícios; a persistência ponta a ponta via API/navegador ainda está pendente.
+2. Evoluir a qualidade dos dados e as janelas 7/28/42 dias, incluindo sessões esperadas versus realizadas, para depois revisar prontidão e carga. A primeira classificação observacional está implementada localmente.
 3. Evoluir as regras em versão paralela, preservando `rules-v1` até que a nova versão esteja testada e auditável.
 4. Trabalhar adaptação em ciclo fechado, carga/progressão e integridade dos dados antes de ampliar a prescrição.
 5. Reforçar segurança, feedback pós-treino, explicabilidade e auditabilidade das decisões.
 6. Ampliar o catálogo de modalidades e protocolos de ciclismo somente com critérios de elegibilidade e referências próprias revisados; o catálogo inicial e o piloto atual já estão publicados.
 7. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
 8. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
+
+O feedback real e o primeiro envio automático do Resend seguem em paralelo, sem bloquear as melhorias. Os testes manuais de e-mail e de latência/limites/fallback já foram realizados e não precisam ser repetidos como condição para avançar. A operação de produção não foi alterada nesta etapa.
 
 ## Como iniciar localmente
 

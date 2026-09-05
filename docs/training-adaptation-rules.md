@@ -79,6 +79,27 @@ Ao gerar um novo rascunho, o motor agrega os últimos 28 dias de sessões conclu
 
 O uso é deliberadamente conservador: dor relatada protege todas as sessões do novo ciclo com um giro leve; fadiga média igual ou superior a 4, ou fadiga média dos check-ins igual ou superior a 4, protege a sessão de qualidade. A proteção limita o alvo a RPE 3,5, reduz a duração e mantém o treino dentro da disponibilidade cadastrada. O histórico não aumenta intensidade, não substitui a avaliação submáxima e não representa diagnóstico clínico.
 
+## Leitura observacional de prontidão (`readiness-v1`)
+
+Implementação local de 5 de setembro de 2026, ainda não publicada. Ao gerar um rascunho, o backend registra `prescription_snapshot.readiness_assessment` separadamente de `engine_version: rules-v1`. É uma descrição versionada dos dados disponíveis, não uma nova prescrição, diagnóstico ou leitura do estado de hoje. O horário UTC da classificação fica em `assessed_at`; ela não é recalculada ao abrir um plano antigo.
+
+Ordem determinística das decisões:
+
+1. Limitação ativa, dor relatada ou fadiga média pós-treino/check-in entre 4 e 5: `recovery_needed`, mesmo quando há outras lacunas. Reutiliza os sinais e limiares de proteção do motor existente; não implica que a dor histórica persiste hoje.
+2. Janela diferente de 28 dias, agregados inconsistentes, cobertura desconhecida ou nenhum registro utilizável: `insufficient_data`.
+3. Algum registro utilizável, mas faltam sessões, check-ins ou campos: `caution` por dados parciais, não diagnóstico de recuperação ruim.
+4. Sem os alertas acima e com cobertura dos campos observados: `stable`, entendido estritamente como **sem alertas nos agregados disponíveis**. Não significa que médias capturem picos de fadiga, sono ruim recente ou tolerância a uma carga maior.
+
+Cobertura (`data_coverage`): sessões com duração positiva; RPE entre 1 e 10; feedback com fadiga entre 1 e 5 e resposta de dor; sessões que reúnem todos esses campos; check-ins com fadiga entre 1 e 5. Zero minuto, RPE zero e valores ausentes não contam como registro completo. São verificações de integridade do produto, não novos limiares fisiológicos. O número de check-ins completos aqui se refere apenas à fadiga; sono e estresse não estão sendo agregados nesta leitura.
+
+`missing_data` registra lacunas concretas, enquanto `not_evaluated` declara os fatores ainda fora do cálculo: aderência, tolerância à carga, destreinamento, tendências 7/28/42 dias, sono/estresse/fadiga recentes, recência da avaliação e variações dentro da janela. Experiência e avaliação submáxima continuam no contexto do motor antigo, mas não são atalhos para esta classificação. Poucos registros podem ser uma conta nova ou pedais fora do app: por isso não se emite `low_consistency` nem `ready_for_progression`.
+
+`progression_eligible: false` significa que **este classificador não autoriza progressão**. Não interfere na elegibilidade nem nos treinos do `rules-v1`. Nenhuma duração, intensidade, bloco, proteção, adaptação por feedback ou check-in foi alterada. Os agregados legados foram mantidos, inclusive sua definição temporal; recência, registros futuros e adequação das janelas serão tratados na próxima fatia antes de usar esta leitura para prescrever.
+
+Testes automatizados em `backend/internal/planning/readiness_test.go`: contas novas, cobertura parcial/desconhecida, somente check-ins, duração zero, valores impossíveis/NaN/infinito, prioridades de dor/fadiga, limites existentes, independência de experiência/avaliação, determinismo, cópia dos dados, serialização JSON e invariância do plano quando muda apenas a cobertura. `go test -count=1 ./...` e `go vet ./...` passaram. O teste `pwsh -NoProfile -File scripts/test-readiness-queries.ps1` extrai as consultas do repositório e as executa no PostgreSQL local, com dados fictícios em CTEs e transação somente leitura: passaram histórico completo, campos incompletos, ausência de histórico e somente check-ins. Também verifica exclusão de sessões canceladas, antigas e de outro atleta, sem consultar ou alterar registros reais.
+
+Falta a conferência ponta a ponta da persistência via API/navegador: iniciar o ambiente local conforme `project-status.md`, gerar um rascunho em uma conta de teste, inspecionar `readiness_assessment` no response e reabrir o plano para comparar os dados. Não esperar mudança visual dos treinos. Não foi alterada a produção.
+
 ## IA explicativa opcional
 
 O endpoint de explicação envia ao modelo apenas o nome, objetivo, duração, RPE-alvo, regras e escopo de evidência do treino. O modelo deve explicar a decisão em duas ou três frases; não recebe autorização para criar etapas, alterar carga, inventar referências ou interpretar sintomas. A integração usa Ollama local com limites de tempo, saída e concorrência e pode usar a rota protegida do Worker como fallback (Groq `openai/gpt-oss-20b`). Enquanto `AI_ENABLED=false`, ou quando os provedores estiverem indisponíveis, a API devolve o resumo validado pelo `rules-v1`.
@@ -114,7 +135,7 @@ As referências de ciclismo sobre periodização, cadência, testes submáximos 
 
 ### Estado operacional para a próxima revisão
 
-O histórico observado, o fluxo de feedback, o check-in de recuperação e o fallback da IA explicativa já estão disponíveis em produção. Os fluxos funcionais e a latência, os limites e o fallback do Worker já foram testados. A próxima revisão deve usar relatos reais e o primeiro resumo semanal do Resend para avaliar se as adaptações estão compreensíveis e conservadoras antes de alterar os parâmetros do `rules-v1` ou ampliar o catálogo de protocolos.
+O histórico observado, o fluxo de feedback, o check-in de recuperação e o fallback da IA explicativa já estão disponíveis em produção. Os fluxos funcionais e a latência, os limites e o fallback do Worker já foram testados. Relatos reais e o primeiro resumo semanal do Resend serão avaliados quando disponíveis, em paralelo às melhorias; não são pré-requisitos para desenvolver e testar a evolução do motor. Alterações de prescrição continuam exigindo critérios próprios, testes e revisão dos limites.
 
 ### Próxima evolução planejada
 

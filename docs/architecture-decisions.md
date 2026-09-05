@@ -92,6 +92,8 @@ O timer está agendado para segunda-feira às 11:00 UTC (08:00 no horário de S�
 
 A próxima fase seguirá o roadmap de `melhorias.md` com foco exclusivo em ciclismo: classificação explícita de prontidão, regras versionadas, adaptação em ciclo fechado, progressão/carga, integridade dos dados, segurança, feedback e auditabilidade. O `rules-v1` continuará preservado até que uma evolução paralela esteja testada, comparável e auditável. Dados ausentes ou inconsistentes não devem ser tratados como autorização para aumentar carga. A IA continua explicativa e subordinada às regras validadas; não prescreve, inventa evidências ou diagnostica.
 
+Primeira fatia local, em 5 de setembro de 2026: `readiness-v1` é uma função determinística em `backend/internal/planning/readiness.go`, salva no snapshot do plano em modo `observation`. Não substitui `rules-v1` nem o nível de prontidão calculado pelo check-in diário. Usa somente limitações ativas, os agregados de 28 dias já existentes e contagens explícitas de cobertura dos campos. Não depende do nível de experiência, de aprovação antiga na avaliação ou de volume autodeclarado para concluir que há prontidão. Não há migração nem recálculo retroativo de planos. A ausência de sessões não permite inferir baixa consistência; a progressão permanece não avaliada até haver aderência, tolerância e qualidade temporal dos dados. O recebimento de feedback real e do Resend é acompanhamento paralelo, não pré-requisito de desenvolvimento.
+
 ## ADR-009 — Comunicação de atualizações no produto
 
 **Status:** Aceita e aplicada.
@@ -145,7 +147,7 @@ Nenhuma porta de outro aplicativo deve ser bloqueada sem mapear antes seus domí
 
 1. Observar os primeiros relatos reais em `/feedback` e confirmar a entregabilidade/utilidade do resumo semanal pelo Resend.
 2. Monitorar a explicação autenticada pelo Worker remoto, sua latência, limites e acionamento do fallback determinístico; manter o Ollama parado.
-3. Implementar a classificação de prontidão e evoluir as regras em paralelo, sem remover o `rules-v1` antes da validação.
+3. Validar a classificação observacional de prontidão implementada localmente, completar janelas/aderência/qualidade temporal e evoluir as regras em paralelo, sem remover o `rules-v1` antes da validação. Os itens operacionais 1 e 2 não bloqueiam este desenvolvimento.
 4. Definir adaptação em ciclo fechado, progressão/carga e barreiras de integridade e segurança.
 5. Evoluir o catálogo de protocolos de ciclismo com elegibilidade e evidências próprias; o catálogo inicial e o piloto de estrada já estão em produção, enquanto novos protocolos permanecem condicionados à revisão.
 6. Definir cópia externa dos backups, monitoramento de falhas e alertas de saúde.

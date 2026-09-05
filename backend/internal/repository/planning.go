@@ -28,6 +28,7 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 		return planning.Context{}, err
 	}
 	input.Observed.WindowDays = 28
+	input.Observed.DataCoverage = &planning.ObservedDataCoverage{}
 	var completedSessions int64
 	if err := s.pool.QueryRow(ctx, `
 		SELECT
@@ -35,23 +36,31 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 			COALESCE(SUM(ws.duration_minutes) FILTER (WHERE ws.status = 'completed'), 0),
 			COALESCE(AVG(ws.actual_rpe) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
 			COALESCE(AVG(f.fatigue_after) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
-			COALESCE(BOOL_OR(f.pain_reported) FILTER (WHERE ws.status = 'completed'), false)
+			COALESCE(BOOL_OR(f.pain_reported) FILTER (WHERE ws.status = 'completed'), false),
+			COUNT(*) FILTER (WHERE ws.status = 'completed' AND ws.duration_minutes > 0),
+			COUNT(*) FILTER (WHERE ws.status = 'completed' AND ws.actual_rpe BETWEEN 1 AND 10),
+			COUNT(*) FILTER (WHERE ws.status = 'completed' AND f.fatigue_after BETWEEN 1 AND 5 AND f.pain_reported IS NOT NULL),
+			COUNT(*) FILTER (WHERE ws.status = 'completed' AND ws.duration_minutes > 0
+				AND ws.actual_rpe BETWEEN 1 AND 10 AND f.fatigue_after BETWEEN 1 AND 5 AND f.pain_reported IS NOT NULL)
 		FROM workout_sessions ws
 		LEFT JOIN feedback f ON f.workout_session_id = ws.id
 		WHERE ws.athlete_profile_id = $1
 		  AND ws.completed_at >= now() - interval '28 days'`, input.ProfileID,
 	).Scan(&completedSessions, &input.Observed.CompletedMinutes, &input.Observed.AverageRPE,
-		&input.Observed.AverageFatigue, &input.Observed.PainReported); err != nil {
+		&input.Observed.AverageFatigue, &input.Observed.PainReported,
+		&input.Observed.DataCoverage.SessionsWithDuration, &input.Observed.DataCoverage.SessionsWithRPE,
+		&input.Observed.DataCoverage.SessionsWithFeedback, &input.Observed.DataCoverage.CompleteSessions); err != nil {
 		return planning.Context{}, err
 	}
 	input.Observed.CompletedSessions = int(completedSessions)
 	var recoveryCheckins int64
 	if err := s.pool.QueryRow(ctx, `
-		SELECT COUNT(*), COALESCE(AVG(fatigue_level), 0)::double precision
+		SELECT COUNT(*), COALESCE(AVG(fatigue_level), 0)::double precision,
+			COUNT(*) FILTER (WHERE fatigue_level BETWEEN 1 AND 5)
 		FROM recovery_data
 		WHERE athlete_profile_id = $1
 		  AND recorded_on >= CURRENT_DATE - 27`, input.ProfileID,
-	).Scan(&recoveryCheckins, &input.Observed.AverageRecoveryFatigue); err != nil {
+	).Scan(&recoveryCheckins, &input.Observed.AverageRecoveryFatigue, &input.Observed.DataCoverage.RecoveryWithFatigue); err != nil {
 		return planning.Context{}, err
 	}
 	input.Observed.RecoveryCheckins = int(recoveryCheckins)

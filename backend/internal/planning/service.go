@@ -53,14 +53,15 @@ type CyclingContext struct {
 // recovery check-ins. The motor uses it only as a conservative readiness
 // signal, never as a diagnosis or a replacement for the athlete profile.
 type ObservedTrainingSummary struct {
-	WindowDays             int     `json:"window_days"`
-	CompletedSessions      int     `json:"completed_sessions"`
-	CompletedMinutes       int     `json:"completed_minutes"`
-	AverageRPE             float64 `json:"average_rpe"`
-	AverageFatigue         float64 `json:"average_fatigue"`
-	PainReported           bool    `json:"pain_reported"`
-	RecoveryCheckins       int     `json:"recovery_checkins"`
-	AverageRecoveryFatigue float64 `json:"average_recovery_fatigue"`
+	WindowDays             int                   `json:"window_days"`
+	CompletedSessions      int                   `json:"completed_sessions"`
+	CompletedMinutes       int                   `json:"completed_minutes"`
+	AverageRPE             float64               `json:"average_rpe"`
+	AverageFatigue         float64               `json:"average_fatigue"`
+	PainReported           bool                  `json:"pain_reported"`
+	RecoveryCheckins       int                   `json:"recovery_checkins"`
+	AverageRecoveryFatigue float64               `json:"average_recovery_fatigue"`
+	DataCoverage           *ObservedDataCoverage `json:"data_coverage,omitempty"`
 }
 
 func (summary ObservedTrainingSummary) HasData() bool {
@@ -354,11 +355,12 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 		EndsOn:   start.AddDate(0, 0, 27).Format("2006-01-02"),
 		Status:   "draft",
 		PrescriptionSnapshot: map[string]any{
-			"engine_version":    "rules-v1",
-			"experience_level":  input.ExperienceLevel,
-			"primary_goal":      input.PrimaryGoal,
-			"restricted":        restricted,
-			"sessions_per_week": len(slots),
+			"engine_version":       "rules-v1",
+			"readiness_assessment": assessReadiness(input, now),
+			"experience_level":     input.ExperienceLevel,
+			"primary_goal":         input.PrimaryGoal,
+			"restricted":           restricted,
+			"sessions_per_week":    len(slots),
 			"cycling_context": map[string]any{
 				"weekly_hours":              input.Cycling.WeeklyHours,
 				"longest_ride_minutes":      input.Cycling.LongestRideMinutes,
