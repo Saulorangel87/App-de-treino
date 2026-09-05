@@ -611,6 +611,33 @@ components:
         progression_eligible: { type: boolean, enum: [false] }
         applied: { type: boolean, enum: [false] }
         used_for_prescription: { type: boolean, enum: [false] }
+    RulesV2AdaptationShadowAssessment:
+      type: object
+      description: Avaliação shadow do feedback pós-treino. É gravada no treino concluído apenas para observação; não altera a adaptação ativa do rules-v1.
+      required: [version, mode, scope, assessed_at, status, candidate_response, rules_evaluated, rules_deferred, reasons, missing_data, data_issues, not_evaluated, progression_eligible, applied, used_for_prescription]
+      properties:
+        version: { type: string, enum: [rules-v2-adaptation-v1] }
+        mode: { type: string, enum: [shadow] }
+        scope: { type: string, enum: [post_workout_feedback] }
+        assessed_at: { type: string, format: date-time }
+        status: { type: string, enum: [not_evaluated, protective_signal, observation_only] }
+        candidate_response: { type: string, enum: [not_evaluated, prefer_recovery, maintain_observed, defer_progression, progress_duration_5pct] }
+        rules_evaluated: { type: array, items: { type: string } }
+        rules_deferred: { type: array, items: { type: string } }
+        reasons:
+          type: array
+          items:
+            type: object
+            required: [code, message]
+            properties:
+              code: { type: string }
+              message: { type: string }
+        missing_data: { type: array, items: { type: string } }
+        data_issues: { type: array, items: { type: string } }
+        not_evaluated: { type: array, items: { type: string } }
+        progression_eligible: { type: boolean, enum: [false] }
+        applied: { type: boolean, enum: [false] }
+        used_for_prescription: { type: boolean, enum: [false] }
     TrainingHistorySnapshot:
       type: object
       description: Medição observacional congelada na geração do plano. Não altera a prescrição do rules-v1.
@@ -777,7 +804,12 @@ components:
         duration_minutes: { type: integer, minimum: 1 }
         target_rpe: { type: number, minimum: 0, maximum: 10 }
         structure: { $ref: '#/components/schemas/WorkoutStructure' }
-        explanation: { type: object, additionalProperties: true }
+        explanation:
+          type: object
+          additionalProperties: true
+          properties:
+            adaptation_shadow:
+              $ref: '#/components/schemas/RulesV2AdaptationShadowAssessment'
         status: { type: string, enum: [planned, in_progress, completed, skipped, adapted] }
         session:
           oneOf:

@@ -23,6 +23,8 @@ Versão atual: `0.6.0` — resumo semanal de feedback, PWA e identidade visual C
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
+O script da API compila o binário em `backend/.gotmp`, pasta ignorada pelo Git, porque o Smart App Control do Windows pode bloquear o executável temporário criado pelo `go run`.
+
 O frontend nunca se conecta diretamente ao PostgreSQL. Todo acesso passa pela API Go.
 A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432` já estava ocupada no Windows. O `.env.example` mantém valores ilustrativos e não contém segredos.
 
@@ -86,7 +88,7 @@ O MVP de ciclismo está publicado em produção real:
 - Dependabot está com 0 alertas abertos; os testes Go, build Docker e `govulncheck` passaram.
 - A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`, `000014` e `000015` foram aplicadas na produção.
 - O ajuste responsivo dos períodos nos gráficos da Evolução foi publicado e validado no domínio oficial; a rolagem horizontal interna agora preserva os rótulos no celular.
-- A produção permanece em `c768ef7`, com a API funcional de `5fbc668`. O checkout local está no commit `2359c3f`, que registra a avaliação shadow do `rules-v2`; a sexta fatia, que desenha a adaptação pós-treino em shadow, está modificada localmente e não altera o plano. O catálogo inicial e o piloto de estrada estão publicados, sujeitos aos critérios de elegibilidade documentados.
+- A produção permanece em `c768ef7`, com a API funcional de `5fbc668`. O checkout local está no commit `de23add`, que versiona a avaliação shadow da adaptação pós-treino; a sétima fatia, que observa essa avaliação na conclusão da sessão, está modificada localmente e não altera o plano. O catálogo inicial e o piloto de estrada estão publicados, sujeitos aos critérios de elegibilidade documentados.
 - Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts` (`APP_VERSION` e `UPDATE_NOTES`) para que a novidade seja exibida na tela de primeiro acesso após a atualização. O modal é mostrado uma vez por conta, versão e navegador.
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.

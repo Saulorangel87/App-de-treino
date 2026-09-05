@@ -25,7 +25,7 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 
 ## Estado documentado neste ciclo
 
-A produção oficial registrada está no commit `c768ef7`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; a migração `000015`, o catálogo inicial e o piloto `road_moderate_intervals` foram publicados após backup, validação e autorização explícita. A versão comunicada ao usuário é `0.7.0`. O checkout local está no commit `2359c3f`, que já versiona prontidão observacional, histórico 7/28/42, qualidade temporal, comparação por períodos e a avaliação shadow do `rules-v2`; a sexta fatia, de adaptação pós-treino em shadow, está local e não altera o plano. O estado e as lacunas de validação estão em [`project-status.md`](project-status.md); não confundir implementação local com produção.
+A produção oficial registrada está no commit `c768ef7`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; a migração `000015`, o catálogo inicial e o piloto `road_moderate_intervals` foram publicados após backup, validação e autorização explícita. A versão comunicada ao usuário é `0.7.0`. O checkout local está no commit `de23add`, que já versiona prontidão observacional, histórico 7/28/42, qualidade temporal, comparação por períodos, a avaliação shadow do `rules-v2` e a avaliação shadow pós-treino; a observação transacional dessa última avaliação está modificada localmente e não altera o plano. O estado e as lacunas de validação estão em [`project-status.md`](project-status.md); não confundir implementação local com produção.
 
 ## Organização avaliada
 

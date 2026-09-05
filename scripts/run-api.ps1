@@ -19,7 +19,25 @@ Get-Content -LiteralPath $environmentFile | ForEach-Object {
 
 Push-Location (Join-Path $projectRoot 'backend')
 try {
-    go run ./cmd/api
+    # O Smart App Control pode bloquear o executável temporário criado pelo
+    # `go run`; o .gotmp é ignorado pelo Git e fica dentro do workspace.
+    $temporaryRoot = Join-Path (Get-Location) '.gotmp'
+    $binaryPath = Join-Path $temporaryRoot 'cadencia-api.exe'
+    $goCachePath = Join-Path $temporaryRoot 'go-cache'
+    New-Item -ItemType Directory -Force -Path $temporaryRoot, $goCachePath | Out-Null
+
+    $previousGoCache = $env:GOCACHE
+    $env:GOCACHE = $goCachePath
+    try {
+        go build -o $binaryPath ./cmd/api
+        if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+        }
+        & $binaryPath
+    }
+    finally {
+        $env:GOCACHE = $previousGoCache
+    }
 }
 finally {
     Pop-Location

@@ -26,6 +26,28 @@ export type Workout = {
       previous_duration_minutes: number;
       previous_target_rpe: number;
     };
+    adaptation_shadow?: {
+      version: 'rules-v2-adaptation-v1';
+      mode: 'shadow';
+      scope: 'post_workout_feedback';
+      assessed_at: string;
+      status: 'not_evaluated' | 'protective_signal' | 'observation_only';
+      candidate_response:
+        | 'not_evaluated'
+        | 'prefer_recovery'
+        | 'maintain_observed'
+        | 'defer_progression'
+        | 'progress_duration_5pct';
+      rules_evaluated: string[];
+      rules_deferred: string[];
+      reasons: { code: string; message: string }[];
+      missing_data: string[];
+      data_issues: string[];
+      not_evaluated: string[];
+      progression_eligible: false;
+      applied: false;
+      used_for_prescription: false;
+    };
   };
   status: 'planned' | 'in_progress' | 'completed' | 'skipped' | 'adapted';
   session?: WorkoutSession;

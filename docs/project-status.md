@@ -23,8 +23,8 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 ## Estado do checkout local
 
-- Checkout local no commit `2359c3f test: amplia validação do rules-v2 shadow`. A validação manual e a matriz controlada da quinta fatia foram concluídas; a sexta fatia descrita abaixo está modificada localmente, sem commit nem deploy. Não confundir nenhuma delas com a versão publicada na VPS.
-- A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`) e `2359c3f` (matriz de validação ampliada).
+- Checkout local no commit `de23add feat: adiciona shadow da adaptação pós-treino`. A validação manual e a matriz controlada da quinta fatia foram concluídas; a sétima fatia descrita abaixo está modificada localmente, sem commit nem deploy. Não confundir nenhuma delas com a versão publicada na VPS.
+- A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada) e `de23add` (avaliação shadow pós-treino).
 - A migração `000015`, o catálogo inicial e o protocolo `road_moderate_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
 
@@ -92,15 +92,26 @@ Arquivos desta fatia: `backend/internal/planning/history.go`, `backend/internal/
 
 Arquivos desta fatia: `backend/internal/planning/rules_v2.go`, `backend/internal/planning/rules_v2_test.go`, `backend/internal/planning/service.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `README.md`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alterados `melhorias.md`, migrações, infraestrutura ou notas de versão.
 
-### Sexta fatia de melhorias — adaptação pós-treino em shadow (local, sem commit)
+### Sexta fatia de melhorias — adaptação pós-treino em shadow (commit local; sem publicação)
 
-- `backend/internal/planning/rules_v2_adaptation.go` cria `rules-v2-adaptation-v1`, uma avaliação pura e determinística da resposta ao feedback pós-treino. Ela não é chamada pelo salvamento do feedback e não altera o trigger ativo do `rules-v1`.
+- `backend/internal/planning/rules_v2_adaptation.go` cria `rules-v2-adaptation-v1`, uma avaliação determinística da resposta ao feedback pós-treino. Ela foi desenhada como observação paralela e não altera o trigger ativo do `rules-v1` nem os campos prescritivos.
 - Dor, esforço muito alto, fadiga máxima ou sinal protetivo recente produzem a candidata `prefer_recovery`. Uma resposta dentro do esperado produz `maintain_observed`.
 - Uma resposta claramente fácil sozinha produz `defer_progression`; somente dois períodos recentes íntegros, com carga session-RPE, feedback completo e recuperação registrada, permitem registrar a candidata `progress_duration_5pct`. Mesmo nesse caso, `progression_eligible`, `applied` e `used_for_prescription` permanecem `false`.
 - Dados insuficientes ou inconsistentes ficam em `missing_data`/`data_issues`. Não são avaliados destreinamento, tolerância, mudança fisiológica, atividades fora do Cadência ou efeito da prescrição.
-- Testes direcionados passaram nos quatro cenários da adaptação shadow e nos cenários anteriores do `rules-v2`. Não houve migração, mudança visual, infraestrutura, publicação nem alteração de `APP_VERSION`/`UPDATE_NOTES`.
+- Testes direcionados passaram nos cinco cenários da adaptação shadow e nos cenários anteriores do `rules-v2`; os testes e a documentação dessa fatia foram versionados no commit `de23add`. Não houve migração, mudança visual, infraestrutura, publicação nem alteração de `APP_VERSION`/`UPDATE_NOTES`.
 
-Arquivos desta fatia: `backend/internal/planning/rules_v2_adaptation.go` e `backend/internal/planning/rules_v2_adaptation_test.go`, além desta atualização documental. O próximo passo é revisar a regra candidata e decidir se ela será apenas observacional por mais tempo ou integrada de forma transacional e explicitamente versionada.
+Arquivos desta fatia: `backend/internal/planning/rules_v2_adaptation.go`, `backend/internal/planning/rules_v2_adaptation_test.go`, `README.md`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alteradas migrações, infraestrutura ou notas de versão.
+
+### Sétima fatia de melhorias — observação transacional pós-treino (local, sem commit)
+
+- Ao concluir uma sessão, o repositório consulta os períodos históricos dentro da mesma transação que grava o feedback e chama o avaliador `rules-v2-adaptation-v1`. O resultado é armazenado apenas em `workouts.explanation.adaptation_shadow` no treino concluído, ficando disponível no `GET /v1/plans/current`.
+- O `rules-v1` continua sendo a única fonte prescritiva: o trigger existente e seus campos de duração, RPE, estímulo e status não foram substituídos. O shadow permanece com `mode: shadow`, `progression_eligible: false`, `applied: false` e `used_for_prescription: false`.
+- A consulta histórica fica protegida por um savepoint. Se ela falhar, o feedback principal pode continuar sendo salvo e o shadow registra `not_evaluated` com `history_query_failed`, sem transformar uma observação em bloqueio do fluxo.
+- A tipagem do frontend e o contrato OpenAPI expõem a nova chave, mas não há mudança visual nem funcionalidade visível para o atleta; `APP_VERSION` e `UPDATE_NOTES` continuam em `0.7.0`.
+- A inicialização local da API foi ajustada em `scripts/run-api.ps1`: em vez de executar o binário transitório do `go run`, o script compila em `backend/.gotmp`, pasta ignorada pelo Git. Isso contorna o bloqueio do Smart App Control do Windows sem desativar a proteção do sistema e não altera a produção.
+- Validação automatizada: `go test -count=1 ./internal/planning ./internal/repository ./internal/httpapi`, `go vet ./internal/planning ./internal/repository ./internal/httpapi`, build do frontend e validação estrutural do OpenAPI passaram. A validação manual ponta a ponta da chave no `GET /v1/plans/current` ainda está pendente.
+
+Arquivos desta fatia: `backend/internal/planning/rules_v2_adaptation.go`, `backend/internal/repository/planning.go`, `backend/internal/repository/workout_sessions.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `scripts/run-api.ps1`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alteradas migrações, infraestrutura ou notas de versão. O próximo passo é concluir um treino local e conferir `explanation.adaptation_shadow`, sem ativar qualquer efeito prescritivo do shadow.
 
 ### Topologia mantida
 

@@ -353,8 +353,16 @@ func (s *Store) trainingHistoryByProfileID(ctx context.Context, profileID string
 	return history, nil
 }
 
+type rowsQuerier interface {
+	Query(context.Context, string, ...any) (pgx.Rows, error)
+}
+
 func (s *Store) trainingHistoryPeriodsByProfileID(ctx context.Context, profileID string) ([]planning.TrainingHistoryPeriod, error) {
-	rows, err := s.pool.Query(ctx, planningTrainingHistoryPeriodsQuery, profileID)
+	return trainingHistoryPeriodsFrom(ctx, s.pool, profileID)
+}
+
+func trainingHistoryPeriodsFrom(ctx context.Context, queryer rowsQuerier, profileID string) ([]planning.TrainingHistoryPeriod, error) {
+	rows, err := queryer.Query(ctx, planningTrainingHistoryPeriodsQuery, profileID)
 	if err != nil {
 		return nil, err
 	}

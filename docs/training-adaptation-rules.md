@@ -156,7 +156,7 @@ Mesmo no segundo estado, não há autorização para progressão. A avaliação 
 
 ### Primeiro desenho de adaptação pós-treino (`rules-v2-adaptation-v1`)
 
-O `rules-v1` já possui uma adaptação pós-feedback ativa no trigger `feedback_adapts_future_workouts`. A sexta fatia cria apenas uma avaliação paralela em Go, ainda não chamada pelo fluxo de conclusão e sem alteração de duração, RPE, estímulo ou status no banco. Isso permite revisar a regra candidata sem substituir o comportamento já testado.
+O `rules-v1` já possui uma adaptação pós-feedback ativa no trigger `feedback_adapts_future_workouts`. A sexta fatia acrescenta uma avaliação paralela em Go; a sétima a executa na mesma transação do fluxo de conclusão e a grava somente em `workouts.explanation.adaptation_shadow` do treino concluído. Ela não altera duração, RPE, estímulo ou status e não substitui o comportamento já testado.
 
 O avaliador recebe o RPE-alvo, o feedback validado da sessão e os períodos observados. Ele mantém quatro gates explícitos:
 
@@ -165,7 +165,7 @@ O avaliador recebe o RPE-alvo, o feedback validado da sessão e os períodos obs
 - resposta dentro do esperado produz `maintain_observed`;
 - uma resposta claramente fácil só pode produzir `progress_duration_5pct` como candidata se houver seis períodos íntegros, dois períodos recentes com sessões, carga session-RPE e feedback completos, além de recuperação completa registrada nesses períodos. Sem isso, produz `defer_progression`.
 
-Mesmo com evidência suficiente, a candidata permanece em `mode: shadow`, com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. O módulo não infere destreinamento, tolerância, mudança fisiológica, efeito da prescrição ou dados de atividades fora do Cadência. Os testes cobrem resposta fácil isolada, evidência completa, dor e período inconsistente. O próximo passo de implementação, se aprovado, é definir a forma de observação transacional dessa avaliação no feedback antes de qualquer integração com a adaptação ativa.
+Mesmo com evidência suficiente, a candidata permanece em `mode: shadow`, com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. O módulo não infere destreinamento, tolerância, mudança fisiológica, efeito da prescrição ou dados de atividades fora do Cadência. Se a consulta dos períodos falhar, um savepoint impede que a observação bloqueie o feedback: o resultado fica `not_evaluated` e recebe `history_query_failed`. Os testes cobrem resposta fácil isolada, evidência completa, dor, período inconsistente e a invariância de não produzir candidata com observação inconsistente. A conferência manual de `explanation.adaptation_shadow` no `GET /v1/plans/current` após concluir um treino local é a próxima validação, sem ativar o resultado.
 
 ## IA explicativa opcional
 

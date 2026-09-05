@@ -153,3 +153,9 @@ func assessRulesV2AdaptationShadow(targetRPE float64, input CompletionInput, per
 	result.CandidateResponse = "progress_duration_5pct"
 	return result
 }
+
+// AssessRulesV2AdaptationShadow exposes the non-authoritative evaluator to the
+// repository transaction that records completed-workout feedback.
+func AssessRulesV2AdaptationShadow(targetRPE float64, input CompletionInput, periods []TrainingHistoryPeriod, now time.Time) RulesV2AdaptationShadowAssessment {
+	return assessRulesV2AdaptationShadow(targetRPE, input, periods, now)
+}

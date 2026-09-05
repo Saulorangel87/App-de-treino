@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -101,22 +102,24 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 	}
 	defer tx.Rollback(ctx)
 
-	var workoutStatus string
+	var profileID string
+	var sourceTargetRPE float64
+	var status string
 	err = tx.QueryRow(ctx, `
-		SELECT w.status
+		SELECT ap.id::text, w.target_rpe::double precision, w.status
 		FROM workouts w
 		JOIN training_plans tp ON tp.id = w.training_plan_id
 		JOIN athlete_profiles ap ON ap.id = tp.athlete_profile_id
 		WHERE ap.user_id = $1 AND w.id = $2 AND tp.status = 'active'
 		FOR UPDATE OF w`, userID, workoutID,
-	).Scan(&workoutStatus)
+	).Scan(&profileID, &sourceTargetRPE, &status)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return planning.ErrWorkoutMissing
 	}
 	if err != nil {
 		return err
 	}
-	if workoutStatus != "in_progress" {
+	if status != "in_progress" {
 		return planning.ErrInvalidTransition
 	}
 	var sessionID string
@@ -150,6 +153,36 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 		VALUES ($1, $2, $3, $4, NULLIF($5, ''))`,
 		sessionID, input.Difficulty, input.PainReported, input.FatigueAfter, input.Notes,
 	); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(ctx, `SAVEPOINT rules_v2_adaptation_shadow`); err != nil {
+		return err
+	}
+	periods, historyErr := trainingHistoryPeriodsFrom(ctx, tx, profileID)
+	shadow := planning.AssessRulesV2AdaptationShadow(sourceTargetRPE, input, periods, time.Now())
+	if historyErr != nil {
+		if _, rollbackErr := tx.Exec(ctx, `ROLLBACK TO SAVEPOINT rules_v2_adaptation_shadow`); rollbackErr != nil {
+			return rollbackErr
+		}
+		shadow.DataIssues = append(shadow.DataIssues, "history_query_failed")
+		shadow.Reasons = append(shadow.Reasons, planning.ReadinessReason{
+			Code:    "history_query_failed",
+			Message: "O histórico não pôde ser consultado nesta transação; a avaliação shadow ficou não avaliada.",
+		})
+		shadow.Status = "not_evaluated"
+		shadow.CandidateResponse = "not_evaluated"
+	}
+	if _, err := tx.Exec(ctx, `RELEASE SAVEPOINT rules_v2_adaptation_shadow`); err != nil {
+		return err
+	}
+	shadowJSON, err := json.Marshal(shadow)
+	if err != nil {
+		return err
+	}
+	if _, err := tx.Exec(ctx, `
+		UPDATE workouts
+		SET explanation = jsonb_set(COALESCE(explanation, '{}'::jsonb), '{adaptation_shadow}', $2::jsonb, true)
+		WHERE id = $1`, workoutID, shadowJSON); err != nil {
 		return err
 	}
 	if _, err := tx.Exec(ctx, `UPDATE workouts SET status = 'completed' WHERE id = $1`, workoutID); err != nil {
