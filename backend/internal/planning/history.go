@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	trainingHistoryVersion = "training-history-v2"
-	trainingHistoryMode    = "observation"
+	trainingHistoryVersion  = "training-history-v3"
+	periodComparisonVersion = "period-comparison-v1"
+	trainingHistoryMode     = "observation"
 )
 
 // TrainingHistoryWindow keeps adherence and performed load separate because
@@ -62,26 +63,67 @@ type TrainingHistoryTemporalQuality struct {
 	AppRecordingGapInterpretation   string  `json:"app_recording_gap_interpretation"`
 }
 
+type TrainingHistoryPeriod struct {
+	PeriodIndex                   int      `json:"period_index"`
+	PeriodKey                     string   `json:"period_key"`
+	PeriodDays                    int      `json:"period_days"`
+	ExpectedSessions              int      `json:"expected_sessions"`
+	ScheduledCompletedSessions    int      `json:"scheduled_completed_sessions"`
+	CancelledSessions             int      `json:"cancelled_sessions"`
+	MissedSessions                int      `json:"missed_sessions"`
+	OverdueInProgressSessions     int      `json:"overdue_in_progress_sessions"`
+	CompletionRatePercent         *float64 `json:"completion_rate_percent"`
+	PerformedSessions             int      `json:"performed_sessions"`
+	PerformedMinutes              int      `json:"performed_minutes"`
+	SessionsWithSessionRPELoad    int      `json:"sessions_with_session_rpe_load"`
+	SessionsWithoutSessionRPELoad int      `json:"sessions_without_session_rpe_load"`
+	SessionRPELoad                float64  `json:"session_rpe_load"`
+	FeedbackRecords               int      `json:"feedback_records"`
+	SessionsWithCompleteFeedback  int      `json:"sessions_with_complete_feedback"`
+	PainReportedSessions          int      `json:"pain_reported_sessions"`
+	HighFatigueSessions           int      `json:"high_fatigue_sessions"`
+	AboveTargetRPESessions        int      `json:"above_target_rpe_sessions"`
+	RecoveryCheckins              int      `json:"recovery_checkins"`
+	CompleteRecoveryCheckins      int      `json:"complete_recovery_checkins"`
+	CheckinsWithProtectiveSignal  int      `json:"checkins_with_protective_signal"`
+	RecoveryNeededCheckins        int      `json:"recovery_needed_checkins"`
+}
+
+type TrainingHistoryPeriodComparison struct {
+	Version             string                  `json:"version"`
+	Mode                string                  `json:"mode"`
+	Basis               string                  `json:"basis"`
+	Periods             []TrainingHistoryPeriod `json:"periods"`
+	MissingData         []string                `json:"missing_data"`
+	DataIssues          []string                `json:"data_issues"`
+	UsedForPrescription bool                    `json:"used_for_prescription"`
+}
+
 // TrainingHistorySnapshot records measurements only. It is deliberately not
 // consumed by rules-v1 until adherence and tolerance rules are reviewed.
 type TrainingHistorySnapshot struct {
-	Version             string                         `json:"version"`
-	Mode                string                         `json:"mode"`
-	CapturedAt          string                         `json:"captured_at"`
-	LoadMethod          string                         `json:"load_method"`
-	LoadUnit            string                         `json:"load_unit"`
-	AdherenceBasis      string                         `json:"adherence_basis"`
-	CompletionTimeBasis string                         `json:"completion_time_basis"`
-	EvidenceKeys        []string                       `json:"evidence_keys"`
-	Windows             []TrainingHistoryWindow        `json:"windows"`
-	TemporalQuality     TrainingHistoryTemporalQuality `json:"temporal_quality"`
-	MissingData         []string                       `json:"missing_data"`
-	DataIssues          []string                       `json:"data_issues"`
-	NotEvaluated        []string                       `json:"not_evaluated"`
-	UsedForPrescription bool                           `json:"used_for_prescription"`
+	Version             string                          `json:"version"`
+	Mode                string                          `json:"mode"`
+	CapturedAt          string                          `json:"captured_at"`
+	LoadMethod          string                          `json:"load_method"`
+	LoadUnit            string                          `json:"load_unit"`
+	AdherenceBasis      string                          `json:"adherence_basis"`
+	CompletionTimeBasis string                          `json:"completion_time_basis"`
+	EvidenceKeys        []string                        `json:"evidence_keys"`
+	Windows             []TrainingHistoryWindow         `json:"windows"`
+	TemporalQuality     TrainingHistoryTemporalQuality  `json:"temporal_quality"`
+	PeriodComparison    TrainingHistoryPeriodComparison `json:"period_comparison"`
+	MissingData         []string                        `json:"missing_data"`
+	DataIssues          []string                        `json:"data_issues"`
+	NotEvaluated        []string                        `json:"not_evaluated"`
+	UsedForPrescription bool                            `json:"used_for_prescription"`
 }
 
-func buildTrainingHistorySnapshot(history []TrainingHistoryWindow, now time.Time) TrainingHistorySnapshot {
+func buildTrainingHistorySnapshot(history []TrainingHistoryWindow, now time.Time, periodSets ...[]TrainingHistoryPeriod) TrainingHistorySnapshot {
+	var periods []TrainingHistoryPeriod
+	if len(periodSets) > 0 {
+		periods = periodSets[0]
+	}
 	result := TrainingHistorySnapshot{
 		Version:             trainingHistoryVersion,
 		Mode:                trainingHistoryMode,
@@ -95,11 +137,12 @@ func buildTrainingHistorySnapshot(history []TrainingHistoryWindow, now time.Time
 		TemporalQuality: TrainingHistoryTemporalQuality{
 			AppRecordingGapInterpretation: "recorded_activity_gap_only_not_confirmed_training_cessation",
 		},
-		MissingData: []string{},
-		DataIssues:  []string{},
+		PeriodComparison: buildTrainingHistoryPeriodComparison(nil),
+		MissingData:      []string{},
+		DataIssues:       []string{},
 		NotEvaluated: []string{
 			"load_tolerance", "detraining", "fitness_change", "activities_outside_cadencia",
-			"athlete_timezone", "progression_from_history",
+			"athlete_timezone", "progression_from_history", "period_trend_for_prescription",
 		},
 	}
 	copy(result.Windows, history)
@@ -157,6 +200,9 @@ func buildTrainingHistorySnapshot(history []TrainingHistoryWindow, now time.Time
 		if !seen[days] {
 			result.MissingData = append(result.MissingData, fmt.Sprintf("window_%dd", days))
 		}
+	}
+	if len(periods) > 0 {
+		result.PeriodComparison = buildTrainingHistoryPeriodComparison(periods)
 	}
 	if result.TemporalQuality.LatestCompletedAt == nil {
 		result.MissingData = append(result.MissingData, "latest_completed_session")
@@ -264,4 +310,77 @@ func validTrainingHistoryWindow(window TrainingHistoryWindow) bool {
 
 func validTemporalPair(timestamp *time.Time, days *int) bool {
 	return (timestamp == nil && days == nil) || (timestamp != nil && days != nil && *days >= 0)
+}
+
+func buildTrainingHistoryPeriodComparison(periods []TrainingHistoryPeriod) TrainingHistoryPeriodComparison {
+	result := TrainingHistoryPeriodComparison{
+		Version:     periodComparisonVersion,
+		Mode:        trainingHistoryMode,
+		Basis:       "six_non_overlapping_7_day_periods_by_database_clock",
+		Periods:     make([]TrainingHistoryPeriod, len(periods)),
+		MissingData: []string{},
+		DataIssues:  []string{},
+	}
+	copy(result.Periods, periods)
+	slices.SortFunc(result.Periods, func(left, right TrainingHistoryPeriod) int {
+		return left.PeriodIndex - right.PeriodIndex
+	})
+	periodKeys := []string{"last_7d", "days_8_14", "days_15_21", "days_22_28", "days_29_35", "days_36_42"}
+	seen := make(map[int]bool, len(result.Periods))
+	for index := range result.Periods {
+		period := &result.Periods[index]
+		if period.PeriodIndex < 0 || period.PeriodIndex >= len(periodKeys) {
+			result.DataIssues = append(result.DataIssues, fmt.Sprintf("unsupported_period_%d", period.PeriodIndex))
+		}
+		if seen[period.PeriodIndex] {
+			result.DataIssues = append(result.DataIssues, fmt.Sprintf("duplicate_period_%d", period.PeriodIndex))
+		}
+		seen[period.PeriodIndex] = true
+		if period.PeriodIndex >= 0 && period.PeriodIndex < len(periodKeys) && period.PeriodKey != periodKeys[period.PeriodIndex] {
+			result.DataIssues = append(result.DataIssues, fmt.Sprintf("inconsistent_period_key_%d", period.PeriodIndex))
+		}
+		if period.ExpectedSessions > 0 && period.ScheduledCompletedSessions >= 0 && period.ScheduledCompletedSessions <= period.ExpectedSessions {
+			rate := float64(period.ScheduledCompletedSessions) / float64(period.ExpectedSessions) * 100
+			period.CompletionRatePercent = &rate
+		} else {
+			period.CompletionRatePercent = nil
+		}
+		if !validTrainingHistoryPeriod(*period) {
+			result.DataIssues = append(result.DataIssues, fmt.Sprintf("inconsistent_period_%d", period.PeriodIndex))
+		}
+	}
+	for index, key := range periodKeys {
+		if !seen[index] {
+			result.MissingData = append(result.MissingData, "period_"+key)
+		}
+	}
+	return result
+}
+
+func validTrainingHistoryPeriod(period TrainingHistoryPeriod) bool {
+	counts := []int{
+		period.PeriodIndex, period.PeriodDays, period.ExpectedSessions, period.ScheduledCompletedSessions,
+		period.CancelledSessions, period.MissedSessions, period.OverdueInProgressSessions,
+		period.PerformedSessions, period.PerformedMinutes, period.SessionsWithSessionRPELoad,
+		period.SessionsWithoutSessionRPELoad, period.FeedbackRecords, period.SessionsWithCompleteFeedback,
+		period.PainReportedSessions, period.HighFatigueSessions, period.AboveTargetRPESessions,
+		period.RecoveryCheckins, period.CompleteRecoveryCheckins, period.CheckinsWithProtectiveSignal,
+		period.RecoveryNeededCheckins,
+	}
+	if slices.ContainsFunc(counts, func(value int) bool { return value < 0 }) || period.PeriodDays != 7 ||
+		math.IsNaN(period.SessionRPELoad) || math.IsInf(period.SessionRPELoad, 0) || period.SessionRPELoad < 0 {
+		return false
+	}
+	closed := period.ScheduledCompletedSessions + period.CancelledSessions + period.MissedSessions + period.OverdueInProgressSessions
+	return closed == period.ExpectedSessions &&
+		period.SessionsWithSessionRPELoad+period.SessionsWithoutSessionRPELoad == period.PerformedSessions &&
+		period.SessionsWithSessionRPELoad <= period.PerformedMinutes &&
+		period.FeedbackRecords <= period.PerformedSessions &&
+		period.SessionsWithCompleteFeedback <= period.FeedbackRecords &&
+		period.PainReportedSessions <= period.FeedbackRecords &&
+		period.HighFatigueSessions <= period.SessionsWithCompleteFeedback &&
+		period.AboveTargetRPESessions <= period.PerformedSessions &&
+		period.CompleteRecoveryCheckins <= period.RecoveryCheckins &&
+		period.CheckinsWithProtectiveSignal <= period.CompleteRecoveryCheckins &&
+		period.RecoveryNeededCheckins <= period.CheckinsWithProtectiveSignal
 }

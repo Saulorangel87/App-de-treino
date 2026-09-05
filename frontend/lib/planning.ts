@@ -132,8 +132,44 @@ export type TrainingHistoryWindow = {
   recovery_needed_checkins?: number;
 };
 
+export type TrainingHistoryPeriod = {
+  period_index: number;
+  period_key: string;
+  period_days: number;
+  expected_sessions: number;
+  scheduled_completed_sessions: number;
+  cancelled_sessions: number;
+  missed_sessions: number;
+  overdue_in_progress_sessions: number;
+  completion_rate_percent: number | null;
+  performed_sessions: number;
+  performed_minutes: number;
+  sessions_with_session_rpe_load: number;
+  sessions_without_session_rpe_load: number;
+  session_rpe_load: number;
+  feedback_records: number;
+  sessions_with_complete_feedback: number;
+  pain_reported_sessions: number;
+  high_fatigue_sessions: number;
+  above_target_rpe_sessions: number;
+  recovery_checkins: number;
+  complete_recovery_checkins: number;
+  checkins_with_protective_signal: number;
+  recovery_needed_checkins: number;
+};
+
+export type TrainingHistoryPeriodComparison = {
+  version: 'period-comparison-v1';
+  mode: 'observation';
+  basis: 'six_non_overlapping_7_day_periods_by_database_clock';
+  periods: TrainingHistoryPeriod[];
+  missing_data: string[];
+  data_issues: string[];
+  used_for_prescription: false;
+};
+
 export type TrainingHistorySnapshot = {
-  version: 'training-history-v1' | 'training-history-v2';
+  version: 'training-history-v1' | 'training-history-v2' | 'training-history-v3';
   mode: 'observation';
   captured_at: string;
   load_method: 'duration_minutes_x_actual_rpe';
@@ -142,6 +178,7 @@ export type TrainingHistorySnapshot = {
   completion_time_basis: string;
   evidence_keys: string[];
   windows: TrainingHistoryWindow[];
+  period_comparison?: TrainingHistoryPeriodComparison;
   temporal_quality?: {
     athlete_timezone_available: false;
     latest_completed_at: string | null;

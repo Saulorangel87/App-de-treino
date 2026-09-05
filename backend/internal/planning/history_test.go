@@ -17,6 +17,22 @@ func validHistoryWindow(days int) TrainingHistoryWindow {
 	}
 }
 
+func validHistoryPeriods() []TrainingHistoryPeriod {
+	keys := []string{"last_7d", "days_8_14", "days_15_21", "days_22_28", "days_29_35", "days_36_42"}
+	periods := make([]TrainingHistoryPeriod, 0, len(keys))
+	for index, key := range keys {
+		periods = append(periods, TrainingHistoryPeriod{
+			PeriodIndex: index, PeriodKey: key, PeriodDays: 7,
+			ExpectedSessions: 2, ScheduledCompletedSessions: 1,
+			CancelledSessions: 1, PerformedSessions: 1, PerformedMinutes: 30,
+			SessionsWithSessionRPELoad: 1, SessionRPELoad: 120,
+			FeedbackRecords: 1, SessionsWithCompleteFeedback: 1,
+			RecoveryCheckins: 1, CompleteRecoveryCheckins: 1,
+		})
+	}
+	return periods
+}
+
 func TestBuildTrainingHistorySnapshotCalculatesAdherenceAndCoverage(t *testing.T) {
 	history := []TrainingHistoryWindow{
 		{WindowDays: 42},
@@ -31,7 +47,7 @@ func TestBuildTrainingHistorySnapshotCalculatesAdherenceAndCoverage(t *testing.T
 		},
 	}
 	now := time.Date(2026, 9, 5, 9, 30, 0, 0, time.FixedZone("BRT", -3*60*60))
-	snapshot := buildTrainingHistorySnapshot(history, now)
+	snapshot := buildTrainingHistorySnapshot(history, now, validHistoryPeriods())
 
 	if snapshot.Version != trainingHistoryVersion || snapshot.Mode != trainingHistoryMode || snapshot.UsedForPrescription {
 		t.Fatalf("unexpected authority: %+v", snapshot)
@@ -90,7 +106,7 @@ func TestBuildTrainingHistorySnapshotRecordsTemporalQualityAndProtectiveSignals(
 		windows = append(windows, window)
 	}
 
-	snapshot := buildTrainingHistorySnapshot(windows, time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC))
+	snapshot := buildTrainingHistorySnapshot(windows, time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC), validHistoryPeriods())
 	temporal := snapshot.TemporalQuality
 	if temporal.LatestCompletedAt == nil || *temporal.LatestCompletedAt != "2026-09-04T13:00:00Z" ||
 		temporal.DaysSinceLatestCompleted == nil || *temporal.DaysSinceLatestCompleted != 1 {
@@ -111,6 +127,31 @@ func TestBuildTrainingHistorySnapshotRecordsTemporalQualityAndProtectiveSignals(
 	}
 	if len(snapshot.MissingData) != 0 || len(snapshot.DataIssues) != 0 {
 		t.Fatalf("unexpected quality flags: missing=%v issues=%v", snapshot.MissingData, snapshot.DataIssues)
+	}
+}
+
+func TestBuildTrainingHistorySnapshotKeepsNonOverlappingPeriodsObservational(t *testing.T) {
+	periods := validHistoryPeriods()
+	periods[0].PerformedMinutes = 60
+	periods[0].SessionRPELoad = 240
+	snapshot := buildTrainingHistorySnapshot([]TrainingHistoryWindow{
+		validHistoryWindow(7), validHistoryWindow(28), validHistoryWindow(42),
+	}, time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC), periods)
+	comparison := snapshot.PeriodComparison
+	if comparison.Version != periodComparisonVersion || comparison.Mode != trainingHistoryMode || comparison.UsedForPrescription {
+		t.Fatalf("period comparison became authoritative: %+v", comparison)
+	}
+	if len(comparison.Periods) != 6 || comparison.Periods[0].PeriodKey != "last_7d" || comparison.Periods[5].PeriodKey != "days_36_42" {
+		t.Fatalf("periods are not complete and ordered: %+v", comparison.Periods)
+	}
+	if comparison.Periods[0].CompletionRatePercent == nil || *comparison.Periods[0].CompletionRatePercent != 50 {
+		t.Fatalf("unexpected period completion rate: %v", comparison.Periods[0].CompletionRatePercent)
+	}
+	if comparison.Periods[0].PerformedMinutes != 60 || comparison.Periods[1].PerformedMinutes != 30 {
+		t.Fatalf("periods were aggregated together: %+v", comparison.Periods)
+	}
+	if len(comparison.MissingData) != 0 || len(comparison.DataIssues) != 0 {
+		t.Fatalf("unexpected period quality flags: missing=%v issues=%v", comparison.MissingData, comparison.DataIssues)
 	}
 }
 
@@ -184,8 +225,8 @@ func TestBuildPlanRecordsHistoryWithoutChangingPrescription(t *testing.T) {
 func TestBuildTrainingHistorySnapshotIsDeterministicAndDetached(t *testing.T) {
 	history := []TrainingHistoryWindow{validHistoryWindow(42), validHistoryWindow(7), validHistoryWindow(28)}
 	now := time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
-	first := buildTrainingHistorySnapshot(history, now)
-	second := buildTrainingHistorySnapshot(history, now)
+	first := buildTrainingHistorySnapshot(history, now, validHistoryPeriods())
+	second := buildTrainingHistorySnapshot(history, now, validHistoryPeriods())
 	if !reflect.DeepEqual(first, second) {
 		t.Fatalf("snapshot is not deterministic:\n%+v\n%+v", first, second)
 	}

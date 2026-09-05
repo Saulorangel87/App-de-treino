@@ -132,6 +132,16 @@ Essa cautela é deliberada. O session-RPE é uma medida útil e validada para mo
 
 Testes automatizados cobrem recência, cópia defensiva, metadados temporais divergentes, registros futuros, cobertura parcial e invariância da prescrição. A consulta real foi executada no PostgreSQL local com CTEs sintéticas e transação somente leitura; `go test -count=1 ./...`, `go vet ./...`, build do frontend e validação estrutural do OpenAPI passaram. A conferência manual de um novo rascunho confirmou `training-history-v2`, as três janelas, recência, cobertura e sinais protetivos com `data_issues: []` e `used_for_prescription: false`. Os cinco registros sem duração continuaram sem carga calculada, como esperado. Snapshots `training-history-v1` existentes não são atualizados retroativamente.
 
+### Comparação observacional entre períodos (`training-history-v3`)
+
+Novos rascunhos também registram `period_comparison`, uma série de seis blocos semanais não sobrepostos dentro dos últimos 42 dias: `last_7d`, `days_8_14`, `days_15_21`, `days_22_28`, `days_29_35` e `days_36_42`. O objetivo é permitir uma leitura posterior da distribuição dos registros sem misturar a semana atual com as anteriores.
+
+Cada período repete medições brutas de aderência, sessões realizadas, minutos, cobertura de session-RPE, carga, feedback, dor, fadiga, RPE acima do alvo e check-ins de recuperação. A consulta mantém duas bases temporais já documentadas: sessões realizadas/carga por intervalos de `completed_at` no relógio do PostgreSQL; aderência/recuperação por datas relativas a `CURRENT_DATE`. Por isso, os campos não devem ser comparados como se viessem de um fuso do atleta.
+
+O contrato é `period-comparison-v1`, em `mode: observation`, com `used_for_prescription: false`. Não há tendência calculada, razão aguda:crônica, inferência de destreinamento, limiar de tolerância, progressão ou regressão. Dados ausentes continuam sendo lacunas; dados inconsistentes entram em `data_issues`. O item `period_trend_for_prescription` permanece explicitamente não avaliado, e `rules-v1` não lê essa estrutura.
+
+Os testes unitários verificam ordenação, seis períodos, taxas, separação das medições, invariância da prescrição e rejeição de período que não tenha sete dias. `scripts/test-training-history-query.ps1` executa a consulta real com fixtures sintéticas em transação somente leitura e verifica os seis blocos, inclusive as fronteiras temporais e o isolamento do atleta. A validação manual via API ainda deve ser feita em um novo rascunho antes de qualquer commit ou publicação.
+
 ## IA explicativa opcional
 
 O endpoint de explicação envia ao modelo apenas o nome, objetivo, duração, RPE-alvo, regras e escopo de evidência do treino. O modelo deve explicar a decisão em duas ou três frases; não recebe autorização para criar etapas, alterar carga, inventar referências ou interpretar sintomas. A integração usa Ollama local com limites de tempo, saída e concorrência e pode usar a rota protegida do Worker como fallback (Groq `openai/gpt-oss-20b`). Enquanto `AI_ENABLED=false`, ou quando os provedores estiverem indisponíveis, a API devolve o resumo validado pelo `rules-v1`.

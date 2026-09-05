@@ -98,6 +98,8 @@ Segunda fatia no commit local `a4e5f9f`, ainda sem publicação: `training-histo
 
 Terceira fatia local, ainda sem commit ou publicação: `training-history-v2` acrescenta recência, exclusão explícita de registros futuros, cobertura de feedback/check-in e contagens dos sinais protetivos já usados pelo motor. O snapshot diferencia feedback inexistente de feedback incompleto e preserva dor mesmo quando falta outro campo. Ausência de registros no Cadência é rotulada apenas como lacuna de atividade registrada; destreinamento, perda de condicionamento, tolerância e progressão permanecem em `not_evaluated`. A decisão evita extrapolar estudos de cessação total para redução de treino ou falta de sincronização do atleta. `used_for_prescription` permanece `false`, e planos antigos `training-history-v1` continuam legíveis sem recálculo.
 
+Quarta fatia local, ainda sem commit ou publicação: `training-history-v3` acrescenta `period_comparison` com seis blocos semanais não sobrepostos, do mais recente ao mais antigo. Cada bloco repete medições brutas de aderência, sessões, carga session-RPE, feedback, sinais protetivos e recuperação; não calcula tendência, ACWR ou qualquer razão que autorize carga. Sessões e carga usam intervalos de `completed_at` no relógio do banco, enquanto aderência e recuperação usam datas de `CURRENT_DATE`, mantendo as bases explícitas. O contrato registra `period-comparison-v1`, lacunas e inconsistências, mantém `used_for_prescription: false` e deixa a tendência para prescrição em `not_evaluated`. Snapshots antigos continuam legíveis sem recálculo.
+
 ## ADR-009 — Comunicação de atualizações no produto
 
 **Status:** Aceita e aplicada.
@@ -151,7 +153,7 @@ Nenhuma porta de outro aplicativo deve ser bloqueada sem mapear antes seus domí
 
 1. Observar os primeiros relatos reais em `/feedback` e confirmar a entregabilidade/utilidade do resumo semanal pelo Resend.
 2. Monitorar a explicação autenticada pelo Worker remoto, sua latência, limites e acionamento do fallback determinístico; manter o Ollama parado.
-3. Validar manualmente `training-history-v2` e preparar comparações observacionais entre períodos não sobrepostos antes de evoluir regras, sem remover o `rules-v1`. Os itens operacionais 1 e 2 não bloqueiam este desenvolvimento.
+3. Validar manualmente `training-history-v3` no `GET /v1/plans/current` e, somente depois, preparar uma evolução de regras comparável e auditável, sem remover o `rules-v1`. Os itens operacionais 1 e 2 não bloqueiam este desenvolvimento.
 4. Definir adaptação em ciclo fechado, progressão/carga e barreiras de integridade e segurança.
 5. Evoluir o catálogo de protocolos de ciclismo com elegibilidade e evidências próprias; o catálogo inicial e o piloto de estrada já estão em produção, enquanto novos protocolos permanecem condicionados à revisão.
 6. Definir cópia externa dos backups, monitoramento de falhas e alertas de saúde.

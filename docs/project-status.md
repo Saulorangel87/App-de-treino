@@ -23,7 +23,7 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 ## Estado do checkout local
 
-- Checkout local no commit `a4e5f9f feat: registra histórico de aderência e carga em 7 28 e 42 dias`. A terceira fatia descrita abaixo está modificada localmente, sem commit nem deploy; não confundir nenhuma delas com a versão publicada na VPS.
+- Checkout local no commit `b0f32b7 feat: registra qualidade temporal e sinais protetivos do histórico`. A quarta fatia descrita abaixo está modificada localmente, sem commit nem deploy; não confundir nenhuma delas com a versão publicada na VPS.
 - A sequência recente inclui `5461cd6` (contexto por modalidade), `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação) e `c768ef7` (nota de atualização).
 - A migração `000015`, o catálogo inicial e o protocolo `road_moderate_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
@@ -36,7 +36,7 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - Classificação independente de experiência e avaliação submáxima: `insufficient_data`, `caution`, `recovery_needed` ou `stable`. `stable` significa apenas ausência de alertas nos agregados disponíveis, não aptidão atual ou liberação de carga.
 - O repositório passou a contar campos válidos de sessões e fadiga dos check-ins. Médias que ignoram campos nulos não são tratadas como cobertura completa.
 - `progression_eligible` permanece `false` nesta leitura. O campo não é uma nova trava do motor: os treinos e as proteções existentes continuam sendo prescritos pelo `rules-v1`, sem alteração de duração, RPE ou blocos nesta entrega.
-- Baixa consistência e prontidão para progressão não são inferidas da quantidade de registros. Faltam aderência, tolerância, destreinamento, tendências 7/28/42 dias, recência da avaliação e sinais recentes de sono/estresse/fadiga.
+- Baixa consistência e prontidão para progressão não são inferidas da quantidade de registros. Ainda faltam critérios validados de tolerância, destreinamento, tendência e progressão; a leitura de períodos agora existe apenas para comparação observacional.
 - Planos antigos não são reclassificados; o snapshot só nasce ao gerar outro rascunho. Não há migração, nova infraestrutura nem mudança visual, portanto a nota do produto continua em `0.7.0`. A próxima mudança visível deverá atualizar `APP_VERSION` e `UPDATE_NOTES`.
 - Validação: `go test -count=1 ./...` e `go vet ./...` passaram, incluindo cenários de dados ausentes/inconsistentes, dor, fadiga, independência de experiência, serialização do snapshot e regressão do plano. O YAML do OpenAPI foi carregado com sucesso e a referência de `ReadinessAssessment` foi conferida. A indisponibilidade temporária do Go não persistiu na execução final; sua instalação não foi alterada por esta tarefa.
 - Após o proprietário ligar o Docker, `pwsh -NoProfile -File scripts/test-readiness-queries.ps1` passou nos quatro cenários: completo, campos incompletos/zero/nulos, ausência de histórico e somente check-ins. O script extrai as consultas reais do repositório e as executa no PostgreSQL com CTEs fictícias em transação somente leitura, verificando também exclusão de sessões canceladas, antigas e de outro atleta. Nenhum dado real foi lido ou alterado. A persistência ponta a ponta também foi confirmada: o mesmo plano, `assessed_at`, classificação, motivos, lacunas e treinos retornaram no `GET /v1/plans/current` após atualizar a tela sem gerar outro plano.
@@ -57,7 +57,7 @@ Arquivos desta fatia: `backend/internal/planning/readiness.go`, `backend/interna
 
 Arquivos desta fatia: `backend/internal/planning/history.go`, `backend/internal/planning/history_test.go`, `backend/internal/planning/readiness.go`, `backend/internal/planning/readiness_test.go`, `backend/internal/planning/service.go`, `backend/internal/repository/planning.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `scripts/test-training-history-query.ps1`, `README.md`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alterados `melhorias.md`, migrações, infraestrutura ou notas de versão.
 
-### Terceira fatia de melhorias — qualidade temporal e sinais protetivos (local)
+### Terceira fatia de melhorias — qualidade temporal e sinais protetivos (commit local)
 
 - Novos rascunhos usam `training-history-v2`. Planos já persistidos com `training-history-v1` continuam válidos e não são recalculados.
 - `temporal_quality` registra a última sessão concluída, a última sessão com carga session-RPE válida, o último check-in e os dias desde cada registro. Sessões concluídas no futuro e check-ins com data futura são excluídos e sinalizados em `data_issues`.
@@ -68,6 +68,18 @@ Arquivos desta fatia: `backend/internal/planning/history.go`, `backend/internal/
 - Validação concluída: `go test -count=1 ./...`, `go vet ./...`, build do frontend, carregamento do OpenAPI e a consulta PostgreSQL com fixtures sintéticas em transação somente leitura passaram. A consulta cobre janelas, cobertura incompleta, sinais protetivos, registros futuros e isolamento de outro atleta. O lint geral mantém erros preexistentes em telas/componentes fora desta fatia; `frontend/lib/planning.ts` não acrescentou erro. Na conferência manual, um novo rascunho retornou `training-history-v2`, `data_issues: []` e `used_for_prescription: false`; os cinco feedbacks apareceram completos, o check-in entrou como sinal protetivo/necessidade de recuperação e a carga permaneceu indisponível porque as cinco sessões realizadas tinham duração zero.
 
 Arquivos desta fatia: `backend/internal/planning/history.go`, `backend/internal/planning/history_test.go`, `backend/internal/repository/planning.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `scripts/test-training-history-query.ps1`, `README.md`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alterados `melhorias.md`, migrações, infraestrutura ou notas de versão.
+
+### Quarta fatia de melhorias — comparação entre períodos (local, sem commit)
+
+- Novos rascunhos passam a usar `training-history-v3`. Snapshots já persistidos em `training-history-v1` ou `training-history-v2` continuam legíveis e não são recalculados.
+- `period_comparison` registra seis períodos semanais não sobrepostos: `last_7d`, `days_8_14`, `days_15_21`, `days_22_28`, `days_29_35` e `days_36_42`. Cada período mantém as mesmas medições brutas de aderência, sessões realizadas, carga session-RPE, feedback, sinais protetivos e check-ins, sem agregar semanas diferentes.
+- Sessões realizadas e carga usam intervalos contínuos de `completed_at` baseados no relógio do PostgreSQL; aderência e recuperação usam blocos de datas baseados em `CURRENT_DATE`. Essa diferença temporal continua explícita e não é tratada como erro por si só.
+- O contrato informa `period-comparison-v1`, `mode: observation`, lacunas, inconsistências e `used_for_prescription: false`. Não há cálculo de tendência, razão aguda:crônica, limiar de carga, progressão, regressão ou conclusão de destreinamento. `period_trend_for_prescription` permanece em `not_evaluated`.
+- Nenhuma prescrição, adaptação, migração, infraestrutura ou tela foi alterada. Como não há mudança visível no produto, `APP_VERSION` e `UPDATE_NOTES` permanecem em `0.7.0`; a próxima funcionalidade visível deverá atualizar a tela de novidades.
+- Validação concluída: `go test -count=1 ./internal/planning ./internal/repository ./internal/httpapi`, `go vet ./...`, build do frontend, validação estrutural do OpenAPI e `scripts/test-training-history-query.ps1` passaram. O script confirmou os seis períodos com fixtures sintéticas em transação somente leitura; nenhum dado real foi lido ou alterado.
+- Falta somente a conferência manual ponta a ponta em um novo rascunho: reiniciar a API local, gerar um plano e verificar no `GET /v1/plans/current` a versão `training-history-v3`, os seis períodos, `data_issues: []` e `used_for_prescription: false`, sem alteração dos treinos.
+
+Arquivos desta fatia: `backend/internal/planning/history.go`, `backend/internal/planning/history_test.go`, `backend/internal/planning/service.go`, `backend/internal/repository/planning.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `scripts/test-training-history-query.ps1`, `README.md`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alterados `melhorias.md`, migrações, infraestrutura ou notas de versão.
 
 ### Topologia mantida
 

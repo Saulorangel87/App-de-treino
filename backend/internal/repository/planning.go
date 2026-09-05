@@ -114,6 +114,93 @@ const planningTrainingHistoryQuery = `
 	CROSS JOIN recovery_temporal
 	ORDER BY performed.window_days`
 
+const planningTrainingHistoryPeriodsQuery = `
+	WITH period_sizes(period_index, period_key, period_days, start_days_ago, end_days_ago) AS (
+		VALUES
+			(0, 'last_7d', 7, 0, 7),
+			(1, 'days_8_14', 7, 7, 14),
+			(2, 'days_15_21', 7, 14, 21),
+			(3, 'days_22_28', 7, 21, 28),
+			(4, 'days_29_35', 7, 28, 35),
+			(5, 'days_36_42', 7, 35, 42)
+	),
+	performed AS (
+		SELECT period_sizes.period_index,
+			period_sizes.period_key,
+			period_sizes.period_days,
+			COUNT(ws.id) AS performed_sessions,
+			COALESCE(SUM(COALESCE(ws.duration_minutes, 0)), 0) AS performed_minutes,
+			COUNT(ws.id) FILTER (WHERE ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10) AS sessions_with_load,
+			COUNT(ws.id) - COUNT(ws.id) FILTER (WHERE ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10) AS sessions_without_load,
+			COALESCE(SUM(ws.duration_minutes * ws.actual_rpe)
+				FILTER (WHERE ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10), 0)::double precision AS session_rpe_load,
+			COUNT(ws.id) FILTER (WHERE f.id IS NOT NULL) AS feedback_records,
+			COUNT(ws.id) FILTER (WHERE f.id IS NOT NULL AND f.fatigue_after BETWEEN 1 AND 5) AS sessions_with_complete_feedback,
+			COUNT(ws.id) FILTER (WHERE f.pain_reported = true) AS pain_reported_sessions,
+			COUNT(ws.id) FILTER (WHERE f.fatigue_after BETWEEN 4 AND 5) AS high_fatigue_sessions,
+			COUNT(ws.id) FILTER (WHERE ws.actual_rpe BETWEEN 1 AND 10 AND source_workout.target_rpe IS NOT NULL
+				AND ws.actual_rpe >= source_workout.target_rpe + 2) AS above_target_rpe_sessions
+		FROM period_sizes
+		LEFT JOIN workout_sessions ws
+			ON ws.athlete_profile_id = $1
+			AND ws.status = 'completed'
+			AND ws.completed_at >= now() - make_interval(days => period_sizes.end_days_ago)
+			AND ws.completed_at < now() - make_interval(days => period_sizes.start_days_ago)
+		LEFT JOIN workouts source_workout ON source_workout.id = ws.workout_id
+		LEFT JOIN feedback f ON f.workout_session_id = ws.id
+		GROUP BY period_sizes.period_index, period_sizes.period_key, period_sizes.period_days
+	),
+	recovery AS (
+		SELECT period_sizes.period_index,
+			COUNT(rd.id) AS recovery_checkins,
+			COUNT(rd.id) FILTER (WHERE rd.sleep_minutes >= 0 AND rd.sleep_quality BETWEEN 1 AND 5
+				AND rd.stress_level BETWEEN 1 AND 5 AND rd.fatigue_level BETWEEN 1 AND 5) AS complete_recovery_checkins,
+			COUNT(rd.id) FILTER (WHERE rd.sleep_minutes >= 0 AND rd.sleep_quality BETWEEN 1 AND 5
+				AND rd.stress_level BETWEEN 1 AND 5 AND rd.fatigue_level BETWEEN 1 AND 5
+				AND (rd.sleep_minutes < 360 OR rd.sleep_quality <= 2 OR rd.stress_level >= 4 OR rd.fatigue_level >= 4)) AS checkins_with_protective_signal,
+			COUNT(rd.id) FILTER (WHERE rd.sleep_minutes >= 0 AND rd.sleep_quality BETWEEN 1 AND 5
+				AND rd.stress_level BETWEEN 1 AND 5 AND rd.fatigue_level BETWEEN 1 AND 5
+				AND (rd.fatigue_level = 5 OR
+					(CASE WHEN rd.sleep_minutes < 360 OR rd.sleep_quality <= 2 THEN 1 ELSE 0 END +
+					 CASE WHEN rd.stress_level >= 4 THEN 1 ELSE 0 END +
+					 CASE WHEN rd.fatigue_level >= 4 THEN 1 ELSE 0 END) >= 2)) AS recovery_needed_checkins
+		FROM period_sizes
+		LEFT JOIN recovery_data rd
+			ON rd.athlete_profile_id = $1
+			AND rd.recorded_on >= CURRENT_DATE - (period_sizes.end_days_ago - 1)
+			AND rd.recorded_on < CURRENT_DATE - (period_sizes.start_days_ago - 1)
+		GROUP BY period_sizes.period_index
+	),
+	adherence AS (
+		SELECT period_sizes.period_index,
+			COUNT(w.id) FILTER (WHERE w.scheduled_on < CURRENT_DATE OR w.status IN ('completed', 'skipped')) AS expected_sessions,
+			COUNT(w.id) FILTER (WHERE w.status = 'completed') AS scheduled_completed_sessions,
+			COUNT(w.id) FILTER (WHERE w.status = 'skipped') AS cancelled_sessions,
+			COUNT(w.id) FILTER (WHERE w.scheduled_on < CURRENT_DATE AND w.status IN ('planned', 'adapted')) AS missed_sessions,
+			COUNT(w.id) FILTER (WHERE w.scheduled_on < CURRENT_DATE AND w.status = 'in_progress') AS overdue_in_progress_sessions
+		FROM period_sizes
+		LEFT JOIN training_plans tp
+			ON tp.athlete_profile_id = $1 AND tp.status IN ('active', 'completed')
+		LEFT JOIN workouts w
+			ON w.training_plan_id = tp.id
+			AND w.scheduled_on >= CURRENT_DATE - (period_sizes.end_days_ago - 1)
+			AND w.scheduled_on < CURRENT_DATE - (period_sizes.start_days_ago - 1)
+		GROUP BY period_sizes.period_index
+	)
+	SELECT performed.period_index, performed.period_key, performed.period_days,
+		adherence.expected_sessions, adherence.scheduled_completed_sessions,
+		adherence.cancelled_sessions, adherence.missed_sessions, adherence.overdue_in_progress_sessions,
+		performed.performed_sessions, performed.performed_minutes, performed.sessions_with_load,
+		performed.sessions_without_load, performed.session_rpe_load, performed.feedback_records,
+		performed.sessions_with_complete_feedback, performed.pain_reported_sessions,
+		performed.high_fatigue_sessions, performed.above_target_rpe_sessions,
+		recovery.recovery_checkins, recovery.complete_recovery_checkins,
+		recovery.checkins_with_protective_signal, recovery.recovery_needed_checkins
+	FROM performed
+	JOIN adherence USING (period_index)
+	JOIN recovery USING (period_index)
+	ORDER BY performed.period_index`
+
 func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (planning.Context, error) {
 	var input planning.Context
 	var cyclingContext []byte
@@ -169,6 +256,10 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 	}
 	input.Observed.RecoveryCheckins = int(recoveryCheckins)
 	input.TrainingHistory, err = s.trainingHistoryByProfileID(ctx, input.ProfileID)
+	if err != nil {
+		return planning.Context{}, err
+	}
+	input.TrainingHistoryPeriods, err = s.trainingHistoryPeriodsByProfileID(ctx, input.ProfileID)
 	if err != nil {
 		return planning.Context{}, err
 	}
@@ -260,6 +351,36 @@ func (s *Store) trainingHistoryByProfileID(ctx context.Context, profileID string
 		return nil, err
 	}
 	return history, nil
+}
+
+func (s *Store) trainingHistoryPeriodsByProfileID(ctx context.Context, profileID string) ([]planning.TrainingHistoryPeriod, error) {
+	rows, err := s.pool.Query(ctx, planningTrainingHistoryPeriodsQuery, profileID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	periods := make([]planning.TrainingHistoryPeriod, 0, 6)
+	for rows.Next() {
+		var period planning.TrainingHistoryPeriod
+		if err := rows.Scan(
+			&period.PeriodIndex, &period.PeriodKey, &period.PeriodDays,
+			&period.ExpectedSessions, &period.ScheduledCompletedSessions, &period.CancelledSessions,
+			&period.MissedSessions, &period.OverdueInProgressSessions,
+			&period.PerformedSessions, &period.PerformedMinutes, &period.SessionsWithSessionRPELoad,
+			&period.SessionsWithoutSessionRPELoad, &period.SessionRPELoad, &period.FeedbackRecords,
+			&period.SessionsWithCompleteFeedback, &period.PainReportedSessions,
+			&period.HighFatigueSessions, &period.AboveTargetRPESessions,
+			&period.RecoveryCheckins, &period.CompleteRecoveryCheckins,
+			&period.CheckinsWithProtectiveSignal, &period.RecoveryNeededCheckins,
+		); err != nil {
+			return nil, err
+		}
+		periods = append(periods, period)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return periods, nil
 }
 
 func (s *Store) SaveDraftPlan(ctx context.Context, profileID string, plan planning.Plan) (planning.Plan, error) {

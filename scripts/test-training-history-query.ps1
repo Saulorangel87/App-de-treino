@@ -109,4 +109,47 @@ for ($historyIndex = 0; $historyIndex -lt $historyExpectedPrefix.Count; $history
         throw "Metadados temporais divergentes: '$($historyActual[$historyIndex])'."
     }
 }
-Write-Output 'training history v2 fixtures 7d/28d/42d and temporal quality: OK'
+Write-Output 'training history v3 fixtures 7d/28d/42d and temporal quality: OK'
+
+$periodsSource = Get-Content -Raw -LiteralPath (Join-Path $historyRoot 'backend/internal/repository/planning.go')
+$periodsMatch = [regex]::Match($periodsSource, 'const planningTrainingHistoryPeriodsQuery = `(?<sql>[^`]+)`')
+if (-not $periodsMatch.Success) {
+    throw 'Consulta planningTrainingHistoryPeriodsQuery não encontrada. Atualize este teste junto do repositório.'
+}
+$periodsQuery = $periodsMatch.Groups['sql'].Value.Trim()
+if (-not $periodsQuery.StartsWith('WITH period_sizes')) {
+    throw 'Formato inesperado da consulta de períodos. Atualize o injetor de fixtures.'
+}
+$periodsQuery = $periodsQuery.Replace('$1', "'profile-test'")
+$periodsSyntheticQuery = $periodsQuery -replace '^WITH ', $historyFixtures
+$periodsSQL = "BEGIN READ ONLY;`n$periodsSyntheticQuery;`nROLLBACK;"
+
+Push-Location $historyRoot
+try {
+    $periodsOutput = $periodsSQL | docker compose exec -T postgres sh -c 'psql -X -q -A -t -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1'
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Falha ao executar a consulta de períodos no PostgreSQL local.'
+    }
+}
+finally {
+    Pop-Location
+}
+
+$periodsActual = @($periodsOutput | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+$periodsExpected = @(
+    '0|last_7d|7|7|2|2|2|1|3|105|2|1|600|3|3|1|2|1|4|3|2|1',
+    '1|days_8_14|7|1|1|0|0|0|1|90|1|0|540|1|1|0|0|0|1|1|0|0',
+    '2|days_15_21|7|1|1|0|0|0|1|0|0|1|0|1|0|1|0|0|0|0|0|0',
+    '3|days_22_28|7|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0',
+    '4|days_29_35|7|0|0|0|0|0|1|30|0|1|0|0|0|0|0|0|1|1|1|1',
+    '5|days_36_42|7|1|1|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0'
+)
+if ($periodsActual.Count -ne $periodsExpected.Count) {
+    throw "Quantidade inesperada de períodos: $($periodsActual -join '; ')"
+}
+for ($periodIndex = 0; $periodIndex -lt $periodsExpected.Count; $periodIndex++) {
+    if ($periodsActual[$periodIndex] -cne $periodsExpected[$periodIndex]) {
+        throw "Período divergente. Esperado '$($periodsExpected[$periodIndex])'; recebido '$($periodsActual[$periodIndex])'."
+    }
+}
+Write-Output 'non-overlapping training history periods 0-42d: OK'

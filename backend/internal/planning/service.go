@@ -73,16 +73,17 @@ func (summary ObservedTrainingSummary) RequiresRecovery() bool {
 }
 
 type Context struct {
-	ProfileID        string
-	ExperienceLevel  string
-	PrimaryGoal      string
-	Limitations      []LimitationContext
-	Availability     []AvailabilitySlot
-	Cycling          CyclingContext
-	Observed         ObservedTrainingSummary
-	TrainingHistory  []TrainingHistoryWindow
-	BaselineEligible bool
-	RotationIndex    int
+	ProfileID              string
+	ExperienceLevel        string
+	PrimaryGoal            string
+	Limitations            []LimitationContext
+	Availability           []AvailabilitySlot
+	Cycling                CyclingContext
+	Observed               ObservedTrainingSummary
+	TrainingHistory        []TrainingHistoryWindow
+	TrainingHistoryPeriods []TrainingHistoryPeriod
+	BaselineEligible       bool
+	RotationIndex          int
 }
 
 type Workout struct {
@@ -358,7 +359,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 		PrescriptionSnapshot: map[string]any{
 			"engine_version":       "rules-v1",
 			"readiness_assessment": assessReadiness(input, now),
-			"training_history":     buildTrainingHistorySnapshot(input.TrainingHistory, now),
+			"training_history":     buildTrainingHistorySnapshot(input.TrainingHistory, now, input.TrainingHistoryPeriods),
 			"experience_level":     input.ExperienceLevel,
 			"primary_goal":         input.PrimaryGoal,
 			"restricted":           restricted,

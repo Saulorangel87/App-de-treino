@@ -587,7 +587,7 @@ components:
       description: Medição observacional congelada na geração do plano. Não altera a prescrição do rules-v1.
       required: [version, mode, captured_at, load_method, load_unit, adherence_basis, completion_time_basis, evidence_keys, windows, missing_data, data_issues, used_for_prescription]
       properties:
-        version: { type: string, enum: [training-history-v1, training-history-v2] }
+        version: { type: string, enum: [training-history-v1, training-history-v2, training-history-v3] }
         mode: { type: string, enum: [observation] }
         captured_at: { type: string, format: date-time }
         load_method: { type: string, enum: [duration_minutes_x_actual_rpe] }
@@ -604,6 +604,8 @@ components:
           items: { $ref: '#/components/schemas/TrainingHistoryWindow' }
         temporal_quality:
           $ref: '#/components/schemas/TrainingHistoryTemporalQuality'
+        period_comparison:
+          $ref: '#/components/schemas/TrainingHistoryPeriodComparison'
         missing_data: { type: array, items: { type: string } }
         data_issues: { type: array, items: { type: string } }
         not_evaluated:
@@ -691,6 +693,50 @@ components:
         app_recording_gap_interpretation:
           type: string
           enum: [recorded_activity_gap_only_not_confirmed_training_cessation]
+    TrainingHistoryPeriodComparison:
+      type: object
+      description: Seis blocos semanais não sobrepostos, do período mais recente ao mais antigo, para comparação observacional. Não produz tendência nem autoriza carga.
+      required: [version, mode, basis, periods, missing_data, data_issues, used_for_prescription]
+      properties:
+        version: { type: string, enum: [period-comparison-v1] }
+        mode: { type: string, enum: [observation] }
+        basis: { type: string, enum: [six_non_overlapping_7_day_periods_by_database_clock] }
+        periods:
+          type: array
+          items: { $ref: '#/components/schemas/TrainingHistoryPeriod' }
+        missing_data: { type: array, items: { type: string } }
+        data_issues: { type: array, items: { type: string } }
+        used_for_prescription: { type: boolean, enum: [false] }
+    TrainingHistoryPeriod:
+      type: object
+      required: [period_index, period_key, period_days, expected_sessions, scheduled_completed_sessions, cancelled_sessions, missed_sessions, overdue_in_progress_sessions, completion_rate_percent, performed_sessions, performed_minutes, sessions_with_session_rpe_load, sessions_without_session_rpe_load, session_rpe_load, feedback_records, sessions_with_complete_feedback, pain_reported_sessions, high_fatigue_sessions, above_target_rpe_sessions, recovery_checkins, complete_recovery_checkins, checkins_with_protective_signal, recovery_needed_checkins]
+      properties:
+        period_index: { type: integer, minimum: 0, maximum: 5 }
+        period_key: { type: string, enum: [last_7d, days_8_14, days_15_21, days_22_28, days_29_35, days_36_42] }
+        period_days: { type: integer, enum: [7] }
+        expected_sessions: { type: integer, minimum: 0 }
+        scheduled_completed_sessions: { type: integer, minimum: 0 }
+        cancelled_sessions: { type: integer, minimum: 0 }
+        missed_sessions: { type: integer, minimum: 0 }
+        overdue_in_progress_sessions: { type: integer, minimum: 0 }
+        completion_rate_percent:
+          oneOf:
+            - { type: number, minimum: 0, maximum: 100 }
+            - { type: 'null' }
+        performed_sessions: { type: integer, minimum: 0 }
+        performed_minutes: { type: integer, minimum: 0 }
+        sessions_with_session_rpe_load: { type: integer, minimum: 0 }
+        sessions_without_session_rpe_load: { type: integer, minimum: 0 }
+        session_rpe_load: { type: number, minimum: 0 }
+        feedback_records: { type: integer, minimum: 0 }
+        sessions_with_complete_feedback: { type: integer, minimum: 0 }
+        pain_reported_sessions: { type: integer, minimum: 0 }
+        high_fatigue_sessions: { type: integer, minimum: 0 }
+        above_target_rpe_sessions: { type: integer, minimum: 0 }
+        recovery_checkins: { type: integer, minimum: 0 }
+        complete_recovery_checkins: { type: integer, minimum: 0 }
+        checkins_with_protective_signal: { type: integer, minimum: 0 }
+        recovery_needed_checkins: { type: integer, minimum: 0 }
     Workout:
       type: object
       required: [id, scheduled_on, name, objective, duration_minutes, target_rpe, structure, explanation, status]
