@@ -27,6 +27,10 @@ var sessionProtocols = map[string]sessionProtocol{
 		Key: "protected_recovery", EvidenceKeys: []string{"acsm-1998"},
 		EvidenceScope: "Redução conservadora de carga por segurança; não substitui avaliação profissional.",
 	},
+	"Recuperação ativa": {
+		Key: "active_recovery", EvidenceKeys: []string{"acsm-1998"},
+		EvidenceScope: "Semana de recuperação com esforço leve e volume reduzido; a referência não define minutos universais.",
+	},
 	"Tempo controlado": {
 		Key: "controlled_tempo", EvidenceKeys: []string{"acsm-1998"},
 		EvidenceScope: "Progressão gradual e controle de carga; a referência não define minutos universais.",

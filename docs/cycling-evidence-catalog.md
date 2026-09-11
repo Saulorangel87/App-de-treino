@@ -106,6 +106,12 @@ Valores planejados para `cycling_context.discipline`:
 
 Quando o campo estiver vazio ou for `general`, somente protocolos gerais e já existentes poderão ser selecionados. Perfis antigos não devem ser migrados automaticamente para uma modalidade específica.
 
+### Protocolo geral implementado localmente — recuperação ativa
+
+O protocolo `active_recovery` é uma variação geral de baixa carga para a semana de recuperação. Ele mantém o atleta em movimento com esforço leve e volume reduzido, sem séries intensas, sprint ou alvo obrigatório de potência. A implementação usa `acsm-1998` somente para o princípio de progressão gradual e controle de carga; a referência não define a duração usada pelo Cadência.
+
+No motor, a sessão aparece apenas em uma posição de base da quarta semana. Limitações, dor e recuperação insuficiente continuam bloqueando a variação e selecionando `Giro leve protegido`. Como não depende de modalidade específica, ela não libera protocolos de estrada, XCO, gravel, XCM, downhill, enduro ou pista sprint/BMX.
+
 Cada novo protocolo também deverá declarar, em código:
 
 - chave estável;

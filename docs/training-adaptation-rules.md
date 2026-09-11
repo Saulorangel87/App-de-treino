@@ -177,6 +177,12 @@ São verificados os dados mínimos de duração positiva, RPE realizado, feedbac
 
 Esta fatia não altera o trigger `feedback_adapts_future_workouts` nem a prescrição `rules-v1`. Portanto, a barreira ativa contra progressão de registros inconsistentes continua sendo uma decisão posterior, depois de validar a observação e sua integração com o histórico.
 
+### Rotação segura e recuperação ativa
+
+O catálogo geral possui o protocolo `active_recovery`, apresentado ao atleta como **Recuperação ativa**. O motor o seleciona somente para uma sessão de base na quarta semana do ciclo. A sessão mantém o multiplicador de recuperação já existente, usa alvo RPE 3,5 e uma instrução de pedal leve e contínuo; não representa uma prescrição universal de minutos ou intensidade.
+
+Essa variação reduz a repetição nominal sem criar uma nova modalidade ou alterar os protocolos específicos de estrada e XCO. A evidência `acsm-1998` sustenta apenas o princípio de progressão gradual e controle de carga, não os minutos dessa sessão. Limitação ativa, dor relatada e sinais recentes que exigem recuperação continuam vencendo a escolha e substituindo-a por `Giro leve protegido`. A seleção é determinística e não depende da IA, do `rules-v2` shadow ou de dados ausentes.
+
 ## IA explicativa opcional
 
 O endpoint de explicação envia ao modelo apenas o nome, objetivo, duração, RPE-alvo, regras e escopo de evidência do treino. O modelo deve explicar a decisão em duas ou três frases; não recebe autorização para criar etapas, alterar carga, inventar referências ou interpretar sintomas. A integração usa Ollama local com limites de tempo, saída e concorrência e pode usar a rota protegida do Worker como fallback (Groq `openai/gpt-oss-20b`). Enquanto `AI_ENABLED=false`, ou quando os provedores estiverem indisponíveis, a API devolve o resumo validado pelo `rules-v1`.

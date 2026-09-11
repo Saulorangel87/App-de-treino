@@ -1,6 +1,6 @@
 # Estado atual do projeto Cadência
 
-Última atualização: 5 de setembro de 2026.
+Última atualização: 10 de setembro de 2026.
 
 Este é o documento principal de continuidade. Ele registra o que está implementado, validado, publicado e pendente. Não incluir senhas, tokens, chaves de API ou conteúdo de arquivos `.env`.
 
@@ -24,7 +24,7 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 ## Estado do checkout local
 
-- Checkout local no commit `9d8c624 feat: adiciona piloto aeróbico para MTB XCO`. A validação manual e as matrizes controladas das fatias anteriores foram concluídas; a nona fatia e a décima fatia, o piloto XCO descrito abaixo, foram versionadas e publicadas na VPS. A release `v0.8.0` também foi publicada no GitHub.
+- A produção permanece no commit `9d8c624 feat: adiciona piloto aeróbico para MTB XCO`. O checkout local contém a fatia de recuperação ativa em `0.9.0`, ainda com alterações não commitadas; a nona fatia e a décima fatia, o piloto XCO descrito abaixo, foram versionadas e publicadas na VPS. A release `v0.8.0` também foi publicada no GitHub.
 - A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local) e `9034287` (matriz comparativa).
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
@@ -310,6 +310,17 @@ Pendências, sem executar bloqueios automáticos:
 4. Fechar outras portas diretas desnecessárias, especialmente serviços que já usam proxy; `2283` do Immich já está bloqueada na interface pública.
 5. Definir cópia externa dos backups e monitoramento de falhas.
 6. Atualizar esta documentação após cada mudança de infraestrutura.
+
+### Décima primeira fatia de melhorias — rotação segura da recuperação
+
+- O catálogo geral passa a ter o protocolo `active_recovery`, apresentado como **Recuperação ativa**. Ele é selecionado de forma determinística para uma sessão de base na quarta semana do ciclo, que já usa multiplicador de recuperação, esforço-alvo RPE 3,5 e instrução de pedal leve contínuo.
+- A escolha reutiliza a evidência geral `acsm-1998` e não copia dose de um estudo específico. A sessão não cria modalidade nova, não aumenta carga, não usa sprint, potência obrigatória ou metas fisiológicas universais.
+- Limitação ativa, dor e sinais recentes de recuperação insuficiente continuam vencendo a variação e produzem `Giro leve protegido`. A regra também não altera a seleção dos protocolos específicos de estrada ou XCO.
+- A tela de novidades foi atualizada para `0.9.0`, conforme a decisão de comunicar toda funcionalidade visível. Esta fatia foi validada localmente e ainda não foi commitada, publicada ou aplicada na produção.
+
+Validação desta fatia: `go test -count=1 ./...`, `go vet ./...` e `npm run build` passaram. O build manteve apenas o aviso preexistente do Vite sobre importação JSON e classificação de rotas dinâmicas. Não foi feita validação visual no navegador nesta etapa.
+
+Arquivos desta fatia: `backend/internal/planning/protocols.go`, `backend/internal/planning/service.go`, `backend/internal/planning/service_test.go`, `frontend/lib/release.ts`, `docs/cycling-evidence-catalog.md`, `docs/training-adaptation-rules.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/README.md` e `planejamento.md`. Não foram alteradas migrações, infraestrutura ou produção.
 
 ## Feedback de produto e recebimento dos relatos
 

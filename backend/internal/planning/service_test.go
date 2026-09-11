@@ -334,7 +334,7 @@ func TestBuildPlanIncludesActionableStepsForSpecificSessions(t *testing.T) {
 
 func TestSessionProtocolsKeepEvidenceMapping(t *testing.T) {
 	for _, name := range []string{
-		"Giro de base", "Endurance contínuo", "Giro leve protegido", "Tempo controlado",
+		"Giro de base", "Recuperação ativa", "Endurance contínuo", "Giro leve protegido", "Tempo controlado",
 		"Ritmo de prova controlado", "Cadência técnica", "Subidas controladas",
 		"Sweet spot por potência", "Sweet spot progressivo", "Intervalos controlados", "Intervalos moderados de estrada", "Intervalos aeróbicos XCO",
 	} {
@@ -345,6 +345,58 @@ func TestSessionProtocolsKeepEvidenceMapping(t *testing.T) {
 	}
 	if protocolForWorkout("unknown").Key != "continuous_base" {
 		t.Fatal("unknown sessions should use the safe continuous fallback protocol")
+	}
+}
+
+func TestBuildPlanUsesActiveRecoveryInRecoveryWeek(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "intermediate", PrimaryGoal: "endurance",
+		Availability: []AvailabilitySlot{{Weekday: 1, AvailableMinutes: 75}, {Weekday: 3, AvailableMinutes: 100}, {Weekday: 6, AvailableMinutes: 150}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	activeRecovery := 0
+	recoveryWeekStart := nextMonday(time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local)).AddDate(0, 0, 21)
+	for _, workout := range plan.Workouts {
+		date, parseErr := time.ParseInLocation("2006-01-02", workout.ScheduledOn, time.Local)
+		if parseErr != nil {
+			t.Fatalf("invalid scheduled date: %v", parseErr)
+		}
+		if !date.Before(recoveryWeekStart) {
+			if workout.Name == "Recuperação ativa" {
+				activeRecovery++
+				if workout.TargetRPE != 3.5 || workout.Structure["protocol_key"] != "active_recovery" {
+					t.Fatalf("unexpected active recovery workout: %#v", workout)
+				}
+			}
+		} else if workout.Name == "Recuperação ativa" {
+			t.Fatalf("active recovery must be limited to the recovery week: %#v", workout)
+		}
+	}
+	if activeRecovery != 1 {
+		t.Fatalf("expected one base session in recovery week, got %d: %#v", activeRecovery, plan.Workouts)
+	}
+}
+
+func TestBuildPlanProtectionOverridesActiveRecovery(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "intermediate", PrimaryGoal: "endurance",
+		Availability: []AvailabilitySlot{{Weekday: 1, AvailableMinutes: 75}, {Weekday: 3, AvailableMinutes: 100}, {Weekday: 6, AvailableMinutes: 150}},
+		Observed:     ObservedTrainingSummary{WindowDays: 28, CompletedSessions: 2, PainReported: true},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name == "Recuperação ativa" || workout.Name != "Giro leve protegido" || workout.TargetRPE > 4 || workout.DurationMinutes > 45 {
+			t.Fatalf("protection must override active recovery: %#v", workout)
+		}
+		for _, rule := range workout.Explanation["rules"].([]string) {
+			if rule == "Variação de recuperação ativa aplicada na quarta semana, sem aumentar a carga planejada." {
+				t.Fatalf("protected workout must not retain inactive variation explanation: %#v", workout.Explanation)
+			}
+		}
 	}
 }
 

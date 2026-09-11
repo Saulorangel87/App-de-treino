@@ -348,7 +348,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 			} else if index == intensityIndex && !restricted {
 				kind = "quality"
 			}
-			workouts = append(workouts, makeWorkout(input, slot, kind, restricted, multipliers[week], scheduledOn))
+			workouts = append(workouts, makeWorkout(input, slot, kind, restricted, multipliers[week], week, scheduledOn))
 		}
 	}
 
@@ -399,7 +399,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 	return plan, nil
 }
 
-func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted bool, multiplier float64, date time.Time) Workout {
+func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted bool, multiplier float64, weekIndex int, date time.Time) Workout {
 	baseMinutes := map[string]int{"beginner": 45, "intermediate": 60, "advanced": 75}[input.ExperienceLevel]
 	name := "Giro de base"
 	targetRPE := 4.0
@@ -409,7 +409,15 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	usesRoadModerateIntervals := false
 	usesXCOAerobicIntervals := false
 	rotationApplied := false
+	activeRecoveryApplied := false
 	observedProtected := input.Observed.RequiresRecovery() && (input.Observed.PainReported || kind == "quality")
+	if kind == "base" && weekIndex == 3 {
+		name = "Recuperação ativa"
+		targetRPE = 3.5
+		mainBlock = "Pedale leve e contínuo, sem transformar a sessão em treino de qualidade"
+		summary = "A semana de recuperação reduz a carga e usa um giro ativo para manter o movimento sem acrescentar estímulo intenso."
+		activeRecoveryApplied = true
+	}
 	if kind == "long" {
 		baseMinutes = map[string]int{"beginner": 75, "intermediate": 90, "advanced": 120}[input.ExperienceLevel]
 		name = "Endurance contínuo"
@@ -506,6 +514,8 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		}
 	}
 	if restricted {
+		rotationApplied = false
+		activeRecoveryApplied = false
 		name = "Giro leve protegido"
 		targetRPE = 3.5
 		mainBlock = "Esforço leve; interromper diante de dor ou desconforto"
@@ -515,6 +525,8 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		multiplier *= 0.8
 		summary = explanationFor(kind, true)
 	} else if observedProtected {
+		rotationApplied = false
+		activeRecoveryApplied = false
 		name = "Giro leve protegido"
 		targetRPE = 3.5
 		mainBlock = "Esforço leve; interromper diante de dor ou desconforto"
@@ -557,7 +569,10 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		rules = append(rules, "Piloto aeróbico XCO liberado por modalidade explícita, objetivo compatível, avaliação apta e disponibilidade suficiente; sem sprint máximo ou simulação técnica.")
 	}
 	if rotationApplied {
-		rules = append(rules, "Sessão alternada pela rotação explicável entre ciclos.")
+		rules = append(rules, "Sessão alternada pela rotação explicável do ciclo, sem aumentar a carga planejada.")
+	}
+	if activeRecoveryApplied {
+		rules = append(rules, "Variação de recuperação ativa aplicada na quarta semana, sem aumentar a carga planejada.")
 	}
 	if restricted {
 		rules = append(rules, "Intensidade limitada por uma condição de segurança ativa.")

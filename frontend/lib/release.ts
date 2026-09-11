@@ -1,6 +1,11 @@
-export const APP_VERSION = '0.8.0';
+export const APP_VERSION = '0.9.0';
 
 export const UPDATE_NOTES = [
+  {
+    title: 'Recuperação ativa na semana de recuperação',
+    description:
+      'O plano pode alternar uma sessão de recuperação ativa, com esforço leve e volume reduzido, sem substituir as proteções aplicadas quando há dor, limitação ou recuperação insuficiente.',
+  },
   {
     title: 'Piloto de intervalos aeróbicos para MTB XCO',
     description:
