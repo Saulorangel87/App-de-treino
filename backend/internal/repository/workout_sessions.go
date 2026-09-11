@@ -80,7 +80,7 @@ func (s *Store) StartWorkoutByUserID(ctx context.Context, userID, workoutID stri
 	if err != nil {
 		return err
 	}
-	if status != "planned" {
+	if !isStartableWorkoutStatus(status) {
 		return planning.ErrInvalidTransition
 	}
 
@@ -93,6 +93,10 @@ func (s *Store) StartWorkoutByUserID(ctx context.Context, userID, workoutID stri
 		return err
 	}
 	return tx.Commit(ctx)
+}
+
+func isStartableWorkoutStatus(status string) bool {
+	return status == "planned" || status == "adapted"
 }
 
 func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID string, input planning.CompletionInput) error {

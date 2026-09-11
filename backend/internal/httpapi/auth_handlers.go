@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"html"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -291,6 +292,11 @@ func decodeJSON(w http.ResponseWriter, r *http.Request, target any) bool {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(target); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_json", "O conteúdo enviado é inválido.")
+		return false
+	}
+	var extra any
+	if err := decoder.Decode(&extra); err != io.EOF {
 		writeError(w, http.StatusBadRequest, "invalid_json", "O conteúdo enviado é inválido.")
 		return false
 	}

@@ -117,6 +117,11 @@ export function WorkoutSessionActions({
     planStatus === 'active' &&
     isPastWorkout &&
     (workout.status === 'planned' || workout.status === 'adapted');
+  const canStart =
+    planStatus === 'active' &&
+    (workout.status === 'planned' || workout.status === 'adapted');
+  const startLabel =
+    workout.status === 'adapted' ? 'Iniciar treino adaptado' : 'Iniciar treino';
 
   return (
     <section className="session-actions" aria-label="Acompanhamento da sessão">
@@ -124,7 +129,7 @@ export function WorkoutSessionActions({
         <span className={`session-status ${workout.status}`}>
           {statusLabels[workout.status]}
         </span>
-        {session?.started_at && workout.status === 'in_progress' && (
+        {session?.started_at && workout.status === 'in_progress' && todayKey !== '' && (
           <small>
             Iniciado às {timeFormatter.format(new Date(session.started_at))}
           </small>
@@ -137,7 +142,7 @@ export function WorkoutSessionActions({
         </p>
       )}
 
-      {planStatus === 'active' && workout.status === 'planned' && (
+      {canStart && (
         <div className={canMarkMissed ? 'session-button-row' : undefined}>
           <Button
             type="button"
@@ -150,7 +155,7 @@ export function WorkoutSessionActions({
             ) : (
               <Play />
             )}
-            {action === 'start' ? 'Iniciando…' : 'Iniciar treino'}
+            {action === 'start' ? 'Iniciando…' : startLabel}
           </Button>
           {canMarkMissed && (
             <Button
@@ -176,30 +181,6 @@ export function WorkoutSessionActions({
             </Button>
           )}
         </div>
-      )}
-
-      {canMarkMissed && workout.status === 'adapted' && (
-        <Button
-          type="button"
-          variant="outline"
-          disabled={busy}
-          onClick={() => {
-            if (
-              window.confirm(
-                'Marcar este treino adaptado como não realizado? Ele ficará registrado como perdido, sem criar uma sessão substituta ou aumentar a carga seguinte.',
-              )
-            ) {
-              void mutate('missed');
-            }
-          }}
-        >
-          {action === 'missed' ? (
-            <LoaderCircle className="spin" />
-          ) : (
-            <CircleStop />
-          )}
-          {action === 'missed' ? 'Registrando…' : 'Não realizei'}
-        </Button>
       )}
 
       {workout.status === 'in_progress' && !feedbackOpen && (

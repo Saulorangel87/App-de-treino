@@ -1,7 +1,6 @@
 package httpapi
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
@@ -39,8 +38,7 @@ func (s *Server) completeWorkout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var input completeWorkoutInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid_json", "Os dados do feedback são inválidos.")
+	if !decodeJSON(w, r, &input) {
 		return
 	}
 	plan, err := s.planning.CompleteWorkout(r.Context(), user.ID, r.PathValue("workoutID"), planning.CompletionInput{
