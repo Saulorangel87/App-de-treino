@@ -69,7 +69,7 @@ func (s *Server) register(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, auth.ErrInvalidInput):
 			writeError(w, http.StatusBadRequest, "invalid_registration", "Informe nome, e-mail válido e senha entre 10 e 72 caracteres.")
 		case errors.Is(err, auth.ErrEmailExists):
-			writeError(w, http.StatusConflict, "email_exists", "Este e-mail já está cadastrado.")
+			writeError(w, http.StatusBadRequest, "invalid_registration", "Não foi possível criar a conta com esses dados.")
 		default:
 			writeError(w, http.StatusInternalServerError, "internal_error", "Não foi possível criar a conta.")
 		}

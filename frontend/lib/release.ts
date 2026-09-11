@@ -1,6 +1,21 @@
-export const APP_VERSION = '0.11.1';
+export const APP_VERSION = '0.12.0';
 
 export const UPDATE_NOTES = [
+  {
+    title: 'Planejamento por proximidade do evento',
+    description:
+      'Quando há um evento futuro informado, a fase específica só é usada no período próximo à prova; eventos distantes mantêm a progressão regular.',
+  },
+  {
+    title: 'Sessões adaptadas iniciáveis com mais segurança',
+    description:
+      'Uma sessão ajustada por recuperação pode ser iniciada normalmente, enquanto as proteções de dor, fadiga e recuperação continuam valendo.',
+  },
+  {
+    title: 'Proteções de acesso e feedback',
+    description:
+      'O app reforça a proteção das rotas de autenticação, evita processamento concorrente do resumo semanal e só marca as novidades depois que você as dispensa.',
+  },
   {
     title: 'Semana de recuperação sem sessão de qualidade',
     description:

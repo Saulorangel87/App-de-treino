@@ -48,6 +48,8 @@ type CyclingContext struct {
 	UsesPower              bool     `json:"uses_power"`
 	FTP                    *int     `json:"ftp,omitempty"`
 	EventGoal              bool     `json:"event_goal"`
+	EventDistanceKM        *int     `json:"event_distance_km,omitempty"`
+	EventDate              *string  `json:"event_date,omitempty"`
 }
 
 // ObservedTrainingSummary is an aggregate of recent completed sessions and
@@ -392,6 +394,8 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 				"uses_heart_rate":           input.Cycling.UsesHeartRate,
 				"uses_power":                input.Cycling.UsesPower,
 				"event_goal":                input.Cycling.EventGoal,
+				"event_distance_km":         input.Cycling.EventDistanceKM,
+				"event_date":                input.Cycling.EventDate,
 			},
 			"baseline_eligible": input.BaselineEligible,
 			"rotation_index":    input.RotationIndex,
@@ -424,6 +428,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	usesXCOAerobicIntervals := false
 	rotationApplied := false
 	activeRecoveryApplied := false
+	eventSpecificPhase := eventSpecificPhase(input.Cycling, date)
 	observedProtected := input.Observed.RequiresRecovery() && (input.Observed.PainReported || kind == "quality")
 	if kind == "base" && weekIndex == 3 {
 		name = "Recuperação ativa"
@@ -443,7 +448,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		targetRPE = 6.0
 		mainBlock = "3 blocos sustentados com recuperação leve"
 		preference := preferredQualityPreference(input.Cycling)
-		if input.Cycling.Discipline == "road" && input.ExperienceLevel != "beginner" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 60 && multiplier >= 0.95 && (preference == "" || preference == "intervals") {
+		if input.Cycling.Discipline == "road" && input.ExperienceLevel != "beginner" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 60 && multiplier >= 0.95 && (preference == "" || preference == "intervals") && (!input.Cycling.EventGoal || eventSpecificPhase) {
 			if input.ExperienceLevel == "advanced" && input.Cycling.RecentTrainingWeeks >= 8 && input.Cycling.WeeklyRides >= 3 && input.RotationIndex%2 == 1 && slot.AvailableMinutes >= 75 {
 				name = "Intervalos intensos de estrada"
 				targetRPE = 8.0
@@ -457,12 +462,17 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 				summary = "A modalidade de estrada, o objetivo e a avaliação submáxima apta permitem um piloto intervalado moderado e conservador."
 				usesRoadModerateIntervals = true
 			}
-		} else if input.Cycling.Discipline == "mtb_xco" && input.ExperienceLevel == "advanced" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 75 && multiplier >= 0.95 && (preference == "" || preference == "intervals") {
+		} else if input.Cycling.Discipline == "mtb_xco" && input.ExperienceLevel == "advanced" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 75 && multiplier >= 0.95 && (preference == "" || preference == "intervals") && (!input.Cycling.EventGoal || eventSpecificPhase) {
 			name = "Intervalos aeróbicos XCO"
 			targetRPE = 7.0
 			mainBlock = "5 blocos aeróbicos de 4 min com 4 min leves entre os blocos"
 			summary = "A modalidade XCO explícita, o objetivo compatível e a avaliação submáxima apta liberam um piloto aeróbico conservador; o treino não simula trechos técnicos nem usa sprint máximo."
 			usesXCOAerobicIntervals = true
+		} else if input.ExperienceLevel == "advanced" && input.Cycling.EventGoal && input.BaselineEligible && eventSpecificPhase {
+			name = "Ritmo de prova controlado"
+			targetRPE = 6.5
+			mainBlock = "3 blocos em ritmo sustentável, com recuperação leve"
+			summary = "A prova está próxima o suficiente para orientar um estímulo sustentável, sem simular a prova inteira."
 		} else if preference == "cadence" && input.ExperienceLevel != "beginner" {
 			name = "Cadência técnica"
 			targetRPE = 5.0
@@ -504,11 +514,6 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 			}
 			mainBlock = "4 blocos sustentados em subida, com recuperação leve"
 			summary = "O terreno com subidas informado orienta um estímulo controlado e específico."
-		} else if input.ExperienceLevel == "advanced" && input.Cycling.EventGoal {
-			name = "Ritmo de prova controlado"
-			targetRPE = 6.5
-			mainBlock = "3 blocos em ritmo sustentável, com recuperação leve"
-			summary = "A meta de prova orienta um estímulo sustentável, sem simular a prova inteira."
 		} else if input.ExperienceLevel == "advanced" && input.Cycling.UsesPower && input.Cycling.FTP != nil {
 			name = "Sweet spot por potência"
 			targetRPE = 7.0
@@ -710,6 +715,19 @@ func nextMonday(value time.Time) time.Time {
 }
 
 func weekdayOffset(weekday int) int { return (weekday + 6) % 7 }
+
+func eventSpecificPhase(cycling CyclingContext, workoutDate time.Time) bool {
+	if !cycling.EventGoal || cycling.EventDate == nil || *cycling.EventDate == "" {
+		return false
+	}
+	eventDate, err := time.ParseInLocation("2006-01-02", *cycling.EventDate, workoutDate.Location())
+	if err != nil {
+		return false
+	}
+	day := time.Date(workoutDate.Year(), workoutDate.Month(), workoutDate.Day(), 0, 0, 0, 0, workoutDate.Location())
+	daysUntilEvent := int(eventDate.Sub(day).Hours() / 24)
+	return daysUntilEvent >= 0 && daysUntilEvent <= 42
+}
 
 func longestSlot(slots []AvailabilitySlot) int {
 	longest := 0

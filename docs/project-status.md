@@ -344,6 +344,16 @@ Validação desta fatia: `go test -count=1 ./...`, `go vet ./...`, `npm run buil
 - Isso impede que `Ritmo de prova controlado`, `Tempo controlado` ou intervalos apareçam na semana marcada como `RECUPERAÇÃO`, inclusive quando há meta de prova, avaliação apta e preferência por intervalos.
 - A tela de novidades foi atualizada para `0.11.1`. O teste de regressão para meta de prova e a suíte Go completa passaram, assim como `go vet`; não houve commit, deploy, migração ou mudança de infraestrutura nesta correção.
 
+### Auditoria de segurança e correções locais — versão 0.12.0
+
+Após a revisão do código, foram corrigidos os bloqueadores funcionais e de segurança que podiam afetar esta etapa: sessões `adapted` agora podem ser iniciadas; corpos JSON da API têm limite e rejeitam campos desconhecidos; autenticação possui limites por janela; mutações autenticadas exigem evidência de origem; respostas recebem cabeçalhos de proteção; cadastro e recuperação reduzem enumeração de contas; e o timestamp do início do treino não é renderizado antes da hidratação do cliente.
+
+Também foi corrigida a regra de meta de prova: datas passadas são rejeitadas, a comparação usa o fuso local de forma consistente e a fase específica só é elegível na janela próxima ao evento, preservando a progressão regular para eventos distantes. A data e a distância ficam no snapshot do plano. O resumo semanal usa trava advisory transacional para impedir execução concorrente do timer e de uma execução manual. A tela de novidades só grava a confirmação depois de o usuário dispensá-la, e `APP_VERSION`/`UPDATE_NOTES` foram atualizados para `0.12.0`.
+
+Validação local desta fatia: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, lint direcionado dos componentes alterados e `npm audit --omit=dev --audit-level=high` passaram; este último reportou zero vulnerabilidades no grafo de produção. O lint geral ainda possui pendências anteriores fora desta fatia. Os avisos restantes do grafo de desenvolvimento não têm correção automática disponível e não entram na imagem/runtime de produção. `govulncheck` não está instalado neste ambiente, portanto não foi usado como evidência desta rodada.
+
+O commit base local é `a54143b`; as correções desta auditoria estão no working tree e ainda não foram commitadas, publicadas ou aplicadas à infraestrutura. A produção permanece no commit `9d8c624`/versão `0.8.0`.
+
 ## Feedback de produto e recebimento dos relatos
 
 O fluxo inicial foi desenhado para a divulgação do MVP em grupos de ciclismo: cada pessoa cria uma conta, abre a aba `Feedback` e envia uma categoria, uma nota e um relato livre. O backend exige autenticação, valida tamanho e categoria e armazena o registro em `user_feedback` ligado ao usuário; ele não altera o plano nem dispara IA.

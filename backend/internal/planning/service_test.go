@@ -456,6 +456,39 @@ func TestBuildPlanDoesNotUseEventPaceInRecoveryWeek(t *testing.T) {
 	}
 }
 
+func TestBuildPlanUsesEventDateForSpecificPhase(t *testing.T) {
+	nearEvent := "2026-09-12"
+	farEvent := "2026-12-12"
+	baseContext := Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "event", BaselineEligible: true, RotationIndex: 0,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+	}
+	near := baseContext
+	near.Cycling = CyclingContext{EventGoal: true, EventDate: &nearEvent}
+	nearPlan, err := buildPlan(near, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("near event plan failed: %v", err)
+	}
+	far := baseContext
+	far.Cycling = CyclingContext{EventGoal: true, EventDate: &farEvent}
+	farPlan, err := buildPlan(far, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("far event plan failed: %v", err)
+	}
+
+	nearEventPace := false
+	farEventPace := false
+	for _, workout := range nearPlan.Workouts {
+		nearEventPace = nearEventPace || workout.Name == "Ritmo de prova controlado"
+	}
+	for _, workout := range farPlan.Workouts {
+		farEventPace = farEventPace || workout.Name == "Ritmo de prova controlado"
+	}
+	if !nearEventPace || farEventPace {
+		t.Fatalf("event date did not control the specific phase: near=%v far=%v", nearEventPace, farEventPace)
+	}
+}
+
 func TestBuildPlanProtectionOverridesActiveRecovery(t *testing.T) {
 	plan, err := buildPlan(Context{
 		ProfileID: "profile-1", ExperienceLevel: "intermediate", PrimaryGoal: "endurance",

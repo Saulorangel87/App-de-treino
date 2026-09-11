@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão do checkout local: `0.11.1` — piloto conservador de intervalos intensos para estrada e correção da semana de recuperação. A produção ainda está na versão `0.8.0`; consulte o [release v0.8.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.8.0).
+Versão do checkout local: `0.12.0` — correções de segurança, sessões adaptadas iniciáveis e planejamento por proximidade do evento. A produção ainda está na versão `0.8.0`; consulte o [release v0.8.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.8.0).
 
 ## Estrutura
 
@@ -42,14 +42,14 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `PUT /v1/onboarding/limitations`: salva informações de segurança.
 - `PUT /v1/onboarding/goals`: salva até dois objetivos priorizados.
 - `PUT /v1/onboarding/availability`: salva a disponibilidade semanal.
-- `PUT /v1/onboarding/cycling-context`: salva histórico resumido (horas, pedais, distância semanal recente, semanas de regularidade e maior distância), preferências de sessão, equipamento, terreno e meta opcional de prova.
+- `PUT /v1/onboarding/cycling-context`: salva histórico resumido (horas, pedais, distância semanal recente, semanas de regularidade e maior distância), preferências de sessão, equipamento, terreno e meta opcional de prova com distância e data futura válidas.
 - `GET /v1/assessments/current` e `POST /v1/assessments/submaximal`: consultam e registram o pedal de referência submáximo.
 - `GET /v1/recovery/today` e `PUT /v1/recovery/today`: consultam e salvam o check-in diário de sono, estresse e fadiga percebida.
 - `GET /v1/evolution/summary`: retorna totais observados, oito semanas de duração e métricas de pedal registradas, além de check-ins recentes para o atleta autenticado.
 - `POST /v1/plans/generate`: gera e substitui o rascunho atual de quatro semanas.
 - `GET /v1/plans/current`: consulta o plano ativo ou rascunho mais recente.
 - `POST /v1/plans/{planID}/activate`: aprova um rascunho e mantém somente um plano ativo por atleta.
-- `POST /v1/workouts/{workoutID}/start`: inicia uma sessão planejada do plano ativo.
+- `POST /v1/workouts/{workoutID}/start`: inicia uma sessão planejada ou adaptada do plano ativo.
 - `POST /v1/workouts/{workoutID}/complete`: conclui a sessão e registra RPE, dificuldade, fadiga, dor e, opcionalmente, distância, elevação, frequência cardíaca e potência.
 - `POST /v1/workouts/{workoutID}/explanation`: solicita uma explicação em linguagem simples; quando a IA está desligada ou indisponível, retorna o resumo validado pelo motor.
 - `POST /v1/workouts/{workoutID}/cancel`: cancela uma sessão em andamento e mantém esse histórico.
@@ -88,7 +88,7 @@ O MVP de ciclismo está publicado em produção real:
 - Dependabot está com 0 alertas abertos; os testes Go, build Docker e `govulncheck` passaram.
 - A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`, `000014`, `000015` e `000016` foram aplicadas na produção.
 - O ajuste responsivo dos períodos nos gráficos da Evolução foi publicado e validado no domínio oficial; a rolagem horizontal interna agora preserva os rótulos no celular.
-- A produção está no commit `9d8c624`; o checkout local parte do commit `4312fa9` e contém em desenvolvimento local a versão `0.11.1`, com o piloto conservador de intervalos intensos para estrada e a correção da semana de recuperação, ainda não publicada. O catálogo inicial, o piloto de estrada e o piloto de intervalos aeróbicos XCO estão publicados, sujeitos aos critérios de elegibilidade documentados.
+- A produção está no commit `9d8c624`; o checkout local parte do commit `a54143b` e contém em desenvolvimento a versão `0.12.0`, com correções de segurança, sessões adaptadas iniciáveis, fase por proximidade do evento e proteção do resumo semanal, ainda não publicada. O catálogo inicial, o piloto de estrada e o piloto de intervalos aeróbicos XCO estão publicados, sujeitos aos critérios de elegibilidade documentados.
 - Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts` (`APP_VERSION` e `UPDATE_NOTES`) para que a novidade seja exibida na tela de primeiro acesso após a atualização. O modal é mostrado uma vez por conta, versão e navegador.
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.

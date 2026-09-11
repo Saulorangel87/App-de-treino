@@ -93,7 +93,10 @@ func (s *OnboardingService) SaveCyclingContext(ctx context.Context, userID strin
 		if value.EventDistanceKM == nil || value.EventDate == nil {
 			return CyclingContext{}, ErrInvalidOnboarding
 		}
-		if _, err := time.Parse("2006-01-02", *value.EventDate); err != nil {
+		eventDate, err := time.ParseInLocation("2006-01-02", *value.EventDate, time.Local)
+		today := s.now()
+		todayDate := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, today.Location())
+		if err != nil || eventDate.Before(todayDate) {
 			return CyclingContext{}, ErrInvalidOnboarding
 		}
 	} else {
@@ -102,10 +105,13 @@ func (s *OnboardingService) SaveCyclingContext(ctx context.Context, userID strin
 	return s.store.SaveCyclingContext(ctx, userID, value)
 }
 
-type OnboardingService struct{ store OnboardingStore }
+type OnboardingService struct {
+	store OnboardingStore
+	now   func() time.Time
+}
 
 func NewOnboardingService(store OnboardingStore) *OnboardingService {
-	return &OnboardingService{store: store}
+	return &OnboardingService{store: store, now: time.Now}
 }
 
 func (s *OnboardingService) Get(ctx context.Context, userID string) (Onboarding, error) {

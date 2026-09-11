@@ -48,6 +48,8 @@ type Service struct {
 	now   func() time.Time
 }
 
+const passwordResetTimingHash = "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
+
 func NewService(store Store, ttl time.Duration) *Service {
 	return &Service{store: store, ttl: ttl, now: time.Now}
 }
@@ -103,6 +105,9 @@ func (s *Service) CreateEmailVerificationToken(ctx context.Context, userID strin
 func (s *Service) CreatePasswordResetToken(ctx context.Context, email string, ttl time.Duration) (User, string, error) {
 	user, err := s.store.UserByEmail(ctx, normalizeEmail(email))
 	if err != nil {
+		// Keep the missing-account path close to the cost of a real password
+		// reset lookup, reducing timing-based account enumeration.
+		_ = bcrypt.CompareHashAndPassword([]byte(passwordResetTimingHash), []byte("cadencia-reset-timing"))
 		return User{}, "", nil
 	}
 	token, err := s.createEmailToken(ctx, user.ID, "reset_password", ttl)

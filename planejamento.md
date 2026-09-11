@@ -1220,3 +1220,11 @@ A escolha é determinística e não altera os protocolos específicos de estrada
 A correção seguinte impede que o slot de qualidade seja criado na quarta semana do ciclo. O pedal mais longo continua como `Endurance contínuo`, e os demais slots usam `Recuperação ativa`; assim, meta de prova, avaliação submáxima ou preferência por intervalos não introduzem `Ritmo de prova controlado`, tempo ou intervalos na semana marcada como recuperação.
 
 A mudança é visível, então `frontend/lib/release.ts` foi atualizado para `0.11.1` com uma nota de novidades. O teste de regressão para contexto de prova, a suíte Go completa e `go vet` passaram. Esta correção está pendente de commit e não foi publicada na produção; não houve migração nem mudança de infraestrutura.
+
+### Continuidade — auditoria de segurança e correções locais — 11 de setembro de 2026
+
+A auditoria do código identificou e corrigiu o bloqueio de início de sessões adaptadas, limites e validação dos corpos JSON, rate limiting das rotas de autenticação, proteção de origem para mutações autenticadas, cabeçalhos HTTP de segurança, enumeração de contas no cadastro/recuperação, risco de hidratação no horário de início e concorrência entre execuções do resumo semanal. A trava advisory transacional impede timer e execução manual simultâneos; uma queda exatamente após o envio e antes do commit ainda exige conferência manual, pois não há transação distribuída entre PostgreSQL e Resend.
+
+A data da prova agora é validada no fuso local, não aceita datas passadas e controla a janela da fase específica: eventos próximos podem orientar o estímulo de prova, enquanto eventos distantes permanecem na progressão regular. A data e a distância são preservadas no snapshot. A tela de novidades foi ajustada para marcar a leitura somente após a dispensa e a versão local passou para `0.12.0`.
+
+Os testes locais `go test -count=1 ./...`, `go vet ./...`, `npm run build`, lint direcionado dos componentes alterados e `npm audit --omit=dev --audit-level=high` passaram. O lint geral ainda conserva pendências anteriores; o grafo de desenvolvimento mantém avisos sem correção automática disponível. Nenhum commit, deploy, migração ou mudança de infraestrutura foi realizado. A produção permanece no commit `9d8c624` e na versão `0.8.0`; o commit base local é `a54143b`.

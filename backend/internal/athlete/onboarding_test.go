@@ -3,6 +3,7 @@ package athlete
 import (
 	"context"
 	"testing"
+	"time"
 )
 
 type onboardingStore struct{}
@@ -86,6 +87,28 @@ func TestSaveCyclingContextAcceptsOptionalContext(t *testing.T) {
 	result, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", input)
 	if err != nil || result.Discipline != "road" || result.FTP == nil || *result.FTP != ftp || result.EventDate == nil || *result.EventDate != date {
 		t.Fatalf("expected valid cycling context, got %#v, %v", result, err)
+	}
+}
+
+func TestSaveCyclingContextRejectsPastEventDate(t *testing.T) {
+	ftp := 220
+	distance := 100
+	past := time.Now().AddDate(0, 0, -1).Format("2006-01-02")
+	input := CyclingContext{UsesPower: true, FTP: &ftp, EventGoal: true, EventDistanceKM: &distance, EventDate: &past}
+	if _, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", input); err != ErrInvalidOnboarding {
+		t.Fatalf("expected past event date to be rejected, got %v", err)
+	}
+}
+
+func TestSaveCyclingContextAcceptsTodayEventDate(t *testing.T) {
+	ftp := 220
+	distance := 100
+	today := "2026-09-11"
+	input := CyclingContext{UsesPower: true, FTP: &ftp, EventGoal: true, EventDistanceKM: &distance, EventDate: &today}
+	service := NewOnboardingService(onboardingStore{})
+	service.now = func() time.Time { return time.Date(2026, time.September, 11, 12, 0, 0, 0, time.Local) }
+	if _, err := service.SaveCyclingContext(context.Background(), "user-1", input); err != nil {
+		t.Fatalf("expected today's event date to be accepted, got %v", err)
 	}
 }
 

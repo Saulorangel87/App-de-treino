@@ -14,6 +14,7 @@ const publicPaths = new Set([
 
 export function UpdateNotice() {
   const [visible, setVisible] = useState(false);
+  const [storageKey, setStorageKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (publicPaths.has(window.location.pathname)) return;
@@ -24,8 +25,10 @@ export function UpdateNotice() {
         try {
           const storageKey = `cadencia:update-notice:${user.id}:${APP_VERSION}`;
           if (window.localStorage.getItem(storageKey)) return;
-          window.localStorage.setItem(storageKey, 'seen');
-          if (!cancelled) setVisible(true);
+          if (!cancelled) {
+            setStorageKey(storageKey);
+            setVisible(true);
+          }
         } catch {
           // Storage may be unavailable in a private or restricted browser.
         }
@@ -37,6 +40,17 @@ export function UpdateNotice() {
     };
   }, []);
 
+  function dismiss() {
+    if (storageKey) {
+      try {
+        window.localStorage.setItem(storageKey, 'seen');
+      } catch {
+        // Storage may be unavailable in a private or restricted browser.
+      }
+    }
+    setVisible(false);
+  }
+
   if (!visible) return null;
 
   return (
@@ -45,7 +59,7 @@ export function UpdateNotice() {
         <button
           type="button"
           className="update-notice-close"
-          onClick={() => setVisible(false)}
+          onClick={dismiss}
           aria-label="Fechar novidades"
         >
           <X size={18} />
@@ -69,7 +83,7 @@ export function UpdateNotice() {
             </li>
           ))}
         </ul>
-        <button type="button" className="update-notice-action" onClick={() => setVisible(false)}>
+        <button type="button" className="update-notice-action" onClick={dismiss}>
           Entendi, continuar
         </button>
       </section>

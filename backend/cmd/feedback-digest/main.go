@@ -37,7 +37,23 @@ func main() {
 	defer db.Close()
 
 	store := repository.New(db)
-	entries, err := store.PendingUserFeedback(ctx, digestBatchSize)
+	digestLock, acquired, err := store.AcquireFeedbackDigestLock(ctx)
+	if err != nil {
+		logger.Error("could not acquire feedback digest lock", "error", err)
+		os.Exit(1)
+	}
+	if !acquired {
+		logger.Info("weekly feedback digest skipped: another run is active")
+		return
+	}
+	finished := false
+	defer func() {
+		if !finished {
+			_ = digestLock.Rollback(context.Background())
+		}
+	}()
+
+	entries, err := digestLock.PendingUserFeedback(ctx, digestBatchSize)
 	if err != nil {
 		logger.Error("could not load pending feedback", "error", err)
 		os.Exit(1)
@@ -63,9 +79,14 @@ func main() {
 	for _, entry := range entries {
 		ids = append(ids, entry.ID)
 	}
-	if err := store.MarkUserFeedbackDigested(ctx, ids, time.Now().UTC()); err != nil {
+	if err := digestLock.MarkUserFeedbackDigested(ctx, ids, time.Now().UTC()); err != nil {
 		logger.Error("feedback digest sent but could not mark entries", "error", err, "count", len(entries))
 		os.Exit(1)
 	}
+	if err := digestLock.Commit(ctx); err != nil {
+		logger.Error("feedback digest transaction could not commit", "error", err, "count", len(entries))
+		os.Exit(1)
+	}
+	finished = true
 	logger.Info("weekly feedback digest sent", "count", len(entries))
 }
