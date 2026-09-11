@@ -12,6 +12,8 @@ Internet
 
 Nenhum serviço desta composição publica portas no host. O Cloudflare Tunnel é o único componente que encaminha tráfego público para o Cadência. O PostgreSQL não recebe hostname, rota pública ou porta exposta.
 
+O serviço `tunnel` usa no checkout local o digest fixo `cloudflare/cloudflared@sha256:e39ee8da81ad5e05d77f38d2f51c60ca51bf2a8450ac3abab50c17fdb91d91bf`, correspondente ao binário `cloudflared 2026.7.3` em `linux/arm64` observado na VPS. A alteração ainda está pendente de commit e aplicação; ela não reinicia nem altera o Tunnel por si só.
+
 URLs em produção:
 
 - `https://cadencia.devsaulo.com.br` -> `frontend:3000`

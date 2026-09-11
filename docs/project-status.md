@@ -352,7 +352,7 @@ Também foi corrigida a regra de meta de prova: datas passadas são rejeitadas, 
 
 Validação local desta fatia: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, lint direcionado dos componentes alterados e `npm audit --omit=dev --audit-level=high` passaram; este último reportou zero vulnerabilidades no grafo de produção. O lint geral ainda possui pendências anteriores fora desta fatia. Os avisos restantes do grafo de desenvolvimento não têm correção automática disponível e não entram na imagem/runtime de produção. `govulncheck` não está instalado neste ambiente, portanto não foi usado como evidência desta rodada.
 
-O commit base local é `a54143b`; as correções desta auditoria estão no working tree e ainda não foram commitadas, publicadas ou aplicadas à infraestrutura. A produção permanece no commit `9d8c624`/versão `0.8.0`.
+O commit base local é `a54143b`; as correções desta auditoria e o pin do digest do Tunnel estão no working tree e ainda não foram commitados, publicados ou aplicados na VPS. A produção permanece no commit `9d8c624`/versão `0.8.0`. O compose local registra `cloudflare/cloudflared@sha256:e39ee8…`, correspondente ao `cloudflared 2026.7.3` ARM64 atualmente executado na VPS.
 
 ## Feedback de produto e recebimento dos relatos
 
