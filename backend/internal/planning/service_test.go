@@ -14,6 +14,7 @@ type planStore struct {
 	startedID   string
 	completedID string
 	cancelledID string
+	missedID    string
 	completion  CompletionInput
 	activities  []Activity
 }
@@ -45,6 +46,10 @@ func (s *planStore) CompleteWorkoutByUserID(_ context.Context, _ string, workout
 }
 func (s *planStore) CancelWorkoutByUserID(_ context.Context, _ string, workoutID string) error {
 	s.cancelledID = workoutID
+	return nil
+}
+func (s *planStore) MarkWorkoutMissedByUserID(_ context.Context, _ string, workoutID string) error {
+	s.missedID = workoutID
 	return nil
 }
 func (s *planStore) ActivitiesByUserID(context.Context, string) ([]Activity, error) {
@@ -537,6 +542,30 @@ func TestWorkoutLifecycleValidatesAndDelegates(t *testing.T) {
 	}
 	if store.startedID != workoutID || store.completedID != workoutID || store.cancelledID != workoutID || store.completion.ActualRPE != 7 {
 		t.Fatalf("unexpected delegated lifecycle: %#v", store)
+	}
+}
+
+func TestMarkWorkoutMissedValidatesAndDelegates(t *testing.T) {
+	const workoutID = "9a1eead7-6168-4d50-8c7c-451301e29d85"
+	store := &planStore{saved: Plan{Status: "active"}}
+	service := NewService(store)
+
+	if _, err := service.MarkWorkoutMissed(context.Background(), "user-1", workoutID); err != nil {
+		t.Fatalf("mark missed failed: %v", err)
+	}
+	if store.missedID != workoutID {
+		t.Fatalf("unexpected delegated missed workout: %#v", store)
+	}
+}
+
+func TestMarkWorkoutMissedRejectsInvalidWorkoutID(t *testing.T) {
+	store := &planStore{}
+	_, err := NewService(store).MarkWorkoutMissed(context.Background(), "user-1", "not-a-uuid")
+	if err != ErrInvalidWorkoutID {
+		t.Fatalf("expected invalid workout id, got %v", err)
+	}
+	if store.missedID != "" {
+		t.Fatal("store must not receive an invalid id")
 	}
 }
 

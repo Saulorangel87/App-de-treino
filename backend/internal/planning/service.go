@@ -16,6 +16,7 @@ var (
 	ErrInvalidWorkoutID     = errors.New("invalid workout id")
 	ErrWorkoutMissing       = errors.New("workout not found")
 	ErrInvalidTransition    = errors.New("invalid workout transition")
+	ErrWorkoutNotPast       = errors.New("workout date has not passed")
 	ErrInvalidFeedback      = errors.New("invalid workout feedback")
 )
 
@@ -193,6 +194,7 @@ type Store interface {
 	StartWorkoutByUserID(context.Context, string, string) error
 	CompleteWorkoutByUserID(context.Context, string, string, CompletionInput) error
 	CancelWorkoutByUserID(context.Context, string, string) error
+	MarkWorkoutMissedByUserID(context.Context, string, string) error
 	ActivitiesByUserID(context.Context, string) ([]Activity, error)
 }
 
@@ -275,6 +277,16 @@ func (s *Service) CancelWorkout(ctx context.Context, userID, workoutID string) (
 		return Plan{}, ErrInvalidWorkoutID
 	}
 	if err := s.store.CancelWorkoutByUserID(ctx, userID, workoutID); err != nil {
+		return Plan{}, err
+	}
+	return s.store.CurrentPlanByUserID(ctx, userID)
+}
+
+func (s *Service) MarkWorkoutMissed(ctx context.Context, userID, workoutID string) (Plan, error) {
+	if !planIDPattern.MatchString(workoutID) {
+		return Plan{}, ErrInvalidWorkoutID
+	}
+	if err := s.store.MarkWorkoutMissedByUserID(ctx, userID, workoutID); err != nil {
 		return Plan{}, err
 	}
 	return s.store.CurrentPlanByUserID(ctx, userID)

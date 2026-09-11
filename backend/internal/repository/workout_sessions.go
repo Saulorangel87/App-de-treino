@@ -263,3 +263,39 @@ func (s *Store) CancelWorkoutByUserID(ctx context.Context, userID, workoutID str
 	}
 	return tx.Commit(ctx)
 }
+
+func (s *Store) MarkWorkoutMissedByUserID(ctx context.Context, userID, workoutID string) error {
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	var workoutStatus string
+	var scheduledOnNotPast bool
+	err = tx.QueryRow(ctx, `
+		SELECT w.status, w.scheduled_on >= CURRENT_DATE
+		FROM workouts w
+		JOIN training_plans tp ON tp.id = w.training_plan_id
+		JOIN athlete_profiles ap ON ap.id = tp.athlete_profile_id
+		WHERE ap.user_id = $1 AND w.id = $2 AND tp.status = 'active'
+		FOR UPDATE OF w`, userID, workoutID,
+	).Scan(&workoutStatus, &scheduledOnNotPast)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return planning.ErrWorkoutMissing
+	}
+	if err != nil {
+		return err
+	}
+	if workoutStatus != "planned" && workoutStatus != "adapted" {
+		return planning.ErrInvalidTransition
+	}
+	if scheduledOnNotPast {
+		return planning.ErrWorkoutNotPast
+	}
+
+	if _, err := tx.Exec(ctx, `UPDATE workouts SET status = 'skipped' WHERE id = $1`, workoutID); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
+}

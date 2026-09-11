@@ -1,6 +1,6 @@
 # Adaptação do plano após o treino
 
-Última revisão: 5 de setembro de 2026.
+Última revisão: 11 de setembro de 2026.
 
 ## Objetivo
 
@@ -80,6 +80,12 @@ Depois que uma redução é aplicada, editar o check-in não aumenta novamente a
 Ao gerar um novo rascunho, o motor agrega os últimos 28 dias de sessões concluídas e check-ins de recuperação. São considerados minutos realizados, RPE médio, fadiga média, dor relatada, quantidade de check-ins e fadiga média informada nos check-ins. O resumo é salvo no `prescription_snapshot.observed_training` para permitir auditoria da decisão.
 
 O uso é deliberadamente conservador: dor relatada protege todas as sessões do novo ciclo com um giro leve; fadiga média igual ou superior a 4, ou fadiga média dos check-ins igual ou superior a 4, protege a sessão de qualidade. A proteção limita o alvo a RPE 3,5, reduz a duração e mantém o treino dentro da disponibilidade cadastrada. O histórico não aumenta intensidade, não substitui a avaliação submáxima e não representa diagnóstico clínico.
+
+### Registro explícito de treino não realizado
+
+Um treino `planned` ou `adapted` cuja data já passou pode ser encerrado pelo atleta como **Não realizei**. O backend altera o status para `skipped` somente depois de confirmar que o treino pertence ao plano ativo e que a data é anterior à data atual do banco. Nenhuma sessão é criada para representar uma atividade que não aconteceu.
+
+O registro fecha a oportunidade de aderência e deixa de aparecer como pendência vencida, mas não é usado sozinho para inferir destreinamento, baixa tolerância ou necessidade de compensação. Não há reagendamento automático, sessão substituta, aumento de carga ou redução prescritiva nesta fatia. A próxima geração de plano continua sujeita às lacunas, aos sinais de dor/recuperação e às regras conservadoras já documentadas.
 
 ## Leitura observacional de prontidão (`readiness-v1`)
 

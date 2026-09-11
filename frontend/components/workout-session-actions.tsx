@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   CheckCircle2,
   CircleStop,
@@ -34,7 +34,7 @@ const statusLabels = {
   planned: 'Planejado',
   in_progress: 'Em andamento',
   completed: 'Concluído',
-  skipped: 'Cancelado',
+  skipped: 'Não realizado',
   adapted: 'Adaptado',
 } as const;
 
@@ -51,6 +51,7 @@ export function WorkoutSessionActions({
   onPlanUpdated,
 }: Props) {
   const [action, setAction] = useState('');
+  const [todayKey, setTodayKey] = useState('');
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [actualRPE, setActualRPE] = useState(
     Math.max(1, Math.round(workout.target_rpe)),
@@ -65,6 +66,10 @@ export function WorkoutSessionActions({
   const [averageHeartRate, setAverageHeartRate] = useState('');
   const [averagePowerW, setAveragePowerW] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    queueMicrotask(() => setTodayKey(localDateKey()));
+  }, []);
 
   async function mutate(path: string, body?: object) {
     setAction(path);
@@ -107,6 +112,11 @@ export function WorkoutSessionActions({
   const session = workout.session;
   const feedback = session?.feedback;
   const busy = Boolean(action);
+  const isPastWorkout = todayKey !== '' && workout.scheduled_on < todayKey;
+  const canMarkMissed =
+    planStatus === 'active' &&
+    isPastWorkout &&
+    (workout.status === 'planned' || workout.status === 'adapted');
 
   return (
     <section className="session-actions" aria-label="Acompanhamento da sessão">
@@ -128,18 +138,67 @@ export function WorkoutSessionActions({
       )}
 
       {planStatus === 'active' && workout.status === 'planned' && (
+        <div className={canMarkMissed ? 'session-button-row' : undefined}>
+          <Button
+            type="button"
+            className="session-primary"
+            disabled={busy}
+            onClick={() => mutate('start')}
+          >
+            {action === 'start' ? (
+              <LoaderCircle className="spin" />
+            ) : (
+              <Play />
+            )}
+            {action === 'start' ? 'Iniciando…' : 'Iniciar treino'}
+          </Button>
+          {canMarkMissed && (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={busy}
+              onClick={() => {
+                if (
+                  window.confirm(
+                    'Marcar este treino como não realizado? Ele ficará registrado como perdido, sem criar uma sessão substituta ou aumentar a carga seguinte.',
+                  )
+                ) {
+                  void mutate('missed');
+                }
+              }}
+            >
+              {action === 'missed' ? (
+                <LoaderCircle className="spin" />
+              ) : (
+                <CircleStop />
+              )}
+              {action === 'missed' ? 'Registrando…' : 'Não realizei'}
+            </Button>
+          )}
+        </div>
+      )}
+
+      {canMarkMissed && workout.status === 'adapted' && (
         <Button
           type="button"
-          className="session-primary"
+          variant="outline"
           disabled={busy}
-          onClick={() => mutate('start')}
+          onClick={() => {
+            if (
+              window.confirm(
+                'Marcar este treino adaptado como não realizado? Ele ficará registrado como perdido, sem criar uma sessão substituta ou aumentar a carga seguinte.',
+              )
+            ) {
+              void mutate('missed');
+            }
+          }}
         >
-          {action === 'start' ? (
+          {action === 'missed' ? (
             <LoaderCircle className="spin" />
           ) : (
-            <Play />
+            <CircleStop />
           )}
-          {action === 'start' ? 'Iniciando…' : 'Iniciar treino'}
+          {action === 'missed' ? 'Registrando…' : 'Não realizei'}
         </Button>
       )}
 
@@ -330,7 +389,7 @@ export function WorkoutSessionActions({
 
       {workout.status === 'skipped' && (
         <p className="session-guidance">
-          Esta sessão foi cancelada e ficou registrada no histórico.
+          Esta sessão não foi realizada e ficou registrada no histórico.
         </p>
       )}
 
@@ -342,6 +401,13 @@ export function WorkoutSessionActions({
       )}
     </section>
   );
+}
+
+function localDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function optionalNumber(value: string) {

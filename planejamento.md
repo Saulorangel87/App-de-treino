@@ -1199,6 +1199,12 @@ A fonte `xco-hit-2016` é registrada na migração `000016`. Gravel permanece co
 
 ### Continuidade — rotação segura da recuperação ativa — 10 de setembro de 2026
 
-A décima primeira fatia reduz a repetição nominal do catálogo sem criar uma nova modalidade. Uma sessão de base da quarta semana passa a poder ser apresentada como `Recuperação ativa`, com alvo RPE 3,5, volume reduzido pelo multiplicador de recuperação e instrução de pedal leve contínuo. O protocolo usa a evidência geral `acsm-1998` apenas para progressão gradual e controle de carga; os minutos são uma escolha conservadora do produto, não uma dose universal de estudo.
+A décima primeira fatia, versionada no commit local `ac8ed3b`, reduz a repetição nominal do catálogo sem criar uma nova modalidade. Uma sessão de base da quarta semana passa a poder ser apresentada como `Recuperação ativa`, com alvo RPE 3,5, volume reduzido pelo multiplicador de recuperação e instrução de pedal leve contínuo. O protocolo usa a evidência geral `acsm-1998` apenas para progressão gradual e controle de carga; os minutos são uma escolha conservadora do produto, não uma dose universal de estudo.
+
+### Continuidade — registro explícito de treino não realizado — 11 de setembro de 2026
+
+A décima segunda fatia adiciona uma ação factual para treinos `planned` ou `adapted` cuja data já passou. Após confirmação do atleta, a rota `POST /v1/workouts/{workoutID}/missed` marca o treino como `skipped`, fecha a pendência de aderência e preserva a data original. Ela não cria uma sessão fictícia, não reagenda o treino, não substitui a sessão nem altera a carga seguinte; também não transforma ausência de registro em inferência de destreinamento.
+
+Treinos futuros e estados já iniciados ou encerrados são protegidos por transições inválidas. O cancelamento de uma sessão em andamento continua separado. A funcionalidade é visível, então `frontend/lib/release.ts` foi atualizado para `0.10.0` e a tela de novidades explica o comportamento. Os testes automatizados do backend, build, componente, OpenAPI, PostgreSQL transacional e histórico passaram. A confirmação visual local e o commit ainda são os próximos passos; não houve deploy, migração ou mudança de infraestrutura.
 
 A escolha é determinística e não altera os protocolos específicos de estrada ou XCO. Limitação ativa, dor ou necessidade recente de recuperação continuam substituindo qualquer variação por `Giro leve protegido`. A tela de novidades foi atualizada para `0.9.0`, e a validação local passou em `go test -count=1 ./...`, `go vet ./...` e `npm run build`. Esta fatia ainda não foi commitada, publicada ou aplicada na produção; a produção permanece no commit `9d8c624` e na versão `0.8.0`. O planejamento raiz foi preservado.

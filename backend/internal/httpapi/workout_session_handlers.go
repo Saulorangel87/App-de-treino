@@ -68,6 +68,18 @@ func (s *Server) cancelWorkout(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"plan": plan})
 }
 
+func (s *Server) markWorkoutMissed(w http.ResponseWriter, r *http.Request) {
+	user, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	plan, err := s.planning.MarkWorkoutMissed(r.Context(), user.ID, r.PathValue("workoutID"))
+	if writeWorkoutError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"plan": plan})
+}
+
 func writeWorkoutError(w http.ResponseWriter, err error) bool {
 	switch {
 	case err == nil:
@@ -80,6 +92,8 @@ func writeWorkoutError(w http.ResponseWriter, err error) bool {
 		writeError(w, http.StatusNotFound, "workout_not_found", "O treino não pertence ao seu plano ativo.")
 	case errors.Is(err, planning.ErrInvalidTransition):
 		writeError(w, http.StatusConflict, "invalid_workout_transition", "O treino não está no estado necessário para esta ação.")
+	case errors.Is(err, planning.ErrWorkoutNotPast):
+		writeError(w, http.StatusConflict, "workout_not_past", "Esse treino ainda não passou da data planejada.")
 	default:
 		writeError(w, http.StatusInternalServerError, "internal_error", "Não foi possível atualizar a sessão.")
 	}

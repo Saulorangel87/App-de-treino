@@ -1,6 +1,6 @@
 # Decisões de arquitetura
 
-Última revisão: 5 de setembro de 2026.
+Última revisão: 11 de setembro de 2026.
 
 ## ADR-001 — Banco de dados próprio
 
@@ -112,13 +112,15 @@ Nona fatia no commit local `34efbe2`, ainda sem publicação: `data-integrity-v1
 
 Décima fatia publicada no commit `9d8c624`: o piloto `xco_aerobic_intervals` adiciona uma sessão aeróbica específica para XCO avançado elegível, com disciplina explícita, avaliação submáxima apta, objetivo compatível, disponibilidade mínima e proteções de recuperação. A migração `000016` registra o ensaio de HIT em mountain bikers que sustenta o formato, enquanto a revisão contemporânea de XCO delimita a transferência da evidência. O piloto não inclui sprint máximo, técnica de trilha, descida, salto ou metas rígidas de potência. Como a escolha é visível, a versão `0.8.0` do frontend e a nota de novidades foram publicadas após validação e autorização.
 
-Décima primeira fatia local, ainda sem commit ou publicação: o catálogo geral ganhou `active_recovery`, uma variação determinística para uma sessão de base na quarta semana do ciclo. Ela usa esforço leve, volume reduzido pelo multiplicador de recuperação e a referência geral `acsm-1998`; não é um protocolo específico de modalidade nem uma dose universal derivada de estudo. Limitação, dor e recuperação insuficiente continuam substituindo a variação por `Giro leve protegido`, e o motor `rules-v1` não passa a usar dados shadow para prescrever.
+Décima primeira fatia no commit local `ac8ed3b`, ainda sem publicação: o catálogo geral ganhou `active_recovery`, uma variação determinística para uma sessão de base na quarta semana do ciclo. Ela usa esforço leve, volume reduzido pelo multiplicador de recuperação e a referência geral `acsm-1998`; não é um protocolo específico de modalidade nem uma dose universal derivada de estudo. Limitação, dor e recuperação insuficiente continuam substituindo a variação por `Giro leve protegido`, e o motor `rules-v1` não passa a usar dados shadow para prescrever.
+
+Décima segunda fatia local, ainda sem publicação: o ciclo permite registrar explicitamente um treino passado como não realizado. A transição aceita somente `planned`/`adapted` do plano ativo cuja data seja anterior à data do banco e grava `skipped` sem criar uma sessão. A decisão é factual e não dispara reagendamento, compensação, ajuste de carga ou inferência de destreinamento; o cancelamento de uma sessão já iniciada continua no endpoint próprio.
 
 ## ADR-009 — Comunicação de atualizações no produto
 
 **Status:** Aceita e aplicada.
 
-Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a mudança em `UPDATE_NOTES`. O componente `UpdateNotice` apresenta as notas no primeiro acesso autenticado após a versão mudar e registra a confirmação por conta, versão e navegador usando armazenamento local. As notas não devem conter segredos. A versão `0.7.0` registrou o catálogo de ciclismo baseado em evidências e foi confirmada na produção. A versão `0.8.0` registra o piloto aeróbico de MTB XCO e foi publicada junto do commit `9d8c624`. A versão local `0.9.0` registra a recuperação ativa e aguarda revisão, commit e autorização de publicação.
+Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a mudança em `UPDATE_NOTES`. O componente `UpdateNotice` apresenta as notas no primeiro acesso autenticado após a versão mudar e registra a confirmação por conta, versão e navegador usando armazenamento local. As notas não devem conter segredos. A versão `0.7.0` registrou o catálogo de ciclismo baseado em evidências e foi confirmada na produção. A versão `0.8.0` registra o piloto aeróbico de MTB XCO e foi publicada junto do commit `9d8c624`. A versão local `0.10.0` registra a recuperação ativa e o registro explícito de treino não realizado, aguardando validação local, publicação e autorização de deploy.
 
 ## Estado de produção
 

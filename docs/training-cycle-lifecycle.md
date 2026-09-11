@@ -1,6 +1,6 @@
 # Ciclo de vida dos planos de treino
 
-Última revisão: 4 de setembro de 2026.
+Última revisão: 11 de setembro de 2026.
 
 ## Estados
 
@@ -25,5 +25,13 @@ O início do novo ciclo é calculado assim:
 2. sessões da semana corrente que já ficaram no passado não são criadas.
 
 Isso mantém o plano útil no momento da geração e não apaga o histórico anterior. Depois de gerado, o novo plano permanece como rascunho até o usuário revisá-lo e aceitá-lo.
+
+## Treino não realizado
+
+Depois que a data planejada passou, o atleta pode usar **Não realizei** em um treino que ainda esteja `planned` ou `adapted`. A API `POST /v1/workouts/{workoutID}/missed` registra a decisão alterando o treino para `skipped`, sem criar uma `workout_session` fictícia.
+
+Essa ação é uma classificação explícita do registro, não uma inferência automática. Ela não desloca o treino para outro dia, não cria uma sessão substituta e não aumenta nem reduz a carga seguinte. O histórico passa a contar o treino como encerrado e não realizado; a evolução continua mostrando somente sessões que realmente tiveram início.
+
+Treinos futuros não podem ser marcados dessa forma. Cancelar uma sessão já iniciada continua sendo uma ação diferente, pelo fluxo **Cancelar**, e também mantém o status final `skipped`.
 
 O ciclo de vida permanece baseado no motor determinístico `rules-v1`. A observação de feedbacks reais e do resumo semanal é a próxima etapa antes de qualquer mudança na transição de estados ou na progressão automática.

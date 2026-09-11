@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão atual: `0.8.0` — piloto aeróbico específico para MTB XCO, com seleção baseada em evidências. Consulte o [release v0.8.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.8.0).
+Versão do checkout local: `0.10.0` — registro explícito de treinos passados não realizados. A produção ainda está na versão `0.8.0`; consulte o [release v0.8.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.8.0).
 
 ## Estrutura
 
@@ -88,7 +88,7 @@ O MVP de ciclismo está publicado em produção real:
 - Dependabot está com 0 alertas abertos; os testes Go, build Docker e `govulncheck` passaram.
 - A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`, `000014`, `000015` e `000016` foram aplicadas na produção.
 - O ajuste responsivo dos períodos nos gráficos da Evolução foi publicado e validado no domínio oficial; a rolagem horizontal interna agora preserva os rótulos no celular.
-- A produção está no commit `9d8c624`; o checkout local contém a fatia `0.9.0` de recuperação ativa, ainda não commitada nem publicada. O catálogo inicial, o piloto de estrada e o piloto de intervalos aeróbicos XCO estão publicados, sujeitos aos critérios de elegibilidade documentados.
+- A produção está no commit `9d8c624`; o checkout local está no commit `ac8ed3b` e contém a fatia `0.10.0` de registro explícito de treinos não realizados, ainda não publicada. O catálogo inicial, o piloto de estrada e o piloto de intervalos aeróbicos XCO estão publicados, sujeitos aos critérios de elegibilidade documentados.
 - Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts` (`APP_VERSION` e `UPDATE_NOTES`) para que a novidade seja exibida na tela de primeiro acesso após a atualização. O modal é mostrado uma vez por conta, versão e navegador.
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.

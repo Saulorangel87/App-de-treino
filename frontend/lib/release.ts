@@ -1,6 +1,11 @@
-export const APP_VERSION = '0.9.0';
+export const APP_VERSION = '0.10.0';
 
 export const UPDATE_NOTES = [
+  {
+    title: 'Registro de treino não realizado',
+    description:
+      'Treinos passados que não foram feitos podem ser registrados explicitamente. O app não cria reposição automática nem aumenta a carga seguinte por causa desse registro.',
+  },
   {
     title: 'Recuperação ativa na semana de recuperação',
     description:

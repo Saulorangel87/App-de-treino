@@ -343,6 +343,17 @@ paths:
         '401': { description: Sessão de usuário ausente ou expirada }
         '404': { description: Treino não encontrado no plano ativo }
         '409': { description: Treino não está em andamento }
+  /v1/workouts/{workoutID}/missed:
+    post:
+      summary: Marca um treino passado como não realizado sem criar uma sessão
+      parameters:
+        - $ref: '#/components/parameters/WorkoutID'
+      responses:
+        '200': { description: Treino marcado como não realizado e plano atualizado }
+        '400': { description: Identificador inválido }
+        '401': { description: Sessão de usuário ausente ou expirada }
+        '404': { description: Treino não encontrado no plano ativo }
+        '409': { description: Treino ainda não venceu ou já foi iniciado, concluído ou encerrado }
 components:
   parameters:
     WorkoutID:

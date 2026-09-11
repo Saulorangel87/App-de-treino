@@ -1,6 +1,6 @@
 # Estado atual do projeto Cadência
 
-Última atualização: 10 de setembro de 2026.
+Última atualização: 11 de setembro de 2026.
 
 Este é o documento principal de continuidade. Ele registra o que está implementado, validado, publicado e pendente. Não incluir senhas, tokens, chaves de API ou conteúdo de arquivos `.env`.
 
@@ -24,7 +24,7 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 ## Estado do checkout local
 
-- A produção permanece no commit `9d8c624 feat: adiciona piloto aeróbico para MTB XCO`. O checkout local contém a fatia de recuperação ativa em `0.9.0`, ainda com alterações não commitadas; a nona fatia e a décima fatia, o piloto XCO descrito abaixo, foram versionadas e publicadas na VPS. A release `v0.8.0` também foi publicada no GitHub.
+- A produção permanece no commit `9d8c624 feat: adiciona piloto aeróbico para MTB XCO`. O checkout local está no commit `ac8ed3b feat: adiciona recuperação ativa ao catálogo` e contém a nova fatia de registro de treino não realizado em `0.10.0`, ainda sem publicação na VPS. A release `v0.8.0` continua sendo a versão publicada no GitHub.
 - A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local) e `9034287` (matriz comparativa).
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
@@ -311,16 +311,25 @@ Pendências, sem executar bloqueios automáticos:
 5. Definir cópia externa dos backups e monitoramento de falhas.
 6. Atualizar esta documentação após cada mudança de infraestrutura.
 
-### Décima primeira fatia de melhorias — rotação segura da recuperação
+### Décima primeira fatia de melhorias — rotação segura da recuperação (commit `ac8ed3b`)
 
 - O catálogo geral passa a ter o protocolo `active_recovery`, apresentado como **Recuperação ativa**. Ele é selecionado de forma determinística para uma sessão de base na quarta semana do ciclo, que já usa multiplicador de recuperação, esforço-alvo RPE 3,5 e instrução de pedal leve contínuo.
 - A escolha reutiliza a evidência geral `acsm-1998` e não copia dose de um estudo específico. A sessão não cria modalidade nova, não aumenta carga, não usa sprint, potência obrigatória ou metas fisiológicas universais.
 - Limitação ativa, dor e sinais recentes de recuperação insuficiente continuam vencendo a variação e produzem `Giro leve protegido`. A regra também não altera a seleção dos protocolos específicos de estrada ou XCO.
-- A tela de novidades foi atualizada para `0.9.0`, conforme a decisão de comunicar toda funcionalidade visível. Esta fatia foi validada localmente e ainda não foi commitada, publicada ou aplicada na produção.
+- A tela de novidades foi atualizada para `0.9.0`, conforme a decisão de comunicar toda funcionalidade visível. Esta fatia foi validada localmente e está no commit `ac8ed3b`; ainda não foi publicada ou aplicada na produção.
 
 Validação desta fatia: `go test -count=1 ./...`, `go vet ./...` e `npm run build` passaram. O build manteve apenas o aviso preexistente do Vite sobre importação JSON e classificação de rotas dinâmicas. Não foi feita validação visual no navegador nesta etapa.
 
 Arquivos desta fatia: `backend/internal/planning/protocols.go`, `backend/internal/planning/service.go`, `backend/internal/planning/service_test.go`, `frontend/lib/release.ts`, `docs/cycling-evidence-catalog.md`, `docs/training-adaptation-rules.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/README.md` e `planejamento.md`. Não foram alteradas migrações, infraestrutura ou produção.
+
+### Décima segunda fatia de melhorias — registro explícito de treino não realizado
+
+- A interface passa a oferecer **Não realizei** para treinos `planned` ou `adapted` cuja data já passou. A confirmação registra o treino como `skipped` sem criar uma sessão artificial.
+- A nova rota `POST /v1/workouts/{workoutID}/missed` valida o plano ativo, o estado e a data no PostgreSQL. Treinos futuros, iniciados, concluídos ou já encerrados não podem usar essa transição.
+- O registro fecha a pendência vencida para a leitura de aderência, mas não reage automaticamente: não há reagendamento, sessão substituta, aumento/redução de carga ou inferência de destreinamento.
+- A tela de novidades foi atualizada para `0.10.0`. A proteção contra divergência de hidratação calcula a data local da ação somente depois do primeiro render. Não houve migração, mudança de infraestrutura, deploy ou alteração do motor prescritivo `rules-v1`.
+
+Validação desta fatia: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, `oxlint` do componente alterado, OpenAPI, teste transacional PostgreSQL com `ROLLBACK` e consulta de histórico passaram. O lint geral ainda aponta débitos preexistentes em arquivos não tocados. Falta apenas a confirmação visual no navegador local; não foi feito deploy.
 
 ## Feedback de produto e recebimento dos relatos
 
