@@ -24,7 +24,7 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 ## Estado do checkout local
 
-- A produção permanece no commit `9d8c624 feat: adiciona piloto aeróbico para MTB XCO`. O checkout local está no commit `ac8ed3b feat: adiciona recuperação ativa ao catálogo` e contém a nova fatia de registro de treino não realizado em `0.10.0`, ainda sem publicação na VPS. A release `v0.8.0` continua sendo a versão publicada no GitHub.
+- A produção permanece no commit `9d8c624 feat: adiciona piloto aeróbico para MTB XCO`. O checkout local está no commit `051d285 fix: evita erro de hidratação no acompanhamento do treino` e contém a nova fatia de registro de treino não realizado em `0.10.0`, validada localmente e ainda sem publicação na VPS. A release `v0.8.0` continua sendo a versão publicada no GitHub.
 - A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local) e `9034287` (matriz comparativa).
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
@@ -329,7 +329,7 @@ Arquivos desta fatia: `backend/internal/planning/protocols.go`, `backend/interna
 - O registro fecha a pendência vencida para a leitura de aderência, mas não reage automaticamente: não há reagendamento, sessão substituta, aumento/redução de carga ou inferência de destreinamento.
 - A tela de novidades foi atualizada para `0.10.0`. A proteção contra divergência de hidratação calcula a data local da ação somente depois do primeiro render. Não houve migração, mudança de infraestrutura, deploy ou alteração do motor prescritivo `rules-v1`.
 
-Validação desta fatia: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, `oxlint` do componente alterado, OpenAPI, teste transacional PostgreSQL com `ROLLBACK` e consulta de histórico passaram. O lint geral ainda aponta débitos preexistentes em arquivos não tocados. Falta apenas a confirmação visual no navegador local; não foi feito deploy.
+Validação desta fatia: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, `oxlint` do componente alterado, OpenAPI, teste transacional PostgreSQL com `ROLLBACK`, consulta de histórico e confirmação visual no navegador local passaram. O lint geral ainda aponta débitos preexistentes em arquivos não tocados. O commit `051d285` foi feito; não foi feito deploy.
 
 ## Feedback de produto e recebimento dos relatos
 

@@ -120,7 +120,7 @@ Décima segunda fatia local, ainda sem publicação: o ciclo permite registrar e
 
 **Status:** Aceita e aplicada.
 
-Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a mudança em `UPDATE_NOTES`. O componente `UpdateNotice` apresenta as notas no primeiro acesso autenticado após a versão mudar e registra a confirmação por conta, versão e navegador usando armazenamento local. As notas não devem conter segredos. A versão `0.7.0` registrou o catálogo de ciclismo baseado em evidências e foi confirmada na produção. A versão `0.8.0` registra o piloto aeróbico de MTB XCO e foi publicada junto do commit `9d8c624`. A versão local `0.10.0` registra a recuperação ativa e o registro explícito de treino não realizado, aguardando validação local, publicação e autorização de deploy.
+Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a mudança em `UPDATE_NOTES`. O componente `UpdateNotice` apresenta as notas no primeiro acesso autenticado após a versão mudar e registra a confirmação por conta, versão e navegador usando armazenamento local. As notas não devem conter segredos. A versão `0.7.0` registrou o catálogo de ciclismo baseado em evidências e foi confirmada na produção. A versão `0.8.0` registra o piloto aeróbico de MTB XCO e foi publicada junto do commit `9d8c624`. A versão local `0.10.0` registra a recuperação ativa e o registro explícito de treino não realizado; a validação local foi concluída e o commit `051d285` está no GitHub. A publicação e qualquer autorização de deploy continuam pendentes.
 
 ## Estado de produção
 
