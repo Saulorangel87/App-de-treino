@@ -349,6 +349,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 	for week := 0; week < 4; week++ {
 		longIndex := longestSlot(slots)
 		intensityIndex := intensitySlot(slots, longIndex)
+		recoveryWeek := week == len(multipliers)-1
 		for index, slot := range slots {
 			scheduledOn := start.AddDate(0, 0, week*7+weekdayOffset(slot.Weekday))
 			if week == 0 && scheduledOn.Before(today) {
@@ -357,7 +358,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 			kind := "base"
 			if index == longIndex {
 				kind = "long"
-			} else if index == intensityIndex && !restricted {
+			} else if index == intensityIndex && !restricted && !recoveryWeek {
 				kind = "quality"
 			}
 			workouts = append(workouts, makeWorkout(input, slot, kind, restricted, multipliers[week], week, scheduledOn))

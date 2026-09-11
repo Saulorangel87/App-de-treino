@@ -420,13 +420,39 @@ func TestBuildPlanUsesActiveRecoveryInRecoveryWeek(t *testing.T) {
 				if workout.TargetRPE != 3.5 || workout.Structure["protocol_key"] != "active_recovery" {
 					t.Fatalf("unexpected active recovery workout: %#v", workout)
 				}
+			} else if workout.Name != "Endurance contínuo" {
+				t.Fatalf("recovery week must not contain a quality workout: %#v", workout)
 			}
 		} else if workout.Name == "Recuperação ativa" {
 			t.Fatalf("active recovery must be limited to the recovery week: %#v", workout)
 		}
 	}
-	if activeRecovery != 1 {
-		t.Fatalf("expected one base session in recovery week, got %d: %#v", activeRecovery, plan.Workouts)
+	if activeRecovery != 2 {
+		t.Fatalf("expected all non-long sessions in recovery week to use active recovery, got %d: %#v", activeRecovery, plan.Workouts)
+	}
+}
+
+func TestBuildPlanDoesNotUseEventPaceInRecoveryWeek(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "event", BaselineEligible: true, RotationIndex: 1,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 8, Discipline: "road", EventGoal: true},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	recoveryWeekStart := nextMonday(time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local)).AddDate(0, 0, 21)
+	for _, workout := range plan.Workouts {
+		date, parseErr := time.ParseInLocation("2006-01-02", workout.ScheduledOn, time.Local)
+		if parseErr != nil {
+			t.Fatalf("invalid scheduled date: %v", parseErr)
+		}
+		if date.Before(recoveryWeekStart) {
+			continue
+		}
+		if workout.Name == "Ritmo de prova controlado" || workout.TargetRPE > 5 {
+			t.Fatalf("event pace must not be selected in recovery week: %#v", workout)
+		}
 	}
 }
 

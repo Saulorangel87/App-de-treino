@@ -1,6 +1,11 @@
-export const APP_VERSION = '0.11.0';
+export const APP_VERSION = '0.11.1';
 
 export const UPDATE_NOTES = [
+  {
+    title: 'Semana de recuperação sem sessão de qualidade',
+    description:
+      'A quarta semana do ciclo preserva o pedal longo e usa recuperação ativa nas demais sessões, sem ritmo de prova ou intervalos de qualidade.',
+  },
   {
     title: 'Piloto de intervalos intensos para estrada',
     description:

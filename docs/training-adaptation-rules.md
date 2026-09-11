@@ -20,6 +20,7 @@ O mecanismo é uma regra conservadora de produto, não um diagnóstico nem uma p
 
 Na geração do plano, o motor mantém a frequência, os limites de duração, a semana de recuperação e as proteções de segurança já definidas. O contexto opcional do ciclista serve somente para escolher a sessão de qualidade mais adequada:
 
+- **Semana de recuperação:** a quarta semana não recebe sessão de qualidade; o pedal mais longo permanece como endurance e as demais sessões usam recuperação ativa.
 - **Indoor + nível intermediário:** sessão de cadência técnica com RPE moderado.
 - **Terreno com subidas + nível intermediário ou avançado:** subidas controladas, com recuperação leve.
 - **Nível avançado + medidor de potência e FTP informado:** sweet spot orientado pelo dado disponível, sem converter automaticamente o FTP em metas rígidas de watts nesta versão.
