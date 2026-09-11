@@ -1,6 +1,6 @@
 # Mapa de evidências do catálogo de ciclismo
 
-Última revisão: 5 de setembro de 2026.
+Última revisão: 11 de setembro de 2026.
 
 ## Objetivo
 
@@ -66,7 +66,7 @@ São modalidades com exigências anaeróbicas, neuromusculares e de força muito
 | --- | --- | --- | --- |
 | Endurance de estrada | `road` | Base de endurance e distribuição de intensidade apoiadas por revisões | Todos os níveis, com progressão conservadora |
 | Intervalos moderados | `road` | Ensaios recentes em ciclistas bem treinados | Piloto local: intermediário/avançado, objetivo compatível, avaliação apta, 60 min disponíveis e sem sinais de recuperação insuficiente |
-| Intervalos intensos controlados | `road` | Revisões e ensaios, com maior exigência fisiológica | Avançado, avaliação apta e objetivo compatível |
+| Intervalos intensos de estrada | `road` | Ensaio recente comparando blocos moderados e intensos em ciclistas bem treinados, com limite de transferência explícito | Piloto local: avançado, 8 semanas e 3 pedais/semana recentes, avaliação apta, objetivo compatível, pelo menos 75 min, ciclo alternado e sem sinais protetivos |
 | Intervalos aeróbicos XCO | `mtb_xco` | Demanda bem descrita; intervenção direta favorável ao HIT, mas em população treinada | Piloto local restrito, sem sprint máximo ou técnica de trilha |
 | Endurance gravel/XCM | `gravel`, `mtb_xcm` | Evidência direta de prescrição ainda insuficiente | Usar somente base/endurance contextual |
 | Força complementar | `road`, `mtb_xco` | Meta-análise recente favorável, mas com baixa certeza | Módulo opcional e separado do treino de bike |
@@ -80,6 +80,14 @@ As situações acima são decisões de produto provisórias. Antes de transforma
 O primeiro protocolo específico implementado e publicado é `road_moderate_intervals`, apresentado como **Intervalos moderados de estrada**. Ele usa três blocos de 10 minutos com três minutos de recuperação leve, alvo RPE 6 e uma sessão de qualidade por semana. Essa dose é uma adaptação conservadora do contexto dos estudos, não a reprodução do bloco de seis sessões em sete dias.
 
 O motor só o seleciona quando a disciplina é explicitamente `road`, o atleta é intermediário ou avançado, a avaliação submáxima está apta, o objetivo é performance ou evento, há pelo menos 60 minutos disponíveis e a preferência está vazia ou indica intervalos. Dor, limitação ou recuperação insuficiente substituem o protocolo por uma sessão protegida.
+
+### Terceiro piloto local: intervalos intensos de estrada
+
+O terceiro protocolo específico é `road_high_intensity_intervals`, apresentado como **Intervalos intensos de estrada**. Ele usa até cinco blocos de oito minutos com quatro minutos de recuperação leve, alvo RPE 8 e uma única sessão de qualidade na semana. A estrutura pode reduzir o número de blocos quando a duração da semana exigir; não há meta obrigatória de potência ou frequência cardíaca.
+
+O motor só o seleciona para atleta avançado com disciplina `road`, pelo menos oito semanas de treino recente e três pedais semanais informados, objetivo `performance` ou `event`, avaliação submáxima apta, pelo menos 75 minutos disponíveis, preferência vazia ou por intervalos e ciclo alternado (`rotation_index` ímpar). A liberação ocorre apenas nas semanas de construção. A sessão é substituída por proteção quando há limitação, dor ou recuperação insuficiente; iniciantes, intermediários e atletas retornando após baixa consistência continuam fora deste piloto.
+
+O estudo de Rønnestad et al. (2025) comparou blocos de intervalos moderados e intensos em 22 ciclistas bem treinados; ambos melhoraram alguns indicadores, com respostas dependentes da intensidade. O Cadência não reproduz as cinco sessões em seis dias, o RPE do estudo ou a carga concentrada: usa somente uma adaptação conservadora para testar a elegibilidade do estímulo no produto. A revisão de Rosenblat et al. (2020) informa a escolha de intervalos em vez de sprints máximos, sem validar a dose desta implementação.
 
 ### Segundo piloto publicado: intervalos aeróbicos XCO
 

@@ -419,6 +419,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	summary := explanationFor(kind, restricted)
 	usesControlledIntervals := false
 	usesRoadModerateIntervals := false
+	usesRoadHighIntensityIntervals := false
 	usesXCOAerobicIntervals := false
 	rotationApplied := false
 	activeRecoveryApplied := false
@@ -442,11 +443,19 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		mainBlock = "3 blocos sustentados com recuperação leve"
 		preference := preferredQualityPreference(input.Cycling)
 		if input.Cycling.Discipline == "road" && input.ExperienceLevel != "beginner" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 60 && multiplier >= 0.95 && (preference == "" || preference == "intervals") {
-			name = "Intervalos moderados de estrada"
-			targetRPE = 6.0
-			mainBlock = "3 blocos moderados de 10 min com 3 min leves entre os blocos"
-			summary = "A modalidade de estrada, o objetivo e a avaliação submáxima apta permitem um piloto intervalado moderado e conservador."
-			usesRoadModerateIntervals = true
+			if input.ExperienceLevel == "advanced" && input.Cycling.RecentTrainingWeeks >= 8 && input.Cycling.WeeklyRides >= 3 && input.RotationIndex%2 == 1 && slot.AvailableMinutes >= 75 {
+				name = "Intervalos intensos de estrada"
+				targetRPE = 8.0
+				mainBlock = "5 blocos intensos de 8 min com 4 min leves entre os blocos"
+				summary = "A modalidade de estrada, o objetivo, a avaliação apta e a rotação do ciclo permitem um piloto intenso restrito; a sessão não reproduz a carga dos estudos."
+				usesRoadHighIntensityIntervals = true
+			} else {
+				name = "Intervalos moderados de estrada"
+				targetRPE = 6.0
+				mainBlock = "3 blocos moderados de 10 min com 3 min leves entre os blocos"
+				summary = "A modalidade de estrada, o objetivo e a avaliação submáxima apta permitem um piloto intervalado moderado e conservador."
+				usesRoadModerateIntervals = true
+			}
 		} else if input.Cycling.Discipline == "mtb_xco" && input.ExperienceLevel == "advanced" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 75 && multiplier >= 0.95 && (preference == "" || preference == "intervals") {
 			name = "Intervalos aeróbicos XCO"
 			targetRPE = 7.0
@@ -576,6 +585,9 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	}
 	if usesRoadModerateIntervals {
 		rules = append(rules, "Piloto de estrada moderado liberado por modalidade explícita, objetivo compatível, avaliação apta e disponibilidade suficiente.")
+	}
+	if usesRoadHighIntensityIntervals {
+		rules = append(rules, "Piloto intenso de estrada liberado apenas para atleta avançado elegível, em ciclo alternado e semana de construção; sem reprodução da carga estudada.")
 	}
 	if usesXCOAerobicIntervals {
 		rules = append(rules, "Piloto aeróbico XCO liberado por modalidade explícita, objetivo compatível, avaliação apta e disponibilidade suficiente; sem sprint máximo ou simulação técnica.")

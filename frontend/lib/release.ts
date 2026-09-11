@@ -1,6 +1,11 @@
-export const APP_VERSION = '0.10.0';
+export const APP_VERSION = '0.11.0';
 
 export const UPDATE_NOTES = [
+  {
+    title: 'Piloto de intervalos intensos para estrada',
+    description:
+      'Atletas avançados elegíveis podem receber, em ciclos alternados, uma sessão de intervalos intensos baseada em evidências recentes. O app mantém limites conservadores e as proteções de dor e recuperação.',
+  },
   {
     title: 'Registro de treino não realizado',
     description:

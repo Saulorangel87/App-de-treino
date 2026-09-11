@@ -133,7 +133,7 @@ func TestBuildPlanUsesRoadModerateIntervalsForEligibleRoadContext(t *testing.T) 
 	plan, err := buildPlan(Context{
 		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
 		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
-		Cycling:      CyclingContext{Discipline: "road", PreferredSessionTypes: []string{"intervals"}},
+		Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 8, Discipline: "road", PreferredSessionTypes: []string{"intervals"}},
 	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -166,7 +166,7 @@ func TestBuildPlanDoesNotUseRoadProtocolOutsideRoadDiscipline(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	for _, workout := range plan.Workouts {
-		if workout.Name == "Intervalos moderados de estrada" || workout.Structure["protocol_key"] == "road_moderate_intervals" {
+		if workout.Name == "Intervalos moderados de estrada" || workout.Name == "Intervalos intensos de estrada" || workout.Structure["protocol_key"] == "road_moderate_intervals" || workout.Structure["protocol_key"] == "road_high_intensity_intervals" {
 			t.Fatalf("road protocol must not be selected for MTB: %#v", workout)
 		}
 	}
@@ -174,9 +174,9 @@ func TestBuildPlanDoesNotUseRoadProtocolOutsideRoadDiscipline(t *testing.T) {
 
 func TestBuildPlanRoadProtocolStillYieldsToPainProtection(t *testing.T) {
 	plan, err := buildPlan(Context{
-		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true, RotationIndex: 1,
 		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
-		Cycling:      CyclingContext{Discipline: "road", PreferredSessionTypes: []string{"intervals"}},
+		Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 8, Discipline: "road", PreferredSessionTypes: []string{"intervals"}},
 		Observed:     ObservedTrainingSummary{WindowDays: 28, CompletedSessions: 2, PainReported: true},
 	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
 	if err != nil {
@@ -341,7 +341,7 @@ func TestSessionProtocolsKeepEvidenceMapping(t *testing.T) {
 	for _, name := range []string{
 		"Giro de base", "Recuperação ativa", "Endurance contínuo", "Giro leve protegido", "Tempo controlado",
 		"Ritmo de prova controlado", "Cadência técnica", "Subidas controladas",
-		"Sweet spot por potência", "Sweet spot progressivo", "Intervalos controlados", "Intervalos moderados de estrada", "Intervalos aeróbicos XCO",
+		"Sweet spot por potência", "Sweet spot progressivo", "Intervalos controlados", "Intervalos moderados de estrada", "Intervalos intensos de estrada", "Intervalos aeróbicos XCO",
 	} {
 		protocol := protocolForWorkout(name)
 		if protocol.Key == "" || len(protocol.EvidenceKeys) == 0 || protocol.EvidenceScope == "" {
@@ -350,6 +350,52 @@ func TestSessionProtocolsKeepEvidenceMapping(t *testing.T) {
 	}
 	if protocolForWorkout("unknown").Key != "continuous_base" {
 		t.Fatal("unknown sessions should use the safe continuous fallback protocol")
+	}
+}
+
+func TestBuildPlanUsesHighIntensityRoadIntervalsOnAlternateEligibleCycle(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true, RotationIndex: 1,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 8, Discipline: "road", PreferredSessionTypes: []string{"intervals"}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	intense := 0
+	for _, workout := range plan.Workouts {
+		if workout.Name != "Intervalos intensos de estrada" {
+			continue
+		}
+		intense++
+		if workout.Structure["protocol_key"] != "road_high_intensity_intervals" || workout.Explanation["protocol_key"] != "road_high_intensity_intervals" {
+			t.Fatalf("expected high-intensity road metadata, got %#v", workout)
+		}
+		if workout.TargetRPE != 8.0 || workout.DurationMinutes > 75 {
+			t.Fatalf("unexpected high-intensity road load: %#v", workout)
+		}
+		if workout.Explanation["evidence_keys"].([]string)[0] != "road-block-comparison-2025" {
+			t.Fatalf("expected recent road evidence mapping, got %#v", workout.Explanation)
+		}
+	}
+	if intense != 2 {
+		t.Fatalf("expected high-intensity pilot in both construction weeks, got %d", intense)
+	}
+}
+
+func TestBuildPlanDoesNotUseHighIntensityRoadIntervalsOutsideEligibleContext(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "intermediate", PrimaryGoal: "performance", BaselineEligible: true, RotationIndex: 1,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		Cycling:      CyclingContext{Discipline: "road", PreferredSessionTypes: []string{"intervals"}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name == "Intervalos intensos de estrada" || workout.Structure["protocol_key"] == "road_high_intensity_intervals" {
+			t.Fatalf("high-intensity road pilot must require advanced experience: %#v", workout)
+		}
 	}
 }
 

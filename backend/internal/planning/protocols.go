@@ -79,6 +79,12 @@ var sessionProtocols = map[string]sessionProtocol{
 		WorkMinutes:   10, RecoveryMinutes: 3, Repetitions: 3,
 		WorkTitle: "Intervalo moderado", WorkInstruction: "Sustente um esforço moderado e firme, mantendo a técnica e terminando o bloco sem sprintar; reduza o ritmo se perder o controle.",
 	},
+	"Intervalos intensos de estrada": {
+		Key: "road_high_intensity_intervals", EvidenceKeys: []string{"road-block-comparison-2025", "rosenblat-2020"},
+		EvidenceScope: "Um ensaio de 2025 comparou blocos moderados e intensos em ciclistas bem treinados, mas a população e a carga não representam todos os atletas. O Cadência usa uma única sessão semanal como adaptação conservadora, sem reproduzir o bloco estudado nem definir metas universais de potência.",
+		WorkMinutes:   8, RecoveryMinutes: 4, Repetitions: 5,
+		WorkTitle: "Intervalo intenso", WorkInstruction: "Sustente um esforço forte e controlado, sem sprintar; reduza ou interrompa se perder a técnica, o controle da respiração ou surgir dor.",
+	},
 	"Intervalos aeróbicos XCO": {
 		Key: "xco_aerobic_intervals", EvidenceKeys: []string{"xco-hit-2016", "xco-physiology-2026"},
 		EvidenceScope: "Um ensaio com mountain bikers treinados observou benefício do HIT para desempenho de MTB, e a revisão de XCO de 2026 confirma a demanda aeróbica intermitente. Esta é uma adaptação conservadora, sem sprint máximo ou simulação técnica de prova.",

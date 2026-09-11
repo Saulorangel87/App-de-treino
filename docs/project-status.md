@@ -24,7 +24,7 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 ## Estado do checkout local
 
-- A produção permanece no commit `9d8c624 feat: adiciona piloto aeróbico para MTB XCO`. O checkout local está no commit `051d285 fix: evita erro de hidratação no acompanhamento do treino` e contém a nova fatia de registro de treino não realizado em `0.10.0`, validada localmente e ainda sem publicação na VPS. A release `v0.8.0` continua sendo a versão publicada no GitHub.
+- A produção permanece no commit `9d8c624 feat: adiciona piloto aeróbico para MTB XCO`. O checkout local está no commit `0ddf2a8 docs: registra validação do fluxo de treino não realizado` e contém em desenvolvimento a fatia `0.11.0` do piloto conservador de intervalos intensos para estrada, ainda sem publicação na VPS. A release `v0.8.0` continua sendo a versão publicada no GitHub.
 - A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local) e `9034287` (matriz comparativa).
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
@@ -330,6 +330,13 @@ Arquivos desta fatia: `backend/internal/planning/protocols.go`, `backend/interna
 - A tela de novidades foi atualizada para `0.10.0`. A proteção contra divergência de hidratação calcula a data local da ação somente depois do primeiro render. Não houve migração, mudança de infraestrutura, deploy ou alteração do motor prescritivo `rules-v1`.
 
 Validação desta fatia: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, `oxlint` do componente alterado, OpenAPI, teste transacional PostgreSQL com `ROLLBACK`, consulta de histórico e confirmação visual no navegador local passaram. O lint geral ainda aponta débitos preexistentes em arquivos não tocados. O commit `051d285` foi feito; não foi feito deploy.
+
+### Décima terceira fatia de melhorias — piloto de intervalos intensos para estrada
+
+- O catálogo local passa a ter `road_high_intensity_intervals`, apresentado como **Intervalos intensos de estrada**. O estímulo usa até cinco blocos de 8 minutos com 4 minutos leves, alvo RPE 8 e uma única sessão de qualidade por semana; a estrutura reduz blocos quando a duração adaptada não comporta o formato completo.
+- A seleção exige disciplina `road`, nível avançado, pelo menos oito semanas e três pedais semanais recentes, avaliação submáxima apta, objetivo de performance/evento, pelo menos 75 minutos disponíveis, ciclo alternado e semana de construção. Dor, limitação, recuperação insuficiente, dados inelegíveis, baixa consistência e perfis abaixo do avançado continuam impedindo o piloto.
+- A fonte principal é `road-block-comparison-2025`, complementada por `rosenblat-2020`. O estudo recente envolveu ciclistas bem treinados e blocos concentrados; o Cadência não copia sua frequência, seu RPE ou sua carga. A implementação local é uma adaptação conservadora, sem potência obrigatória, sem sprint máximo e sem alteração do `rules-v1` fora dessa escolha contextual.
+- A funcionalidade é visível, então `frontend/lib/release.ts` foi atualizado para `0.11.0` e a tela de novidades informa a disponibilidade restrita. A validação Go e o build do frontend passaram; não houve commit, deploy, migração ou mudança de infraestrutura nesta fatia.
 
 ## Feedback de produto e recebimento dos relatos
 
