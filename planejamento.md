@@ -1250,3 +1250,17 @@ Após a validação do taper, a próxima expansão do catálogo foi implementada
 A sessão usa quatro blocos de 4 minutos em RPE 8, com quatro minutos leves entre os blocos, aquecimento e desaquecimento. Não há sprint máximo, cadência baixa obrigatória, potência fixa ou conversão de frequência cardíaca em VO₂max. Dor, limitação, recuperação insuficiente, evento fora da fase específica, perfil intermediário, histórico insuficiente e outras modalidades não recebem o piloto; `rules-v1` continua como única autoridade prescritiva.
 
 A migração `000018_road_vo2_catalog_evidence` foi criada e aplicada somente no PostgreSQL local, registrando `road-vo2-intervention-2024` e `road-vo2-response-2024`. A versão visível local passou para `0.14.0` e a tela de novidades foi atualizada. Os testes direcionados de planejamento e onboarding passaram; ainda faltam a suíte completa, o build final, a conferência ponta a ponta da preferência e das fontes via API/navegador e o registro do resultado. Produção continua em `0.12.0`/`000016`, sem deploy ou mudança de infraestrutura. Após essa validação, oferecer o commit e só então avaliar o próximo protocolo do catálogo.
+
+### Continuidade — validação do piloto VO₂max de estrada — 12 de setembro de 2026
+
+A validação local do piloto `road_vo2_intervals` foi concluída. A conta de teste salvou a preferência explícita `VO₂max` no perfil, a API local aceitou o contexto depois da reinicialização do binário atual e a geração do plano apresentou **Intervalos VO₂max de estrada** para o cenário elegível. O teste também confirmou que o `400` observado anteriormente vinha de um processo antigo da API, não de dados inválidos do formulário.
+
+`go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. A implementação e a migração `000018` estão no commit `01875c9`; a versão local permanece `0.14.0`, com a nota de novidades atualizada. Produção continua em `0.12.0`/`000016`, sem deploy, alteração de infraestrutura ou publicação da release.
+
+Próxima etapa: avaliar o próximo candidato do catálogo com pesquisa específica, elegibilidade, limites de segurança e teste de não seleção antes de implementar outro protocolo. O taper e o piloto VO₂max devem permanecer locais até revisão do catálogo, backup e autorização explícita de publicação.
+
+### Continuidade — pesquisa do candidato de intervalos curtos — 12 de setembro de 2026
+
+A pesquisa do próximo protocolo recomenda avaliar intervalos curtos autorregulados para estrada ou indoor, sem sprint máximo. Um ensaio de 2025 comparou, em adultos anteriormente inativos, formatos de 30 segundos com 120 segundos de recuperação e de 1 minuto com 1 minuto de recuperação; ambos melhoraram o VO₂peak. Estudos em ciclistas treinados e uma meta-análise recente ajudam a contextualizar o formato, mas as populações, doses e níveis de controle são diferentes do público geral do Cadência.
+
+Por isso, o candidato permanece somente documentado. Antes de qualquer código, será necessário definir a população elegível, avaliação apta, histórico mínimo, número máximo de blocos, recuperação, RPE, interrupção, uma única sessão de qualidade e travas por dor, fadiga e recuperação. Não foram criados protocolo, migração, nota de versão ou alteração de produção nesta etapa.

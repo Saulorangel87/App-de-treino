@@ -25,8 +25,8 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 ## Estado do checkout local
 
-- A produção está no commit `53cbadc fix(frontend): adiciona acesso ao perfil no mobile`, na versão `0.12.0`, e a release `v0.12.0` é a versão publicada mais recente no GitHub. O checkout local contém o taper já commitado em `0eb34d6` e o piloto de VO₂max de estrada em implementação local, ambos sem publicação.
-- A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local), `9034287` (matriz comparativa), `61d7939` (pin do digest do Tunnel), `1358ac1` (status da versão `0.12.0`), `53cbadc` (acesso ao perfil no mobile), `66f70ed` (decisão do taper pré-prova) e `0eb34d6` (implementação local do taper).
+- A produção está no commit `53cbadc fix(frontend): adiciona acesso ao perfil no mobile`, na versão `0.12.0`, e a release `v0.12.0` é a versão publicada mais recente no GitHub. O checkout local contém o taper já commitado em `0eb34d6` e o piloto de VO₂max de estrada validado no commit `01875c9`; ambos continuam sem publicação.
+- A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local), `9034287` (matriz comparativa), `61d7939` (pin do digest do Tunnel), `1358ac1` (status da versão `0.12.0`), `53cbadc` (acesso ao perfil no mobile), `66f70ed` (decisão do taper pré-prova), `0eb34d6` (implementação local do taper) e `01875c9` (piloto local de VO₂max de estrada).
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
 
@@ -43,7 +43,13 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - A escolha exige disciplina `road`, atleta avançado, objetivo `performance` ou `event`, avaliação submáxima apta, pelo menos oito semanas de treino recente, três pedais semanais, 60 minutos disponíveis, semana de construção e ausência de proteções. Perfis intermediários, outras modalidades, histórico insuficiente e preferência não informada permanecem fora do piloto.
 - A sessão usa quatro blocos de 4 minutos em RPE 8 com quatro minutos leves, sem sprint máximo, cadência baixa obrigatória, meta fixa de potência ou frequência cardíaca tratada como equivalente a VO₂max. A dor, limitação, recuperação insuficiente e o taper continuam vencendo a seleção.
 - A migração `000018_road_vo2_catalog_evidence` foi aplicada somente no PostgreSQL local e registra `road-vo2-intervention-2024` e `road-vo2-response-2024`. O `rules-v1` continua sendo o único motor prescritivo; produção permanece em `0.12.0`/`000016`, sem deploy ou mudança de infraestrutura.
-- A versão local passou para `0.14.0` e a tela de novidades foi atualizada. Os testes direcionados de planejamento e onboarding passaram; ainda falta a suíte completa, build, validação da evidência via API/navegador e registro do resultado antes de qualquer decisão de publicação.
+- A versão local passou para `0.14.0` e a tela de novidades foi atualizada. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. A validação ponta a ponta confirmou no navegador o salvamento da preferência `VO₂max`, a aceitação do contexto pela API local após reiniciar o binário atual e a geração de um plano com **Intervalos VO₂max de estrada**. Produção permanece em `0.12.0`/`000016`, sem deploy ou mudança de infraestrutura.
+
+### Próximo candidato de catálogo — intervalos curtos autorregulados (em avaliação)
+
+- A pesquisa de 12 de setembro de 2026 recomenda avaliar intervalos curtos autorregulados para estrada ou indoor, sem sprint máximo. O estudo de Hesketh et al. (2025) comparou `4–8 × 30 s` com 120 segundos de recuperação e `6–10 × 1 min` com 1 minuto de recuperação em adultos anteriormente inativos; ambos melhoraram o VO₂peak, mas essa população não representa automaticamente os atletas do Cadência.
+- O estudo de Rønnestad et al. (2020) em ciclistas de elite informa que intervalos de 30 segundos podem produzir adaptações favoráveis, porém a amostra, o nível e o esforço repetido limitam a transferência. Uma meta-análise de 2025 reforça a heterogeneidade entre HIIT, SIT e repeated-sprint training.
+- Nenhum protocolo foi implementado. Ainda faltam especificação de gates, limites, recuperação, interrupção e testes de não seleção. Não há migração, mudança de versão ou alteração de produção para este candidato.
 
 ## Arquitetura efetiva
 
@@ -184,7 +190,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
 - `backend/`: API REST em Go.
-- `database/migrations/`: migrações PostgreSQL até `000017`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes científicas do catálogo inicial, a `000016` registra a fonte do piloto XCO e a `000017` registra as fontes do taper pré-prova. Em produção, todas até `000016` estão aplicadas; a `000017` está somente no banco local nesta etapa.
+- `database/migrations/`: migrações PostgreSQL até `000018`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes científicas do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova e a `000018` registra as fontes do piloto VO₂max de estrada. Em produção, todas até `000016` estão aplicadas; `000017` e `000018` estão somente no banco local nesta etapa.
 - `database/tests/`: verificações SQL.
 - `api/openapi.yaml`: contrato da API local e de produção.
 - `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.
@@ -255,12 +261,12 @@ As rotas estão descritas em `api/openapi.yaml`. Os grupos principais são:
 
 ## Banco e migrações
 
-- Migrações versionadas no checkout local: `000001` a `000017`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes científicas do catálogo inicial, a `000016` registra a fonte do piloto XCO e a `000017` registra as fontes do taper pré-prova.
-- Em produção, estão aplicadas `000001` a `000016`. A `000016` foi executada pelo perfil `maintenance` após backup verificável, revisão e autorização explícita; a `000017` ainda depende de validação local, commit, backup, autorização e execução ordenada em produção.
+- Migrações versionadas no checkout local: `000001` a `000018`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes científicas do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova e a `000018` registra as fontes do piloto VO₂max de estrada.
+- Em produção, estão aplicadas `000001` a `000016`. A `000016` foi executada pelo perfil `maintenance` após backup verificável, revisão e autorização explícita; `000017` e `000018` ainda dependem de revisão final, backup, autorização e execução ordenada em produção.
 - `000012` adiciona confirmação de e-mail e recuperação de senha.
 - Produção possui registro de migrações em `cadencia_schema_migrations`.
 - O usuário da API não é superusuário; o proprietário do banco é reservado para operações administrativas.
-- Não há alterações de esquema aplicadas parcialmente na produção; a única migração posterior no checkout é a `000017`, ainda local. Novas migrações devem continuar sendo executadas em ordem pelo perfil `maintenance`, após backup verificável.
+- Não há alterações de esquema aplicadas parcialmente na produção; as migrações posteriores no checkout (`000017` e `000018`) permanecem somente locais. Novas migrações devem continuar sendo executadas em ordem pelo perfil `maintenance`, após backup verificável.
 
 ## Produção validada
 
@@ -382,7 +388,7 @@ Nesta primeira etapa, os relatos continuam centralizados no banco e não geram u
 2. Evoluir as regras em versão paralela, preservando `rules-v1` até que a nova versão esteja testada, comparável e auditável.
 3. Trabalhar adaptação em ciclo fechado, carga/progressão e integridade dos dados antes de ampliar a prescrição.
 4. Reforçar segurança, feedback pós-treino, explicabilidade e auditabilidade das decisões.
-5. Especificar o taper pré-prova como próximo candidato do catálogo, preservando `rules-v1`; gravel/XCM permanecem contextuais até haver evidência direta de prescrição.
+5. Revisar o taper pré-prova e o piloto VO₂max de estrada para uma eventual publicação, preservando `rules-v1`; novos protocolos só entram após evidência, elegibilidade, segurança e validação próprias. Gravel/XCM permanecem contextuais até haver evidência direta de prescrição.
 6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
 7. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
 
