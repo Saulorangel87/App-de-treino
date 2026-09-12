@@ -237,4 +237,4 @@ Esse resultado é relevante para investigar um estímulo de resistência especí
 
 ### Publicação do catálogo ampliado — 12 de setembro de 2026
 
-Após a validação local, os pilotos `taper-v1`, `road_vo2_intervals` e `short_self_regulated_intervals` foram publicados na produção com as migrações `000017`, `000018` e `000019`. A decisão de escopo também foi publicada: sprint/pista/BMX e downhill/enduro não são modalidades do Cadência e não devem ser reintroduzidos no perfil, nas preferências ou no motor. A versão comunicada ao usuário passou para `0.16.0`; a release correspondente no GitHub ainda aguarda criação.
+Após a validação local, os pilotos `taper-v1`, `road_vo2_intervals` e `short_self_regulated_intervals` foram publicados na produção com as migrações `000017`, `000018` e `000019`. A decisão de escopo também foi publicada: sprint/pista/BMX e downhill/enduro não são modalidades do Cadência e não devem ser reintroduzidos no perfil, nas preferências ou no motor. A versão comunicada ao usuário passou para `0.16.0` e foi registrada na release [v0.16.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.16.0).

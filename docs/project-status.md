@@ -20,12 +20,12 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - Código na VPS: `/home/ubuntu/apps/cadencia`.
 - Commit implantado: `6fdbe45 docs(status): atualiza estado local do catalogo`; API e frontend foram reconstruídos, as migrações `000017`–`000019` foram aplicadas e PostgreSQL e túnel permaneceram ativos.
 - O backup preventivo `cadencia-20260912T155746Z.dump` foi criado e verificado antes da aplicação das migrações. O endpoint interno `/ready`, os dois domínios públicos e os quatro serviços retornaram estado saudável após o deploy.
-- A versão do produto publicada é `0.16.0`. A release mais recente registrada no GitHub continua sendo [v0.12.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.12.0); a release `v0.16.0` ainda não foi criada.
+- A versão do produto publicada é `0.16.0`, registrada na release [v0.16.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.16.0).
 - O Cloudflare Tunnel dedicado expõe somente frontend e API; o PostgreSQL não possui hostname, rota pública ou porta publicada.
 
 ## Estado do checkout local
 
-- A produção está no commit `6fdbe45`, na versão `0.16.0`; a release `v0.12.0` é a versão mais recente registrada no GitHub. As migrações `000017`, `000018` e `000019`, o taper, o piloto de VO₂max, o piloto de intervalos curtos e a decisão de escopo de modalidades foram publicados e validados na VPS.
+- A produção está no commit `6fdbe45`, na versão `0.16.0`, registrada na release [v0.16.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.16.0). As migrações `000017`, `000018` e `000019`, o taper, o piloto de VO₂max, o piloto de intervalos curtos e a decisão de escopo de modalidades foram publicados e validados na VPS.
 - A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local), `9034287` (matriz comparativa), `61d7939` (pin do digest do Tunnel), `1358ac1` (status da versão `0.12.0`), `53cbadc` (acesso ao perfil no mobile), `66f70ed` (decisão do taper pré-prova), `0eb34d6` (implementação local do taper), `01875c9` (piloto local de VO₂max de estrada), `1eab2c8` (piloto local de intervalos curtos), `3b3639a` (exclusão de modalidades fora do produto), `9aff39f` (sincronização documental), `6fdbe45` (estado do catálogo) e o deploy autorizado da versão `0.16.0`.
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
@@ -396,13 +396,11 @@ Nesta primeira etapa, os relatos continuam centralizados no banco e não geram u
 
 ## Próximas etapas do produto
 
-1. Fazer o smoke test de produção da nota `0.16.0` e do perfil, confirmando que as opções de sprint/pista/BMX e downhill/enduro não aparecem.
-2. Criar a release `v0.16.0` no GitHub, mantendo o commit publicado e a documentação sincronizados.
-3. Observar os pilotos publicados — taper, VO₂max de estrada e intervalos curtos — dentro dos gates documentados, sem transformar um caso isolado em autorização de carga.
-4. Acompanhar o primeiro resumo semanal do Resend e os relatos reais, sem repetir como bloqueio os testes já concluídos de latência, limites e fallback do Worker.
-5. Retomar a evolução em shadow de adaptação, carga/progressão e integridade dos dados, preservando `rules-v1` até que a nova versão esteja testada, comparável e auditável.
-6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
-7. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
+1. Observar os pilotos publicados — taper, VO₂max de estrada e intervalos curtos — dentro dos gates documentados, sem transformar um caso isolado em autorização de carga.
+2. Acompanhar o primeiro resumo semanal do Resend e os relatos reais, sem repetir como bloqueio os testes já concluídos de latência, limites e fallback do Worker.
+3. Retomar a evolução em shadow de adaptação, carga/progressão e integridade dos dados, preservando `rules-v1` até que a nova versão esteja testada, comparável e auditável.
+4. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
+5. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
 
 O feedback real e o primeiro envio automático do Resend seguem em paralelo, sem bloquear as melhorias. Os testes manuais de e-mail e de latência/limites/fallback já foram realizados e não precisam ser repetidos como condição para avançar. O catálogo ampliado foi publicado em `0.16.0`; a operação deve observar taper, VO₂max de estrada e intervalos curtos somente dentro dos critérios de elegibilidade documentados.
 

@@ -1299,10 +1299,10 @@ A mudança visível atualizou a versão local para `0.16.0` e a tela de novidade
 
 Após a revisão do catálogo local, foram publicados na VPS os pilotos `taper-v1`, `road_vo2_intervals` e `short_self_regulated_intervals`, junto da decisão de excluir sprint/pista/BMX e downhill/enduro. O commit `6fdbe45` foi buscado por fast-forward, o backup `cadencia-20260912T155746Z.dump` foi criado e verificado, e as migrações `000017`, `000018` e `000019` foram aplicadas pelo perfil `maintenance` antes da recriação somente de API e frontend. PostgreSQL e Tunnel permaneceram ativos.
 
-A versão comunicada passou para `0.16.0`. A API respondeu `/health` e `/ready`, os dois domínios oficiais retornaram HTTP 200 a partir da VPS e os quatro serviços ficaram saudáveis. Não houve alteração de infraestrutura além da atualização controlada das imagens da API e do frontend. A release `v0.16.0` do GitHub ainda não foi criada.
+A versão comunicada passou para `0.16.0`. A API respondeu `/health` e `/ready`, os dois domínios oficiais retornaram HTTP 200 a partir da VPS e os quatro serviços ficaram saudáveis. Não houve alteração de infraestrutura além da atualização controlada das imagens da API e do frontend. A release [v0.16.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.16.0) foi criada no GitHub.
 
 ### Próxima etapa — pós-publicação do catálogo `0.16.0` — 12 de setembro de 2026
 
-O próximo passo é fazer o smoke test visual da nota de novidades e do perfil em produção, confirmando a presença dos pilotos permitidos e a ausência de sprint/pista/BMX e downhill/enduro. Em seguida, deve ser criada a release `v0.16.0` no GitHub.
+O smoke test visual da nota de novidades e do perfil em produção foi validado pelo proprietário, confirmando a presença dos pilotos permitidos e a ausência de sprint/pista/BMX e downhill/enduro. A release [v0.16.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.16.0) foi criada no GitHub apontando para o commit publicado `6fdbe45`.
 
 Depois da conferência inicial, a operação deve observar os pilotos de taper, VO₂max de estrada e intervalos curtos dentro dos gates documentados, enquanto o primeiro resumo semanal do Resend e os relatos reais seguem em paralelo. A próxima fatia de código deve retomar a evolução em shadow de adaptação, carga/progressão e integridade dos dados, sem substituir o `rules-v1` antes de haver comparação, testes e auditabilidade suficientes.
