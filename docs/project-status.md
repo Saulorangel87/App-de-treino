@@ -396,15 +396,15 @@ Nesta primeira etapa, os relatos continuam centralizados no banco e não geram u
 
 ## Próximas etapas do produto
 
-1. Preparar a comparação observacional entre períodos não sobrepostos, sem transformar uma razão isolada em autorização de carga ou chamar ausência de registros de destreinamento.
-2. Evoluir as regras em versão paralela, preservando `rules-v1` até que a nova versão esteja testada, comparável e auditável.
-3. Trabalhar adaptação em ciclo fechado, carga/progressão e integridade dos dados antes de ampliar a prescrição.
-4. Reforçar segurança, feedback pós-treino, explicabilidade e auditabilidade das decisões.
-5. Revisar o taper pré-prova e o piloto VO₂max de estrada para uma eventual publicação, preservando `rules-v1`; novos protocolos só entram após evidência, elegibilidade, segurança e validação próprias. Gravel/XCM permanecem contextuais até haver evidência direta de prescrição.
+1. Fazer o smoke test de produção da nota `0.16.0` e do perfil, confirmando que as opções de sprint/pista/BMX e downhill/enduro não aparecem.
+2. Criar a release `v0.16.0` no GitHub, mantendo o commit publicado e a documentação sincronizados.
+3. Observar os pilotos publicados — taper, VO₂max de estrada e intervalos curtos — dentro dos gates documentados, sem transformar um caso isolado em autorização de carga.
+4. Acompanhar o primeiro resumo semanal do Resend e os relatos reais, sem repetir como bloqueio os testes já concluídos de latência, limites e fallback do Worker.
+5. Retomar a evolução em shadow de adaptação, carga/progressão e integridade dos dados, preservando `rules-v1` até que a nova versão esteja testada, comparável e auditável.
 6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
 7. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
 
-O feedback real e o primeiro envio automático do Resend seguem em paralelo, sem bloquear as melhorias. Os testes manuais de e-mail e de latência/limites/fallback já foram realizados e não precisam ser repetidos como condição para avançar. O deploy do piloto XCO foi concluído e a operação deve observar seu uso somente dentro dos critérios de elegibilidade documentados.
+O feedback real e o primeiro envio automático do Resend seguem em paralelo, sem bloquear as melhorias. Os testes manuais de e-mail e de latência/limites/fallback já foram realizados e não precisam ser repetidos como condição para avançar. O catálogo ampliado foi publicado em `0.16.0`; a operação deve observar taper, VO₂max de estrada e intervalos curtos somente dentro dos critérios de elegibilidade documentados.
 
 ## Como iniciar localmente
 
