@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   Activity,
   ArrowRight,
@@ -18,6 +19,7 @@ import {
   MessageSquareHeart,
   Settings,
   Sparkles,
+  UserRound,
 } from 'lucide-react';
 import { AdaptationCard } from '@/components/adaptation-card';
 import { LogoutButton } from '@/components/account-actions';
@@ -346,6 +348,10 @@ export default function HomePage() {
               <MessageSquareHeart size={15} />
               Feedback
             </a>
+            <Link className="profile-quick-link" href="/perfil">
+              <UserRound size={15} />
+              Perfil
+            </Link>
             <LogoutButton compact />
           </div>
         </header>

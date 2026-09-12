@@ -242,6 +242,15 @@ button {
   font-weight: 750;
   text-decoration: none;
 }
+.profile-quick-link {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  color: #376b55;
+  font-size: 10px;
+  font-weight: 750;
+  text-decoration: none;
+}
 .logout-wrap {
   position: relative;
   flex: 0 0 auto;
@@ -1758,6 +1767,9 @@ button {
     display: none;
   }
   .feedback-quick-link {
+    display: inline-flex;
+  }
+  .profile-quick-link {
     display: inline-flex;
   }
   .dashboard-grid {
