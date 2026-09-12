@@ -122,9 +122,16 @@ func TestSaveCyclingContextAcceptsKnownDisciplines(t *testing.T) {
 }
 
 func TestSaveCyclingContextAcceptsAllSessionPreferences(t *testing.T) {
-	input := CyclingContext{PreferredSessionTypes: []string{"base", "cadence", "hills", "intervals", "sweet_spot", "recovery"}}
+	input := CyclingContext{PreferredSessionTypes: []string{"base", "cadence", "hills", "intervals", "sweet_spot", "vo2max", "recovery"}}
 	if _, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", input); err != nil {
 		t.Fatalf("expected all available session preferences to be accepted, got %v", err)
+	}
+}
+
+func TestSaveCyclingContextAcceptsVO2MaxSessionPreference(t *testing.T) {
+	input := CyclingContext{PreferredSessionTypes: []string{"vo2max"}}
+	if _, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", input); err != nil {
+		t.Fatalf("expected VO₂max session preference to be accepted, got %v", err)
 	}
 }
 

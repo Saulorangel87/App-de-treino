@@ -156,6 +156,68 @@ func TestBuildPlanUsesRoadModerateIntervalsForEligibleRoadContext(t *testing.T) 
 	t.Fatalf("expected eligible road context to receive the road pilot, got %#v", plan.Workouts)
 }
 
+func TestBuildPlanUsesRoadVO2IntervalsForExplicitEligiblePreference(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 8, Discipline: "road", PreferredSessionTypes: []string{"vo2max"}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name != "Intervalos VO₂max de estrada" {
+			continue
+		}
+		if workout.Structure["protocol_key"] != "road_vo2_intervals" || workout.Explanation["protocol_key"] != "road_vo2_intervals" {
+			t.Fatalf("expected road VO₂max protocol metadata, got %#v", workout)
+		}
+		if workout.TargetRPE != 8.0 || workout.DurationMinutes > 90 {
+			t.Fatalf("unexpected road VO₂max load: %#v", workout)
+		}
+		if workout.Explanation["evidence_keys"].([]string)[0] != "road-vo2-intervention-2024" {
+			t.Fatalf("expected recent VO₂max evidence mapping, got %#v", workout.Explanation)
+		}
+		steps := workout.Structure["steps"].([]WorkoutStep)
+		if steps[1].Title != "Intervalo VO₂max de estrada 1 de 4" || steps[1].DurationMinutes != 4 || steps[2].Kind != "recovery" || steps[2].DurationMinutes != 4 {
+			t.Fatalf("expected conservative VO₂max interval structure, got %#v", steps)
+		}
+		return
+	}
+	t.Fatalf("expected explicit eligible road context to receive the VO₂max pilot, got %#v", plan.Workouts)
+}
+
+func TestBuildPlanDoesNotUseRoadVO2OutsideEligibleContext(t *testing.T) {
+	cases := []Context{
+		{
+			ProfileID: "profile-1", ExperienceLevel: "intermediate", PrimaryGoal: "performance", BaselineEligible: true,
+			Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+			Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 8, Discipline: "road", PreferredSessionTypes: []string{"vo2max"}},
+		},
+		{
+			ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+			Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+			Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 7, Discipline: "road", PreferredSessionTypes: []string{"vo2max"}},
+		},
+		{
+			ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+			Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+			Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 8, Discipline: "mtb_xco", PreferredSessionTypes: []string{"vo2max"}},
+		},
+	}
+	for index, input := range cases {
+		plan, err := buildPlan(input, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+		if err != nil {
+			t.Fatalf("case %d returned unexpected error: %v", index, err)
+		}
+		for _, workout := range plan.Workouts {
+			if workout.Name == "Intervalos VO₂max de estrada" || workout.Structure["protocol_key"] == "road_vo2_intervals" {
+				t.Fatalf("case %d must not use road VO₂max protocol: %#v", index, workout)
+			}
+		}
+	}
+}
+
 func TestBuildPlanDoesNotUseRoadProtocolOutsideRoadDiscipline(t *testing.T) {
 	plan, err := buildPlan(Context{
 		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
@@ -341,7 +403,7 @@ func TestSessionProtocolsKeepEvidenceMapping(t *testing.T) {
 	for _, name := range []string{
 		"Giro de base", "Recuperação ativa", "Endurance contínuo", "Giro leve protegido", "Tempo controlado",
 		"Ritmo de prova controlado", "Cadência técnica", "Subidas controladas",
-		"Sweet spot por potência", "Sweet spot progressivo", "Intervalos controlados", "Intervalos moderados de estrada", "Intervalos intensos de estrada", "Intervalos aeróbicos XCO",
+		"Sweet spot por potência", "Sweet spot progressivo", "Intervalos controlados", "Intervalos moderados de estrada", "Intervalos intensos de estrada", "Intervalos VO₂max de estrada", "Intervalos aeróbicos XCO",
 	} {
 		protocol := protocolForWorkout(name)
 		if protocol.Key == "" || len(protocol.EvidenceKeys) == 0 || protocol.EvidenceScope == "" {

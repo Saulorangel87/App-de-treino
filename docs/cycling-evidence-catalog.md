@@ -1,6 +1,6 @@
 # Mapa de evidências do catálogo de ciclismo
 
-Última revisão: 11 de setembro de 2026.
+Última revisão: 12 de setembro de 2026.
 
 ## Objetivo
 
@@ -146,6 +146,8 @@ Cada novo protocolo também deverá declarar, em código:
 - **`dh-injury-2024`** — Fallon et al. *Downhill race for a rainbow jersey: the epidemiology of injuries in downhill mountain biking at the 2023 UCI cycling world championships*. 2024. Estudo observacional de lesões; usado como trava de segurança, não como prescrição. https://pubmed.ncbi.nlm.nih.gov/39411021/
 - **`mtb-crash-mechanisms-2025`** — Bonte et al. *Injury Mechanisms in Mountain Biking: A Systematic Video Analysis of 534 Cases*. 2025. Estudo de mecanismos de queda; reforça que habilidade técnica e prevenção não devem ser reduzidas a carga aeróbica. https://pubmed.ncbi.nlm.nih.gov/40534393/
 - **`track-sprint-load-2023`** — *Training load and intensity distribution for sprinting among world-class track cyclists*. 2023. Descrição de treinamento de velocistas de pista; modalidade fora do escopo do primeiro catálogo ampliado. https://pubmed.ncbi.nlm.nih.gov/36961508/
+- **`road-vo2-intervention-2024`** — Hebisz e Hebisz. *Greater improvement in aerobic capacity after a polarized training program including cycling interval training at low cadence (50-70 RPM) than freely chosen cadence (above 80 RPM)*. 2024. Ensaio com ciclistas mulheres bem treinadas; informa blocos de 4 minutos em alta intensidade, mas não sustenta copiar carga, cadência ou potência para todos os perfis. https://pubmed.ncbi.nlm.nih.gov/39536034/
+- **`road-vo2-response-2024`** — Odden et al. *The higher the fraction of maximal oxygen uptake is during interval training, the greater is the cycling performance gain*. 2024. Intervenção observacional em ciclistas bem treinados; associa maior fração de VO₂max durante intervalos a ganhos de desempenho, sem definir dose universal. https://pubmed.ncbi.nlm.nih.gov/39385317/
 
 ## Critérios para os próximos protocolos
 
@@ -201,3 +203,11 @@ O primeiro candidato orientado por evento foi implementado localmente como uma a
 - registra `taper-cyclist-2025` e `taper-meta-2023` nas sessões afetadas; a migração `000017` também registra `taper-overreach-cyclists-2023` como limite contra intensificação automática.
 
 Os testes cobrem evento próximo e distante, evento passado, nível/histórico insuficiente, proteção por dor, semana de recuperação e determinismo. A migração `000017` foi aplicada somente no PostgreSQL de desenvolvimento local; a produção permanece na `000016`. A versão local visível passou para `0.13.0` e a tela de novidades foi atualizada, mas a validação do proprietário e qualquer publicação ainda estão pendentes.
+
+### Novo piloto local: intervalos VO₂max de estrada — 12 de setembro de 2026
+
+O protocolo `road_vo2_intervals`, apresentado como **Intervalos VO₂max de estrada**, foi adicionado somente ao checkout local como uma nova opção explícita de preferência. Ele usa quatro blocos de 4 minutos em RPE 8, com 4 minutos leves entre os blocos, aquecimento e desaquecimento; a estrutura não prescreve sprint máximo, cadência baixa, potência fixa ou frequência cardíaca como substituto de VO₂max.
+
+O motor só o seleciona quando a disciplina informada é `road`, o atleta é avançado, a avaliação submáxima está apta, o objetivo é `performance` ou `event`, há pelo menos oito semanas de treino recente, três pedais semanais informados, 60 minutos disponíveis, semana de construção e preferência explícita `vo2max`. Limitação, dor, recuperação insuficiente, evento fora da fase específica, níveis menores ou outra modalidade impedem a escolha; as proteções do `rules-v1` continuam prioritárias.
+
+A sessão é uma adaptação conservadora dos blocos de 4 minutos observados em ciclistas mulheres bem treinadas e da associação entre maior fração de VO₂max durante intervalos e ganhos de desempenho. A evidência orienta o formato e a população do piloto, mas não valida a dose para todos os atletas. A migração `000018` registra as duas fontes somente no banco local; produção continua em `000016`, sem deploy ou mudança de infraestrutura. A validação unitária direcionada passou; ainda falta a conferência ponta a ponta no navegador antes de qualquer decisão de publicação.

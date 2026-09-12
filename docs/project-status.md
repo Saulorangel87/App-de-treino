@@ -25,7 +25,7 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 ## Estado do checkout local
 
-- A produção está no commit `53cbadc fix(frontend): adiciona acesso ao perfil no mobile`, na versão `0.12.0`, e a release `v0.12.0` é a versão publicada mais recente no GitHub. O checkout local está limpo, alinhado à branch `master`, e contém o taper local já commitado em `0eb34d6`, com validação local concluída e sem publicação.
+- A produção está no commit `53cbadc fix(frontend): adiciona acesso ao perfil no mobile`, na versão `0.12.0`, e a release `v0.12.0` é a versão publicada mais recente no GitHub. O checkout local contém o taper já commitado em `0eb34d6` e o piloto de VO₂max de estrada em implementação local, ambos sem publicação.
 - A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local), `9034287` (matriz comparativa), `61d7939` (pin do digest do Tunnel), `1358ac1` (status da versão `0.12.0`), `53cbadc` (acesso ao perfil no mobile), `66f70ed` (decisão do taper pré-prova) e `0eb34d6` (implementação local do taper).
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
@@ -36,6 +36,14 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - Sessões anteriores ao evento e dentro de 14 dias recebem redução de 50% na duração, com mínimo de 20 minutos; frequência, RPE-alvo, semana de recuperação e proteções do `rules-v1` são preservados. O dia do evento fica fora da redução.
 - A migração `000017` registra três fontes do taper e foi aplicada somente no PostgreSQL de desenvolvimento existente. O trabalho está no commit local `0eb34d6`; a produção continua aplicada até `000016`, sem deploy, backup de produção, alteração de infraestrutura ou publicação da release `v0.13.0`.
 - A versão local foi atualizada para `0.13.0` e a tela de novidades informa a mudança. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. A validação positiva no navegador confirmou evento em `20/09/2026`, oito dias de distância, `status: eligible`, `applied: true`, `used_for_prescription: true`, multiplicador `0.5` e cinco sessões com `event_taper_applied`; os testes automatizados também confirmaram a não aplicação fora da janela e diante de dor/recuperação. O rascunho permaneceu sem aceite; produção continua sem a migração `000017` e sem publicação da versão `0.13.0`.
+
+### Décima quinta fatia de melhorias — piloto de intervalos VO₂max de estrada (local)
+
+- O catálogo local passa a reconhecer a preferência explícita `vo2max` e pode selecionar `road_vo2_intervals`, apresentado como **Intervalos VO₂max de estrada**.
+- A escolha exige disciplina `road`, atleta avançado, objetivo `performance` ou `event`, avaliação submáxima apta, pelo menos oito semanas de treino recente, três pedais semanais, 60 minutos disponíveis, semana de construção e ausência de proteções. Perfis intermediários, outras modalidades, histórico insuficiente e preferência não informada permanecem fora do piloto.
+- A sessão usa quatro blocos de 4 minutos em RPE 8 com quatro minutos leves, sem sprint máximo, cadência baixa obrigatória, meta fixa de potência ou frequência cardíaca tratada como equivalente a VO₂max. A dor, limitação, recuperação insuficiente e o taper continuam vencendo a seleção.
+- A migração `000018_road_vo2_catalog_evidence` foi aplicada somente no PostgreSQL local e registra `road-vo2-intervention-2024` e `road-vo2-response-2024`. O `rules-v1` continua sendo o único motor prescritivo; produção permanece em `0.12.0`/`000016`, sem deploy ou mudança de infraestrutura.
+- A versão local passou para `0.14.0` e a tela de novidades foi atualizada. Os testes direcionados de planejamento e onboarding passaram; ainda falta a suíte completa, build, validação da evidência via API/navegador e registro do resultado antes de qualquer decisão de publicação.
 
 ## Arquitetura efetiva
 

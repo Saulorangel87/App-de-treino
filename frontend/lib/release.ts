@@ -1,6 +1,11 @@
-export const APP_VERSION = '0.13.0';
+export const APP_VERSION = '0.14.0';
 
 export const UPDATE_NOTES = [
+  {
+    title: 'Piloto de intervalos VO₂max para estrada',
+    description:
+      'Atletas avançados elegíveis que escolherem VO₂max podem receber quatro blocos controlados de 4 minutos, baseados em evidências recentes. O app mantém RPE, duração mínima e as proteções de dor, recuperação e histórico.',
+  },
   {
     title: 'Taper pré-prova orientado por evento',
     description:

@@ -85,6 +85,12 @@ var sessionProtocols = map[string]sessionProtocol{
 		WorkMinutes:   8, RecoveryMinutes: 4, Repetitions: 5,
 		WorkTitle: "Intervalo intenso", WorkInstruction: "Sustente um esforço forte e controlado, sem sprintar; reduza ou interrompa se perder a técnica, o controle da respiração ou surgir dor.",
 	},
+	"Intervalos VO₂max de estrada": {
+		Key: "road_vo2_intervals", EvidenceKeys: []string{"road-vo2-intervention-2024", "road-vo2-response-2024"},
+		EvidenceScope: "Estudos recentes em ciclistas bem treinados associam intervalos de 4 a 8 minutos e maior fração de VO₂max a adaptações de desempenho, mas não validam esta dose para todos os atletas. O Cadência usa quatro blocos de 4 minutos como adaptação conservadora, guiada por RPE e sem meta fixa de potência.",
+		WorkMinutes:   4, RecoveryMinutes: 4, Repetitions: 4,
+		WorkTitle: "Intervalo VO₂max de estrada", WorkInstruction: "Sustente um esforço muito forte e controlado, sem sprintar; reduza ou interrompa se perder a técnica, o controle da respiração ou surgir dor.",
+	},
 	"Intervalos aeróbicos XCO": {
 		Key: "xco_aerobic_intervals", EvidenceKeys: []string{"xco-hit-2016", "xco-physiology-2026"},
 		EvidenceScope: "Um ensaio com mountain bikers treinados observou benefício do HIT para desempenho de MTB, e a revisão de XCO de 2026 confirma a demanda aeróbica intermitente. Esta é uma adaptação conservadora, sem sprint máximo ou simulação técnica de prova.",

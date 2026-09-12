@@ -1,6 +1,6 @@
 # Adaptação do plano após o treino
 
-Última revisão: 11 de setembro de 2026.
+Última revisão: 12 de setembro de 2026.
 
 ## Objetivo
 
@@ -28,10 +28,11 @@ Na geração do plano, o motor mantém a frequência, os limites de duração, a
 - **Demais perfis:** mantém o tempo controlado; avançados sem contexto específico recebem sweet spot progressivo.
 - **MTB XCO avançado elegível:** contexto `mtb_xco` explícito, objetivo de performance/prova, avaliação submáxima apta, pelo menos 75 minutos disponíveis e semana de construção liberam o piloto de intervalos aeróbicos XCO. Ele usa cinco blocos de 4 minutos com 4 minutos leves, RPE 7, sem sprint máximo ou técnica de trilha.
 - **Estrada avançada elegível em ciclo alternado:** contexto `road` explícito, pelo menos oito semanas e três pedais semanais recentes, objetivo de performance/prova, avaliação submáxima apta, pelo menos 75 minutos disponíveis e semana de construção liberam o piloto de intervalos intensos de estrada. Ele usa até cinco blocos de 8 minutos com 4 minutos leves, RPE 8, sem meta rígida de potência; a carga é uma adaptação conservadora e não reproduz os blocos estudados.
+- **Preferência VO₂max em estrada avançada elegível:** contexto `road` explícito, preferência `vo2max`, pelo menos oito semanas e três pedais semanais recentes, objetivo de performance/prova, avaliação submáxima apta, pelo menos 60 minutos disponíveis e semana de construção liberam o piloto de intervalos VO₂max de estrada. Ele usa quatro blocos de 4 minutos com 4 minutos leves, RPE 8, sem sprint máximo, cadência obrigatória ou meta fixa de potência; a estrutura adapta estudos em ciclistas bem treinados e não transforma VO₂max em um valor inferido pelo aplicativo.
 
-Quando o ciclista informa preferências de sessão, elas orientam a escolha da sessão de qualidade dentro das mesmas proteções: cadência é elegível para intermediários e avançados; subidas exigem terreno com subidas; sweet spot exige nível avançado e, para potência, FTP informado; intervalos continuam exigindo avaliação submáxima apta, objetivo compatível e semana de construção. Se todas as opções forem marcadas, o motor interpreta isso como abertura a qualquer protocolo e mantém a seleção contextual padrão. Giro/base e recuperação permanecem preferências registradas, sem transformar todos os dias em sessões de qualidade.
+Quando o ciclista informa preferências de sessão, elas orientam a escolha da sessão de qualidade dentro das mesmas proteções: cadência é elegível para intermediários e avançados; subidas exigem terreno com subidas; sweet spot exige nível avançado e, para potência, FTP informado; intervalos continuam exigindo avaliação submáxima apta, objetivo compatível e semana de construção; VO₂max exige adicionalmente estrada, nível avançado e histórico mínimo. Se todas as opções forem marcadas, o motor interpreta isso como abertura a qualquer protocolo e mantém a seleção contextual padrão. Giro/base e recuperação permanecem preferências registradas, sem transformar todos os dias em sessões de qualidade.
 
-Se houver limitação ativa, a sessão específica é substituída pelo giro leve protegido. Iniciantes não recebem essas sessões de qualidade específicas ainda. Intervalos de alta intensidade ("tiros") continuam fora do motor até existir uma avaliação inicial de capacidade e regras próprias de progressão.
+Se houver limitação ativa, a sessão específica é substituída pelo giro leve protegido. Iniciantes não recebem essas sessões de qualidade específicas ainda. Sprints máximos e estímulos de pista continuam fora do motor até existir uma avaliação de capacidade e regras próprias de progressão.
 
 ## Estrutura operacional das sessões
 
@@ -49,7 +50,7 @@ O motor pode reduzir o volume do plano quando o atleta declara um evento futuro 
 - **Exceções:** o dia do evento não recebe taper e a quarta semana continua sob as regras de recuperação; ela não recebe sessões de qualidade por causa da meta de prova.
 - **Auditoria:** a avaliação informa `version`, `status`, `applied`, `used_for_prescription`, distância para o evento, regras, motivos e evidências. As sessões afetadas recebem `event_taper_applied: true` e as referências do taper.
 
-Esta é a primeira implementação local do piloto. As fontes `taper-meta-2023`, `taper-cyclist-2025` e `taper-overreach-cyclists-2023` são registradas na migração `000017`, aplicada apenas no banco de desenvolvimento nesta etapa. A produção ainda não recebeu a migração, o backend, a versão `0.13.0` nem a nota de novidades.
+Esta é a primeira implementação local do piloto. As fontes `taper-meta-2023`, `taper-cyclist-2025` e `taper-overreach-cyclists-2023` são registradas na migração `000017`, aplicada apenas no banco de desenvolvimento nesta etapa. A produção ainda não recebeu a migração, o backend, a versão `0.13.0` nem a nota de novidades. O piloto VO₂max local é uma etapa posterior e separada, registrada na migração `000018`.
 
 ## Biblioteca de protocolos
 
@@ -65,6 +66,7 @@ O motor mantém uma biblioteca explícita de protocolos em código. Cada protoco
 - `controlled_intervals`: quatro blocos de 4 minutos com 3 minutos leves, liberados somente para o perfil avançado elegível.
 - `xco_aerobic_intervals`: cinco blocos de 4 minutos com 4 minutos leves, piloto publicado restrito a XCO avançado elegível; não inclui sprint máximo, descida ou técnica de trilha.
 - `road_high_intensity_intervals`: até cinco blocos de 8 minutos com 4 minutos leves, piloto local restrito a estrada avançada elegível em ciclo alternado; não reproduz bloco concentrado, sprint máximo ou meta rígida de potência.
+- `road_vo2_intervals`: quatro blocos de 4 minutos com 4 minutos leves, piloto local restrito a estrada avançada elegível com preferência explícita `vo2max`; não prescreve sprint, cadência ou potência fixa.
 - `protected_recovery`: giro leve protegido quando existe uma limitação ativa.
 
 As referências associadas sustentam princípios como progressão gradual, monitoramento de carga e uso contextual de intervalos. O ensaio de HIT em mountain bikers treinados e a revisão sistemática contemporânea de XCO orientam o piloto, mas não validam a mesma carga para todas as pessoas; os parâmetros continuam sujeitos às regras de segurança do produto.
