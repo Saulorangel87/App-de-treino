@@ -214,6 +214,14 @@ São verificados os dados mínimos de duração positiva, RPE realizado, feedbac
 
 Esta fatia não altera o trigger `feedback_adapts_future_workouts` nem a prescrição `rules-v1`. Portanto, a barreira ativa contra progressão de registros inconsistentes continua sendo uma decisão posterior, depois de validar a observação e sua integração com o histórico.
 
+### Observação de tolerância à carga (`load-tolerance-v1`)
+
+Esta fatia acrescenta uma leitura observacional dentro de `adaptation_shadow`. Ela avalia os dois períodos semanais mais recentes, não sobrepostos, somente quando cada um possui sessões realizadas com carga por session-RPE, feedback completo e ao menos um check-in de recuperação completo. A leitura registra os períodos usados, as lacunas e as inconsistências, sem calcular ACWR, inferir tolerância fisiológica ou concluir destreinamento.
+
+Dor, fadiga alta, necessidade recente de recuperação e esforço percebido pelo menos dois pontos acima do alvo produzem `protective_signal`/`prefer_recovery`. Sem esses sinais e com os dois períodos completos, o resultado é `observation_only`/`maintain_observed`: isso descreve suporte observacional para manter a carga sob análise, não uma autorização para aumentá-la. A avaliação também fica com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`.
+
+O `rules-v1` continua sendo a única fonte prescritiva. A implementação não altera o trigger pós-feedback, não modifica sessões futuras, não cria migração e não muda a interface; por isso, não exige nova nota de versão nesta fatia. A evidência de session-RPE orienta o método de registro, mas os critérios de cobertura e os estados são barreiras prudentes do produto, não limiares fisiológicos universais.
+
 ### Rotação segura e recuperação ativa
 
 O catálogo geral possui o protocolo `active_recovery`, apresentado ao atleta como **Recuperação ativa**. O motor o seleciona somente para uma sessão de base na quarta semana do ciclo. A sessão mantém o multiplicador de recuperação já existente, usa alvo RPE 3,5 e uma instrução de pedal leve e contínuo; não representa uma prescrição universal de minutos ou intensidade.

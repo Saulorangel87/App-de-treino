@@ -130,6 +130,8 @@ O piloto local de catálogo `short_self_regulated_intervals` avalia intervalos c
 
 A pesquisa seguinte avaliou resistência específica na bicicleta como possível estímulo futuro. O ensaio randomizado de 2025 utilizou ciclistas bem treinados, resistência muito alta, cadência muito baixa e calibração por força dinâmica máxima; por isso, a evidência não pode ser convertida para RPE isolado no Cadência. O candidato permanece documentado, sem protocolo no `rules-v1`, até que existam medição, elegibilidade e controles de segurança apropriados. Gravel/XCM continuam contextos de endurance sem protocolo próprio; sprint de pista/BMX e downhill/enduro estão fora do produto.
 
+Fatia técnica local implementada: `load-tolerance-v1` observa os dois períodos semanais mais recentes com carga session-RPE, feedback completo e recuperação registrada. Dor, fadiga alta, recuperação necessária ou esforço atual pelo menos dois pontos acima do alvo mantêm uma resposta protetiva; evidência completa sem esses sinais produz apenas `observation_only`. A leitura fica aninhada em `workouts.explanation.adaptation_shadow`, com `progression_eligible`, `applied` e `used_for_prescription` sempre falsos. Ela não calcula ACWR, não infere tolerância fisiológica e não altera `rules-v1`, o trigger, migrações, interface ou produção.
+
 ## ADR-010 — Modalidades fora do escopo do Cadência
 
 **Status:** Aceita e aplicada localmente.

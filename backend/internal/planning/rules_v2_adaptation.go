@@ -13,21 +13,22 @@ const (
 // remains the authoritative rules-v1 implementation until this assessment is
 // reviewed and integrated explicitly.
 type RulesV2AdaptationShadowAssessment struct {
-	Version             string            `json:"version"`
-	Mode                string            `json:"mode"`
-	Scope               string            `json:"scope"`
-	AssessedAt          string            `json:"assessed_at"`
-	Status              string            `json:"status"`
-	CandidateResponse   string            `json:"candidate_response"`
-	RulesEvaluated      []string          `json:"rules_evaluated"`
-	RulesDeferred       []string          `json:"rules_deferred"`
-	Reasons             []ReadinessReason `json:"reasons"`
-	MissingData         []string          `json:"missing_data"`
-	DataIssues          []string          `json:"data_issues"`
-	NotEvaluated        []string          `json:"not_evaluated"`
-	ProgressionEligible bool              `json:"progression_eligible"`
-	Applied             bool              `json:"applied"`
-	UsedForPrescription bool              `json:"used_for_prescription"`
+	Version             string                   `json:"version"`
+	Mode                string                   `json:"mode"`
+	Scope               string                   `json:"scope"`
+	AssessedAt          string                   `json:"assessed_at"`
+	Status              string                   `json:"status"`
+	CandidateResponse   string                   `json:"candidate_response"`
+	RulesEvaluated      []string                 `json:"rules_evaluated"`
+	RulesDeferred       []string                 `json:"rules_deferred"`
+	Reasons             []ReadinessReason        `json:"reasons"`
+	MissingData         []string                 `json:"missing_data"`
+	DataIssues          []string                 `json:"data_issues"`
+	NotEvaluated        []string                 `json:"not_evaluated"`
+	LoadTolerance       *LoadToleranceAssessment `json:"load_tolerance,omitempty"`
+	ProgressionEligible bool                     `json:"progression_eligible"`
+	Applied             bool                     `json:"applied"`
+	UsedForPrescription bool                     `json:"used_for_prescription"`
 }
 
 // assessRulesV2AdaptationShadow compares one completed workout with the
@@ -59,7 +60,6 @@ func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input Complet
 			"progression",
 		},
 		NotEvaluated: []string{
-			"load_tolerance",
 			"detraining",
 			"fitness_change",
 			"activities_outside_cadencia",
@@ -96,6 +96,8 @@ func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input Complet
 		addReason("current_session_data_integrity", "Os dados do treino concluído não estão íntegros o suficiente para avaliar uma resposta de adaptação.")
 		return result
 	}
+	loadTolerance := assessLoadTolerance(targetRPE, input, periods, now)
+	result.LoadTolerance = &loadTolerance
 
 	comparison := buildTrainingHistoryPeriodComparison(periods)
 	if len(periods) != 6 {

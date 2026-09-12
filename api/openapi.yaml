@@ -648,6 +648,35 @@ components:
         missing_data: { type: array, items: { type: string } }
         data_issues: { type: array, items: { type: string } }
         not_evaluated: { type: array, items: { type: string } }
+        load_tolerance:
+          $ref: '#/components/schemas/LoadToleranceAssessment'
+        progression_eligible: { type: boolean, enum: [false] }
+        applied: { type: boolean, enum: [false] }
+        used_for_prescription: { type: boolean, enum: [false] }
+    LoadToleranceAssessment:
+      type: object
+      description: Avaliação observacional da tolerância aparente à carga em dois períodos recentes. Não comprova tolerância fisiológica nem autoriza progressão.
+      required: [version, mode, scope, assessed_at, status, candidate_response, evidence_periods, rules_evaluated, reasons, missing_data, data_issues, not_evaluated, progression_eligible, applied, used_for_prescription]
+      properties:
+        version: { type: string, enum: [load-tolerance-v1] }
+        mode: { type: string, enum: [observation] }
+        scope: { type: string, enum: [completed_workout] }
+        assessed_at: { type: string, format: date-time }
+        status: { type: string, enum: [not_evaluated, protective_signal, observation_only] }
+        candidate_response: { type: string, enum: [not_evaluated, prefer_recovery, maintain_observed] }
+        evidence_periods: { type: array, items: { type: string, enum: [last_7d, days_8_14] } }
+        rules_evaluated: { type: array, items: { type: string } }
+        reasons:
+          type: array
+          items:
+            type: object
+            required: [code, message]
+            properties:
+              code: { type: string }
+              message: { type: string }
+        missing_data: { type: array, items: { type: string } }
+        data_issues: { type: array, items: { type: string } }
+        not_evaluated: { type: array, items: { type: string } }
         progression_eligible: { type: boolean, enum: [false] }
         applied: { type: boolean, enum: [false] }
         used_for_prescription: { type: boolean, enum: [false] }

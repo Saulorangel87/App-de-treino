@@ -164,6 +164,16 @@ Arquivos desta fatia: `backend/internal/planning/rules_v2_adaptation.go`, `backe
 
 Arquivos desta fatia: `backend/internal/planning/data_integrity.go`, `backend/internal/planning/data_integrity_test.go`, `backend/internal/planning/rules_v2_adaptation.go`, `backend/internal/planning/rules_v2_adaptation_test.go`, `backend/internal/repository/workout_sessions.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `README.md`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alteradas migrações, infraestrutura ou notas de versão.
 
+### Observação de tolerância à carga — versão local `load-tolerance-v1`
+
+- A nova avaliação observa os dois períodos semanais mais recentes e exige, em cada um, sessões realizadas com carga session-RPE, feedback completo e ao menos um check-in de recuperação completo.
+- Sinais de dor, fadiga alta, recuperação necessária ou esforço atual pelo menos dois pontos acima do alvo produzem resposta protetiva. Com evidência completa e sem esses sinais, o resultado é somente `observation_only`/`maintain_observed`.
+- O resultado registra `evidence_periods`, regras, motivos, lacunas e inconsistências. Continua com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`; não calcula ACWR, não infere tolerância fisiológica e não altera o `rules-v1`.
+- A leitura foi anexada a `workouts.explanation.adaptation_shadow`, com tipos do frontend e contrato OpenAPI atualizados. Não houve migração, mudança visual, alteração de infraestrutura ou atualização de `APP_VERSION`/`UPDATE_NOTES`.
+- A suíte Go, `go vet`, build do frontend e `git diff --check` passaram. O lint geral continua bloqueado pelas pendências anteriores já registradas, sem erro apontado nos arquivos desta fatia.
+
+Arquivos desta fatia: `backend/internal/planning/load_tolerance.go`, `backend/internal/planning/load_tolerance_test.go`, `backend/internal/planning/rules_v2_adaptation.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `docs/training-adaptation-rules.md`, `docs/project-status.md`, `docs/architecture-decisions.md` e `planejamento.md`. Não foram alteradas migrações, infraestrutura ou notas de versão.
+
 ### Décima fatia de melhorias — piloto publicado de intervalos aeróbicos XCO
 
 - O catálogo passa a selecionar `xco_aerobic_intervals` somente quando a disciplina `mtb_xco` é informada explicitamente, o atleta é avançado, o objetivo é performance ou prova, a avaliação submáxima está apta, há pelo menos 75 minutos disponíveis, a semana não é de recuperação e não há proteção ativa por limitação, dor ou sinais recentes de recuperação insuficiente.
@@ -242,6 +252,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 - A aba `/evolucao` também compara as últimas sessões concluídas com a prescrição original (tempo, RPE e métricas registradas), sem transformar a diferença em ajuste automático.
 - O plano exibe o resumo do contexto observado usado na geração do ciclo, com sessões, minutos, RPE, check-ins e alertas conservadores de recuperação quando aplicável.
 - Indicadores de consistência, carga semanal, prontidão e explicabilidade.
+- A adaptação shadow pós-treino também registra `load-tolerance-v1`, uma leitura observacional dos dois períodos recentes com session-RPE, feedback e recuperação completos. Ela permanece sem autoridade prescritiva e protege diante de dor, fadiga alta, recuperação necessária ou esforço acima do alvo.
 - Aba `/feedback` para o atleta registrar uma experiência, problema ou sugestão com nota de 1 a 5. O relato fica vinculado à conta no PostgreSQL, sem coleta adicional de contato nesta primeira versão.
 - Resumo semanal de feedback implementado como comando separado (`cadencia-feedback-digest`). Ele busca até 50 relatos ainda não enviados, envia um único e-mail pelo Resend ao endereço `FEEDBACK_DIGEST_TO` e marca os registros somente depois de um envio bem-sucedido. O serviço não é iniciado junto da API e fica desativado quando o destinatário não está configurado.
 - Contrato inicial da IA explicativa no backend, com Ollama opcional, limites de recurso e fallback determinístico para as regras. O cliente do Worker Cloudflare está preparado como provedor remoto, e a rota protegida `/cadencia/explanation` foi publicada sem alterar o endpoint legado. O segredo `CADENCIA_WORKER_TOKEN` foi configurado no Worker e na VPS; uma chamada sintética autenticada respondeu `200` usando `openai/gpt-oss-20b`. O serviço Ollama foi instalado na composição de produção, sem porta pública, e o modelo `qwen3:4b-instruct` foi baixado e testado, mas permanece parado para não pressionar a VPS. A variável `AI_ENABLED` está `true` na VPS com `AI_PROVIDER=worker`; o valor seguro padrão permanece `false`.
@@ -398,9 +409,10 @@ Nesta primeira etapa, os relatos continuam centralizados no banco e não geram u
 
 1. Observar os pilotos publicados — taper, VO₂max de estrada e intervalos curtos — dentro dos gates documentados, sem transformar um caso isolado em autorização de carga.
 2. Acompanhar o primeiro resumo semanal do Resend e os relatos reais, sem repetir como bloqueio os testes já concluídos de latência, limites e fallback do Worker.
-3. Retomar a evolução em shadow de adaptação, carga/progressão e integridade dos dados, preservando `rules-v1` até que a nova versão esteja testada, comparável e auditável.
-4. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
-5. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
+3. Validar via API local o bloco `adaptation_shadow.load_tolerance` após concluir uma sessão, confirmando os estados observacionais e as barreiras de não aplicação.
+4. Retomar a evolução em shadow de adaptação, carga/progressão e integridade dos dados, preservando `rules-v1` até que a nova versão esteja testada, comparável e auditável.
+5. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
+6. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
 
 O feedback real e o primeiro envio automático do Resend seguem em paralelo, sem bloquear as melhorias. Os testes manuais de e-mail e de latência/limites/fallback já foram realizados e não precisam ser repetidos como condição para avançar. O catálogo ampliado foi publicado em `0.16.0`; a operação deve observar taper, VO₂max de estrada e intervalos curtos somente dentro dos critérios de elegibilidade documentados.
 

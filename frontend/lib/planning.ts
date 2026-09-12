@@ -60,6 +60,23 @@ export type Workout = {
       missing_data: string[];
       data_issues: string[];
       not_evaluated: string[];
+      load_tolerance?: {
+        version: 'load-tolerance-v1';
+        mode: 'observation';
+        scope: 'completed_workout';
+        assessed_at: string;
+        status: 'not_evaluated' | 'protective_signal' | 'observation_only';
+        candidate_response: 'not_evaluated' | 'prefer_recovery' | 'maintain_observed';
+        evidence_periods: string[];
+        rules_evaluated: string[];
+        reasons: { code: string; message: string }[];
+        missing_data: string[];
+        data_issues: string[];
+        not_evaluated: string[];
+        progression_eligible: false;
+        applied: false;
+        used_for_prescription: false;
+      };
       progression_eligible: false;
       applied: false;
       used_for_prescription: false;
