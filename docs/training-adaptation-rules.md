@@ -71,6 +71,20 @@ O motor mantém uma biblioteca explícita de protocolos em código. Cada protoco
 
 As referências associadas sustentam princípios como progressão gradual, monitoramento de carga e uso contextual de intervalos. O ensaio de HIT em mountain bikers treinados e a revisão sistemática contemporânea de XCO orientam o piloto, mas não validam a mesma carga para todas as pessoas; os parâmetros continuam sujeitos às regras de segurança do produto.
 
+### Candidato em especificação — intervalos curtos autorregulados
+
+Este é um desenho preliminar, ainda sem `protocol_key`, implementação, migração ou seleção pelo `rules-v1`. O objetivo é avaliar um estímulo curto de qualidade sem transformar o resultado dos estudos em uma dose universal e sem liberar sprint máximo.
+
+**Escopo proposto para o primeiro piloto:** estrada ou indoor, com preferência explícita do atleta; nível avançado; objetivo `performance` ou `event`; avaliação submáxima apta; pelo menos oito semanas de treino regular e três pedais semanais; no mínimo 50 minutos disponíveis; semana de construção; fase compatível com o evento; nenhuma limitação, dor ou proteção de recuperação ativa; e no máximo uma sessão de qualidade no ciclo semanal. XCO, XCM, gravel, downhill/enduro, pista sprint, iniciantes e perfis sem histórico suficiente ficam fora até existir evidência direta e regra própria.
+
+**Estrutura candidata conservadora:** 10 minutos de aquecimento em RPE 3–4; seis repetições de 1 minuto autorreguladas em RPE 7–8, cada uma seguida de pelo menos 1 minuto leve em RPE 2–3; e 10 minutos de desaquecimento. O atleta controla o esforço pela percepção e pela técnica, começa as primeiras repetições na parte baixa da faixa e não busca falha, sprint máximo, cadência obrigatória, potência fixa ou frequência cardíaca tratada como equivalente a VO₂max. A recuperação pode ser estendida; não há compensação por repetição interrompida.
+
+**Travas e comportamento esperado:** qualquer dor, tontura, mal-estar, falta de ar incomum, perda de controle técnico ou esforço que deixe de ser autorregulável interrompe a parte intensa e encaminha para recuperação/avaliação profissional quando necessário. Sinais de sono, estresse, fadiga, dor pós-treino, limitação, semana de recuperação, taper ou feedback protetivo vencem a preferência e selecionam o giro leve protegido. O protocolo não pode ser escolhido em dias consecutivos de qualidade, não pode criar sessão extra e não pode aumentar carga automaticamente após um feedback fácil.
+
+**Progressão e auditoria:** a primeira versão deve manter seis repetições fixas, sem aumentar simultaneamente duração e esforço. Uma eventual progressão posterior exigirá dados completos de execução, feedback sem sinal protetivo e revisão separada; não será inferida apenas por aderência, por ausência de dor ou por um valor de RPE isolado. A prescrição deve registrar versão, elegibilidade, preferência, estrutura, fontes, limites aplicados e motivo de não seleção quando algum gate falhar.
+
+**Matriz mínima antes de implementar:** um caso elegível deve selecionar somente o candidato; preferência ausente, modalidade não suportada, nível não avançado, objetivo incompatível, avaliação inapta, histórico menor que oito semanas, menos de três pedais semanais, disponibilidade abaixo do mínimo, semana de recuperação, taper/evento incompatível, dor/limitação, sinal de recuperação, sessão de qualidade já ocupando a semana e preferência concorrente devem impedir a seleção. Os testes também devem provar que o candidato não altera sessões concluídas, não cria treinos extras, não ultrapassa minutos disponíveis, não substitui o `rules-v1`, mantém o fallback protegido e deixa o snapshot auditável. Até todos esses testes passarem, o candidato permanece apenas documental.
+
 ## Avaliação inicial submáxima
 
 A rota `/avaliacao` apresenta um pedal de referência opcional: aquecimento leve, até 20 minutos de esforço controlado próximo de RPE 5 e desaquecimento. O atleta registra duração, RPE percebido e dor. Não há teste máximo, estimativa de VO₂max nem diagnóstico.

@@ -49,7 +49,7 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 - A pesquisa de 12 de setembro de 2026 recomenda avaliar intervalos curtos autorregulados para estrada ou indoor, sem sprint máximo. O estudo de Hesketh et al. (2025) comparou `4–8 × 30 s` com 120 segundos de recuperação e `6–10 × 1 min` com 1 minuto de recuperação em adultos anteriormente inativos; ambos melhoraram o VO₂peak, mas essa população não representa automaticamente os atletas do Cadência.
 - O estudo de Rønnestad et al. (2020) em ciclistas de elite informa que intervalos de 30 segundos podem produzir adaptações favoráveis, porém a amostra, o nível e o esforço repetido limitam a transferência. Uma meta-análise de 2025 reforça a heterogeneidade entre HIIT, SIT e repeated-sprint training.
-- Nenhum protocolo foi implementado. Ainda faltam especificação de gates, limites, recuperação, interrupção e testes de não seleção. Não há migração, mudança de versão ou alteração de produção para este candidato.
+- Nenhum protocolo foi implementado. A especificação preliminar de gates, estrutura, limites, recuperação, interrupção, auditoria e testes de não seleção foi registrada em `docs/training-adaptation-rules.md`; ainda falta revisar essa proposta antes de codificar. Não há migração, mudança de versão ou alteração de produção para este candidato.
 
 ## Arquitetura efetiva
 
