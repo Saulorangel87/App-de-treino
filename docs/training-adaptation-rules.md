@@ -228,7 +228,7 @@ Esta fatia registra, dentro de `workouts.explanation.adaptation_shadow`, a difer
 
 O resultado pode ficar `observed` quando os dados mínimos da comparação estão válidos ou `not_evaluated` quando há duração, RPE ou feedback inválidos/ausentes. Campos ainda não coletados — como cadência, sono, estresse, recuperação, extensão da conclusão e motivo de não conclusão — permanecem explícitos em `not_evaluated`; métricas opcionais ausentes ficam em `missing_data` sem invalidar a comparação principal.
 
-As diferenças de duração e RPE são apenas registros de execução. O bloco mantém `progression_eligible: false` e `used_for_prescription: false`, não interpreta tolerância fisiológica, não aplica limiares de progressão e não altera o trigger ou o plano ativo. Não há migração, mudança visual ou atualização de versão nesta fatia.
+As diferenças de duração e RPE são apenas registros de execução. O bloco mantém `progression_eligible: false` e `used_for_prescription: false`, não interpreta tolerância fisiológica, não aplica limiares de progressão e não altera o trigger ou o plano ativo. A validação manual local confirmou uma sessão de 3 minutos realizados de 35 planejados como `observed`, sem alteração da próxima sessão. Não há migração, mudança visual ou atualização de versão nesta fatia.
 
 ### Rotação segura e recuperação ativa
 

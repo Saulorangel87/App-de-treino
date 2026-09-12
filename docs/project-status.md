@@ -175,12 +175,12 @@ Arquivos desta fatia: `backend/internal/planning/data_integrity.go`, `backend/in
 
 Arquivos desta fatia: `backend/internal/planning/load_tolerance.go`, `backend/internal/planning/load_tolerance_test.go`, `backend/internal/planning/rules_v2_adaptation.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `docs/training-adaptation-rules.md`, `docs/project-status.md`, `docs/architecture-decisions.md` e `planejamento.md`. Não foram alteradas migrações, infraestrutura ou notas de versão.
 
-### Comparação planejado versus realizado — versão local `planned-vs-actual-v1`
+### Comparação planejado versus realizado — versão local `planned-vs-actual-v1` (validada)
 
 - A conclusão de uma sessão passa a registrar no shadow a duração planejada e realizada, o RPE-alvo e realizado, suas diferenças e os campos de execução observados.
 - Métricas opcionais presentes são identificadas em `observed_fields`; ausência de distância, elevação, potência ou frequência cardíaca fica em `missing_data`. Cadência, sono, estresse, recuperação, extensão da conclusão e motivo de não conclusão permanecem em `not_evaluated` porque ainda não fazem parte deste fluxo.
 - O estado `observed` descreve uma comparação mínima válida; `not_evaluated` fica reservado a dados essenciais ausentes ou inválidos. Em ambos os casos, `progression_eligible` e `used_for_prescription` permanecem `false`.
-- A implementação não altera duração, RPE, estímulo ou status de sessões e não cria migração, mudança visual ou atualização de `APP_VERSION`/`UPDATE_NOTES`. A validação manual ponta a ponta via API local ainda deve confirmar o bloco após concluir uma sessão.
+- A implementação não altera duração, RPE, estímulo ou status de sessões e não cria migração, mudança visual ou atualização de `APP_VERSION`/`UPDATE_NOTES`. A validação manual ponta a ponta confirmou no `GET /v1/plans/current` uma sessão com 3 minutos realizados de 35 planejados, `status: "observed"`, `duration_completion_percent: 8.57`, `progression_eligible: false` e `used_for_prescription: false`. As métricas opcionais ausentes e os campos ainda não coletados permaneceram explicitamente classificados.
 
 Arquivos desta fatia: `backend/internal/planning/execution_comparison.go`, `backend/internal/planning/execution_comparison_test.go`, `backend/internal/planning/rules_v2_adaptation.go`, `backend/internal/repository/workout_sessions.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `docs/training-adaptation-rules.md` e `docs/project-status.md`. Não houve deploy ou publicação.
 
