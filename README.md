@@ -52,7 +52,7 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `GET /v1/plans/current`: consulta o plano ativo ou rascunho mais recente.
 - `POST /v1/plans/{planID}/activate`: aprova um rascunho e mantém somente um plano ativo por atleta.
 - `POST /v1/workouts/{workoutID}/start`: inicia uma sessão planejada ou adaptada do plano ativo.
-- `POST /v1/workouts/{workoutID}/complete`: conclui a sessão e registra RPE, dificuldade, fadiga, dor e, opcionalmente, distância, elevação, frequência cardíaca e potência.
+- `POST /v1/workouts/{workoutID}/complete`: conclui a sessão e registra RPE, dificuldade, fadiga, dor e, opcionalmente, distância, elevação, frequência cardíaca e potência; também registra `completion_status` e, quando parcial, um `partial_reason` controlado.
 - `POST /v1/workouts/{workoutID}/explanation`: solicita uma explicação em linguagem simples; quando a IA está desligada ou indisponível, retorna o resumo validado pelo motor.
 - `POST /v1/workouts/{workoutID}/cancel`: cancela uma sessão em andamento e mantém esse histórico.
 - `GET /v1/activities`: lista, para o atleta autenticado, as sessões concluídas e canceladas.

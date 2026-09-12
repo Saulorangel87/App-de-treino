@@ -150,11 +150,11 @@ Nesta auditoria, a versão `0.12.0` acrescenta planejamento por proximidade do e
 
 ## ADR-011 — Contexto de conclusão do treino
 
-**Status:** Implementada localmente; ainda não publicada.
+**Status:** Validada localmente; ainda não publicada.
 
 O encerramento de uma sessão deve registrar explicitamente `completion_status` como `complete` ou `partial`. Para `partial`, `partial_reason` é obrigatório e usa valores controlados. O contexto melhora a interpretação do realizado sem transformar uma sessão interrompida em evidência de tolerância ao treino completo.
 
-A conclusão parcial não libera progressão no trigger do `rules-v1`; dor, fadiga alta e esforço elevado continuam podendo acionar suas reduções protetivas. O mesmo contexto é exposto no plano, no histórico e no bloco `planned-vs-actual-v1`, sempre em modo observacional. A migração `000020` usa `complete` como padrão para registros anteriores e não altera a produção até haver validação local, commit, backup, aplicação pelo perfil `maintenance` e autorização explícita.
+A conclusão parcial não libera progressão no trigger do `rules-v1`; dor, fadiga alta e esforço elevado continuam podendo acionar suas reduções protetivas. O mesmo contexto é exposto no plano, no histórico e no bloco `planned-vs-actual-v1`, sempre em modo observacional. A migração `000020` usa `complete` como padrão para registros anteriores e foi aplicada e validada localmente com teste SQL e teste manual; ela não altera a produção sem backup, aplicação pelo perfil `maintenance` e autorização explícita.
 
 ## Estado de produção
 
