@@ -161,3 +161,40 @@ Antes de adicionar um protocolo ao motor, ele deverá passar por esta lista:
 8. Há teste automatizado para garantir que o protocolo não seja escolhido fora do contexto?
 
 Se uma resposta for “não”, a sessão permanece documentada como candidata e não entra no `rules-v1`.
+
+## Avaliação dos próximos candidatos — 11 de setembro de 2026
+
+### Candidato recomendado: taper pré-prova
+
+O próximo protocolo a ser especificado é um taper pré-prova orientado por evento. A evidência é mais transferível para o produto do que uma sessão exclusiva de gravel/XCM: uma meta-análise de esportes de endurance encontrou melhora de desempenho após taper, com redução progressiva do volume e manutenção da intensidade e da frequência em estratégias de até 21 dias; isso é uma faixa de evidência, não uma dose universal para cada atleta. [Wang et al., 2023](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0282838)
+
+Um estudo de 2025 em ciclistas bem treinados observou que uma redução de aproximadamente 50% do volume por duas semanas, mantendo a intensidade, preservou a maior parte das adaptações de desempenho. Os próprios autores ressaltam que a resposta depende do volume inicial, da intensidade e do período de treinamento, e que o desempenho submáximo pode ser afetado. [Lange et al., 2025](https://doi.org/10.14814/phy2.70302)
+
+O estudo não sustenta criar uma sobrecarga automática antes da redução: em ciclistas treinados, duas semanas de intensificação elevaram a carga e pioraram temporariamente desempenho, humor e equilíbrio recuperação-estresse; após o taper, as medidas retornaram à linha de base, sem benefício acima dela. [Effect of intensified training on cognitive function, psychological state & performance in trained cyclists](https://pubmed.ncbi.nlm.nih.gov/35771645/)
+
+**Limites para o Cadência:**
+
+- a especificação deverá atuar no plano e na distribuição de volume, não apenas renomear uma sessão;
+- não haverá bloco automático de sobrecarga antes do taper;
+- intensidade preservada não significa sprint, teste máximo ou meta rígida de potência;
+- o taper deverá depender de evento futuro válido, janela temporal explícita, dados mínimos e ausência de dor, limitação ou necessidade de recuperação;
+- perfis sem evidência suficiente continuarão em sessões regulares ou protegidas;
+- o motor prescritivo `rules-v1` e suas travas continuam sendo a autoridade durante a validação.
+
+### Candidatos adiados
+
+Gravel e XCM permanecem como contexto de endurance, sem protocolo próprio nesta rodada. O estudo de campo disponível para gravel descreve hidratação e perda de massa em uma prova, mas não valida uma sessão de treinamento; portanto, não sustenta transformar terreno ou distância em séries automáticas. [Fluid Intake and Hydration Responses to Mass Participation Gravel Cycling](https://pubmed.ncbi.nlm.nih.gov/39807388/)
+
+No XCM, os indicadores aeróbicos e intermitentes se relacionam ao desempenho de prova, mas o estudo é de demanda/predição e não um ensaio de prescrição. Ele pode orientar especificidade futura, não definir uma dose para o catálogo. [Predictive ability of a comprehensive incremental test in mountain bike marathon](https://pubmed.ncbi.nlm.nih.gov/29387445/)
+
+Força complementar, calor, restrição de fluxo sanguíneo, sprint de pista e técnica de downhill/enduro também não entram no motor geral: exigem módulos, populações ou controles próprios.
+
+### Próxima implementação, ainda não iniciada
+
+1. Definir a janela de elegibilidade do taper dentro do ciclo de quatro semanas e como ela se relaciona com a fase de evento já existente.
+2. Definir a alteração de volume por sessão e por semana, preservando frequência, recuperação e proteção.
+3. Registrar a evidência e o limite de transferência no catálogo/banco antes de selecionar o protocolo.
+4. Implementar no `rules-v1` somente após testes de evento distante, evento próximo, recuperação, dor, dados insuficientes e determinismo.
+5. Validar localmente; por ser uma funcionalidade visível, atualizar `APP_VERSION` e `UPDATE_NOTES` antes de qualquer publicação.
+
+Fontes candidatas para o registro formal: `taper-meta-2023`, `taper-cyclist-2025` e `taper-overreach-cyclists-2023`. Nenhuma delas foi adicionada ao banco ou ao motor nesta etapa.

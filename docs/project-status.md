@@ -18,15 +18,15 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - API: <https://cadencia-api.devsaulo.com.br>
 - VPS: Oracle Cloud, Ubuntu, acesso administrativo por SSH na porta 22.
 - Código na VPS: `/home/ubuntu/apps/cadencia`.
-- Commit implantado: `61d7939 chore(infra): fixa digest atual do cloudflared`; a API e o frontend foram reconstruídos a partir desse commit.
-- O backup preventivo `cadencia-20260911T234851Z.dump` foi criado e verificado antes do deploy. Não houve nova migração; a API e o frontend foram reconstruídos, o PostgreSQL permaneceu saudável e o túnel continuou ativo. O endpoint interno `/ready` e os dois domínios públicos retornaram sucesso.
+- Commit implantado: `53cbadc fix(frontend): adiciona acesso ao perfil no mobile`; o frontend foi reconstruído a partir desse commit, enquanto API, PostgreSQL e túnel permaneceram sem alteração.
+- O backup preventivo `cadencia-20260911T234851Z.dump` foi criado e verificado antes do deploy da versão `0.12.0`. No deploy posterior de `53cbadc`, somente o frontend foi reconstruído; não houve nova migração, e API, PostgreSQL e túnel permaneceram saudáveis. O endpoint interno `/ready` e os dois domínios públicos retornaram sucesso.
 - A release [v0.12.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.12.0) foi publicada no GitHub após a validação do deploy.
 - O Cloudflare Tunnel dedicado expõe somente frontend e API; o PostgreSQL não possui hostname, rota pública ou porta publicada.
 
 ## Estado do checkout local
 
-- A produção está no commit `61d7939 chore(infra): fixa digest atual do cloudflared`, na versão `0.12.0`, e a release `v0.12.0` é a versão publicada mais recente no GitHub. O checkout local estava limpo antes do deploy e permanece alinhado à branch `master`.
-- A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local) e `9034287` (matriz comparativa).
+- A produção está no commit `53cbadc fix(frontend): adiciona acesso ao perfil no mobile`, na versão `0.12.0`, e a release `v0.12.0` é a versão publicada mais recente no GitHub. O checkout local foi confirmado alinhado à branch `master` antes desta atualização documental.
+- A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local), `9034287` (matriz comparativa), `61d7939` (pin do digest do Tunnel), `1358ac1` (status da versão `0.12.0`) e `53cbadc` (acesso ao perfil no mobile).
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
 
@@ -367,7 +367,7 @@ Nesta primeira etapa, os relatos continuam centralizados no banco e não geram u
 2. Evoluir as regras em versão paralela, preservando `rules-v1` até que a nova versão esteja testada, comparável e auditável.
 3. Trabalhar adaptação em ciclo fechado, carga/progressão e integridade dos dados antes de ampliar a prescrição.
 4. Reforçar segurança, feedback pós-treino, explicabilidade e auditabilidade das decisões.
-5. Ampliar o catálogo de modalidades e protocolos de ciclismo somente com critérios de elegibilidade e referências próprias revisados; o catálogo inicial e o piloto atual já estão publicados.
+5. Especificar o taper pré-prova como próximo candidato do catálogo, preservando `rules-v1`; gravel/XCM permanecem contextuais até haver evidência direta de prescrição.
 6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
 7. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
 

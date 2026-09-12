@@ -142,6 +142,10 @@ Em 5 de setembro de 2026, o commit `9d8c624` foi publicado por fast-forward na V
 
 Em 11 de setembro de 2026, o commit `61d7939` foi publicado por fast-forward na VPS Oracle. O backup preventivo `cadencia-20260911T234851Z.dump` foi criado e verificado; não houve migração nova. As imagens da API e do frontend foram reconstruídas, os serviços de aplicação e o Tunnel foram recriados e o PostgreSQL permaneceu saudável. A API interna respondeu `{"status":"ready"}`, os dois domínios públicos retornaram HTTP 200 e a release `v0.12.0` foi publicada no GitHub.
 
+Na sequência, o commit `53cbadc` foi publicado como atualização somente do frontend para incluir o acesso ao perfil em telas pequenas. A API, o PostgreSQL e o Tunnel não foram recriados. A versão permaneceu `0.12.0`, conforme decisão de não abrir nova nota para essa correção de usabilidade.
+
+Em 11 de setembro de 2026, a pesquisa do próximo protocolo do catálogo recomendou especificar um taper pré-prova orientado por evento. A decisão não adiciona código: a evidência recente apoia redução de volume em janela curta com cautela, enquanto gravel/XCM permanecem contextuais por falta de ensaio direto de prescrição. A implementação futura deverá atuar no plano, manter `rules-v1` e passar por elegibilidade, proteção e testes antes de atualizar a versão visível.
+
 O destino oficial de produção é a composição Docker na VPS Oracle, exposta pelos hostnames `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br` no Cloudflare Tunnel dedicado. Uma publicação privada acidental no Sites, feita durante uma tentativa de deploy, foi excluída pelo proprietário. O Sites não é um destino autorizado para futuras publicações do Cadência.
 
 Na mesma data, a versão `35f24685` do Worker ajustou o provedor Groq para `max_completion_tokens: 512` e `reasoning_effort: 'low'`. O Worker rejeita respostas com `finish_reason` diferente de `stop`, mantendo o fallback determinístico como proteção contra truncamento. A sessão autenticada confirmou explicações completas para treinos de base e subidas.
