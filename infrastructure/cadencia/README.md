@@ -12,7 +12,7 @@ Internet
 
 Nenhum serviço desta composição publica portas no host. O Cloudflare Tunnel é o único componente que encaminha tráfego público para o Cadência. O PostgreSQL não recebe hostname, rota pública ou porta exposta.
 
-O serviço `tunnel` usa no checkout local o digest fixo `cloudflare/cloudflared@sha256:e39ee8da81ad5e05d77f38d2f51c60ca51bf2a8450ac3abab50c17fdb91d91bf`, correspondente ao binário `cloudflared 2026.7.3` em `linux/arm64` observado na VPS. A alteração ainda está pendente de commit e aplicação; ela não reinicia nem altera o Tunnel por si só.
+O serviço `tunnel` usa o digest fixo `cloudflare/cloudflared@sha256:e39ee8da81ad5e05d77f38d2f51c60ca51bf2a8450ac3abab50c17fdb91d91bf`, correspondente ao binário `cloudflared 2026.7.3` em `linux/arm64` validado na VPS. Esse pin foi publicado no commit `61d7939` e aplicado no deploy de 11 de setembro de 2026.
 
 URLs em produção:
 
@@ -111,6 +111,8 @@ No deploy funcional de 4 de setembro de 2026, o commit `5fbc668` foi atualizado 
 
 No deploy de 5 de setembro de 2026, o commit `9d8c624` foi atualizado por fast-forward, o backup `cadencia-20260905T221541Z.dump` foi criado e verificado, a migração `000016` foi aplicada pelo perfil `maintenance` e as imagens da API e do frontend foram reconstruídas. API e frontend ficaram saudáveis; PostgreSQL e túnel permaneceram ativos. A versão `0.8.0` e a release `v0.8.0` publicam o piloto de intervalos aeróbicos XCO.
 
+No deploy de 11 de setembro de 2026, o commit `61d7939` foi atualizado por fast-forward. O backup preventivo `cadencia-20260911T234851Z.dump` foi criado e verificado; não havia migração nova para aplicar. As imagens da API e do frontend foram reconstruídas e os serviços de aplicação e o Tunnel foram recriados; PostgreSQL permaneceu ativo e saudável. A API interna respondeu `{"status":"ready"}`, os dois domínios públicos retornaram HTTP 200 e a release `v0.12.0` foi publicada no GitHub.
+
 O deploy oficial deve sempre terminar em `https://cadencia.devsaulo.com.br` e `https://cadencia-api.devsaulo.com.br`, pela composição Docker desta pasta e pelo Cloudflare Tunnel dedicado. O ambiente Sites não faz parte da produção do Cadência e não deve ser usado como destino alternativo.
 
 ## Backup e restauração
@@ -124,7 +126,7 @@ sudo CADENCIA_BACKUP_DIR=/var/backups/cadencia \
   bash infrastructure/cadencia/scripts/backup-postgres.sh
 ```
 
-O diretório de produção é `/var/backups/cadencia`, com acesso do usuário `ubuntu`. O backup preventivo do deploy funcional mais recente é `cadencia-20260905T003553Z.dump` (UTC). A validação estrutural do arquivo ocorre automaticamente. O backup anterior `cadencia-20260902T104801Z.dump` também foi restaurado com sucesso em um PostgreSQL 17 temporário: foram confirmadas 15 tabelas públicas e `cadencia_schema_migrations`, e o ambiente temporário foi removido sem alterar a produção. A cópia externa dos dumps ainda está pendente.
+O diretório de produção é `/var/backups/cadencia`, com acesso do usuário `ubuntu`. O backup preventivo do deploy funcional mais recente é `cadencia-20260911T234851Z.dump` (UTC). A validação estrutural do arquivo ocorre automaticamente. O backup anterior `cadencia-20260902T104801Z.dump` também foi restaurado com sucesso em um PostgreSQL 17 temporário: foram confirmadas 15 tabelas públicas e `cadencia_schema_migrations`, e o ambiente temporário foi removido sem alterar a produção. A cópia externa dos dumps ainda está pendente.
 
 ## Segurança operacional
 

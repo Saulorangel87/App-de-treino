@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão do checkout local: `0.12.0` — correções de segurança, sessões adaptadas iniciáveis e planejamento por proximidade do evento. A produção ainda está na versão `0.8.0`; consulte o [release v0.8.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.8.0).
+Versão publicada: `0.12.0` — correções de segurança, sessões adaptadas iniciáveis e planejamento por proximidade do evento. Consulte o [release v0.12.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.12.0).
 
 ## Estrutura
 
@@ -82,13 +82,13 @@ O MVP de ciclismo está publicado em produção real:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Produção implantada na VPS Oracle no commit `9d8c624` (`feat: adiciona piloto aeróbico para MTB XCO`), com a migração `000016` aplicada e a versão do produto `0.8.0`.
+- Produção implantada na VPS Oracle no commit `61d7939`, com a migração `000016` aplicada e a versão do produto `0.12.0`. A release correspondente é [v0.12.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.12.0).
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, confirmação de e-mail, recuperação de senha, onboarding, plano, treino, feedback, adaptação, atividades, evolução e logout foram validados.
-- Dependabot está com 0 alertas abertos; os testes Go, build Docker e `govulncheck` passaram.
+- Dependabot está com 0 alertas abertos; os testes Go, `go vet`, build Docker e a auditoria de dependências de produção passaram. `govulncheck` não está instalado no ambiente desta rodada.
 - A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`, `000014`, `000015` e `000016` foram aplicadas na produção.
 - O ajuste responsivo dos períodos nos gráficos da Evolução foi publicado e validado no domínio oficial; a rolagem horizontal interna agora preserva os rótulos no celular.
-- A produção está no commit `9d8c624`; o checkout local parte do commit `a54143b` e contém em desenvolvimento a versão `0.12.0`, com correções de segurança, sessões adaptadas iniciáveis, fase por proximidade do evento e proteção do resumo semanal, ainda não publicada. O catálogo inicial, o piloto de estrada e o piloto de intervalos aeróbicos XCO estão publicados, sujeitos aos critérios de elegibilidade documentados.
+- A produção está no commit `61d7939` e na versão `0.12.0`, com correções de segurança, sessões adaptadas iniciáveis, fase por proximidade do evento, proteção do resumo semanal, leituras observacionais e pilotos de estrada/XCO publicados conforme os critérios de elegibilidade documentados. O deploy foi validado com API pronta, túnel ativo e HTTP 200 nos dois domínios.
 - Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts` (`APP_VERSION` e `UPDATE_NOTES`) para que a novidade seja exibida na tela de primeiro acesso após a atualização. O modal é mostrado uma vez por conta, versão e navegador.
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.

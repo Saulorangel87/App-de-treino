@@ -124,9 +124,9 @@ Correção local seguinte, ainda sem commit: a quarta semana agora bloqueia a cl
 
 **Status:** Aceita e aplicada.
 
-Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a mudança em `UPDATE_NOTES`. O componente `UpdateNotice` apresenta as notas no primeiro acesso autenticado após a versão mudar e registra a confirmação por conta, versão e navegador usando armazenamento local. As notas não devem conter segredos. A versão `0.7.0` registrou o catálogo de ciclismo baseado em evidências e foi confirmada na produção. A versão `0.8.0` registra o piloto aeróbico de MTB XCO e foi publicada junto do commit `9d8c624`. A versão local `0.10.0` registra a recuperação ativa e o registro explícito de treino não realizado; a validação local foi concluída e o commit `051d285` está no GitHub. A versão local `0.11.0`, no commit `4312fa9`, registra o piloto de intervalos intensos para estrada. A versão local `0.11.1` registra a correção da semana de recuperação, ainda pendente de commit e publicação. A publicação e qualquer autorização de deploy continuam pendentes.
+Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a mudança em `UPDATE_NOTES`. O componente `UpdateNotice` apresenta as notas no primeiro acesso autenticado após a versão mudar e registra a confirmação por conta, versão e navegador usando armazenamento local. As notas não devem conter segredos. A versão `0.7.0` registrou o catálogo de ciclismo baseado em evidências e a versão `0.8.0` registrou o piloto aeróbico de MTB XCO. A versão `0.12.0` reúne a recuperação ativa, o registro de treino não realizado, o piloto de intervalos intensos para estrada, a correção da semana de recuperação, o planejamento por proximidade do evento, as sessões adaptadas iniciáveis, os reforços de segurança, a proteção do resumo semanal e a correção da confirmação da tela de novidades. Ela foi publicada com o commit `61d7939` e a release `v0.12.0`.
 
-Nesta auditoria, a versão local `0.12.0` acrescenta planejamento por proximidade do evento, sessões adaptadas iniciáveis, reforços de autenticação e entrada HTTP, serialização do resumo semanal e confirmação da tela de novidades somente após dispensa. A versão está pendente de commit e publicação.
+Nesta auditoria, a versão `0.12.0` acrescenta planejamento por proximidade do evento, sessões adaptadas iniciáveis, reforços de autenticação e entrada HTTP, serialização do resumo semanal e confirmação da tela de novidades somente após dispensa. A versão foi publicada no commit `61d7939` após validação e autorização explícita.
 
 ## Estado de produção
 
@@ -138,7 +138,9 @@ Em 4 de setembro de 2026, o commit `5fbc668` foi publicado por fast-forward na m
 
 Na sequência, o commit `c768ef7` atualizou somente o frontend para publicar a versão `0.7.0` e a nota do catálogo. A nota apareceu no primeiro acesso autenticado de teste; o fluxo funcional do check-in de recuperação e os testes de latência, limites e fallback do Worker já haviam sido validados.
 
-Em 5 de setembro de 2026, o commit `9d8c624` foi publicado por fast-forward na VPS Oracle. O backup `cadencia-20260905T221541Z.dump` foi criado e verificado, a migração `000016` foi aplicada pelo perfil `maintenance` e as imagens da API e do frontend foram reconstruídas. API e frontend ficaram saudáveis; PostgreSQL e túnel permaneceram ativos. A release `v0.8.0` foi publicada no GitHub como a versão mais recente.
+Em 5 de setembro de 2026, o commit `9d8c624` foi publicado por fast-forward na VPS Oracle. O backup `cadencia-20260905T221541Z.dump` foi criado e verificado, a migração `000016` foi aplicada pelo perfil `maintenance` e as imagens da API e do frontend foram reconstruídas. API e frontend ficaram saudáveis; PostgreSQL e túnel permaneceram ativos. A release `v0.8.0` foi publicada no GitHub.
+
+Em 11 de setembro de 2026, o commit `61d7939` foi publicado por fast-forward na VPS Oracle. O backup preventivo `cadencia-20260911T234851Z.dump` foi criado e verificado; não houve migração nova. As imagens da API e do frontend foram reconstruídas, os serviços de aplicação e o Tunnel foram recriados e o PostgreSQL permaneceu saudável. A API interna respondeu `{"status":"ready"}`, os dois domínios públicos retornaram HTTP 200 e a release `v0.12.0` foi publicada no GitHub.
 
 O destino oficial de produção é a composição Docker na VPS Oracle, exposta pelos hostnames `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br` no Cloudflare Tunnel dedicado. Uma publicação privada acidental no Sites, feita durante uma tentativa de deploy, foi excluída pelo proprietário. O Sites não é um destino autorizado para futuras publicações do Cadência.
 
@@ -152,14 +154,14 @@ Validações realizadas:
 - API, frontend e PostgreSQL saudáveis; túnel ativo.
 - PostgreSQL sem porta publicada pelo Cadência.
 - Dependabot do GitHub: 0 alertas abertos e 39 fechados.
-- `go test ./...`, build Docker e `govulncheck` concluídos.
+- `go test ./...`, build Docker, build do frontend e auditoria de dependências de produção concluídos nesta atualização; `govulncheck` não está instalado no ambiente desta rodada.
 
 ## Backups
 
 - `cadencia-backup.timer` está habilitado na VPS e executa diariamente às 03:30 UTC.
 - Os dumps ficam em `/var/backups/cadencia`, com retenção de 14 dias.
 - O script valida cada arquivo com `pg_restore --list`.
-- O backup preventivo do último deploy funcional é `cadencia-20260905T003553Z.dump` (UTC).
+- O backup preventivo do último deploy funcional é `cadencia-20260911T234851Z.dump` (UTC).
 - O backup anterior, `cadencia-20260902T104801Z.dump`, permanece registrado e validado.
 - O teste completo de restauração foi concluído em 2 de setembro de 2026 com `cadencia-20260902T104801Z.dump`: a restauração em PostgreSQL 17 temporário terminou sem erro, validou 15 tabelas públicas e `cadencia_schema_migrations`, e o container temporário foi removido sem tocar a produção.
 

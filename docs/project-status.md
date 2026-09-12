@@ -18,13 +18,14 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - API: <https://cadencia-api.devsaulo.com.br>
 - VPS: Oracle Cloud, Ubuntu, acesso administrativo por SSH na porta 22.
 - Código na VPS: `/home/ubuntu/apps/cadencia`.
-- Commit implantado: `9d8c624 feat: adiciona piloto aeróbico para MTB XCO`; a API e o frontend foram reconstruídos a partir desse commit.
-- O backup preventivo `cadencia-20260905T221541Z.dump` foi criado e verificado antes do deploy. A migração `000016` foi aplicada pelo perfil `maintenance`; API e frontend ficaram saudáveis, o PostgreSQL permaneceu saudável e o túnel continuou ativo. O endpoint interno `/ready` e os dois domínios públicos retornaram sucesso.
+- Commit implantado: `61d7939 chore(infra): fixa digest atual do cloudflared`; a API e o frontend foram reconstruídos a partir desse commit.
+- O backup preventivo `cadencia-20260911T234851Z.dump` foi criado e verificado antes do deploy. Não houve nova migração; a API e o frontend foram reconstruídos, o PostgreSQL permaneceu saudável e o túnel continuou ativo. O endpoint interno `/ready` e os dois domínios públicos retornaram sucesso.
+- A release [v0.12.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.12.0) foi publicada no GitHub após a validação do deploy.
 - O Cloudflare Tunnel dedicado expõe somente frontend e API; o PostgreSQL não possui hostname, rota pública ou porta publicada.
 
 ## Estado do checkout local
 
-- A produção permanece no commit `9d8c624 feat: adiciona piloto aeróbico para MTB XCO`. O checkout local está no commit `4312fa9 feat: adiciona piloto intenso de estrada` e contém a correção pendente da semana de recuperação na versão `0.11.1`, ainda sem publicação na VPS. A release `v0.8.0` continua sendo a versão publicada no GitHub.
+- A produção está no commit `61d7939 chore(infra): fixa digest atual do cloudflared`, na versão `0.12.0`, e a release `v0.12.0` é a versão publicada mais recente no GitHub. O checkout local estava limpo antes do deploy e permanece alinhado à branch `master`.
 - A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local) e `9034287` (matriz comparativa).
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
@@ -344,7 +345,7 @@ Validação desta fatia: `go test -count=1 ./...`, `go vet ./...`, `npm run buil
 - Isso impede que `Ritmo de prova controlado`, `Tempo controlado` ou intervalos apareçam na semana marcada como `RECUPERAÇÃO`, inclusive quando há meta de prova, avaliação apta e preferência por intervalos.
 - A tela de novidades foi atualizada para `0.11.1`. O teste de regressão para meta de prova e a suíte Go completa passaram, assim como `go vet`; não houve commit, deploy, migração ou mudança de infraestrutura nesta correção.
 
-### Auditoria de segurança e correções locais — versão 0.12.0
+### Auditoria de segurança e correções — versão 0.12.0 publicada
 
 Após a revisão do código, foram corrigidos os bloqueadores funcionais e de segurança que podiam afetar esta etapa: sessões `adapted` agora podem ser iniciadas; corpos JSON da API têm limite e rejeitam campos desconhecidos; autenticação possui limites por janela; mutações autenticadas exigem evidência de origem; respostas recebem cabeçalhos de proteção; cadastro e recuperação reduzem enumeração de contas; e o timestamp do início do treino não é renderizado antes da hidratação do cliente.
 
@@ -352,7 +353,7 @@ Também foi corrigida a regra de meta de prova: datas passadas são rejeitadas, 
 
 Validação local desta fatia: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, lint direcionado dos componentes alterados e `npm audit --omit=dev --audit-level=high` passaram; este último reportou zero vulnerabilidades no grafo de produção. O lint geral ainda possui pendências anteriores fora desta fatia. Os avisos restantes do grafo de desenvolvimento não têm correção automática disponível e não entram na imagem/runtime de produção. `govulncheck` não está instalado neste ambiente, portanto não foi usado como evidência desta rodada.
 
-O commit base local é `a54143b`; as correções desta auditoria e o pin do digest do Tunnel estão no working tree e ainda não foram commitados, publicados ou aplicados na VPS. A produção permanece no commit `9d8c624`/versão `0.8.0`. O compose local registra `cloudflare/cloudflared@sha256:e39ee8…`, correspondente ao `cloudflared 2026.7.3` ARM64 atualmente executado na VPS.
+As correções desta auditoria e o pin do digest do Tunnel foram commitados em `e803d46` e `61d7939`. O deploy oficial foi concluído na VPS em 11 de setembro de 2026 após backup, build, manutenção e validação dos serviços. A produção está no commit `61d7939`/versão `0.12.0`; o compose fixa `cloudflare/cloudflared@sha256:e39ee8…`, correspondente ao `cloudflared 2026.7.3` ARM64 validado na VPS.
 
 ## Feedback de produto e recebimento dos relatos
 

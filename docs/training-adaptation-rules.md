@@ -92,7 +92,7 @@ O registro fecha a oportunidade de aderência e deixa de aparecer como pendênci
 
 ## Leitura observacional de prontidão (`readiness-v1`)
 
-Implementação local de 5 de setembro de 2026, ainda não publicada. Ao gerar um rascunho, o backend registra `prescription_snapshot.readiness_assessment` separadamente de `engine_version: rules-v1`. É uma descrição versionada dos dados disponíveis, não uma nova prescrição, diagnóstico ou leitura do estado de hoje. O horário UTC da classificação fica em `assessed_at`; ela não é recalculada ao abrir um plano antigo.
+Implementação publicada no deploy de 11 de setembro de 2026, a partir do commit `61d7939`. Ao gerar um rascunho, o backend registra `prescription_snapshot.readiness_assessment` separadamente de `engine_version: rules-v1`. É uma descrição versionada dos dados disponíveis, não uma nova prescrição, diagnóstico ou leitura do estado de hoje. O horário UTC da classificação fica em `assessed_at`; ela não é recalculada ao abrir um plano antigo.
 
 Ordem determinística das decisões:
 
@@ -113,7 +113,7 @@ Essa conferência foi concluída pelo proprietário: após gerar o rascunho, atu
 
 ## Histórico de aderência e carga em 7/28/42 dias (`training-history-v1` e `v2`)
 
-Implementação local de 5 de setembro de 2026, ainda não publicada. Novos rascunhos congelam `prescription_snapshot.training_history` em modo `observation`; planos existentes não são recalculados. O campo é adjacente a `readiness_assessment` e mantém `used_for_prescription: false`, portanto não altera duração, RPE, estrutura ou escolha de sessão do `rules-v1`.
+Implementação publicada no deploy de 11 de setembro de 2026, a partir do commit `61d7939`. Novos rascunhos congelam `prescription_snapshot.training_history` em modo `observation`; planos existentes não são recalculados. O campo é adjacente a `readiness_assessment` e mantém `used_for_prescription: false`, portanto não altera duração, RPE, estrutura ou escolha de sessão do `rules-v1`.
 
 Cada janela cumulativa de 7, 28 e 42 dias possui dois eixos:
 
@@ -155,7 +155,7 @@ Os testes unitários verificam ordenação, seis períodos, taxas, separação d
 
 ### Avaliação shadow do motor (`rules-v2`)
 
-O `rules-v2` começou em paralelo, sem substituir o `rules-v1`. Durante a geração de um novo rascunho, `prescription_snapshot.rules_v2_shadow` avalia três gates determinísticos: integridade do período, sinais protetivos e evidência mínima para progressão. O resultado é congelado no snapshot com `mode: shadow` e escopo `plan_generation_only`. Essa avaliação foi versionada no commit `64e554d`; não está publicada na produção.
+O `rules-v2` começou em paralelo, sem substituir o `rules-v1`. Durante a geração de um novo rascunho, `prescription_snapshot.rules_v2_shadow` avalia três gates determinísticos: integridade do período, sinais protetivos e evidência mínima para progressão. O resultado é congelado no snapshot com `mode: shadow` e escopo `plan_generation_only`. Essa avaliação foi incluída no commit `61d7939` e está publicada na produção, mas continua não autoritativa.
 
 Os estados possíveis são:
 
