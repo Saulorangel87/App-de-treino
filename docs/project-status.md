@@ -164,12 +164,13 @@ Arquivos desta fatia: `backend/internal/planning/rules_v2_adaptation.go`, `backe
 
 Arquivos desta fatia: `backend/internal/planning/data_integrity.go`, `backend/internal/planning/data_integrity_test.go`, `backend/internal/planning/rules_v2_adaptation.go`, `backend/internal/planning/rules_v2_adaptation_test.go`, `backend/internal/repository/workout_sessions.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `README.md`, `docs/README.md`, `docs/project-status.md`, `docs/architecture-decisions.md`, `docs/training-adaptation-rules.md` e `planejamento.md`. Não foram alteradas migrações, infraestrutura ou notas de versão.
 
-### Observação de tolerância à carga — versão local `load-tolerance-v1`
+### Observação de tolerância à carga — versão local `load-tolerance-v1` (validada)
 
 - A nova avaliação observa os dois períodos semanais mais recentes e exige, em cada um, sessões realizadas com carga session-RPE, feedback completo e ao menos um check-in de recuperação completo.
 - Sinais de dor, fadiga alta, recuperação necessária ou esforço atual pelo menos dois pontos acima do alvo produzem resposta protetiva. Com evidência completa e sem esses sinais, o resultado é somente `observation_only`/`maintain_observed`.
 - O resultado registra `evidence_periods`, regras, motivos, lacunas e inconsistências. Continua com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`; não calcula ACWR, não infere tolerância fisiológica e não altera o `rules-v1`.
 - A leitura foi anexada a `workouts.explanation.adaptation_shadow`, com tipos do frontend e contrato OpenAPI atualizados. Não houve migração, mudança visual, alteração de infraestrutura ou atualização de `APP_VERSION`/`UPDATE_NOTES`.
+- Após reiniciar a API local, uma sessão concluída confirmou no `GET /v1/plans/current` a presença de `load_tolerance` com `version: "load-tolerance-v1"`, `progression_eligible: false` e `used_for_prescription: false`. O estado `not_evaluated` foi aceito como esperado para a cobertura histórica da conta de teste. A implementação foi registrada no commit `36cfabb` e ainda não foi publicada em produção.
 - A suíte Go, `go vet`, build do frontend e `git diff --check` passaram. O lint geral continua bloqueado pelas pendências anteriores já registradas, sem erro apontado nos arquivos desta fatia.
 
 Arquivos desta fatia: `backend/internal/planning/load_tolerance.go`, `backend/internal/planning/load_tolerance_test.go`, `backend/internal/planning/rules_v2_adaptation.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `docs/training-adaptation-rules.md`, `docs/project-status.md`, `docs/architecture-decisions.md` e `planejamento.md`. Não foram alteradas migrações, infraestrutura ou notas de versão.
@@ -409,7 +410,7 @@ Nesta primeira etapa, os relatos continuam centralizados no banco e não geram u
 
 1. Observar os pilotos publicados — taper, VO₂max de estrada e intervalos curtos — dentro dos gates documentados, sem transformar um caso isolado em autorização de carga.
 2. Acompanhar o primeiro resumo semanal do Resend e os relatos reais, sem repetir como bloqueio os testes já concluídos de latência, limites e fallback do Worker.
-3. Validar via API local o bloco `adaptation_shadow.load_tolerance` após concluir uma sessão, confirmando os estados observacionais e as barreiras de não aplicação.
+3. ~~Validar via API local o bloco `adaptation_shadow.load_tolerance` após concluir uma sessão, confirmando os estados observacionais e as barreiras de não aplicação.~~ Concluído localmente e registrado no commit `36cfabb`.
 4. Retomar a evolução em shadow de adaptação, carga/progressão e integridade dos dados, preservando `rules-v1` até que a nova versão esteja testada, comparável e auditável.
 5. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
 6. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
