@@ -283,7 +283,7 @@ export function WorkoutSessionActions({
                       )
                     }
                   >
-                    <option value="" disabled>
+                    <option value="">
                       Selecione o motivo
                     </option>
                     {Object.entries(partialReasonLabels).map(([value, label]) => (

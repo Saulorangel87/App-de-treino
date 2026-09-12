@@ -1513,6 +1513,9 @@ button {
   background: #164a3b;
   color: #eef6f2;
 }
+.workout-detail .session-feedback select:invalid {
+  color: #eef6f2;
+}
 .workout-detail .session-feedback .pain-check {
   border-color: #d7e2da;
   background: #f8fbf8;
