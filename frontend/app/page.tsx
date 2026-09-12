@@ -108,6 +108,10 @@ function Sidebar({ user, plan }: { user: User; plan: TrainingPlan | null }) {
           <LineChart size={18} />
           Evolução
         </a>
+        <Link className="nav-item" href="/novidades">
+          <Sparkles size={18} />
+          Novidades
+        </Link>
         <a className="nav-item feedback-nav-item" href="/feedback">
           <MessageSquareHeart size={18} />
           Feedback

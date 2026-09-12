@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { LoaderCircle, LogOut } from 'lucide-react';
+import { LoaderCircle, LogOut, Sparkles } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 
 export function LogoutButton({ compact = false }: { compact?: boolean }) {
@@ -57,7 +57,13 @@ export function AccountActions({
         <small>{label}</small>
         <strong>{name}</strong>
       </div>
-      <Link className="account-feedback-link" href="/feedback">Feedback</Link>
+      <Link className="account-updates-link" href="/novidades">
+        <Sparkles size={14} />
+        <span>Novidades</span>
+      </Link>
+      <Link className="account-feedback-link" href="/feedback">
+        Feedback
+      </Link>
       <LogoutButton />
     </div>
   );

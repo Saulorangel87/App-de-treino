@@ -158,11 +158,19 @@ A conclusão parcial não libera progressão no trigger do `rules-v1`; dor, fadi
 
 ## ADR-012 — Sinais adicionais do feedback pós-treino
 
-**Status:** Implementada localmente; aguardando validação manual e ainda não publicada.
+**Status:** Validada localmente; ainda não publicada.
 
 O feedback pode registrar `recovery_after` e `repeat_confidence` em escala de 1 a 5. Os campos são opcionais no banco para não reescrever históricos anteriores, mas são enviados pelo formulário atual com uma seleção neutra inicial. Eles aparecem no plano, no histórico e na comparação observacional da sessão.
 
-Esses sinais não alteram duração, RPE, estímulo ou status, não liberam progressão e não substituem sono, estresse, fadiga ou o check-in diário. A migração `000021` adiciona apenas colunas e restrições de faixa; a produção permanece sem ela até validação manual, backup, aplicação pelo perfil `maintenance` e autorização explícita.
+Esses sinais não alteram duração, RPE, estímulo ou status, não liberam progressão e não substituem sono, estresse, fadiga ou o check-in diário. A migração `000021` adiciona apenas colunas e restrições de faixa; a validação manual local foi concluída e a produção permanece sem ela até backup, aplicação pelo perfil `maintenance` e autorização explícita.
+
+## ADR-013 — Histórico permanente de novidades
+
+**Status:** Implementada localmente; aguardando validação visual e ainda não publicada.
+
+O aviso exibido no primeiro acesso após uma atualização deve comunicar somente as novidades da versão atual, com altura reduzida e acesso ao histórico completo. A rota autenticada `/novidades` reúne todas as notas em `frontend/lib/release.ts`, agrupadas por versão e recolhidas por padrão nas versões antigas. O acesso permanece disponível no menu lateral, no menu móvel e no cabeçalho das telas internas.
+
+Essa separação preserva a exigência de informar mudanças logo após uma atualização sem transformar o modal em uma lista extensa. A confirmação continua sendo armazenada por conta, versão e navegador; abrir o histórico pelo aviso também encerra o aviso atual. A versão local foi atualizada para `0.19.0`; produção permanece em `0.16.0` até validação, commit, backup, deploy e autorização explícita.
 
 ## Estado de produção
 

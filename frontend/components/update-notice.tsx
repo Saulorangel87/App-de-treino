@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Check, Sparkles, X } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 import { APP_VERSION, UPDATE_NOTES } from '@/lib/release';
@@ -53,8 +54,16 @@ export function UpdateNotice() {
 
   if (!visible) return null;
 
+  const currentNotes = UPDATE_NOTES.filter(
+    (note) => note.version === APP_VERSION,
+  );
+
   return (
-    <dialog open className="modal-backdrop update-notice-backdrop" aria-labelledby="update-notice-title">
+    <dialog
+      open
+      className="modal-backdrop update-notice-backdrop"
+      aria-labelledby="update-notice-title"
+    >
       <section className="update-notice">
         <button
           type="button"
@@ -70,12 +79,15 @@ export function UpdateNotice() {
         <span className="update-notice-kicker">NOVIDADES · V{APP_VERSION}</span>
         <h2 id="update-notice-title">O Cadência ganhou melhorias.</h2>
         <p className="update-notice-intro">
-          Veja o que mudou para deixar seu planejamento mais claro e acompanhar melhor a sua rotina.
+          Veja o que mudou para deixar seu planejamento mais claro e acompanhar
+          melhor a sua rotina.
         </p>
         <ul className="update-notice-list">
-          {UPDATE_NOTES.map((note) => (
+          {currentNotes.map((note) => (
             <li key={note.title}>
-              <span><Check size={14} /></span>
+              <span>
+                <Check size={14} />
+              </span>
               <div>
                 <strong>{note.title}</strong>
                 <p>{note.description}</p>
@@ -83,9 +95,22 @@ export function UpdateNotice() {
             </li>
           ))}
         </ul>
-        <button type="button" className="update-notice-action" onClick={dismiss}>
-          Entendi, continuar
-        </button>
+        <div className="update-notice-actions">
+          <Link
+            className="update-notice-history"
+            href="/novidades"
+            onClick={dismiss}
+          >
+            Ver histórico completo
+          </Link>
+          <button
+            type="button"
+            className="update-notice-action"
+            onClick={dismiss}
+          >
+            Entendi, continuar
+          </button>
+        </div>
       </section>
     </dialog>
   );
