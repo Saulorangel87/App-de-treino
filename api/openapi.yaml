@@ -658,7 +658,7 @@ components:
     PlannedVsActualAssessment:
       type: object
       description: Comparação observacional entre a sessão planejada e a execução concluída. Não interpreta tolerância fisiológica nem altera a próxima sessão.
-      required: [version, mode, scope, assessed_at, status, planned_duration_minutes, actual_duration_minutes, target_rpe, actual_rpe, observed_fields, reasons, missing_data, data_issues, not_evaluated, progression_eligible, used_for_prescription]
+      required: [version, mode, scope, assessed_at, status, planned_duration_minutes, actual_duration_minutes, completion_status, target_rpe, actual_rpe, observed_fields, reasons, missing_data, data_issues, not_evaluated, progression_eligible, used_for_prescription]
       properties:
         version: { type: string, enum: [planned-vs-actual-v1] }
         mode: { type: string, enum: [observation] }
@@ -669,6 +669,8 @@ components:
         actual_duration_minutes: { type: integer, minimum: 0 }
         duration_delta_minutes: { type: integer }
         duration_completion_percent: { type: number }
+        completion_status: { type: string, enum: [complete, partial] }
+        partial_reason: { type: string, enum: [time_available_changed, fatigue_or_recovery, pain_or_discomfort, equipment_or_conditions, other] }
         target_rpe: { type: number, minimum: 0, maximum: 10 }
         actual_rpe: { type: number, minimum: 0, maximum: 10 }
         rpe_delta: { type: number }
@@ -983,16 +985,20 @@ components:
         feedback: { $ref: '#/components/schemas/WorkoutFeedback' }
     WorkoutFeedback:
       type: object
-      required: [difficulty, pain_reported, fatigue_after]
+      required: [completion_status, difficulty, pain_reported, fatigue_after]
       properties:
+        completion_status: { type: string, enum: [complete, partial] }
+        partial_reason: { type: string, enum: [time_available_changed, fatigue_or_recovery, pain_or_discomfort, equipment_or_conditions, other] }
         difficulty: { type: string, enum: [very_easy, easy, moderate, hard, very_hard] }
         pain_reported: { type: boolean }
         fatigue_after: { type: integer, minimum: 1, maximum: 5 }
         notes: { type: string, maxLength: 1000 }
     CompleteWorkoutRequest:
       type: object
-      required: [actual_rpe, difficulty, pain_reported, fatigue_after]
+      required: [completion_status, actual_rpe, difficulty, pain_reported, fatigue_after]
       properties:
+        completion_status: { type: string, enum: [complete, partial] }
+        partial_reason: { type: string, enum: [time_available_changed, fatigue_or_recovery, pain_or_discomfort, equipment_or_conditions, other] }
         actual_rpe: { type: number, minimum: 1, maximum: 10 }
         difficulty: { type: string, enum: [very_easy, easy, moderate, hard, very_hard] }
         pain_reported: { type: boolean }

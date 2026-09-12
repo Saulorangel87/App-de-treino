@@ -38,6 +38,14 @@ const statusLabels = {
   adapted: 'Adaptado',
 } as const;
 
+const partialReasonLabels = {
+  time_available_changed: 'Fiquei sem tempo',
+  fatigue_or_recovery: 'Fadiga ou recuperação',
+  pain_or_discomfort: 'Dor ou desconforto',
+  equipment_or_conditions: 'Equipamento, clima ou terreno',
+  other: 'Outro motivo',
+} as const;
+
 const timeFormatter = new Intl.DateTimeFormat('pt-BR', {
   hour: '2-digit',
   minute: '2-digit',
@@ -53,6 +61,8 @@ export function WorkoutSessionActions({
   const [action, setAction] = useState('');
   const [todayKey, setTodayKey] = useState('');
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [completionStatus, setCompletionStatus] = useState<'complete' | 'partial'>('complete');
+  const [partialReason, setPartialReason] = useState<keyof typeof partialReasonLabels | ''>('');
   const [actualRPE, setActualRPE] = useState(
     Math.max(1, Math.round(workout.target_rpe)),
   );
@@ -97,6 +107,8 @@ export function WorkoutSessionActions({
 
   async function complete() {
     await mutate('complete', {
+      completion_status: completionStatus,
+      partial_reason: completionStatus === 'partial' ? partialReason : undefined,
       actual_rpe: actualRPE,
       difficulty,
       fatigue_after: fatigueAfter,
@@ -240,6 +252,56 @@ export function WorkoutSessionActions({
             </button>
           </div>
 
+          <fieldset className="completion-context">
+            <legend>Quanto do treino você realizou?</legend>
+            <div className="feedback-grid">
+              <label>
+                Conclusão
+                <select
+                  value={completionStatus}
+                  onChange={(event) => {
+                    const value = event.target.value as 'complete' | 'partial';
+                    setCompletionStatus(value);
+                    if (value === 'complete') {
+                      setPartialReason('');
+                    }
+                  }}
+                >
+                  <option value="complete">Treino completo</option>
+                  <option value="partial">Fiz apenas parte</option>
+                </select>
+              </label>
+              {completionStatus === 'partial' && (
+                <label>
+                  Motivo
+                  <select
+                    required
+                    value={partialReason}
+                    onChange={(event) =>
+                      setPartialReason(
+                        event.target.value as keyof typeof partialReasonLabels,
+                      )
+                    }
+                  >
+                    <option value="" disabled>
+                      Selecione o motivo
+                    </option>
+                    {Object.entries(partialReasonLabels).map(([value, label]) => (
+                      <option value={value} key={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+            </div>
+            {completionStatus === 'partial' && (
+              <small className="completion-help">
+                Esse contexto evita interpretar a sessão como tolerância ao treino completo.
+              </small>
+            )}
+          </fieldset>
+
           <label htmlFor={`rpe-${workout.id}`}>
             RPE realizado
             <output>{actualRPE}</output>
@@ -358,6 +420,10 @@ export function WorkoutSessionActions({
           <div>
             <strong>Treino concluído · RPE {session?.actual_rpe}</strong>
             <span>
+              {feedback.completion_status === 'partial'
+                ? `Conclusão parcial · ${feedback.partial_reason ? partialReasonLabels[feedback.partial_reason] : 'motivo não informado'}`
+                : 'Treino completo'}{' '}
+              ·{' '}
               {difficultyLabels[feedback.difficulty]} · fadiga{' '}
               {feedback.fatigue_after}/5
               {feedback.pain_reported ? ' · dor relatada' : ' · sem dor'}

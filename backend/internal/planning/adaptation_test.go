@@ -27,3 +27,17 @@ func TestDecideAdaptationOnlyProgressesClearlyEasyResponse(t *testing.T) {
 		t.Fatalf("a normal response must keep the plan unchanged: %#v", neutral)
 	}
 }
+
+func TestDecideAdaptationDoesNotProgressPartialCompletion(t *testing.T) {
+	decision := DecideAdaptation(6, CompletionInput{
+		CompletionStatus: "partial",
+		PartialReason:    "time_available_changed",
+		ActualRPE:        4,
+		Difficulty:       "easy",
+		FatigueAfter:     2,
+	})
+
+	if decision.Sessions != 0 {
+		t.Fatalf("partial completion must not progress the plan: %#v", decision)
+	}
+}

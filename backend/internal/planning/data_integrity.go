@@ -18,6 +18,8 @@ type WorkoutDataIntegrityInput struct {
 	AveragePowerW    *int
 	AverageHeartRate *int
 	FeedbackPresent  bool
+	CompletionStatus string
+	PartialReason    string
 	Difficulty       string
 	PainReported     bool
 	FatigueAfter     *int
@@ -55,6 +57,7 @@ func AssessWorkoutDataIntegrity(input WorkoutDataIntegrityInput, now time.Time) 
 		RulesEvaluated: []string{
 			"required_session_data_gate",
 			"required_feedback_gate",
+			"completion_context_gate",
 			"metric_range_gate",
 			"measurement_consistency_gate",
 			"history_eligibility_gate",
@@ -93,6 +96,23 @@ func AssessWorkoutDataIntegrity(input WorkoutDataIntegrityInput, now time.Time) 
 	if !input.FeedbackPresent {
 		addMissing("feedback")
 	} else {
+		completionStatus := normalizeCompletionStatus(input.CompletionStatus)
+		addObservedCompletionContext := func() {
+			if completionStatus == "partial" {
+				if !validPartialReason(input.PartialReason) {
+					if input.PartialReason == "" {
+						addMissing("partial_reason")
+					} else {
+						addIssue("invalid_partial_reason")
+					}
+				}
+			} else if completionStatus == "complete" && input.PartialReason != "" {
+				addIssue("unexpected_partial_reason")
+			} else if completionStatus != "complete" {
+				addIssue("invalid_completion_status")
+			}
+		}
+		addObservedCompletionContext()
 		switch input.Difficulty {
 		case "very_easy", "easy", "moderate", "hard", "very_hard":
 		default:

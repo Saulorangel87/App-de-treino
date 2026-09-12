@@ -104,3 +104,24 @@ func TestAssessWorkoutDataIntegrityRejectsNonFiniteRPE(t *testing.T) {
 		t.Fatalf("non-finite RPE was not rejected: %+v", assessment)
 	}
 }
+
+func TestAssessWorkoutDataIntegrityAcceptsValidPartialCompletion(t *testing.T) {
+	input := validWorkoutDataIntegrityInput()
+	input.CompletionStatus = "partial"
+	input.PartialReason = "time_available_changed"
+	assessment := AssessWorkoutDataIntegrity(input, time.Unix(0, 0))
+
+	if assessment.Status != "valid" || !assessment.EligibleForHistory {
+		t.Fatalf("valid partial completion was not eligible for observation: %+v", assessment)
+	}
+}
+
+func TestAssessWorkoutDataIntegrityRejectsPartialCompletionWithoutReason(t *testing.T) {
+	input := validWorkoutDataIntegrityInput()
+	input.CompletionStatus = "partial"
+	assessment := AssessWorkoutDataIntegrity(input, time.Unix(0, 0))
+
+	if assessment.Status != "incomplete" || !slices.Contains(assessment.MissingData, "partial_reason") {
+		t.Fatalf("missing partial reason was not reported: %+v", assessment)
+	}
+}

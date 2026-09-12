@@ -17,6 +17,8 @@ type PlannedVsActualInput struct {
 	TargetRPE              float64
 	ActualRPE              float64
 	FeedbackPresent        bool
+	CompletionStatus       string
+	PartialReason          string
 	Difficulty             string
 	PainReported           bool
 	FatigueAfter           int
@@ -39,6 +41,8 @@ type PlannedVsActualAssessment struct {
 	ActualDurationMinutes     int               `json:"actual_duration_minutes"`
 	DurationDeltaMinutes      *int              `json:"duration_delta_minutes,omitempty"`
 	DurationCompletionPercent *float64          `json:"duration_completion_percent,omitempty"`
+	CompletionStatus          string            `json:"completion_status"`
+	PartialReason             string            `json:"partial_reason,omitempty"`
 	TargetRPE                 float64           `json:"target_rpe"`
 	ActualRPE                 float64           `json:"actual_rpe"`
 	RPEDelta                  *float64          `json:"rpe_delta,omitempty"`
@@ -63,6 +67,7 @@ func AssessPlannedVsActual(input PlannedVsActualInput, now time.Time) PlannedVsA
 		Status:                 "not_evaluated",
 		PlannedDurationMinutes: input.PlannedDurationMinutes,
 		ActualDurationMinutes:  input.ActualDurationMinutes,
+		CompletionStatus:       normalizeCompletionStatus(input.CompletionStatus),
 		TargetRPE:              input.TargetRPE,
 		ActualRPE:              input.ActualRPE,
 		ObservedFields: []string{
@@ -74,7 +79,7 @@ func AssessPlannedVsActual(input PlannedVsActualInput, now time.Time) PlannedVsA
 		Reasons:             []ReadinessReason{},
 		MissingData:         []string{},
 		DataIssues:          []string{},
-		NotEvaluated:        []string{"cadence", "sleep", "stress", "recovery", "completion_extent", "completion_reason"},
+		NotEvaluated:        []string{"cadence", "sleep", "stress", "recovery"},
 		ProgressionEligible: false,
 		UsedForPrescription: false,
 	}
@@ -104,6 +109,23 @@ func AssessPlannedVsActual(input PlannedVsActualInput, now time.Time) PlannedVsA
 	if !input.FeedbackPresent {
 		addMissing("feedback")
 	} else {
+		addObserved("completion_status")
+		if result.CompletionStatus == "partial" {
+			if validPartialReason(input.PartialReason) {
+				result.PartialReason = input.PartialReason
+				addObserved("partial_reason")
+			} else if input.PartialReason == "" {
+				addMissing("partial_reason")
+			} else {
+				addIssue("invalid_partial_reason")
+			}
+		} else if result.CompletionStatus == "complete" {
+			if input.PartialReason != "" {
+				addIssue("unexpected_partial_reason")
+			}
+		} else {
+			addIssue("invalid_completion_status")
+		}
 		addObserved("difficulty")
 		addObserved("pain_reported")
 		addObserved("fatigue_after")

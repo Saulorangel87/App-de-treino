@@ -16,6 +16,14 @@ const difficultyLabels: Record<NonNullable<TrainingActivity['feedback']>['diffic
   very_easy: 'Muito fácil', easy: 'Fácil', moderate: 'Moderado', hard: 'Difícil', very_hard: 'Muito difícil',
 };
 
+const partialReasonLabels = {
+  time_available_changed: 'sem tempo',
+  fatigue_or_recovery: 'fadiga/recuperação',
+  pain_or_discomfort: 'dor/desconforto',
+  equipment_or_conditions: 'equipamento/clima/terreno',
+  other: 'outro motivo',
+} as const;
+
 export default function ActivitiesPage() {
   const [user, setUser] = useState<User | null>(null);
   const [activities, setActivities] = useState<TrainingActivity[]>([]);
@@ -82,7 +90,7 @@ export default function ActivitiesPage() {
                     {item.elevation_gain_m !== undefined && <span><MapPinned size={14} /><b>{item.elevation_gain_m} m+</b></span>}
                     {item.average_heart_rate !== undefined && <span><HeartPulse size={14} /><b>{item.average_heart_rate} bpm</b></span>}
                     {item.average_power_watts !== undefined && <span><Zap size={14} /><b>{item.average_power_watts} W</b></span>}
-                    {item.feedback && <><span><b>{difficultyLabels[item.feedback.difficulty]}</b></span><span>Fadiga <b>{item.feedback.fatigue_after}/5</b></span><span className={item.feedback.pain_reported ? 'pain' : ''}>{item.feedback.pain_reported ? 'Dor relatada' : 'Sem dor'}</span></>}
+                    {item.feedback && <><span><b>{item.feedback.completion_status === 'partial' ? `Parcial · ${item.feedback.partial_reason ? partialReasonLabels[item.feedback.partial_reason] : 'motivo não informado'}` : 'Completa'}</b></span><span><b>{difficultyLabels[item.feedback.difficulty]}</b></span><span>Fadiga <b>{item.feedback.fatigue_after}/5</b></span><span className={item.feedback.pain_reported ? 'pain' : ''}>{item.feedback.pain_reported ? 'Dor relatada' : 'Sem dor'}</span></>}
                   </div>
                   {item.feedback?.notes && <p className="activity-notes">{item.feedback.notes}</p>}
                 </div>

@@ -1380,6 +1380,29 @@ button {
   padding: 0 9px;
 }
 .feedback-grid input { height: 36px; padding: 0 9px; }
+.completion-context {
+  margin: 0;
+  padding: 11px 0 0;
+  border: 0;
+  border-top: 1px solid #dce5de;
+}
+.completion-context legend {
+  padding: 0;
+  color: #42564b;
+  font-size: 9px;
+  font-weight: 750;
+}
+.completion-options {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  margin-top: 7px;
+}
+.completion-help {
+  display: block;
+  margin-top: 6px;
+  color: #78887f;
+  font-size: 8px;
+  line-height: 1.45;
+}
 .session-metrics { margin: 0; padding: 11px 0 0; border: 0; border-top: 1px solid #dce5de; }
 .session-metrics legend { padding: 0; color: #42564b; font-size: 9px; font-weight: 750; }.session-metrics legend small { color: #78887f; font-size: 8px; font-weight: 500; }
 .session-metric-result { font-weight: 650; }
@@ -1472,6 +1495,18 @@ button {
 .workout-detail .feedback-heading small,
 .workout-detail .feedback-scale {
   color: #a9bfb6;
+}
+.workout-detail .completion-context {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.workout-detail .completion-context legend,
+.workout-detail .completion-help {
+  color: #a9bfb6;
+}
+.workout-detail .completion-context select {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
 }
 .workout-detail .session-feedback .pain-check {
   border-color: #d7e2da;

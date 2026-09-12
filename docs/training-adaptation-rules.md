@@ -224,11 +224,17 @@ O `rules-v1` continua sendo a única fonte prescritiva. A implementação não a
 
 ### Comparação observacional entre planejado e realizado (`planned-vs-actual-v1`)
 
-Esta fatia registra, dentro de `workouts.explanation.adaptation_shadow`, a diferença descritiva entre a sessão planejada e a sessão concluída. São comparados a duração planejada e realizada, o RPE-alvo e o RPE realizado, além da cobertura do feedback e das métricas opcionais disponíveis no encerramento.
+Esta fatia registra, dentro de `workouts.explanation.adaptation_shadow`, a diferença descritiva entre a sessão planejada e a sessão concluída. São comparados a duração planejada e realizada, o RPE-alvo e o RPE realizado, além da cobertura do feedback, do contexto de conclusão e das métricas opcionais disponíveis no encerramento.
 
-O resultado pode ficar `observed` quando os dados mínimos da comparação estão válidos ou `not_evaluated` quando há duração, RPE ou feedback inválidos/ausentes. Campos ainda não coletados — como cadência, sono, estresse, recuperação, extensão da conclusão e motivo de não conclusão — permanecem explícitos em `not_evaluated`; métricas opcionais ausentes ficam em `missing_data` sem invalidar a comparação principal.
+O resultado pode ficar `observed` quando os dados mínimos da comparação estão válidos ou `not_evaluated` quando há duração, RPE, feedback ou contexto de conclusão inválidos/ausentes. `completion_status` informa `complete` ou `partial`; neste último caso, `partial_reason` identifica um dos motivos controlados. Cadência, sono, estresse e recuperação continuam explícitos em `not_evaluated`; métricas opcionais ausentes ficam em `missing_data` sem invalidar a comparação principal.
 
-As diferenças de duração e RPE são apenas registros de execução. O bloco mantém `progression_eligible: false` e `used_for_prescription: false`, não interpreta tolerância fisiológica, não aplica limiares de progressão e não altera o trigger ou o plano ativo. A validação manual local confirmou uma sessão de 3 minutos realizados de 35 planejados como `observed`, sem alteração da próxima sessão. Não há migração, mudança visual ou atualização de versão nesta fatia.
+As diferenças de duração e RPE, assim como o status de conclusão e seu motivo, são apenas registros de execução. O bloco mantém `progression_eligible: false` e `used_for_prescription: false`, não interpreta tolerância fisiológica nem aplica limiares de progressão. A validação manual local confirmou uma sessão de 3 minutos realizados de 35 planejados como `observed`, sem alteração da próxima sessão. Esta documentação antecede a validação manual da nova interface; a implementação local usa a migração `000020` e a versão `0.17.0`, sem deploy.
+
+### Contexto de conclusão parcial (`completion_status`)
+
+Ao concluir um treino, o atleta informa se realizou a sessão completa ou apenas parte dela. Para uma conclusão parcial, o motivo é obrigatório e fica restrito a `time_available_changed`, `fatigue_or_recovery`, `pain_or_discomfort`, `equipment_or_conditions` ou `other`. Registros antigos recebem `complete` por padrão na migração `000020`.
+
+O contexto é informativo e não diagnostica a causa da interrupção. Uma sessão parcial pode entrar na observação quando seus dados são coerentes, mas não é usada como evidência de tolerância ao treino completo e não libera progressão. O trigger do `rules-v1` mantém proteções para dor, fadiga e esforço alto; somente a ramificação de progressão exige `completion_status = 'complete'`.
 
 ### Rotação segura e recuperação ativa
 

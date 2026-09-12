@@ -1,6 +1,11 @@
-export const APP_VERSION = '0.16.0';
+export const APP_VERSION = '0.17.0';
 
 export const UPDATE_NOTES = [
+  {
+    title: 'Registro de conclusão parcial',
+    description:
+      'Ao concluir um treino, você pode indicar se fez toda a sessão ou apenas parte dela e informar o motivo. Esse contexto ajuda o app a interpretar o realizado sem aumentar a carga automaticamente.',
+  },
   {
     title: 'Escopo de modalidades mais claro',
     description:

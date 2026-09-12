@@ -88,3 +88,24 @@ func TestAssessPlannedVsActualDoesNotTreatMissingOptionalMetricsAsError(t *testi
 		t.Fatalf("data issues = %#v, want none", assessment.DataIssues)
 	}
 }
+
+func TestAssessPlannedVsActualRecordsPartialCompletionContext(t *testing.T) {
+	assessment := AssessPlannedVsActual(PlannedVsActualInput{
+		PlannedDurationMinutes: 60,
+		ActualDurationMinutes:  30,
+		TargetRPE:              6,
+		ActualRPE:              4,
+		FeedbackPresent:        true,
+		CompletionStatus:       "partial",
+		PartialReason:          "fatigue_or_recovery",
+		Difficulty:             "easy",
+		FatigueAfter:           2,
+	}, time.Now())
+
+	if assessment.Status != "observed" || assessment.CompletionStatus != "partial" || assessment.PartialReason != "fatigue_or_recovery" {
+		t.Fatalf("partial completion was not observed: %+v", assessment)
+	}
+	if !slices.Contains(assessment.ObservedFields, "partial_reason") || slices.Contains(assessment.NotEvaluated, "completion_reason") {
+		t.Fatalf("partial context fields = %#v / %#v", assessment.ObservedFields, assessment.NotEvaluated)
+	}
+}

@@ -66,11 +66,18 @@ export type Workout = {
         scope: 'completed_workout';
         assessed_at: string;
         status: 'not_evaluated' | 'observed';
-        planned_duration_minutes: number;
-        actual_duration_minutes: number;
-        duration_delta_minutes?: number;
-        duration_completion_percent?: number;
-        target_rpe: number;
+      planned_duration_minutes: number;
+      actual_duration_minutes: number;
+      duration_delta_minutes?: number;
+      duration_completion_percent?: number;
+      completion_status: 'complete' | 'partial';
+      partial_reason?:
+        | 'time_available_changed'
+        | 'fatigue_or_recovery'
+        | 'pain_or_discomfort'
+        | 'equipment_or_conditions'
+        | 'other';
+      target_rpe: number;
         actual_rpe: number;
         rpe_delta?: number;
         observed_fields: string[];
@@ -124,6 +131,13 @@ export type WorkoutStep = {
 };
 
 export type WorkoutFeedback = {
+  completion_status: 'complete' | 'partial';
+  partial_reason?:
+    | 'time_available_changed'
+    | 'fatigue_or_recovery'
+    | 'pain_or_discomfort'
+    | 'equipment_or_conditions'
+    | 'other';
   difficulty: 'very_easy' | 'easy' | 'moderate' | 'hard' | 'very_hard';
   pain_reported: boolean;
   fatigue_after: number;

@@ -68,7 +68,7 @@ A primeira implementação de IA usa Ollama local como provedor opcional. `AI_EN
 
 **Status:** Aplicada.
 
-As migrações `000001` a `000019` estão versionadas no checkout e aplicadas na produção. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada e a `000019` registra as fontes do piloto de intervalos curtos. As migrações `000017`, `000018` e `000019` foram aplicadas pelo perfil `maintenance` no deploy do commit `6fdbe45`, após backup verificável. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
+As migrações `000001` a `000020` estão versionadas no checkout; a produção está aplicada até `000019`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos e a `000020` adiciona o contexto de conclusão parcial. As migrações `000017`, `000018` e `000019` foram aplicadas pelo perfil `maintenance` no deploy do commit `6fdbe45`, após backup verificável. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
 
 ## ADR-006 — Feedback de produto
 
@@ -144,9 +144,17 @@ O Cadência não inclui sprint/pista/BMX nem downhill/enduro. Essas modalidades 
 
 **Status:** Aceita e aplicada.
 
-Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a mudança em `UPDATE_NOTES`. O componente `UpdateNotice` apresenta as notas no primeiro acesso autenticado após a versão mudar e registra a confirmação por conta, versão e navegador usando armazenamento local. As notas não devem conter segredos. A versão `0.7.0` registrou o catálogo de ciclismo baseado em evidências e a versão `0.8.0` registrou o piloto aeróbico de MTB XCO. A versão `0.12.0` reúne a recuperação ativa, o registro de treino não realizado, o piloto de intervalos intensos para estrada, a correção da semana de recuperação, o planejamento por proximidade do evento, as sessões adaptadas iniciáveis, os reforços de segurança, a proteção do resumo semanal e a correção da confirmação da tela de novidades. Ela foi publicada com o commit `61d7939` e a release `v0.12.0`. A versão `0.16.0` acrescenta o piloto de intervalos curtos autorregulados e registra a exclusão de sprint/pista/BMX e downhill/enduro; ela foi publicada no commit `6fdbe45` e está registrada na release [v0.16.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.16.0).
+Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a mudança em `UPDATE_NOTES`. O componente `UpdateNotice` apresenta as notas no primeiro acesso autenticado após a versão mudar e registra a confirmação por conta, versão e navegador usando armazenamento local. As notas não devem conter segredos. A versão `0.7.0` registrou o catálogo de ciclismo baseado em evidências e a versão `0.8.0` registrou o piloto aeróbico de MTB XCO. A versão `0.12.0` reúne a recuperação ativa, o registro de treino não realizado, o piloto de intervalos intensos para estrada, a correção da semana de recuperação, o planejamento por proximidade do evento, as sessões adaptadas iniciáveis, os reforços de segurança, a proteção do resumo semanal e a correção da confirmação da tela de novidades. Ela foi publicada com o commit `61d7939` e a release `v0.12.0`. A versão `0.16.0` acrescenta o piloto de intervalos curtos autorregulados e registra a exclusão de sprint/pista/BMX e downhill/enduro; ela foi publicada no commit `6fdbe45` e está registrada na release [v0.16.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.16.0). A versão local `0.17.0` acrescenta o contexto de conclusão parcial, mas ainda não está publicada.
 
 Nesta auditoria, a versão `0.12.0` acrescenta planejamento por proximidade do evento, sessões adaptadas iniciáveis, reforços de autenticação e entrada HTTP, serialização do resumo semanal e confirmação da tela de novidades somente após dispensa. A versão foi publicada no commit `61d7939` após validação e autorização explícita.
+
+## ADR-011 — Contexto de conclusão do treino
+
+**Status:** Implementada localmente; ainda não publicada.
+
+O encerramento de uma sessão deve registrar explicitamente `completion_status` como `complete` ou `partial`. Para `partial`, `partial_reason` é obrigatório e usa valores controlados. O contexto melhora a interpretação do realizado sem transformar uma sessão interrompida em evidência de tolerância ao treino completo.
+
+A conclusão parcial não libera progressão no trigger do `rules-v1`; dor, fadiga alta e esforço elevado continuam podendo acionar suas reduções protetivas. O mesmo contexto é exposto no plano, no histórico e no bloco `planned-vs-actual-v1`, sempre em modo observacional. A migração `000020` usa `complete` como padrão para registros anteriores e não altera a produção até haver validação local, commit, backup, aplicação pelo perfil `maintenance` e autorização explícita.
 
 ## Estado de produção
 

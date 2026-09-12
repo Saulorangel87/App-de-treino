@@ -184,6 +184,16 @@ Arquivos desta fatia: `backend/internal/planning/load_tolerance.go`, `backend/in
 
 Arquivos desta fatia: `backend/internal/planning/execution_comparison.go`, `backend/internal/planning/execution_comparison_test.go`, `backend/internal/planning/rules_v2_adaptation.go`, `backend/internal/repository/workout_sessions.go`, `frontend/lib/planning.ts`, `api/openapi.yaml`, `docs/training-adaptation-rules.md` e `docs/project-status.md`. Não houve deploy ou publicação.
 
+### Registro de conclusão parcial — versão local `0.17.0` (implementado; aguardando validação manual)
+
+- O encerramento de uma sessão agora exige `completion_status`: `complete` para o treino inteiro ou `partial` para parte da sessão. Quando parcial, `partial_reason` é obrigatório e usa um conjunto controlado: falta de tempo, fadiga/recuperação, dor/desconforto, equipamento/clima/terreno ou outro motivo.
+- O contexto aparece no formulário de conclusão e no resumo da sessão; também é exibido no histórico de `/atividades`. Conclusão parcial não é tratada como tolerância ao treino completo e não pode gerar progressão. Dor e fadiga alta continuam podendo acionar as proteções de segurança/recuperação existentes.
+- `planned-vs-actual-v1` passa a registrar `completion_status` e `partial_reason` como observação, retirando extensão/motivo de conclusão de `not_evaluated`. A leitura continua com `progression_eligible: false` e `used_for_prescription: false`.
+- A migração local `000020_completion_context` adiciona os campos com `complete` como padrão para registros antigos, valida a combinação status/motivo e atualiza o trigger sem alterar o comportamento protetivo do `rules-v1`. A migração e o teste SQL ainda precisam ser aplicados no PostgreSQL local.
+- A versão local passou para `0.17.0` e a tela de novidades informa a mudança. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. O lint geral mantém pendências preexistentes fora desta entrega. Ainda falta validar manualmente no navegador uma conclusão parcial com motivo e conferir o retorno no plano/histórico.
+
+Arquivos desta fatia: `backend/internal/httpapi/workout_session_handlers.go`, `backend/internal/planning/adaptation.go`, `backend/internal/planning/data_integrity.go`, `backend/internal/planning/execution_comparison.go`, testes de `backend/internal/planning`, `backend/internal/repository/planning.go`, `backend/internal/repository/workout_sessions.go`, `database/migrations/000020_completion_context.*`, `database/tests/000020_completion_context.sql`, `frontend/components/workout-session-actions.tsx`, `frontend/app/atividades/page.tsx`, `frontend/app/globals.css`, `frontend/lib/planning.ts`, `frontend/lib/release.ts`, `api/openapi.yaml` e esta documentação. Não houve commit, deploy ou alteração de infraestrutura.
+
 ### Décima fatia de melhorias — piloto publicado de intervalos aeróbicos XCO
 
 - O catálogo passa a selecionar `xco_aerobic_intervals` somente quando a disciplina `mtb_xco` é informada explicitamente, o atleta é avançado, o objetivo é performance ou prova, a avaliação submáxima está apta, há pelo menos 75 minutos disponíveis, a semana não é de recuperação e não há proteção ativa por limitação, dor ou sinais recentes de recuperação insuficiente.
@@ -222,7 +232,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
 - `backend/`: API REST em Go.
-- `database/migrations/`: migrações PostgreSQL até `000019`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada e a `000019` registra as fontes do piloto de intervalos curtos. Em produção, todas até `000019` estão aplicadas.
+- `database/migrations/`: migrações PostgreSQL até `000020`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos e a `000020` registra o contexto de conclusão parcial. Em produção, todas até `000019` estão aplicadas; a `000020` permanece local.
 - `database/tests/`: verificações SQL.
 - `api/openapi.yaml`: contrato da API local e de produção.
 - `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.
@@ -252,7 +262,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 ### Treinos, feedback e evolução
 
 - Sessões planejadas, iniciadas, concluídas e canceladas.
-- Feedback com RPE, dificuldade, fadiga, dor e observações.
+- Feedback com conclusão completa/parcial, motivo controlado quando parcial, RPE, dificuldade, fadiga, dor e observações.
 - Métricas opcionais: distância, elevação, frequência cardíaca média e potência média.
 - Adaptação conservadora após feedback e check-in diário de sono, estresse e fadiga.
 - Avaliação inicial submáxima, sem teste máximo ou diagnóstico.
@@ -294,7 +304,7 @@ As rotas estão descritas em `api/openapi.yaml`. Os grupos principais são:
 
 ## Banco e migrações
 
-- Migrações versionadas no checkout local: `000001` a `000019`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes científicas do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada e a `000019` registra as fontes do piloto de intervalos curtos.
+- Migrações versionadas no checkout local: `000001` a `000020`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes científicas do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos e a `000020` adiciona o contexto de conclusão parcial.
 - Em produção, estão aplicadas `000001` a `000019`. As `000017`, `000018` e `000019` foram executadas em ordem pelo perfil `maintenance` após o backup verificável `cadencia-20260912T155746Z.dump`, revisão e autorização explícita.
 - `000012` adiciona confirmação de e-mail e recuperação de senha.
 - Produção possui registro de migrações em `cadencia_schema_migrations`.

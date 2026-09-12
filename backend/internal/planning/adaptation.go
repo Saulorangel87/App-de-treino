@@ -42,6 +42,10 @@ func DecideAdaptation(targetRPE float64, input CompletionInput) AdaptationDecisi
 		}
 	}
 
+	if normalizeCompletionStatus(input.CompletionStatus) == "partial" {
+		return AdaptationDecision{}
+	}
+
 	if input.ActualRPE <= targetRPE-2 && input.FatigueAfter <= 2 && (input.Difficulty == "easy" || input.Difficulty == "very_easy") {
 		return AdaptationDecision{
 			Kind: "progression", Sessions: 1, DurationFactor: 1.05,

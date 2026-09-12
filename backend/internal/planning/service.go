@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -130,13 +131,17 @@ type WorkoutSession struct {
 }
 
 type Feedback struct {
-	Difficulty   string `json:"difficulty"`
-	PainReported bool   `json:"pain_reported"`
-	FatigueAfter int    `json:"fatigue_after"`
-	Notes        string `json:"notes,omitempty"`
+	CompletionStatus string `json:"completion_status"`
+	PartialReason    string `json:"partial_reason,omitempty"`
+	Difficulty       string `json:"difficulty"`
+	PainReported     bool   `json:"pain_reported"`
+	FatigueAfter     int    `json:"fatigue_after"`
+	Notes            string `json:"notes,omitempty"`
 }
 
 type CompletionInput struct {
+	CompletionStatus string
+	PartialReason    string
 	ActualRPE        float64
 	Difficulty       string
 	PainReported     bool
@@ -302,6 +307,16 @@ func validCompletion(input CompletionInput) bool {
 	if input.ActualRPE < 1 || input.ActualRPE > 10 || input.FatigueAfter < 1 || input.FatigueAfter > 5 || len(input.Notes) > 1000 {
 		return false
 	}
+	completionStatus := normalizeCompletionStatus(input.CompletionStatus)
+	if completionStatus != "complete" && completionStatus != "partial" {
+		return false
+	}
+	if completionStatus == "partial" && !validPartialReason(input.PartialReason) {
+		return false
+	}
+	if completionStatus == "complete" && strings.TrimSpace(input.PartialReason) != "" {
+		return false
+	}
 	if input.DistanceKM != nil && (*input.DistanceKM < 0 || *input.DistanceKM > 2000) {
 		return false
 	}
@@ -316,6 +331,22 @@ func validCompletion(input CompletionInput) bool {
 	}
 	switch input.Difficulty {
 	case "very_easy", "easy", "moderate", "hard", "very_hard":
+		return true
+	default:
+		return false
+	}
+}
+
+func normalizeCompletionStatus(value string) string {
+	if value == "" {
+		return "complete"
+	}
+	return value
+}
+
+func validPartialReason(value string) bool {
+	switch value {
+	case "time_available_changed", "fatigue_or_recovery", "pain_or_discomfort", "equipment_or_conditions", "other":
 		return true
 	default:
 		return false

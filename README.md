@@ -21,7 +21,7 @@ O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Spr
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui a migração `000015` (fontes do catálogo inicial), a `000016` (fonte do piloto XCO), a `000017` (fontes do taper pré-prova), a `000018` (fontes do piloto VO₂max de estrada) e a `000019` (fontes do piloto de intervalos curtos); elas ainda precisam ser aplicadas nos ambientes que estiverem em uma versão anterior.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui a migração `000015` (fontes do catálogo inicial), a `000016` (fonte do piloto XCO), a `000017` (fontes do taper pré-prova), a `000018` (fontes do piloto VO₂max de estrada), a `000019` (fontes do piloto de intervalos curtos) e a `000020` (contexto de conclusão parcial); elas ainda precisam ser aplicadas nos ambientes que estiverem em uma versão anterior.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 

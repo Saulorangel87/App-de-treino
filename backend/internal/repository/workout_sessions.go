@@ -16,7 +16,7 @@ func (s *Store) ActivitiesByUserID(ctx context.Context, userID string) ([]planni
 			ws.status, ws.started_at, ws.completed_at, ws.cancelled_at,
 			ws.duration_minutes, ws.actual_rpe, ws.distance_km::double precision, ws.elevation_gain_m,
 			ws.average_power_watts, ws.average_heart_rate,
-			f.difficulty, f.pain_reported, f.fatigue_after, f.notes
+			f.completion_status, f.partial_reason, f.difficulty, f.pain_reported, f.fatigue_after, f.notes
 		FROM workout_sessions ws
 		JOIN athlete_profiles ap ON ap.id = ws.athlete_profile_id
 		JOIN workouts w ON w.id = ws.workout_id
@@ -35,12 +35,12 @@ func (s *Store) ActivitiesByUserID(ctx context.Context, userID string) ([]planni
 		var duration, elevationGainM, averagePowerW, averageHeartRate *int
 		var rpe *float64
 		var distanceKM *float64
-		var difficulty, notes *string
+		var completionStatus, partialReason, difficulty, notes *string
 		var pain *bool
 		var fatigue *int
 		if err := rows.Scan(&activity.ID, &activity.WorkoutID, &activity.Name, &activity.Objective, &activity.ScheduledOn,
 			&activity.Status, &startedAt, &completedAt, &cancelledAt, &duration, &rpe, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate,
-			&difficulty, &pain, &fatigue, &notes); err != nil {
+			&completionStatus, &partialReason, &difficulty, &pain, &fatigue, &notes); err != nil {
 			return nil, err
 		}
 		activity.StartedAt, activity.CompletedAt, activity.CancelledAt = startedAt, completedAt, cancelledAt
@@ -48,7 +48,10 @@ func (s *Store) ActivitiesByUserID(ctx context.Context, userID string) ([]planni
 		activity.DistanceKM, activity.ElevationGainM = distanceKM, elevationGainM
 		activity.AveragePowerW, activity.AverageHeartRate = averagePowerW, averageHeartRate
 		if difficulty != nil {
-			activity.Feedback = &planning.Feedback{Difficulty: *difficulty, PainReported: *pain, FatigueAfter: *fatigue}
+			activity.Feedback = &planning.Feedback{CompletionStatus: *completionStatus, Difficulty: *difficulty, PainReported: *pain, FatigueAfter: *fatigue}
+			if partialReason != nil {
+				activity.Feedback.PartialReason = *partialReason
+			}
 			if notes != nil {
 				activity.Feedback.Notes = *notes
 			}
@@ -166,14 +169,16 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 		AveragePowerW:    input.AveragePowerW,
 		AverageHeartRate: input.AverageHeartRate,
 		FeedbackPresent:  true,
+		CompletionStatus: input.CompletionStatus,
+		PartialReason:    input.PartialReason,
 		Difficulty:       input.Difficulty,
 		PainReported:     input.PainReported,
 		FatigueAfter:     &fatigueAfter,
 	}, integrityAssessedAt)
 	if _, err := tx.Exec(ctx, `
-		INSERT INTO feedback (workout_session_id, difficulty, pain_reported, fatigue_after, notes)
-		VALUES ($1, $2, $3, $4, NULLIF($5, ''))`,
-		sessionID, input.Difficulty, input.PainReported, input.FatigueAfter, input.Notes,
+		INSERT INTO feedback (workout_session_id, completion_status, partial_reason, difficulty, pain_reported, fatigue_after, notes)
+		VALUES ($1, $2, NULLIF($3, ''), $4, $5, $6, NULLIF($7, ''))`,
+		sessionID, input.CompletionStatus, input.PartialReason, input.Difficulty, input.PainReported, input.FatigueAfter, input.Notes,
 	); err != nil {
 		return err
 	}
@@ -188,6 +193,8 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 		TargetRPE:              sourceTargetRPE,
 		ActualRPE:              input.ActualRPE,
 		FeedbackPresent:        true,
+		CompletionStatus:       input.CompletionStatus,
+		PartialReason:          input.PartialReason,
 		Difficulty:             input.Difficulty,
 		PainReported:           input.PainReported,
 		FatigueAfter:           input.FatigueAfter,

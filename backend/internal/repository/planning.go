@@ -21,7 +21,8 @@ const planningTrainingHistoryQuery = `
 			COALESCE(SUM(ws.duration_minutes * ws.actual_rpe)
 				FILTER (WHERE ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10), 0)::double precision AS session_rpe_load,
 			COUNT(ws.id) FILTER (WHERE f.id IS NOT NULL) AS feedback_records,
-			COUNT(ws.id) FILTER (WHERE f.id IS NOT NULL AND f.fatigue_after BETWEEN 1 AND 5) AS sessions_with_complete_feedback,
+			COUNT(ws.id) FILTER (WHERE f.id IS NOT NULL AND COALESCE(f.completion_status, 'complete') = 'complete'
+				AND f.fatigue_after BETWEEN 1 AND 5) AS sessions_with_complete_feedback,
 			COUNT(ws.id) FILTER (WHERE f.pain_reported = true) AS pain_reported_sessions,
 			COUNT(ws.id) FILTER (WHERE f.fatigue_after BETWEEN 4 AND 5) AS high_fatigue_sessions,
 			COUNT(ws.id) FILTER (WHERE ws.actual_rpe BETWEEN 1 AND 10 AND source_workout.target_rpe IS NOT NULL
@@ -135,7 +136,8 @@ const planningTrainingHistoryPeriodsQuery = `
 			COALESCE(SUM(ws.duration_minutes * ws.actual_rpe)
 				FILTER (WHERE ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10), 0)::double precision AS session_rpe_load,
 			COUNT(ws.id) FILTER (WHERE f.id IS NOT NULL) AS feedback_records,
-			COUNT(ws.id) FILTER (WHERE f.id IS NOT NULL AND f.fatigue_after BETWEEN 1 AND 5) AS sessions_with_complete_feedback,
+			COUNT(ws.id) FILTER (WHERE f.id IS NOT NULL AND COALESCE(f.completion_status, 'complete') = 'complete'
+				AND f.fatigue_after BETWEEN 1 AND 5) AS sessions_with_complete_feedback,
 			COUNT(ws.id) FILTER (WHERE f.pain_reported = true) AS pain_reported_sessions,
 			COUNT(ws.id) FILTER (WHERE f.fatigue_after BETWEEN 4 AND 5) AS high_fatigue_sessions,
 			COUNT(ws.id) FILTER (WHERE ws.actual_rpe BETWEEN 1 AND 10 AND source_workout.target_rpe IS NOT NULL
@@ -482,7 +484,7 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 			ws.id::text, ws.status, ws.started_at, ws.completed_at, ws.cancelled_at,
 			ws.duration_minutes, ws.actual_rpe::double precision, ws.distance_km::double precision, ws.elevation_gain_m,
 			ws.average_power_watts, ws.average_heart_rate,
-			f.difficulty, f.pain_reported, f.fatigue_after, f.notes
+			f.completion_status, f.partial_reason, f.difficulty, f.pain_reported, f.fatigue_after, f.notes
 		FROM workouts w
 		LEFT JOIN LATERAL (
 			SELECT latest.*
@@ -501,7 +503,7 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 	for rows.Next() {
 		var workout planning.Workout
 		var structure, explanation []byte
-		var sessionID, sessionStatus, difficulty, notes *string
+		var sessionID, sessionStatus, completionStatus, partialReason, difficulty, notes *string
 		var startedAt, completedAt, cancelledAt *time.Time
 		var durationMinutes, fatigueAfter, elevationGainM, averagePowerW, averageHeartRate *int
 		var actualRPE, distanceKM *float64
@@ -511,7 +513,7 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 			&workout.DurationMinutes, &workout.TargetRPE, &structure, &explanation, &workout.Status,
 			&sessionID, &sessionStatus, &startedAt, &completedAt, &cancelledAt,
 			&durationMinutes, &actualRPE, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate,
-			&difficulty, &painReported, &fatigueAfter, &notes,
+			&completionStatus, &partialReason, &difficulty, &painReported, &fatigueAfter, &notes,
 		); err != nil {
 			return planning.Plan{}, err
 		}
@@ -530,8 +532,11 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 			}
 			if difficulty != nil && painReported != nil && fatigueAfter != nil {
 				workout.Session.Feedback = &planning.Feedback{
-					Difficulty: *difficulty, PainReported: *painReported,
+					CompletionStatus: *completionStatus, Difficulty: *difficulty, PainReported: *painReported,
 					FatigueAfter: *fatigueAfter,
+				}
+				if partialReason != nil {
+					workout.Session.Feedback.PartialReason = *partialReason
 				}
 				if notes != nil {
 					workout.Session.Feedback.Notes = *notes

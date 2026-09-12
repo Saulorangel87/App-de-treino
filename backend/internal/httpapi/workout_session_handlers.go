@@ -9,6 +9,8 @@ import (
 )
 
 type completeWorkoutInput struct {
+	CompletionStatus string   `json:"completion_status"`
+	PartialReason    string   `json:"partial_reason"`
 	ActualRPE        float64  `json:"actual_rpe"`
 	Difficulty       string   `json:"difficulty"`
 	PainReported     bool     `json:"pain_reported"`
@@ -41,7 +43,12 @@ func (s *Server) completeWorkout(w http.ResponseWriter, r *http.Request) {
 	if !decodeJSON(w, r, &input) {
 		return
 	}
+	if input.CompletionStatus == "" {
+		writeWorkoutError(w, planning.ErrInvalidFeedback)
+		return
+	}
 	plan, err := s.planning.CompleteWorkout(r.Context(), user.ID, r.PathValue("workoutID"), planning.CompletionInput{
+		CompletionStatus: input.CompletionStatus, PartialReason: strings.TrimSpace(input.PartialReason),
 		ActualRPE: input.ActualRPE, Difficulty: input.Difficulty,
 		PainReported: input.PainReported, FatigueAfter: input.FatigueAfter,
 		Notes:      strings.TrimSpace(input.Notes),
@@ -85,7 +92,7 @@ func writeWorkoutError(w http.ResponseWriter, err error) bool {
 	case errors.Is(err, planning.ErrInvalidWorkoutID):
 		writeError(w, http.StatusBadRequest, "invalid_workout_id", "O identificador do treino é inválido.")
 	case errors.Is(err, planning.ErrInvalidFeedback):
-		writeError(w, http.StatusBadRequest, "invalid_feedback", "Informe RPE de 1 a 10, fadiga de 1 a 5 e uma dificuldade válida.")
+		writeError(w, http.StatusBadRequest, "invalid_feedback", "Informe conclusão completa ou parcial, motivo quando parcial, RPE de 1 a 10, fadiga de 1 a 5 e uma dificuldade válida.")
 	case errors.Is(err, planning.ErrWorkoutMissing):
 		writeError(w, http.StatusNotFound, "workout_not_found", "O treino não pertence ao seu plano ativo.")
 	case errors.Is(err, planning.ErrInvalidTransition):
