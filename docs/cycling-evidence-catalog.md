@@ -112,8 +112,7 @@ Valores planejados para `cycling_context.discipline`:
 - `mtb_xcm`: MTB maratona;
 - `gravel`: gravel;
 - `indoor`: indoor/rolo;
-- `dh_enduro`: downhill/enduro;
-- `track_sprint`: pista sprint/BMX.
+- `dh_enduro` e `track_sprint` são identificadores legados rejeitados e não fazem parte dos valores planejados.
 
 Quando o campo estiver vazio ou for `general`, somente protocolos gerais e já existentes poderão ser selecionados. Perfis antigos não devem ser migrados automaticamente para uma modalidade específica.
 
