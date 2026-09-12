@@ -128,6 +128,8 @@ Décima quinta fatia local: o catálogo ganhou `road_vo2_intervals`, com a prefe
 
 O piloto local de catálogo `short_self_regulated_intervals` avalia intervalos curtos autorregulados para estrada ou indoor. A literatura de 2025 em adultos anteriormente inativos e os estudos em ciclistas treinados sustentam investigar o formato, mas não autorizam uma dose universal nem sprint máximo para todos os perfis. A implementação propõe seis repetições de 1 minuto em RPE 7–8, recuperação leve autorregulada, nível avançado, histórico mínimo e gates de proteção; a validação automatizada e manual local foi concluída, incluindo salvamento da preferência e apresentação do protocolo no plano regenerado. Produção permanece sem o protocolo e sem a migração `000019`.
 
+A pesquisa seguinte avaliou resistência específica na bicicleta como possível estímulo futuro. O ensaio randomizado de 2025 utilizou ciclistas bem treinados, resistência muito alta, cadência muito baixa e calibração por força dinâmica máxima; por isso, a evidência não pode ser convertida para RPE isolado no Cadência. O candidato permanece documentado, sem protocolo no `rules-v1`, até que existam medição, elegibilidade e controles de segurança apropriados. Gravel/XCM, sprint de pista/BMX e downhill/enduro continuam fora do motor.
+
 ## ADR-009 — Comunicação de atualizações no produto
 
 **Status:** Aceita e aplicada.

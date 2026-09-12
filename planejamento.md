@@ -1282,3 +1282,9 @@ A migração `000019_short_intervals_evidence` registra as fontes do ensaio de 2
 A validação manual local foi concluída pelo proprietário. Após marcar `Intervalos curtos` no perfil, salvar as alterações e atualizar o plano, a preferência foi aceita e o plano apresentou **Intervalos curtos autorregulados**. A estrutura exibida corresponde ao piloto de seis blocos de 1 minuto em RPE 7,5, com recuperações leves e proteção do `rules-v1`.
 
 O piloto está validado no checkout local, mas continua fora da produção junto com a migração `000019` e a versão local `0.15.0`. A próxima etapa é revisar o catálogo ampliado e decidir, com backup e autorização explícita, se os pilotos devem ser publicados.
+
+### Continuidade — avaliação de resistência específica na bicicleta — 12 de setembro de 2026
+
+A pesquisa seguinte encontrou um ensaio randomizado de 2025 com 37 ciclistas bem treinados, comparando resistência fora da bicicleta com esforços na própria bicicleta durante dez semanas. O protocolo na bicicleta usou resistência muito alta, cadência muito baixa e carga calibrada por força dinâmica máxima; houve melhora de força e potência, mas não de VO₂max.
+
+O estímulo é relevante para o catálogo, porém não pode ser transformado em prescrição do Cadência nesta etapa: o produto não mede força dinâmica máxima nem calibra a resistência estudada, e RPE isolado não representa essa carga. O candidato fica documentado, sem código, preferência, migração ou nota de versão. Próxima etapa: avaliar se vale criar primeiro os pré-requisitos de medição e segurança; gravel/XCM, sprint de pista/BMX e downhill/enduro continuam adiados.

@@ -51,6 +51,12 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - O estudo de Rønnestad et al. (2020) em ciclistas de elite informa que intervalos de 30 segundos podem produzir adaptações favoráveis, porém a amostra, o nível e o esforço repetido limitam a transferência. Uma meta-análise de 2025 reforça a heterogeneidade entre HIIT, SIT e repeated-sprint training.
 - O protocolo local `short_self_regulated_intervals` foi implementado com a preferência explícita `short_intervals`, seis repetições de 1 minuto em RPE 7,5 e recuperação leve autorregulada. A migração `000019_short_intervals_evidence` registra as duas fontes do piloto e a versão local passou para `0.15.0`, com nota na tela de novidades. A suíte Go, o `go vet`, o build e a aplicação/verificação da migração local passaram. A validação manual confirmou no navegador o salvamento da preferência, a atualização do plano e a apresentação de **Intervalos curtos autorregulados**. Produção permanece em `0.12.0`/`000016`, sem deploy ou mudança de infraestrutura.
 
+### Próxima pesquisa do catálogo — resistência específica na bicicleta (candidato bloqueado)
+
+- O estudo randomizado de Barranco-Gil et al. (2025) avaliou 10 semanas de resistência fora e na bicicleta em 37 ciclistas bem treinados. O protocolo na bicicleta usou resistência muito alta, cadência muito baixa e carga calibrada por força dinâmica máxima; os grupos melhoraram força e potência, mas não VO₂max. [Fonte no PubMed](https://pubmed.ncbi.nlm.nih.gov/39231694/)
+- A evidência sustenta investigar o estímulo, mas não permite uma conversão honesta para RPE nem uma liberação para perfis gerais: o Cadência não mede força dinâmica máxima nem calibra a carga estudada. O candidato exige medição, elegibilidade avançada e travas próprias antes de qualquer código prescritivo.
+- Nenhuma preferência, protocolo, migração ou nota de versão foi criada nesta etapa. Gravel/XCM, sprint de pista/BMX e downhill/enduro continuam adiados por falta de evidência de prescrição segura no escopo atual.
+
 ## Arquitetura efetiva
 
 ### Primeira fatia de melhorias — prontidão observacional (local)
