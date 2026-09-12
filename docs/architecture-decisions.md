@@ -120,7 +120,7 @@ Décima terceira fatia local, registrada no commit `4312fa9` e ainda sem publica
 
 Correção local seguinte, ainda sem commit: a quarta semana agora bloqueia a classificação `quality` antes de construir a sessão. O pedal longo permanece endurance e os outros slots são `Recuperação ativa`, evitando que a meta de prova ou outro protocolo de qualidade atravesse a semana de recuperação. A versão visível foi atualizada para `0.11.1` e a suíte Go/`go vet` passou; nenhum deploy ou alteração de infraestrutura foi feito.
 
-Décima quarta fatia local, ainda sem publicação: `taper-v1` aplica uma redução de 50% na duração das sessões anteriores a um evento próximo, sem mudar frequência ou RPE. O piloto exige evento entre 7 e 21 dias, atleta avançado, avaliação submáxima apta, base mínima de oito semanas e três pedais semanais, e cede a limitação, dor, recuperação insuficiente e à semana de recuperação. A migração `000017` registra as fontes no banco local; produção permanece em `000016` até validação, commit, backup e autorização.
+Décima quarta fatia local, no commit `0eb34d6` e ainda sem publicação: `taper-v1` aplica uma redução de 50% na duração das sessões anteriores a um evento próximo, sem mudar frequência ou RPE. O piloto exige evento entre 7 e 21 dias, atleta avançado, avaliação submáxima apta, base mínima de oito semanas e três pedais semanais, e cede a limitação, dor, recuperação insuficiente e à semana de recuperação. A migração `000017` registra as fontes no banco local; produção permanece em `000016` até validação, backup e autorização.
 
 ## ADR-009 — Comunicação de atualizações no produto
 
