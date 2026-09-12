@@ -1294,3 +1294,9 @@ O estímulo é relevante para o catálogo, porém não pode ser transformado em 
 Foi definida a exclusão permanente de sprint/pista/BMX e downhill/enduro do Cadência. As opções foram removidas do perfil, os valores `track_sprint` e `dh_enduro` deixaram de ser aceitos pela API e registros legados são tratados como disciplina não informada no carregamento do perfil, sem liberar protocolos.
 
 A mudança visível atualizou a versão local para `0.16.0` e a tela de novidades. Não houve migração, deploy ou alteração de infraestrutura; a produção continua em `0.12.0`/`000016`.
+
+### Continuidade — publicação do catálogo ampliado e exclusão de modalidades — 12 de setembro de 2026
+
+Após a revisão do catálogo local, foram publicados na VPS os pilotos `taper-v1`, `road_vo2_intervals` e `short_self_regulated_intervals`, junto da decisão de excluir sprint/pista/BMX e downhill/enduro. O commit `6fdbe45` foi buscado por fast-forward, o backup `cadencia-20260912T155746Z.dump` foi criado e verificado, e as migrações `000017`, `000018` e `000019` foram aplicadas pelo perfil `maintenance` antes da recriação somente de API e frontend. PostgreSQL e Tunnel permaneceram ativos.
+
+A versão comunicada passou para `0.16.0`. A API respondeu `/health` e `/ready`, os dois domínios oficiais retornaram HTTP 200 a partir da VPS e os quatro serviços ficaram saudáveis. Não houve alteração de infraestrutura além da atualização controlada das imagens da API e do frontend. A release `v0.16.0` do GitHub ainda não foi criada.

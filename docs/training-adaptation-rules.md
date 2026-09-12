@@ -260,3 +260,7 @@ O histórico observado, o fluxo de feedback, o check-in de recuperação e o fal
 ### Próxima evolução planejada
 
 O roadmap atual prioriza prontidão, evolução versionada das regras, adaptação em ciclo fechado, integridade dos dados, segurança, feedback e auditabilidade. O `rules-v1` deve permanecer disponível durante a validação de qualquer evolução. O escopo desta fase é exclusivamente ciclismo; corrida e força não entram no catálogo atual. Toda entrega com mudança visível deve atualizar `APP_VERSION` e `UPDATE_NOTES` para informar o usuário na tela de novidades.
+
+### Estado publicado do catálogo ampliado — 12 de setembro de 2026
+
+Os pilotos `taper-v1`, `road_vo2_intervals` e `short_self_regulated_intervals` foram publicados após validação local, backup e aplicação ordenada das migrações. Eles continuam limitados pelos gates documentados e pelo `rules-v1`. Sprint/pista/BMX e downhill/enduro permanecem fora do produto e não são candidatos de prescrição.

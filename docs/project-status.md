@@ -18,15 +18,15 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - API: <https://cadencia-api.devsaulo.com.br>
 - VPS: Oracle Cloud, Ubuntu, acesso administrativo por SSH na porta 22.
 - Código na VPS: `/home/ubuntu/apps/cadencia`.
-- Commit implantado: `53cbadc fix(frontend): adiciona acesso ao perfil no mobile`; o frontend foi reconstruído a partir desse commit, enquanto API, PostgreSQL e túnel permaneceram sem alteração.
-- O backup preventivo `cadencia-20260911T234851Z.dump` foi criado e verificado antes do deploy da versão `0.12.0`. No deploy posterior de `53cbadc`, somente o frontend foi reconstruído; não houve nova migração, e API, PostgreSQL e túnel permaneceram saudáveis. O endpoint interno `/ready` e os dois domínios públicos retornaram sucesso.
-- A release [v0.12.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.12.0) foi publicada no GitHub após a validação do deploy.
+- Commit implantado: `6fdbe45 docs(status): atualiza estado local do catalogo`; API e frontend foram reconstruídos, as migrações `000017`–`000019` foram aplicadas e PostgreSQL e túnel permaneceram ativos.
+- O backup preventivo `cadencia-20260912T155746Z.dump` foi criado e verificado antes da aplicação das migrações. O endpoint interno `/ready`, os dois domínios públicos e os quatro serviços retornaram estado saudável após o deploy.
+- A versão do produto publicada é `0.16.0`. A release mais recente registrada no GitHub continua sendo [v0.12.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.12.0); a release `v0.16.0` ainda não foi criada.
 - O Cloudflare Tunnel dedicado expõe somente frontend e API; o PostgreSQL não possui hostname, rota pública ou porta publicada.
 
 ## Estado do checkout local
 
-- A produção está no commit `53cbadc fix(frontend): adiciona acesso ao perfil no mobile`, na versão `0.12.0`, e a release `v0.12.0` é a versão publicada mais recente no GitHub. O checkout local contém o taper, o piloto de VO₂max de estrada, o piloto de intervalos curtos e a decisão de escopo de modalidades, todos ainda sem publicação.
-- A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local), `9034287` (matriz comparativa), `61d7939` (pin do digest do Tunnel), `1358ac1` (status da versão `0.12.0`), `53cbadc` (acesso ao perfil no mobile), `66f70ed` (decisão do taper pré-prova), `0eb34d6` (implementação local do taper), `01875c9` (piloto local de VO₂max de estrada), `1eab2c8` (piloto local de intervalos curtos), `3b3639a` (exclusão de modalidades fora do produto) e `9aff39f` (sincronização documental).
+- A produção está no commit `6fdbe45`, na versão `0.16.0`; a release `v0.12.0` é a versão mais recente registrada no GitHub. As migrações `000017`, `000018` e `000019`, o taper, o piloto de VO₂max, o piloto de intervalos curtos e a decisão de escopo de modalidades foram publicados e validados na VPS.
+- A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local), `9034287` (matriz comparativa), `61d7939` (pin do digest do Tunnel), `1358ac1` (status da versão `0.12.0`), `53cbadc` (acesso ao perfil no mobile), `66f70ed` (decisão do taper pré-prova), `0eb34d6` (implementação local do taper), `01875c9` (piloto local de VO₂max de estrada), `1eab2c8` (piloto local de intervalos curtos), `3b3639a` (exclusão de modalidades fora do produto), `9aff39f` (sincronização documental), `6fdbe45` (estado do catálogo) e o deploy autorizado da versão `0.16.0`.
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
 
@@ -202,7 +202,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
 - `backend/`: API REST em Go.
-- `database/migrations/`: migrações PostgreSQL até `000019`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes científicas do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada e a `000019` registra as fontes do piloto de intervalos curtos. Em produção, todas até `000016` estão aplicadas; `000017`, `000018` e `000019` estão somente no banco local nesta etapa.
+- `database/migrations/`: migrações PostgreSQL até `000019`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada e a `000019` registra as fontes do piloto de intervalos curtos. Em produção, todas até `000019` estão aplicadas.
 - `database/tests/`: verificações SQL.
 - `api/openapi.yaml`: contrato da API local e de produção.
 - `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.
@@ -274,11 +274,11 @@ As rotas estão descritas em `api/openapi.yaml`. Os grupos principais são:
 ## Banco e migrações
 
 - Migrações versionadas no checkout local: `000001` a `000019`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes científicas do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada e a `000019` registra as fontes do piloto de intervalos curtos.
-- Em produção, estão aplicadas `000001` a `000016`. A `000016` foi executada pelo perfil `maintenance` após backup verificável, revisão e autorização explícita; `000017`, `000018` e `000019` ainda dependem de revisão final, backup, autorização e execução ordenada em produção.
+- Em produção, estão aplicadas `000001` a `000019`. As `000017`, `000018` e `000019` foram executadas em ordem pelo perfil `maintenance` após o backup verificável `cadencia-20260912T155746Z.dump`, revisão e autorização explícita.
 - `000012` adiciona confirmação de e-mail e recuperação de senha.
 - Produção possui registro de migrações em `cadencia_schema_migrations`.
 - O usuário da API não é superusuário; o proprietário do banco é reservado para operações administrativas.
-- Não há alterações de esquema aplicadas parcialmente na produção; as migrações posteriores no checkout (`000017`, `000018` e `000019`) permanecem somente locais. Novas migrações devem continuar sendo executadas em ordem pelo perfil `maintenance`, após backup verificável.
+- Não há alterações de esquema aplicadas parcialmente na produção. Novas migrações devem continuar sendo executadas em ordem pelo perfil `maintenance`, após backup verificável.
 
 ## Produção validada
 
