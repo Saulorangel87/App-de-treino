@@ -1287,4 +1287,10 @@ O piloto está validado no checkout local, mas continua fora da produção junto
 
 A pesquisa seguinte encontrou um ensaio randomizado de 2025 com 37 ciclistas bem treinados, comparando resistência fora da bicicleta com esforços na própria bicicleta durante dez semanas. O protocolo na bicicleta usou resistência muito alta, cadência muito baixa e carga calibrada por força dinâmica máxima; houve melhora de força e potência, mas não de VO₂max.
 
-O estímulo é relevante para o catálogo, porém não pode ser transformado em prescrição do Cadência nesta etapa: o produto não mede força dinâmica máxima nem calibra a resistência estudada, e RPE isolado não representa essa carga. O candidato fica documentado, sem código, preferência, migração ou nota de versão. Próxima etapa: avaliar se vale criar primeiro os pré-requisitos de medição e segurança; gravel/XCM, sprint de pista/BMX e downhill/enduro continuam adiados.
+O estímulo é relevante para o catálogo, porém não pode ser transformado em prescrição do Cadência nesta etapa: o produto não mede força dinâmica máxima nem calibra a resistência estudada, e RPE isolado não representa essa carga. O candidato fica documentado, sem código, preferência, migração ou nota de versão. Próxima etapa: avaliar se vale criar primeiro os pré-requisitos de medição e segurança; gravel/XCM continuam contextos de endurance sem protocolo próprio, enquanto sprint de pista/BMX e downhill/enduro estão fora do produto.
+
+### Continuidade — exclusão permanente de sprint/pista/BMX e downhill/enduro — 12 de setembro de 2026
+
+Foi definida a exclusão permanente de sprint/pista/BMX e downhill/enduro do Cadência. As opções foram removidas do perfil, os valores `track_sprint` e `dh_enduro` deixaram de ser aceitos pela API e registros legados são tratados como disciplina não informada no carregamento do perfil, sem liberar protocolos.
+
+A mudança visível atualizou a versão local para `0.16.0` e a tela de novidades. Não houve migração, deploy ou alteração de infraestrutura; a produção continua em `0.12.0`/`000016`.

@@ -72,7 +72,7 @@ func (s *OnboardingService) SaveCyclingContext(ctx context.Context, userID strin
 	if value.WeeklyHours < 0 || value.WeeklyHours > 80 || value.LongestRideMinutes < 0 || value.LongestRideMinutes > 1440 || value.WeeklyRides < 0 || value.WeeklyRides > 21 || value.RecentWeeklyDistanceKM < 0 || value.RecentWeeklyDistanceKM > 2000 || value.RecentTrainingWeeks < 0 || value.RecentTrainingWeeks > 52 || value.RecentBestDistanceKM < 0 || value.RecentBestDistanceKM > 2000 || len(value.PreferredSessionTypes) > 8 || (value.FTP != nil && (*value.FTP < 50 || *value.FTP > 600)) || (value.EventDistanceKM != nil && (*value.EventDistanceKM < 1 || *value.EventDistanceKM > 2000)) {
 		return CyclingContext{}, ErrInvalidOnboarding
 	}
-	allowedDisciplines := map[string]bool{"": true, "general": true, "road": true, "mtb_xco": true, "mtb_xcm": true, "gravel": true, "indoor": true, "dh_enduro": true, "track_sprint": true}
+	allowedDisciplines := map[string]bool{"": true, "general": true, "road": true, "mtb_xco": true, "mtb_xcm": true, "gravel": true, "indoor": true}
 	if !allowedDisciplines[value.Discipline] {
 		return CyclingContext{}, ErrInvalidOnboarding
 	}

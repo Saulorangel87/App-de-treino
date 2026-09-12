@@ -32,7 +32,7 @@ Na geração do plano, o motor mantém a frequência, os limites de duração, a
 
 Quando o ciclista informa preferências de sessão, elas orientam a escolha da sessão de qualidade dentro das mesmas proteções: cadência é elegível para intermediários e avançados; subidas exigem terreno com subidas; sweet spot exige nível avançado e, para potência, FTP informado; intervalos continuam exigindo avaliação submáxima apta, objetivo compatível e semana de construção; VO₂max exige adicionalmente estrada, nível avançado e histórico mínimo. Se todas as opções forem marcadas, o motor interpreta isso como abertura a qualquer protocolo e mantém a seleção contextual padrão. Giro/base e recuperação permanecem preferências registradas, sem transformar todos os dias em sessões de qualidade.
 
-Se houver limitação ativa, a sessão específica é substituída pelo giro leve protegido. Iniciantes não recebem essas sessões de qualidade específicas ainda. Sprints máximos e estímulos de pista continuam fora do motor até existir uma avaliação de capacidade e regras próprias de progressão.
+Se houver limitação ativa, a sessão específica é substituída pelo giro leve protegido. Iniciantes não recebem essas sessões de qualidade específicas ainda. Sprints máximos e estímulos de pista não fazem parte do Cadência; não devem ser adicionados como modalidade, preferência ou protocolo.
 
 ## Estrutura operacional das sessões
 
@@ -75,7 +75,7 @@ As referências associadas sustentam princípios como progressão gradual, monit
 
 Este desenho preliminar foi implementado localmente como `short_self_regulated_intervals`, com seleção pelo `rules-v1` somente quando todos os gates abaixo passam. O objetivo continua sendo avaliar um estímulo curto de qualidade sem transformar o resultado dos estudos em uma dose universal e sem liberar sprint máximo; produção não recebeu o piloto.
 
-**Escopo do piloto local:** estrada ou indoor, com preferência explícita do atleta; nível avançado; objetivo `performance` ou `event`; avaliação submáxima apta; pelo menos oito semanas de treino regular e três pedais semanais; no mínimo 50 minutos disponíveis; semana de construção; fase compatível com o evento; nenhuma limitação, dor ou proteção de recuperação ativa; e no máximo uma sessão de qualidade no ciclo semanal. XCO, XCM, gravel, downhill/enduro, pista sprint, iniciantes e perfis sem histórico suficiente ficam fora até existir evidência direta e regra própria.
+**Escopo do piloto local:** estrada ou indoor, com preferência explícita do atleta; nível avançado; objetivo `performance` ou `event`; avaliação submáxima apta; pelo menos oito semanas de treino regular e três pedais semanais; no mínimo 50 minutos disponíveis; semana de construção; fase compatível com o evento; nenhuma limitação, dor ou proteção de recuperação ativa; e no máximo uma sessão de qualidade no ciclo semanal. XCO, XCM e gravel permanecem contextos distintos sem receber este piloto; downhill/enduro e pista sprint/BMX não fazem parte do produto.
 
 **Estrutura conservadora do piloto:** 10 minutos de aquecimento em RPE 3–4; seis repetições de 1 minuto autorreguladas em RPE 7–8, cada uma seguida de pelo menos 1 minuto leve em RPE 2–3; e 10 minutos de desaquecimento. O atleta controla o esforço pela percepção e pela técnica, começa as primeiras repetições na parte baixa da faixa e não busca falha, sprint máximo, cadência obrigatória, potência fixa ou frequência cardíaca tratada como equivalente a VO₂max. A recuperação pode ser estendida; não há compensação por repetição interrompida.
 

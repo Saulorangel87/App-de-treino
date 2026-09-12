@@ -55,7 +55,13 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 - O estudo randomizado de Barranco-Gil et al. (2025) avaliou 10 semanas de resistência fora e na bicicleta em 37 ciclistas bem treinados. O protocolo na bicicleta usou resistência muito alta, cadência muito baixa e carga calibrada por força dinâmica máxima; os grupos melhoraram força e potência, mas não VO₂max. [Fonte no PubMed](https://pubmed.ncbi.nlm.nih.gov/39231694/)
 - A evidência sustenta investigar o estímulo, mas não permite uma conversão honesta para RPE nem uma liberação para perfis gerais: o Cadência não mede força dinâmica máxima nem calibra a carga estudada. O candidato exige medição, elegibilidade avançada e travas próprias antes de qualquer código prescritivo.
-- Nenhuma preferência, protocolo, migração ou nota de versão foi criada nesta etapa. Gravel/XCM, sprint de pista/BMX e downhill/enduro continuam adiados por falta de evidência de prescrição segura no escopo atual.
+- Nenhuma preferência, protocolo, migração ou nota de versão foi criada nesta etapa. Gravel/XCM continuam contextos de endurance sem protocolo próprio; sprint/pista/BMX e downhill/enduro estão fora do produto.
+
+### Decisão de escopo de modalidades — 12 de setembro de 2026
+
+- Sprint/pista/BMX e downhill/enduro não fazem parte do Cadência. As opções foram removidas do perfil e a API passou a rejeitar novos valores `track_sprint` e `dh_enduro`.
+- Registros legados dessas modalidades, se existirem, são tratados como disciplina não informada no carregamento do perfil e não liberam protocolos. Não houve migração ou alteração de produção.
+- A versão local passou para `0.16.0` e a tela de novidades comunica a decisão. A produção permanece em `0.12.0`/`000016`.
 
 ## Arquitetura efetiva
 
@@ -163,7 +169,7 @@ Arquivos desta fatia: `backend/internal/planning/data_integrity.go`, `backend/in
 - O catálogo passa a selecionar `xco_aerobic_intervals` somente quando a disciplina `mtb_xco` é informada explicitamente, o atleta é avançado, o objetivo é performance ou prova, a avaliação submáxima está apta, há pelo menos 75 minutos disponíveis, a semana não é de recuperação e não há proteção ativa por limitação, dor ou sinais recentes de recuperação insuficiente.
 - A sessão usa cinco blocos de 4 minutos com 4 minutos leves, alvo RPE 7 e uma única sessão de qualidade no ciclo. É uma adaptação conservadora do HIT estudado em mountain bikers treinados; não inclui sprint máximo, técnica de trilha, descida, salto ou meta rígida de potência.
 - A migração `000016` registra `xco-hit-2016`, um ensaio randomizado de 2016. A revisão sistemática contemporânea de XCO de 2026 orienta a especificidade intermitente, mas ressalta a escassez de avaliações diretas de desempenho; por isso, o protocolo permanece um piloto publicado apenas para o perfil elegível.
-- Gravel continua apenas como contexto de endurance, sem protocolo próprio baseado em um único estudo de campo. Pista sprint/BMX e downhill/enduro permanecem bloqueados nesta fase.
+- Gravel continua apenas como contexto de endurance, sem protocolo próprio baseado em um único estudo de campo. Sprint/pista/BMX e downhill/enduro estão fora do produto.
 - Como a seleção é visível ao atleta, `frontend/lib/release.ts` foi atualizado para a versão `0.8.0` e a tela de novidades passou a explicar o piloto XCO. A migração `000016`, a nova regra e a nota foram validadas localmente e publicadas após backup e autorização.
 
 Arquivos desta fatia: `backend/internal/planning/protocols.go`, `backend/internal/planning/service.go`, `backend/internal/planning/service_test.go`, `database/migrations/000016_xco_catalog_evidence.up.sql`, `database/migrations/000016_xco_catalog_evidence.down.sql`, `docs/cycling-evidence-catalog.md`, `docs/training-adaptation-rules.md`, `docs/architecture-decisions.md`, `frontend/lib/release.ts`, `README.md`, `docs/README.md` e `planejamento.md`. Não foram alteradas infraestrutura ou regras prescritivas do shadow.

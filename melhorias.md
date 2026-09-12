@@ -2,6 +2,8 @@ Quero evoluir o Cadência para que ele se torne um treinador digital de ciclismo
 
 Corrida e musculação ainda não fazem parte do produto. Não implemente essas modalidades agora.
 
+Sprint/pista/BMX e downhill/enduro também não fazem parte do Cadência e não devem ser adicionados ao app. O escopo de ciclismo desta fase permanece concentrado em estrada, MTB XCO, XCM, gravel e indoor, sempre com protocolos compatíveis com as evidências e as travas de segurança.
+
 O objetivo não é apenas adicionar mais tipos de treino. O sistema deve saber quando prescrever, manter, substituir, reduzir ou interromper cada estímulo com base no contexto atual do atleta e na resposta real aos treinos.
 
 Antes de alterar qualquer arquivo:
@@ -142,7 +144,6 @@ Além dos treinos atuais, crie templates estruturados para:
 - limiar;
 - VO2max;
 - intervalos curtos;
-- sprints;
 - estímulo neuromuscular;
 - subidas;
 - resistência muscular;

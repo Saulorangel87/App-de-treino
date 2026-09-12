@@ -46,19 +46,19 @@ As provas combinam distância, elevação, terreno variável e oportunidades lim
 
 **Limite:** não criar um protocolo “gravel” apenas por trocar o nome de uma sessão de estrada. Nutrição e hidratação devem permanecer orientações separadas, sem metas automáticas baseadas em um único estudo de campo.
 
-### Downhill e enduro
+### Downhill e enduro — fora do produto
 
 O desempenho depende de técnica, controle corporal, força isométrica e tolerância à fadiga de pegada, além do condicionamento. Estudos recentes também mostram risco relevante de lesão em treinamento e prova.
 
-**Uso previsto no Cadência:** não liberar descidas, saltos ou treinos técnicos como prescrição automática na primeira expansão.
+**Decisão de escopo:** não implementar downhill/enduro no Cadência. Descidas, saltos e treinos técnicos não serão oferecidos como prescrição automática ou modalidade do app.
 
-**Limite:** qualquer futuro módulo deverá separar condicionamento físico, habilidade técnica, proteção e avaliação profissional. O motor de endurance atual não é suficiente para prescrever DH/enduro com segurança.
+**Registro:** as fontes dessa modalidade podem permanecer no catálogo apenas como referência de segurança e justificativa de exclusão; não autorizam criar um módulo futuro dentro deste produto.
 
-### Pista sprint e BMX
+### Pista sprint e BMX — fora do produto
 
 São modalidades com exigências anaeróbicas, neuromusculares e de força muito diferentes das sessões de endurance do MVP. A literatura de velocistas de pista descreve grande concentração de carga nas zonas mais intensas, mas isso não sustenta reutilizar o catálogo atual.
 
-**Uso previsto no Cadência:** manter fora da primeira expansão e tratar como futuro produto específico, com avaliação e regras próprias.
+**Decisão de escopo:** não implementar sprint/pista/BMX no Cadência. Essas modalidades não serão oferecidas como opção de perfil, preferência ou prescrição no app.
 
 ## Protocolos candidatos
 
@@ -73,10 +73,10 @@ São modalidades com exigências anaeróbicas, neuromusculares e de força muito
 | Resistência específica na bicicleta | `road`, `indoor` | Ensaio randomizado de 2025 favorável, mas dependente de calibração de força e esforços máximos | Candidato bloqueado: exige medição de força/carga, população avançada e módulo de segurança próprio |
 | Endurance gravel/XCM | `gravel`, `mtb_xcm` | Evidência direta de prescrição ainda insuficiente | Usar somente base/endurance contextual |
 | Força complementar | `road`, `mtb_xco` | Meta-análise recente favorável, mas com baixa certeza | Módulo opcional e separado do treino de bike |
-| Downhill/enduro técnico | `dh_enduro` | Evidência de risco, não de protocolo automatizado seguro | Bloqueado nesta fase |
-| Sprint de pista/BMX | `track_sprint` | Modalidade distinta do MVP | Bloqueado nesta fase |
+| Downhill/enduro técnico | — | Evidência de risco, sem protocolo automatizado seguro | Fora do produto |
+| Sprint de pista/BMX | — | Modalidade distinta do MVP | Fora do produto |
 
-As situações acima são decisões de produto provisórias. Antes de transformar qualquer candidato em regra do `rules-v1`, seus parâmetros, população-alvo e critérios de interrupção devem ser revisados por profissional habilitado.
+As situações acima combinam protocolos ativos, candidatos sob revisão e exclusões permanentes. Antes de transformar um candidato permitido em regra do `rules-v1`, seus parâmetros, população-alvo e critérios de interrupção devem ser revisados por profissional habilitado.
 
 ### Primeiro piloto publicado: intervalos moderados de estrada
 
@@ -102,7 +102,7 @@ O estudo randomizado de Inoue et al. encontrou melhora do desempenho de MTB apó
 
 ## Modelo e critérios de integração do catálogo
 
-O contexto agora guarda `bike_type`, `terrain` e uma disciplina explícita, opcional e validada. A disciplina não é inferida pelo tipo de bicicleta: XCO, gravel ou pista só podem ser usados quando o atleta os informa diretamente. As migrações `000015` e `000016` registram as fontes do catálogo inicial e do piloto XCO na produção. Cada protocolo continua dependendo de revisão de elegibilidade, segurança e transferência da evidência antes de ser publicado.
+O contexto agora guarda `bike_type`, `terrain` e uma disciplina explícita, opcional e validada. A disciplina não é inferida pelo tipo de bicicleta: XCO, XCM, gravel e os demais contextos permitidos só podem ser usados quando o atleta os informa diretamente. As migrações `000015` e `000016` registram as fontes do catálogo inicial e do piloto XCO na produção. Os identificadores legados `dh_enduro` e `track_sprint` não são modalidades válidas do app e são rejeitados ao salvar o perfil. Cada protocolo permitido continua dependendo de revisão de elegibilidade, segurança e transferência da evidência antes de ser publicado.
 
 Valores planejados para `cycling_context.discipline`:
 
@@ -193,7 +193,7 @@ Gravel e XCM permanecem como contexto de endurance, sem protocolo próprio nesta
 
 No XCM, os indicadores aeróbicos e intermitentes se relacionam ao desempenho de prova, mas o estudo é de demanda/predição e não um ensaio de prescrição. Ele pode orientar especificidade futura, não definir uma dose para o catálogo. [Predictive ability of a comprehensive incremental test in mountain bike marathon](https://pubmed.ncbi.nlm.nih.gov/29387445/)
 
-Força complementar, calor, restrição de fluxo sanguíneo, sprint de pista e técnica de downhill/enduro também não entram no motor geral: exigem módulos, populações ou controles próprios.
+Força complementar, calor e restrição de fluxo sanguíneo não entram no motor geral nesta etapa. Sprint/pista/BMX e downhill/enduro estão fora do produto, não são módulos futuros do Cadência e não devem ser reintroduzidos como opções de modalidade.
 
 ### Implementação local do taper — 11 de setembro de 2026
 
@@ -234,4 +234,4 @@ O ensaio randomizado de Barranco-Gil et al. (2025) comparou, em 37 ciclistas bem
 
 Esse resultado é relevante para investigar um estímulo de resistência específico do ciclismo, mas não autoriza copiar esforços máximos para o público do Cadência. O produto não possui medição de força dinâmica máxima, calibração de carga ou controle suficiente para verificar a execução; RPE isolado não é equivalente à carga estudada. A amostra também era de ciclistas bem treinados, o que limita a transferência para iniciantes, intermediários e atletas retornando após pausa.
 
-**Decisão nesta etapa:** registrar `road-onbike-strength-2025` como evidência e manter o candidato fora do `rules-v1`, sem preferência, protocolo, migração ou nota de versão. Para uma futura implementação serão necessários pré-requisitos de medição, critérios de elegibilidade avançada, limites de resistência/cadência, proteção para dor e uma matriz de não seleção. Enquanto isso, gravel/XCM, sprint de pista/BMX e downhill/enduro continuam adiados por falta de evidência de prescrição segura no escopo atual.
+**Decisão nesta etapa:** registrar `road-onbike-strength-2025` como evidência e manter o candidato fora do `rules-v1`, sem preferência, protocolo, migração ou nota de versão. Para uma futura implementação serão necessários pré-requisitos de medição, critérios de elegibilidade avançada, limites de resistência/cadência, proteção para dor e uma matriz de não seleção. Gravel/XCM continuam contextos de endurance sem protocolo próprio; sprint de pista/BMX e downhill/enduro estão fora do produto.

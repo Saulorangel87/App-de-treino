@@ -113,10 +113,18 @@ func TestSaveCyclingContextAcceptsTodayEventDate(t *testing.T) {
 }
 
 func TestSaveCyclingContextAcceptsKnownDisciplines(t *testing.T) {
-	for _, discipline := range []string{"", "general", "road", "mtb_xco", "mtb_xcm", "gravel", "indoor", "dh_enduro", "track_sprint"} {
+	for _, discipline := range []string{"", "general", "road", "mtb_xco", "mtb_xcm", "gravel", "indoor"} {
 		result, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", CyclingContext{Discipline: " " + discipline + " "})
 		if err != nil || result.Discipline != discipline {
 			t.Fatalf("expected discipline %q to be accepted and normalized, got %#v, %v", discipline, result, err)
+		}
+	}
+}
+
+func TestSaveCyclingContextRejectsExcludedDisciplines(t *testing.T) {
+	for _, discipline := range []string{"dh_enduro", "track_sprint"} {
+		if _, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", CyclingContext{Discipline: discipline}); err != ErrInvalidOnboarding {
+			t.Fatalf("expected excluded discipline %q to be rejected, got %v", discipline, err)
 		}
 	}
 }

@@ -1,6 +1,11 @@
-export const APP_VERSION = '0.15.0';
+export const APP_VERSION = '0.16.0';
 
 export const UPDATE_NOTES = [
+  {
+    title: 'Escopo de modalidades mais claro',
+    description:
+      'O Cadência mantém o foco em estrada, MTB XCO, gravel, XCM e indoor. Downhill/enduro e pista sprint/BMX não fazem parte deste app e não são aceitos como modalidades de treino.',
+  },
   {
     title: 'Piloto de intervalos curtos autorregulados',
     description:
