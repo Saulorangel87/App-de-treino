@@ -18,6 +18,7 @@ export type Workout = {
     protocol_key?: string;
     evidence_scope?: string;
     evidence_keys?: string[];
+    event_taper_applied?: boolean;
     data_integrity?: {
       version: 'data-integrity-v1';
       mode: 'observation';
@@ -263,6 +264,7 @@ export type TrainingPlan = {
     primary_goal?: string;
     restricted?: boolean;
     sessions_per_week?: number;
+    event_taper?: EventTaperAssessment;
     rules_v2_shadow?: RulesV2ShadowAssessment;
     readiness_assessment?: ReadinessAssessment;
     training_history?: TrainingHistorySnapshot;
@@ -290,6 +292,22 @@ export type TrainingPlan = {
 export type ScientificSource = {
   source_key: string; title: string; authors: string; published_year: number;
   url: string; training_focus: string; evidence_level: string; summary: string;
+};
+
+export type EventTaperAssessment = {
+  version: 'taper-v1';
+  mode: 'prescriptive';
+  scope: 'event_based_plan_volume';
+  assessed_at: string;
+  status: 'not_applicable' | 'eligible';
+  applied: boolean;
+  used_for_prescription: boolean;
+  event_date?: string;
+  days_from_today?: number;
+  volume_multiplier: number;
+  evidence_keys: string[];
+  rules_evaluated: string[];
+  reasons: Array<{ code: string; message: string }>;
 };
 
 export function parseTrainingDate(value: string) {

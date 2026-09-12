@@ -39,6 +39,18 @@ As sessões geradas agora carregam uma sequência de etapas acionáveis em `work
 
 Uma sessão de subida, por exemplo, pode apresentar quatro esforços separados por recuperações leves, em vez de apenas o texto "4 blocos sustentados em subida". A soma das etapas é igual à duração prescrita e continua limitada à disponibilidade do dia. Em uma adaptação de duração, a interface ajusta proporcionalmente a exibição das etapas até que uma futura versão do motor passe a recalcular os blocos no próprio banco.
 
+## Taper pré-prova orientado por evento (`taper-v1`)
+
+O motor pode reduzir o volume do plano quando o atleta declara um evento futuro e atende aos gates conservadores do piloto. A decisão é registrada em `prescription_snapshot.event_taper`; não é uma nova modalidade, não aumenta a carga antes da prova e não substitui as proteções de segurança do `rules-v1`.
+
+- **Elegibilidade do plano:** evento futuro válido entre 7 e 21 dias da geração, nível avançado, avaliação submáxima apta, pelo menos 8 semanas de treino e 3 pedais semanais informados.
+- **Bloqueios:** limitação ativa, dor ou necessidade recente de recuperação mantêm o taper inativo e deixam as proteções existentes vencerem.
+- **Aplicação:** sessões agendadas depois da data de geração e entre 1 e 14 dias antes do evento têm a duração multiplicada por `0,5`, respeitando o mínimo de 20 minutos. A frequência e o RPE-alvo são preservados.
+- **Exceções:** o dia do evento não recebe taper e a quarta semana continua sob as regras de recuperação; ela não recebe sessões de qualidade por causa da meta de prova.
+- **Auditoria:** a avaliação informa `version`, `status`, `applied`, `used_for_prescription`, distância para o evento, regras, motivos e evidências. As sessões afetadas recebem `event_taper_applied: true` e as referências do taper.
+
+Esta é a primeira implementação local do piloto. As fontes `taper-meta-2023`, `taper-cyclist-2025` e `taper-overreach-cyclists-2023` são registradas na migração `000017`, aplicada apenas no banco de desenvolvimento nesta etapa. A produção ainda não recebeu a migração, o backend, a versão `0.13.0` nem a nota de novidades.
+
 ## Biblioteca de protocolos
 
 O motor mantém uma biblioteca explícita de protocolos em código. Cada protocolo possui uma chave estável, um formato de blocos, uma instrução de execução e referências de evidência. A duração final ainda é calculada pelo motor conforme a semana, o nível, os minutos disponíveis e as proteções de segurança.

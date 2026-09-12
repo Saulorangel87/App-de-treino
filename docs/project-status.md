@@ -25,10 +25,17 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 ## Estado do checkout local
 
-- A produção está no commit `53cbadc fix(frontend): adiciona acesso ao perfil no mobile`, na versão `0.12.0`, e a release `v0.12.0` é a versão publicada mais recente no GitHub. O checkout local foi confirmado alinhado à branch `master` antes desta atualização documental.
-- A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local), `9034287` (matriz comparativa), `61d7939` (pin do digest do Tunnel), `1358ac1` (status da versão `0.12.0`) e `53cbadc` (acesso ao perfil no mobile).
+- A produção está no commit `53cbadc fix(frontend): adiciona acesso ao perfil no mobile`, na versão `0.12.0`, e a release `v0.12.0` é a versão publicada mais recente no GitHub. O checkout local estava alinhado à branch `master` antes desta fatia e agora contém a implementação local não commitada do taper, além da documentação correspondente.
+- A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local), `9034287` (matriz comparativa), `61d7939` (pin do digest do Tunnel), `1358ac1` (status da versão `0.12.0`), `53cbadc` (acesso ao perfil no mobile) e `66f70ed` (decisão do taper pré-prova).
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
+
+### Décima quarta fatia de melhorias — taper pré-prova orientado por evento (local)
+
+- O plano local passa a registrar `prescription_snapshot.event_taper` com `taper-v1`. A redução só é prescritiva para evento futuro entre 7 e 21 dias, atleta avançado, avaliação submáxima apta, pelo menos 8 semanas e 3 pedais semanais, sem limitação, dor ou necessidade recente de recuperação.
+- Sessões anteriores ao evento e dentro de 14 dias recebem redução de 50% na duração, com mínimo de 20 minutos; frequência, RPE-alvo, semana de recuperação e proteções do `rules-v1` são preservados. O dia do evento fica fora da redução.
+- A migração `000017` registra três fontes do taper e foi aplicada somente no PostgreSQL de desenvolvimento existente. A produção continua aplicada até `000016`; não houve deploy, backup de produção, alteração de infraestrutura ou publicação da release `v0.13.0`.
+- A versão local foi atualizada para `0.13.0` e a tela de novidades informa a mudança. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram; a validação manual pelo proprietário ainda é a próxima ação antes de pedir autorização para publicação.
 
 ## Arquitetura efetiva
 
@@ -169,7 +176,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
 - `backend/`: API REST em Go.
-- `database/migrations/`: migrações PostgreSQL até `000016`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes científicas do catálogo inicial e a `000016` registra a fonte do piloto XCO. Em produção, todas até `000016` estão aplicadas.
+- `database/migrations/`: migrações PostgreSQL até `000017`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes científicas do catálogo inicial, a `000016` registra a fonte do piloto XCO e a `000017` registra as fontes do taper pré-prova. Em produção, todas até `000016` estão aplicadas; a `000017` está somente no banco local nesta etapa.
 - `database/tests/`: verificações SQL.
 - `api/openapi.yaml`: contrato da API local e de produção.
 - `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.
@@ -240,12 +247,12 @@ As rotas estão descritas em `api/openapi.yaml`. Os grupos principais são:
 
 ## Banco e migrações
 
-- Migrações versionadas no checkout local: `000001` a `000016`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes científicas do catálogo inicial e a `000016` registra a fonte do piloto XCO.
-- Em produção, estão aplicadas `000001` a `000015`. A `000015` foi executada pelo perfil `maintenance` após backup verificável, revisão e autorização explícita; novas migrações devem continuar seguindo essa ordem operacional.
+- Migrações versionadas no checkout local: `000001` a `000017`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes científicas do catálogo inicial, a `000016` registra a fonte do piloto XCO e a `000017` registra as fontes do taper pré-prova.
+- Em produção, estão aplicadas `000001` a `000016`. A `000016` foi executada pelo perfil `maintenance` após backup verificável, revisão e autorização explícita; a `000017` ainda depende de validação local, commit, backup, autorização e execução ordenada em produção.
 - `000012` adiciona confirmação de e-mail e recuperação de senha.
 - Produção possui registro de migrações em `cadencia_schema_migrations`.
 - O usuário da API não é superusuário; o proprietário do banco é reservado para operações administrativas.
-- Não há alterações de esquema pendentes na produção. Novas migrações devem continuar sendo executadas em ordem pelo perfil `maintenance`, após backup verificável.
+- Não há alterações de esquema aplicadas parcialmente na produção; a única migração posterior no checkout é a `000017`, ainda local. Novas migrações devem continuar sendo executadas em ordem pelo perfil `maintenance`, após backup verificável.
 
 ## Produção validada
 

@@ -68,7 +68,7 @@ A primeira implementação de IA usa Ollama local como provedor opcional. `AI_EN
 
 **Status:** Aplicada.
 
-As migrações `000001` a `000016` estão versionadas no checkout e aplicadas na produção. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes científicas do catálogo inicial e a `000016` registra a fonte do piloto XCO. O catálogo inicial, o piloto `road_moderate_intervals` e o piloto XCO foram publicados após revisão e autorização. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
+As migrações `000001` a `000017` estão versionadas no checkout; a produção está aplicada até `000016`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes científicas do catálogo inicial, a `000016` registra a fonte do piloto XCO e a `000017` registra as fontes do taper pré-prova. A `000017` foi aplicada somente no PostgreSQL local nesta etapa. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
 
 ## ADR-006 — Feedback de produto
 
@@ -120,6 +120,8 @@ Décima terceira fatia local, registrada no commit `4312fa9` e ainda sem publica
 
 Correção local seguinte, ainda sem commit: a quarta semana agora bloqueia a classificação `quality` antes de construir a sessão. O pedal longo permanece endurance e os outros slots são `Recuperação ativa`, evitando que a meta de prova ou outro protocolo de qualidade atravesse a semana de recuperação. A versão visível foi atualizada para `0.11.1` e a suíte Go/`go vet` passou; nenhum deploy ou alteração de infraestrutura foi feito.
 
+Décima quarta fatia local, ainda sem publicação: `taper-v1` aplica uma redução de 50% na duração das sessões anteriores a um evento próximo, sem mudar frequência ou RPE. O piloto exige evento entre 7 e 21 dias, atleta avançado, avaliação submáxima apta, base mínima de oito semanas e três pedais semanais, e cede a limitação, dor, recuperação insuficiente e à semana de recuperação. A migração `000017` registra as fontes no banco local; produção permanece em `000016` até validação, commit, backup e autorização.
+
 ## ADR-009 — Comunicação de atualizações no produto
 
 **Status:** Aceita e aplicada.
@@ -144,7 +146,7 @@ Em 11 de setembro de 2026, o commit `61d7939` foi publicado por fast-forward na 
 
 Na sequência, o commit `53cbadc` foi publicado como atualização somente do frontend para incluir o acesso ao perfil em telas pequenas. A API, o PostgreSQL e o Tunnel não foram recriados. A versão permaneceu `0.12.0`, conforme decisão de não abrir nova nota para essa correção de usabilidade.
 
-Em 11 de setembro de 2026, a pesquisa do próximo protocolo do catálogo recomendou especificar um taper pré-prova orientado por evento. A decisão não adiciona código: a evidência recente apoia redução de volume em janela curta com cautela, enquanto gravel/XCM permanecem contextuais por falta de ensaio direto de prescrição. A implementação futura deverá atuar no plano, manter `rules-v1` e passar por elegibilidade, proteção e testes antes de atualizar a versão visível.
+Em 11 de setembro de 2026, a pesquisa do próximo protocolo do catálogo recomendou especificar um taper pré-prova orientado por evento. A implementação local agora atua no plano com `taper-v1`: evento futuro entre 7 e 21 dias, atleta avançado, avaliação apta, base mínima de treino e ausência de proteção; sessões anteriores ao evento e dentro de 14 dias recebem redução de 50% da duração, sem alterar frequência, RPE ou a semana de recuperação. O `rules-v1` continua como motor prescritivo e não há sobrecarga automática antes do taper. A migração `000017` e a versão local `0.13.0` aguardam validação do proprietário e autorização antes de qualquer publicação.
 
 O destino oficial de produção é a composição Docker na VPS Oracle, exposta pelos hostnames `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br` no Cloudflare Tunnel dedicado. Uma publicação privada acidental no Sites, feita durante uma tentativa de deploy, foi excluída pelo proprietário. O Sites não é um destino autorizado para futuras publicações do Cadência.
 

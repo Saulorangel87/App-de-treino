@@ -348,6 +348,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 	}
 	workouts := make([]Workout, 0, len(slots)*4)
 	multipliers := []float64{0.85, 0.95, 1.0, 0.75}
+	eventTaper := assessEventTaper(input, now, restricted)
 	for week := 0; week < 4; week++ {
 		longIndex := longestSlot(slots)
 		intensityIndex := intensitySlot(slots, longIndex)
@@ -363,7 +364,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 			} else if index == intensityIndex && !restricted && !recoveryWeek {
 				kind = "quality"
 			}
-			workouts = append(workouts, makeWorkout(input, slot, kind, restricted, multipliers[week], week, scheduledOn))
+			workouts = append(workouts, makeWorkout(input, slot, kind, restricted, multipliers[week], week, scheduledOn, eventTaper))
 		}
 	}
 
@@ -373,6 +374,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 		Status:   "draft",
 		PrescriptionSnapshot: map[string]any{
 			"engine_version":       "rules-v1",
+			"event_taper":          eventTaper,
 			"rules_v2_shadow":      assessRulesV2Shadow(input, now),
 			"readiness_assessment": assessReadiness(input, now),
 			"training_history":     buildTrainingHistorySnapshot(input.TrainingHistory, now, input.TrainingHistoryPeriods),
@@ -416,7 +418,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 	return plan, nil
 }
 
-func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted bool, multiplier float64, weekIndex int, date time.Time) Workout {
+func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted bool, multiplier float64, weekIndex int, date time.Time, eventTaper EventTaperAssessment) Workout {
 	baseMinutes := map[string]int{"beginner": 45, "intermediate": 60, "advanced": 75}[input.ExperienceLevel]
 	name := "Giro de base"
 	targetRPE := 4.0
@@ -428,6 +430,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	usesXCOAerobicIntervals := false
 	rotationApplied := false
 	activeRecoveryApplied := false
+	eventTaperApplied := false
 	eventSpecificPhase := eventSpecificPhase(input.Cycling, date)
 	observedProtected := input.Observed.RequiresRecovery() && (input.Observed.PainReported || kind == "quality")
 	if kind == "base" && weekIndex == 3 {
@@ -570,6 +573,14 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	if duration > slot.AvailableMinutes {
 		duration = slot.AvailableMinutes
 	}
+	if !restricted && !observedProtected && eventTaperAppliesToWorkout(input.Cycling, eventTaper, date, weekIndex == 3) {
+		eventTaperApplied = true
+		duration = int(float64(duration) * eventTaper.VolumeMultiplier)
+		if duration < 20 {
+			duration = 20
+		}
+		summary += " O volume foi reduzido para a janela pré-prova, sem aumentar a intensidade nem a frequência planejada."
+	}
 	protocol := protocolForWorkout(name)
 
 	rules := []string{
@@ -604,6 +615,9 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	if activeRecoveryApplied {
 		rules = append(rules, "Variação de recuperação ativa aplicada na quarta semana, sem aumentar a carga planejada.")
 	}
+	if eventTaperApplied {
+		rules = append(rules, "Taper pré-prova aplicado nesta sessão: volume reduzido de forma conservadora, mantendo a frequência planejada.")
+	}
 	if restricted {
 		rules = append(rules, "Intensidade limitada por uma condição de segurança ativa.")
 	}
@@ -611,6 +625,11 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		rules = append(rules, "Sessão protegida por sinais recentes de recuperação insuficiente ou dor relatada.")
 	}
 	evidenceKeys := append([]string(nil), protocol.EvidenceKeys...)
+	evidenceScope := protocol.EvidenceScope
+	if eventTaperApplied {
+		evidenceKeys = append(append([]string(nil), eventTaper.EvidenceKeys...), evidenceKeys...)
+		evidenceScope += " O taper pré-prova usa evidência de redução de volume em ciclistas/endurance, com transferência limitada a atletas elegíveis; não é dose universal."
+	}
 	return Workout{
 		ScheduledOn:     date.Format("2006-01-02"),
 		Name:            name,
@@ -618,7 +637,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		DurationMinutes: duration,
 		TargetRPE:       targetRPE,
 		Structure:       buildStructure(duration, targetRPE, name, mainBlock),
-		Explanation:     map[string]any{"summary": summary, "rules": rules, "protocol_key": protocol.Key, "evidence_keys": evidenceKeys, "evidence_scope": protocol.EvidenceScope},
+		Explanation:     map[string]any{"summary": summary, "rules": rules, "protocol_key": protocol.Key, "evidence_keys": evidenceKeys, "evidence_scope": evidenceScope, "event_taper_applied": eventTaperApplied},
 		Status:          "planned",
 	}
 }
@@ -717,16 +736,8 @@ func nextMonday(value time.Time) time.Time {
 func weekdayOffset(weekday int) int { return (weekday + 6) % 7 }
 
 func eventSpecificPhase(cycling CyclingContext, workoutDate time.Time) bool {
-	if !cycling.EventGoal || cycling.EventDate == nil || *cycling.EventDate == "" {
-		return false
-	}
-	eventDate, err := time.ParseInLocation("2006-01-02", *cycling.EventDate, workoutDate.Location())
-	if err != nil {
-		return false
-	}
-	day := time.Date(workoutDate.Year(), workoutDate.Month(), workoutDate.Day(), 0, 0, 0, 0, workoutDate.Location())
-	daysUntilEvent := int(eventDate.Sub(day).Hours() / 24)
-	return daysUntilEvent >= 0 && daysUntilEvent <= 42
+	daysUntilEvent, ok := daysUntilEvent(cycling, workoutDate)
+	return ok && daysUntilEvent >= 0 && daysUntilEvent <= 42
 }
 
 func longestSlot(slots []AvailabilitySlot) int {

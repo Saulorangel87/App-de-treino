@@ -189,12 +189,15 @@ No XCM, os indicadores aeróbicos e intermitentes se relacionam ao desempenho de
 
 Força complementar, calor, restrição de fluxo sanguíneo, sprint de pista e técnica de downhill/enduro também não entram no motor geral: exigem módulos, populações ou controles próprios.
 
-### Próxima implementação, ainda não iniciada
+### Implementação local do taper — 11 de setembro de 2026
 
-1. Definir a janela de elegibilidade do taper dentro do ciclo de quatro semanas e como ela se relaciona com a fase de evento já existente.
-2. Definir a alteração de volume por sessão e por semana, preservando frequência, recuperação e proteção.
-3. Registrar a evidência e o limite de transferência no catálogo/banco antes de selecionar o protocolo.
-4. Implementar no `rules-v1` somente após testes de evento distante, evento próximo, recuperação, dor, dados insuficientes e determinismo.
-5. Validar localmente; por ser uma funcionalidade visível, atualizar `APP_VERSION` e `UPDATE_NOTES` antes de qualquer publicação.
+O primeiro candidato orientado por evento foi implementado localmente como uma alteração de volume do plano, sem criar uma modalidade nova. A avaliação fica no snapshot em `prescription_snapshot.event_taper`, com versão `taper-v1`, escopo `event_based_plan_volume` e modo prescritivo somente quando todos os gates passam.
 
-Fontes candidatas para o registro formal: `taper-meta-2023`, `taper-cyclist-2025` e `taper-overreach-cyclists-2023`. Nenhuma delas foi adicionada ao banco ou ao motor nesta etapa.
+- exige evento futuro válido entre 7 e 21 dias da geração, nível avançado, avaliação submáxima apta, pelo menos 8 semanas de treino e 3 pedais semanais informados;
+- não se aplica com limitação ativa, dor ou necessidade recente de recuperação;
+- reduz em 50% a duração das sessões elegíveis, preservando a frequência e o RPE-alvo, com mínimo de 20 minutos;
+- atua somente em sessões anteriores ao evento e dentro de 14 dias da prova; não altera o dia do evento nem a quarta semana de recuperação;
+- mantém `rules-v1` como motor prescritivo e não cria sobrecarga automática antes do taper;
+- registra `taper-cyclist-2025` e `taper-meta-2023` nas sessões afetadas; a migração `000017` também registra `taper-overreach-cyclists-2023` como limite contra intensificação automática.
+
+Os testes cobrem evento próximo e distante, evento passado, nível/histórico insuficiente, proteção por dor, semana de recuperação e determinismo. A migração `000017` foi aplicada somente no PostgreSQL de desenvolvimento local; a produção permanece na `000016`. A versão local visível passou para `0.13.0` e a tela de novidades foi atualizada, mas a validação do proprietário e qualquer publicação ainda estão pendentes.

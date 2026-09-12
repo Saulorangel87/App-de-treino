@@ -551,6 +551,8 @@ components:
           type: object
           additionalProperties: true
           properties:
+            event_taper:
+              $ref: '#/components/schemas/EventTaperAssessment'
             rules_v2_shadow:
               $ref: '#/components/schemas/RulesV2ShadowAssessment'
             readiness_assessment:
@@ -844,6 +846,7 @@ components:
           type: object
           additionalProperties: true
           properties:
+            event_taper_applied: { type: boolean }
             data_integrity:
               $ref: '#/components/schemas/WorkoutDataIntegrityAssessment'
             adaptation_shadow:
@@ -853,6 +856,31 @@ components:
           oneOf:
             - { $ref: '#/components/schemas/WorkoutSession' }
             - { type: 'null' }
+    EventTaperAssessment:
+      type: object
+      description: Avaliação prescritiva do taper pré-prova local. Só é aplicada quando os gates de evento, base de treino, avaliação e segurança são atendidos.
+      required: [version, mode, scope, assessed_at, status, applied, used_for_prescription, volume_multiplier, evidence_keys, rules_evaluated, reasons]
+      properties:
+        version: { type: string, enum: [taper-v1] }
+        mode: { type: string, enum: [prescriptive] }
+        scope: { type: string, enum: [event_based_plan_volume] }
+        assessed_at: { type: string, format: date-time }
+        status: { type: string, enum: [not_applicable, eligible] }
+        applied: { type: boolean }
+        used_for_prescription: { type: boolean }
+        event_date: { type: string, format: date }
+        days_from_today: { type: integer }
+        volume_multiplier: { type: number, minimum: 0, maximum: 1 }
+        evidence_keys: { type: array, items: { type: string } }
+        rules_evaluated: { type: array, items: { type: string } }
+        reasons:
+          type: array
+          items:
+            type: object
+            required: [code, message]
+            properties:
+              code: { type: string }
+              message: { type: string }
     WorkoutStructure:
       type: object
       required: [warmup_minutes, main, cooldown_minutes]

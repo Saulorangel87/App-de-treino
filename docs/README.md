@@ -25,7 +25,7 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 
 ## Estado documentado neste ciclo
 
-A produção oficial registrada está no commit `61d7939`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; as migrações `000015` e `000016`, o catálogo inicial, os pilotos de estrada/XCO e as correções de segurança foram publicados após backup, validação e autorização explícita. A versão comunicada ao usuário é `0.12.0`, e a release [v0.12.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.12.0) está no GitHub. O deploy foi validado com API pronta, túnel ativo e HTTP 200 nos dois domínios. O estado e as lacunas de validação estão em [`project-status.md`](project-status.md).
+A produção oficial registrada está no commit `53cbadc`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; as migrações até `000016`, o catálogo inicial, os pilotos de estrada/XCO e as correções de segurança foram publicados após backup, validação e autorização explícita. A versão comunicada ao usuário é `0.12.0`, e a release [v0.12.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.12.0) está no GitHub. O checkout local contém a migração `000017` e a versão `0.13.0` do taper pré-prova, ainda não publicada. O deploy foi validado com API pronta, túnel ativo e HTTP 200 nos dois domínios. O estado e as lacunas de validação estão em [`project-status.md`](project-status.md).
 
 ## Organização avaliada
 

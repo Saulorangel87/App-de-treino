@@ -1,6 +1,11 @@
-export const APP_VERSION = '0.12.0';
+export const APP_VERSION = '0.13.0';
 
 export const UPDATE_NOTES = [
+  {
+    title: 'Taper pré-prova orientado por evento',
+    description:
+      'Atletas avançados elegíveis com evento próximo podem receber uma redução conservadora do volume, mantendo a frequência planejada e as proteções de dor e recuperação.',
+  },
   {
     title: 'Planejamento por proximidade do evento',
     description:
