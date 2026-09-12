@@ -45,11 +45,11 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - A migração `000018_road_vo2_catalog_evidence` foi aplicada somente no PostgreSQL local e registra `road-vo2-intervention-2024` e `road-vo2-response-2024`. O `rules-v1` continua sendo o único motor prescritivo; produção permanece em `0.12.0`/`000016`, sem deploy ou mudança de infraestrutura.
 - A versão local passou para `0.14.0` e a tela de novidades foi atualizada. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. A validação ponta a ponta confirmou no navegador o salvamento da preferência `VO₂max`, a aceitação do contexto pela API local após reiniciar o binário atual e a geração de um plano com **Intervalos VO₂max de estrada**. Produção permanece em `0.12.0`/`000016`, sem deploy ou mudança de infraestrutura.
 
-### Próximo candidato de catálogo — intervalos curtos autorregulados (em avaliação)
+### Piloto local de catálogo — intervalos curtos autorregulados (em validação)
 
 - A pesquisa de 12 de setembro de 2026 recomenda avaliar intervalos curtos autorregulados para estrada ou indoor, sem sprint máximo. O estudo de Hesketh et al. (2025) comparou `4–8 × 30 s` com 120 segundos de recuperação e `6–10 × 1 min` com 1 minuto de recuperação em adultos anteriormente inativos; ambos melhoraram o VO₂peak, mas essa população não representa automaticamente os atletas do Cadência.
 - O estudo de Rønnestad et al. (2020) em ciclistas de elite informa que intervalos de 30 segundos podem produzir adaptações favoráveis, porém a amostra, o nível e o esforço repetido limitam a transferência. Uma meta-análise de 2025 reforça a heterogeneidade entre HIIT, SIT e repeated-sprint training.
-- Nenhum protocolo foi implementado. A especificação preliminar de gates, estrutura, limites, recuperação, interrupção, auditoria e testes de não seleção foi registrada em `docs/training-adaptation-rules.md`; ainda falta revisar essa proposta antes de codificar. Não há migração, mudança de versão ou alteração de produção para este candidato.
+- O protocolo local `short_self_regulated_intervals` foi implementado com a preferência explícita `short_intervals`, seis repetições de 1 minuto em RPE 7,5 e recuperação leve autorregulada. A migração `000019_short_intervals_evidence` registra as duas fontes do piloto e a versão local passou para `0.15.0`, com nota na tela de novidades. A suíte Go, o `go vet`, o build e a aplicação/verificação da migração local passaram. A opção aparece no navegador, mas a automação não persistiu a alternância do checkbox controlado pelo React; falta a confirmação manual até a geração do plano. Produção permanece em `0.12.0`/`000016`, sem deploy ou mudança de infraestrutura.
 
 ## Arquitetura efetiva
 
@@ -190,7 +190,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
 - `backend/`: API REST em Go.
-- `database/migrations/`: migrações PostgreSQL até `000018`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes científicas do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova e a `000018` registra as fontes do piloto VO₂max de estrada. Em produção, todas até `000016` estão aplicadas; `000017` e `000018` estão somente no banco local nesta etapa.
+- `database/migrations/`: migrações PostgreSQL até `000019`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes científicas do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada e a `000019` registra as fontes do piloto de intervalos curtos. Em produção, todas até `000016` estão aplicadas; `000017`, `000018` e `000019` estão somente no banco local nesta etapa.
 - `database/tests/`: verificações SQL.
 - `api/openapi.yaml`: contrato da API local e de produção.
 - `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.
@@ -261,12 +261,12 @@ As rotas estão descritas em `api/openapi.yaml`. Os grupos principais são:
 
 ## Banco e migrações
 
-- Migrações versionadas no checkout local: `000001` a `000018`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes científicas do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova e a `000018` registra as fontes do piloto VO₂max de estrada.
-- Em produção, estão aplicadas `000001` a `000016`. A `000016` foi executada pelo perfil `maintenance` após backup verificável, revisão e autorização explícita; `000017` e `000018` ainda dependem de revisão final, backup, autorização e execução ordenada em produção.
+- Migrações versionadas no checkout local: `000001` a `000019`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes científicas do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada e a `000019` registra as fontes do piloto de intervalos curtos.
+- Em produção, estão aplicadas `000001` a `000016`. A `000016` foi executada pelo perfil `maintenance` após backup verificável, revisão e autorização explícita; `000017`, `000018` e `000019` ainda dependem de revisão final, backup, autorização e execução ordenada em produção.
 - `000012` adiciona confirmação de e-mail e recuperação de senha.
 - Produção possui registro de migrações em `cadencia_schema_migrations`.
 - O usuário da API não é superusuário; o proprietário do banco é reservado para operações administrativas.
-- Não há alterações de esquema aplicadas parcialmente na produção; as migrações posteriores no checkout (`000017` e `000018`) permanecem somente locais. Novas migrações devem continuar sendo executadas em ordem pelo perfil `maintenance`, após backup verificável.
+- Não há alterações de esquema aplicadas parcialmente na produção; as migrações posteriores no checkout (`000017`, `000018` e `000019`) permanecem somente locais. Novas migrações devem continuar sendo executadas em ordem pelo perfil `maintenance`, após backup verificável.
 
 ## Produção validada
 

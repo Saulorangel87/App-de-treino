@@ -91,6 +91,12 @@ var sessionProtocols = map[string]sessionProtocol{
 		WorkMinutes:   4, RecoveryMinutes: 4, Repetitions: 4,
 		WorkTitle: "Intervalo VO₂max de estrada", WorkInstruction: "Sustente um esforço muito forte e controlado, sem sprintar; reduza ou interrompa se perder a técnica, o controle da respiração ou surgir dor.",
 	},
+	"Intervalos curtos autorregulados": {
+		Key: "short_self_regulated_intervals", EvidenceKeys: []string{"short-self-paced-2025", "short-interval-cyclists-2020"},
+		EvidenceScope: "Estudos com populações e protocolos diferentes sustentam investigar intervalos curtos, mas não validam uma dose universal. O Cadência usa seis repetições de 1 minuto em RPE controlado, com recuperação leve autorregulada e sem sprint máximo.",
+		WorkMinutes:   1, RecoveryMinutes: 1, Repetitions: 6,
+		WorkTitle: "Intervalo curto autorregulado", WorkInstruction: "Faça um esforço forte, mas controlado, em RPE 7–8; não sprint e reduza ou interrompa se perder a técnica, o controle da respiração ou surgir dor.",
+	},
 	"Intervalos aeróbicos XCO": {
 		Key: "xco_aerobic_intervals", EvidenceKeys: []string{"xco-hit-2016", "xco-physiology-2026"},
 		EvidenceScope: "Um ensaio com mountain bikers treinados observou benefício do HIT para desempenho de MTB, e a revisão de XCO de 2026 confirma a demanda aeróbica intermitente. Esta é uma adaptação conservadora, sem sprint máximo ou simulação técnica de prova.",

@@ -1,6 +1,11 @@
-export const APP_VERSION = '0.14.0';
+export const APP_VERSION = '0.15.0';
 
 export const UPDATE_NOTES = [
+  {
+    title: 'Piloto de intervalos curtos autorregulados',
+    description:
+      'Atletas avançados elegíveis que escolherem intervalos curtos podem receber, na estrada ou no indoor, seis repetições controladas de 1 minuto com recuperação leve. O app mantém RPE, histórico mínimo e as proteções de dor e recuperação, sem liberar sprint máximo.',
+  },
   {
     title: 'Piloto de intervalos VO₂max para estrada',
     description:

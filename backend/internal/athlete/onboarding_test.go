@@ -122,9 +122,16 @@ func TestSaveCyclingContextAcceptsKnownDisciplines(t *testing.T) {
 }
 
 func TestSaveCyclingContextAcceptsAllSessionPreferences(t *testing.T) {
-	input := CyclingContext{PreferredSessionTypes: []string{"base", "cadence", "hills", "intervals", "sweet_spot", "vo2max", "recovery"}}
+	input := CyclingContext{PreferredSessionTypes: []string{"base", "cadence", "hills", "intervals", "sweet_spot", "vo2max", "short_intervals", "recovery"}}
 	if _, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", input); err != nil {
 		t.Fatalf("expected all available session preferences to be accepted, got %v", err)
+	}
+}
+
+func TestSaveCyclingContextAcceptsShortIntervalsSessionPreference(t *testing.T) {
+	input := CyclingContext{PreferredSessionTypes: []string{"short_intervals"}}
+	if _, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", input); err != nil {
+		t.Fatalf("expected short intervals session preference to be accepted, got %v", err)
 	}
 }
 

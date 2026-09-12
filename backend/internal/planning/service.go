@@ -428,6 +428,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	usesRoadModerateIntervals := false
 	usesRoadHighIntensityIntervals := false
 	usesRoadVO2Intervals := false
+	usesShortSelfRegulatedIntervals := false
 	usesXCOAerobicIntervals := false
 	rotationApplied := false
 	activeRecoveryApplied := false
@@ -458,6 +459,12 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 			mainBlock = "4 blocos de 4 min em esforço muito forte-controlado com 4 min leves entre os blocos"
 			summary = "A modalidade de estrada, a preferência explícita, o objetivo, a avaliação apta e o histórico mínimo permitem um piloto de VO₂max conservador; a sessão não usa sprint máximo nem meta fixa de potência."
 			usesRoadVO2Intervals = true
+		} else if (input.Cycling.Discipline == "road" || input.Cycling.Discipline == "indoor") && input.ExperienceLevel == "advanced" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && input.Cycling.RecentTrainingWeeks >= 8 && input.Cycling.WeeklyRides >= 3 && preference == "short_intervals" && slot.AvailableMinutes >= 50 && multiplier >= 0.95 && (!input.Cycling.EventGoal || eventSpecificPhase) {
+			name = "Intervalos curtos autorregulados"
+			targetRPE = 7.5
+			mainBlock = "6 blocos de 1 min em RPE 7–8 com 1 min leve entre os blocos"
+			summary = "A modalidade, a preferência explícita, o objetivo, a avaliação apta e o histórico mínimo permitem um piloto curto autorregulado; a sessão não usa sprint máximo, potência fixa ou cadência obrigatória."
+			usesShortSelfRegulatedIntervals = true
 		} else if input.Cycling.Discipline == "road" && input.ExperienceLevel != "beginner" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 60 && multiplier >= 0.95 && (preference == "" || preference == "intervals") && (!input.Cycling.EventGoal || eventSpecificPhase) {
 			if input.ExperienceLevel == "advanced" && input.Cycling.RecentTrainingWeeks >= 8 && input.Cycling.WeeklyRides >= 3 && input.RotationIndex%2 == 1 && slot.AvailableMinutes >= 75 {
 				name = "Intervalos intensos de estrada"
@@ -616,6 +623,9 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	if usesRoadVO2Intervals {
 		rules = append(rules, "Piloto de VO₂max de estrada liberado por preferência explícita, modalidade, objetivo, avaliação apta e histórico mínimo; sem sprint máximo ou meta fixa de potência.")
 	}
+	if usesShortSelfRegulatedIntervals {
+		rules = append(rules, "Piloto de intervalos curtos liberado por preferência explícita, modalidade, objetivo, avaliação apta e histórico mínimo; esforço autorregulado, sem sprint máximo ou meta fixa de potência.")
+	}
 	if usesXCOAerobicIntervals {
 		rules = append(rules, "Piloto aeróbico XCO liberado por modalidade explícita, objetivo compatível, avaliação apta e disponibilidade suficiente; sem sprint máximo ou simulação técnica.")
 	}
@@ -656,7 +666,7 @@ func preferredQualityPreference(context CyclingContext) string {
 	if len(context.PreferredSessionTypes) == 0 || len(context.PreferredSessionTypes) >= 7 {
 		return ""
 	}
-	for _, preference := range []string{"vo2max", "intervals", "sweet_spot", "hills", "cadence"} {
+	for _, preference := range []string{"vo2max", "short_intervals", "intervals", "sweet_spot", "hills", "cadence"} {
 		for _, selected := range context.PreferredSessionTypes {
 			if selected == preference {
 				return preference
@@ -667,7 +677,7 @@ func preferredQualityPreference(context CyclingContext) string {
 }
 
 func sessionPreferenceLabel(preference string) string {
-	labels := map[string]string{"cadence": "cadência", "hills": "subidas", "intervals": "intervalos", "sweet_spot": "sweet spot", "vo2max": "VO₂max"}
+	labels := map[string]string{"cadence": "cadência", "hills": "subidas", "intervals": "intervalos", "sweet_spot": "sweet spot", "vo2max": "VO₂max", "short_intervals": "intervalos curtos"}
 	return labels[preference]
 }
 
