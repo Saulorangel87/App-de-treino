@@ -93,7 +93,7 @@ O MVP de ciclismo está publicado em produção real:
 - A produção está no commit `53cbadc` e na versão `0.12.0`, com correções de segurança, sessões adaptadas iniciáveis, fase por proximidade do evento, proteção do resumo semanal, leituras observacionais e pilotos de estrada/XCO publicados conforme os critérios de elegibilidade documentados. O deploy foi validado com API pronta, túnel ativo e HTTP 200 nos dois domínios.
 - Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts` (`APP_VERSION` e `UPDATE_NOTES`) para que a novidade seja exibida na tela de primeiro acesso após a atualização. O modal é mostrado uma vez por conta, versão e navegador.
 
-O checkout local também contém os pilotos `taper-v1`, `road_vo2_intervals` e `short_self_regulated_intervals`, selecionados somente quando os gates de elegibilidade e segurança são atendidos. A versão local está em `0.15.0`; os três pilotos continuam fora da produção até revisão, ampliação do catálogo e autorização de publicação.
+O checkout local também contém os pilotos `taper-v1`, `road_vo2_intervals` e `short_self_regulated_intervals`, selecionados somente quando os gates de elegibilidade e segurança são atendidos. A versão local está em `0.16.0`; a exclusão de sprint/pista/BMX e downhill/enduro também está registrada, e os três pilotos continuam fora da produção até revisão, ampliação do catálogo e autorização de publicação.
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.
 
