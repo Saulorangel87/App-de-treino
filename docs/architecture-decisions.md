@@ -156,6 +156,14 @@ O encerramento de uma sessão deve registrar explicitamente `completion_status` 
 
 A conclusão parcial não libera progressão no trigger do `rules-v1`; dor, fadiga alta e esforço elevado continuam podendo acionar suas reduções protetivas. O mesmo contexto é exposto no plano, no histórico e no bloco `planned-vs-actual-v1`, sempre em modo observacional. A migração `000020` usa `complete` como padrão para registros anteriores e foi aplicada e validada localmente com teste SQL e teste manual; ela não altera a produção sem backup, aplicação pelo perfil `maintenance` e autorização explícita.
 
+## ADR-012 — Sinais adicionais do feedback pós-treino
+
+**Status:** Implementada localmente; aguardando validação manual e ainda não publicada.
+
+O feedback pode registrar `recovery_after` e `repeat_confidence` em escala de 1 a 5. Os campos são opcionais no banco para não reescrever históricos anteriores, mas são enviados pelo formulário atual com uma seleção neutra inicial. Eles aparecem no plano, no histórico e na comparação observacional da sessão.
+
+Esses sinais não alteram duração, RPE, estímulo ou status, não liberam progressão e não substituem sono, estresse, fadiga ou o check-in diário. A migração `000021` adiciona apenas colunas e restrições de faixa; a produção permanece sem ela até validação manual, backup, aplicação pelo perfil `maintenance` e autorização explícita.
+
 ## Estado de produção
 
 Em 3 de setembro de 2026, o commit `57c241a` foi implantado na VPS Oracle. A imagem da API, do job de digest e do frontend foi reconstruída com Go 1.25; as migrações `000013` e `000014` foram aplicadas após backup preventivo. O serviço Ollama permanece isolado e parado após a medição de capacidade, e a API usa temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.

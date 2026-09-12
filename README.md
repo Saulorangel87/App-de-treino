@@ -21,7 +21,7 @@ O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Spr
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui a migração `000015` (fontes do catálogo inicial), a `000016` (fonte do piloto XCO), a `000017` (fontes do taper pré-prova), a `000018` (fontes do piloto VO₂max de estrada), a `000019` (fontes do piloto de intervalos curtos) e a `000020` (contexto de conclusão parcial); elas ainda precisam ser aplicadas nos ambientes que estiverem em uma versão anterior.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui a migração `000015` (fontes do catálogo inicial), a `000016` (fonte do piloto XCO), a `000017` (fontes do taper pré-prova), a `000018` (fontes do piloto VO₂max de estrada), a `000019` (fontes do piloto de intervalos curtos), a `000020` (contexto de conclusão parcial) e a `000021` (contexto adicional pós-treino); elas ainda precisam ser aplicadas nos ambientes que estiverem em uma versão anterior.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -52,7 +52,7 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `GET /v1/plans/current`: consulta o plano ativo ou rascunho mais recente.
 - `POST /v1/plans/{planID}/activate`: aprova um rascunho e mantém somente um plano ativo por atleta.
 - `POST /v1/workouts/{workoutID}/start`: inicia uma sessão planejada ou adaptada do plano ativo.
-- `POST /v1/workouts/{workoutID}/complete`: conclui a sessão e registra RPE, dificuldade, fadiga, dor e, opcionalmente, distância, elevação, frequência cardíaca e potência; também registra `completion_status` e, quando parcial, um `partial_reason` controlado.
+- `POST /v1/workouts/{workoutID}/complete`: conclui a sessão e registra RPE, dificuldade, fadiga, dor e, opcionalmente, distância, elevação, frequência cardíaca e potência; também registra `completion_status`, o `partial_reason` controlado quando necessário, recuperação percebida e confiança para repetir.
 - `POST /v1/workouts/{workoutID}/explanation`: solicita uma explicação em linguagem simples; quando a IA está desligada ou indisponível, retorna o resumo validado pelo motor.
 - `POST /v1/workouts/{workoutID}/cancel`: cancela uma sessão em andamento e mantém esse histórico.
 - `GET /v1/activities`: lista, para o atleta autenticado, as sessões concluídas e canceladas.

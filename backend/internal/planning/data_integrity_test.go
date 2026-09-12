@@ -11,6 +11,8 @@ func validWorkoutDataIntegrityInput() WorkoutDataIntegrityInput {
 	duration := 45
 	actualRPE := 6.0
 	fatigue := 3
+	recoveryAfter := 4
+	repeatConfidence := 5
 	distance := 32.5
 	elevation := 420
 	power := 185
@@ -26,6 +28,8 @@ func validWorkoutDataIntegrityInput() WorkoutDataIntegrityInput {
 		Difficulty:       "moderate",
 		PainReported:     false,
 		FatigueAfter:     &fatigue,
+		RecoveryAfter:    &recoveryAfter,
+		RepeatConfidence: &repeatConfidence,
 	}
 }
 

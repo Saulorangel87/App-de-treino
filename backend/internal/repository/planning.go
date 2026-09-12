@@ -484,7 +484,8 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 			ws.id::text, ws.status, ws.started_at, ws.completed_at, ws.cancelled_at,
 			ws.duration_minutes, ws.actual_rpe::double precision, ws.distance_km::double precision, ws.elevation_gain_m,
 			ws.average_power_watts, ws.average_heart_rate,
-			f.completion_status, f.partial_reason, f.difficulty, f.pain_reported, f.fatigue_after, f.notes
+			f.completion_status, f.partial_reason, f.difficulty, f.pain_reported, f.fatigue_after,
+			f.recovery_after, f.repeat_confidence, f.notes
 		FROM workouts w
 		LEFT JOIN LATERAL (
 			SELECT latest.*
@@ -505,7 +506,7 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 		var structure, explanation []byte
 		var sessionID, sessionStatus, completionStatus, partialReason, difficulty, notes *string
 		var startedAt, completedAt, cancelledAt *time.Time
-		var durationMinutes, fatigueAfter, elevationGainM, averagePowerW, averageHeartRate *int
+		var durationMinutes, fatigueAfter, recoveryAfter, repeatConfidence, elevationGainM, averagePowerW, averageHeartRate *int
 		var actualRPE, distanceKM *float64
 		var painReported *bool
 		if err := rows.Scan(
@@ -513,7 +514,7 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 			&workout.DurationMinutes, &workout.TargetRPE, &structure, &explanation, &workout.Status,
 			&sessionID, &sessionStatus, &startedAt, &completedAt, &cancelledAt,
 			&durationMinutes, &actualRPE, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate,
-			&completionStatus, &partialReason, &difficulty, &painReported, &fatigueAfter, &notes,
+			&completionStatus, &partialReason, &difficulty, &painReported, &fatigueAfter, &recoveryAfter, &repeatConfidence, &notes,
 		); err != nil {
 			return planning.Plan{}, err
 		}
@@ -533,7 +534,7 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 			if difficulty != nil && painReported != nil && fatigueAfter != nil {
 				workout.Session.Feedback = &planning.Feedback{
 					CompletionStatus: *completionStatus, Difficulty: *difficulty, PainReported: *painReported,
-					FatigueAfter: *fatigueAfter,
+					FatigueAfter: *fatigueAfter, RecoveryAfter: recoveryAfter, RepeatConfidence: repeatConfidence,
 				}
 				if partialReason != nil {
 					workout.Session.Feedback.PartialReason = *partialReason

@@ -1,6 +1,11 @@
-export const APP_VERSION = '0.17.0';
+export const APP_VERSION = '0.18.0';
 
 export const UPDATE_NOTES = [
+  {
+    title: 'Feedback pós-treino com mais contexto',
+    description:
+      'Ao concluir um treino, você pode registrar sua recuperação percebida e a confiança para repetir a sessão. Esses sinais são observacionais e ainda não alteram automaticamente a carga.',
+  },
   {
     title: 'Registro de conclusão parcial',
     description:

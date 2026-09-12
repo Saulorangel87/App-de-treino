@@ -194,6 +194,16 @@ Arquivos desta fatia: `backend/internal/planning/execution_comparison.go`, `back
 
 Arquivos desta fatia: `backend/internal/httpapi/workout_session_handlers.go`, `backend/internal/planning/adaptation.go`, `backend/internal/planning/data_integrity.go`, `backend/internal/planning/execution_comparison.go`, testes de `backend/internal/planning`, `backend/internal/repository/planning.go`, `backend/internal/repository/workout_sessions.go`, `database/migrations/000020_completion_context.*`, `database/tests/000020_completion_context.sql`, `frontend/components/workout-session-actions.tsx`, `frontend/app/atividades/page.tsx`, `frontend/app/globals.css`, `frontend/lib/planning.ts`, `frontend/lib/release.ts`, `api/openapi.yaml` e esta documentação. A implementação está nos commits `58e3887`, `b5ef413` e `d7ce5bb`; não houve deploy ou alteração de infraestrutura.
 
+### Feedback pós-treino com recuperação e confiança — versão local `0.18.0` (aguardando validação manual)
+
+- O formulário de conclusão passa a registrar `recovery_after` (recuperação percebida) e `repeat_confidence` (confiança para repetir), ambos em escala de 1 a 5. Os valores aparecem no resumo da sessão e no histórico de `/atividades`.
+- Os campos são opcionais no banco para preservar feedbacks antigos, mas o formulário atual envia a seleção neutra `3 de 5`. A API, o banco e a integridade observacional rejeitam valores fora da faixa.
+- `planned-vs-actual-v1` registra os sinais quando presentes em `observed_fields`, sem interpretar tolerância, prontidão ou efeito da prescrição. `rules-v1`, o trigger pós-feedback e a carga das próximas sessões não foram alterados.
+- A migração `000021_post_workout_context` foi aplicada e registrada no PostgreSQL local; o teste SQL transacional, `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. A verificação direcionada do lint não apontou erro no componente de conclusão; a página de atividades mantém avisos anteriores de navegação por `<a>`.
+- A versão local passou para `0.18.0` e a tela de novidades informa a mudança. Ainda falta validar manualmente uma conclusão com os dois campos e conferir o retorno no plano/histórico. Produção permanece em `0.16.0`/`000019`, sem deploy ou alteração de infraestrutura.
+
+Arquivos desta fatia: `backend/internal/httpapi/workout_session_handlers.go`, `backend/internal/planning/service.go`, `backend/internal/planning/data_integrity.go`, `backend/internal/planning/execution_comparison.go`, testes de `backend/internal/planning`, `backend/internal/repository/planning.go`, `backend/internal/repository/workout_sessions.go`, `database/migrations/000021_post_workout_context.*`, `database/tests/000021_post_workout_context.sql`, `frontend/components/workout-session-actions.tsx`, `frontend/app/atividades/page.tsx`, `frontend/lib/planning.ts`, `frontend/lib/release.ts`, `api/openapi.yaml`, `README.md`, `docs/training-adaptation-rules.md`, `docs/architecture-decisions.md`, `infrastructure/cadencia/README.md` e esta documentação. Não houve commit, deploy ou alteração de infraestrutura nesta fatia.
+
 ### Décima fatia de melhorias — piloto publicado de intervalos aeróbicos XCO
 
 - O catálogo passa a selecionar `xco_aerobic_intervals` somente quando a disciplina `mtb_xco` é informada explicitamente, o atleta é avançado, o objetivo é performance ou prova, a avaliação submáxima está apta, há pelo menos 75 minutos disponíveis, a semana não é de recuperação e não há proteção ativa por limitação, dor ou sinais recentes de recuperação insuficiente.
@@ -232,7 +242,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
 - `backend/`: API REST em Go.
-- `database/migrations/`: migrações PostgreSQL até `000020`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos e a `000020` registra o contexto de conclusão parcial. Em produção, todas até `000019` estão aplicadas; a `000020` permanece local.
+- `database/migrations/`: migrações PostgreSQL até `000021`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` registra o contexto de conclusão parcial e a `000021` registra o contexto adicional pós-treino. Em produção, todas até `000019` estão aplicadas; a `000020` e a `000021` permanecem locais.
 - `database/tests/`: verificações SQL.
 - `api/openapi.yaml`: contrato da API local e de produção.
 - `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.

@@ -674,6 +674,8 @@ components:
         target_rpe: { type: number, minimum: 0, maximum: 10 }
         actual_rpe: { type: number, minimum: 0, maximum: 10 }
         rpe_delta: { type: number }
+        recovery_after: { type: integer, minimum: 1, maximum: 5 }
+        repeat_confidence: { type: integer, minimum: 1, maximum: 5 }
         observed_fields: { type: array, items: { type: string } }
         reasons:
           type: array
@@ -992,6 +994,8 @@ components:
         difficulty: { type: string, enum: [very_easy, easy, moderate, hard, very_hard] }
         pain_reported: { type: boolean }
         fatigue_after: { type: integer, minimum: 1, maximum: 5 }
+        recovery_after: { type: integer, minimum: 1, maximum: 5 }
+        repeat_confidence: { type: integer, minimum: 1, maximum: 5 }
         notes: { type: string, maxLength: 1000 }
     CompleteWorkoutRequest:
       type: object
@@ -1003,6 +1007,8 @@ components:
         difficulty: { type: string, enum: [very_easy, easy, moderate, hard, very_hard] }
         pain_reported: { type: boolean }
         fatigue_after: { type: integer, minimum: 1, maximum: 5 }
+        recovery_after: { type: integer, minimum: 1, maximum: 5 }
+        repeat_confidence: { type: integer, minimum: 1, maximum: 5 }
         notes: { type: string, maxLength: 1000 }
         distance_km: { type: number, minimum: 0, maximum: 2000 }
         elevation_gain_m: { type: integer, minimum: 0, maximum: 20000 }

@@ -23,6 +23,8 @@ type WorkoutDataIntegrityInput struct {
 	Difficulty       string
 	PainReported     bool
 	FatigueAfter     *int
+	RecoveryAfter    *int
+	RepeatConfidence *int
 }
 
 // WorkoutDataIntegrityAssessment records whether a completed session has the
@@ -122,6 +124,12 @@ func AssessWorkoutDataIntegrity(input WorkoutDataIntegrityInput, now time.Time) 
 			addMissing("fatigue_after")
 		} else if *input.FatigueAfter < 1 || *input.FatigueAfter > 5 {
 			addIssue("invalid_fatigue_after")
+		}
+		if input.RecoveryAfter != nil && (*input.RecoveryAfter < 1 || *input.RecoveryAfter > 5) {
+			addIssue("invalid_recovery_after")
+		}
+		if input.RepeatConfidence != nil && (*input.RepeatConfidence < 1 || *input.RepeatConfidence > 5) {
+			addIssue("invalid_repeat_confidence")
 		}
 	}
 

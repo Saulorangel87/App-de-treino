@@ -69,6 +69,8 @@ export function WorkoutSessionActions({
   const [difficulty, setDifficulty] =
     useState<keyof typeof difficultyLabels>('moderate');
   const [fatigueAfter, setFatigueAfter] = useState(3);
+  const [recoveryAfter, setRecoveryAfter] = useState(3);
+  const [repeatConfidence, setRepeatConfidence] = useState(3);
   const [painReported, setPainReported] = useState(false);
   const [notes, setNotes] = useState('');
   const [distanceKM, setDistanceKM] = useState('');
@@ -112,6 +114,8 @@ export function WorkoutSessionActions({
       actual_rpe: actualRPE,
       difficulty,
       fatigue_after: fatigueAfter,
+      recovery_after: recoveryAfter,
+      repeat_confidence: repeatConfidence,
       pain_reported: painReported,
       notes,
       distance_km: optionalNumber(distanceKM),
@@ -355,6 +359,35 @@ export function WorkoutSessionActions({
             </label>
           </div>
 
+          <div className="feedback-grid">
+            <label>
+              Recuperação percebida
+              <select
+                value={recoveryAfter}
+                onChange={(event) => setRecoveryAfter(Number(event.target.value))}
+              >
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <option value={value} key={value}>
+                    {value} de 5
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Confiança para repetir
+              <select
+                value={repeatConfidence}
+                onChange={(event) => setRepeatConfidence(Number(event.target.value))}
+              >
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <option value={value} key={value}>
+                    {value} de 5
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
           <fieldset className="session-metrics">
             <legend>Dados do pedal <small>opcionais</small></legend>
             <div className="feedback-grid">
@@ -426,6 +459,8 @@ export function WorkoutSessionActions({
               ·{' '}
               {difficultyLabels[feedback.difficulty]} · fadiga{' '}
               {feedback.fatigue_after}/5
+              {feedback.recovery_after !== undefined && ` · recuperação ${feedback.recovery_after}/5`}
+              {feedback.repeat_confidence !== undefined && ` · confiança ${feedback.repeat_confidence}/5`}
               {feedback.pain_reported ? ' · dor relatada' : ' · sem dor'}
             </span>
             {feedback.notes && <p>{feedback.notes}</p>}

@@ -22,6 +22,8 @@ type PlannedVsActualInput struct {
 	Difficulty             string
 	PainReported           bool
 	FatigueAfter           int
+	RecoveryAfter          *int
+	RepeatConfidence       *int
 	DistanceKM             *float64
 	ElevationGainM         *int
 	AveragePowerW          *int
@@ -46,6 +48,8 @@ type PlannedVsActualAssessment struct {
 	TargetRPE                 float64           `json:"target_rpe"`
 	ActualRPE                 float64           `json:"actual_rpe"`
 	RPEDelta                  *float64          `json:"rpe_delta,omitempty"`
+	RecoveryAfter             *int              `json:"recovery_after,omitempty"`
+	RepeatConfidence          *int              `json:"repeat_confidence,omitempty"`
 	ObservedFields            []string          `json:"observed_fields"`
 	Reasons                   []ReadinessReason `json:"reasons"`
 	MissingData               []string          `json:"missing_data"`
@@ -136,6 +140,22 @@ func AssessPlannedVsActual(input PlannedVsActualInput, now time.Time) PlannedVsA
 		}
 		if input.FatigueAfter < 1 || input.FatigueAfter > 5 {
 			addIssue("invalid_fatigue_after")
+		}
+		if input.RecoveryAfter != nil {
+			if *input.RecoveryAfter < 1 || *input.RecoveryAfter > 5 {
+				addIssue("invalid_recovery_after")
+			} else {
+				result.RecoveryAfter = input.RecoveryAfter
+				addObserved("recovery_after")
+			}
+		}
+		if input.RepeatConfidence != nil {
+			if *input.RepeatConfidence < 1 || *input.RepeatConfidence > 5 {
+				addIssue("invalid_repeat_confidence")
+			} else {
+				result.RepeatConfidence = input.RepeatConfidence
+				addObserved("repeat_confidence")
+			}
 		}
 	}
 

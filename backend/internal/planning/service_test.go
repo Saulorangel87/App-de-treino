@@ -847,6 +847,17 @@ func TestCompleteWorkoutRejectsInvalidOptionalMetrics(t *testing.T) {
 	}
 }
 
+func TestCompleteWorkoutRejectsInvalidPostWorkoutContext(t *testing.T) {
+	store := &planStore{}
+	invalidRecovery := 0
+	_, err := NewService(store).CompleteWorkout(context.Background(), "user-1", "9a1eead7-6168-4d50-8c7c-451301e29d85", CompletionInput{
+		ActualRPE: 5, Difficulty: "moderate", FatigueAfter: 3, RecoveryAfter: &invalidRecovery,
+	})
+	if err != ErrInvalidFeedback || store.completedID != "" {
+		t.Fatalf("invalid post-workout context must be rejected: %#v, %v", store, err)
+	}
+}
+
 func TestCompleteWorkoutRejectsPartialCompletionWithoutReason(t *testing.T) {
 	store := &planStore{}
 	_, err := NewService(store).CompleteWorkout(context.Background(), "user-1", "9a1eead7-6168-4d50-8c7c-451301e29d85", CompletionInput{

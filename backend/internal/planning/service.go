@@ -136,6 +136,8 @@ type Feedback struct {
 	Difficulty       string `json:"difficulty"`
 	PainReported     bool   `json:"pain_reported"`
 	FatigueAfter     int    `json:"fatigue_after"`
+	RecoveryAfter    *int   `json:"recovery_after,omitempty"`
+	RepeatConfidence *int   `json:"repeat_confidence,omitempty"`
 	Notes            string `json:"notes,omitempty"`
 }
 
@@ -146,6 +148,8 @@ type CompletionInput struct {
 	Difficulty       string
 	PainReported     bool
 	FatigueAfter     int
+	RecoveryAfter    *int
+	RepeatConfidence *int
 	Notes            string
 	DistanceKM       *float64
 	ElevationGainM   *int
@@ -327,6 +331,12 @@ func validCompletion(input CompletionInput) bool {
 		return false
 	}
 	if input.AverageHeartRate != nil && (*input.AverageHeartRate < 30 || *input.AverageHeartRate > 250) {
+		return false
+	}
+	if input.RecoveryAfter != nil && (*input.RecoveryAfter < 1 || *input.RecoveryAfter > 5) {
+		return false
+	}
+	if input.RepeatConfidence != nil && (*input.RepeatConfidence < 1 || *input.RepeatConfidence > 5) {
 		return false
 	}
 	switch input.Difficulty {

@@ -12,6 +12,8 @@ func TestAssessPlannedVsActualRecordsCoreDifferences(t *testing.T) {
 	elevation := 380
 	power := 210
 	heartRate := 148
+	recoveryAfter := 4
+	repeatConfidence := 5
 	assessment := AssessPlannedVsActual(PlannedVsActualInput{
 		PlannedDurationMinutes: 60,
 		ActualDurationMinutes:  54,
@@ -21,6 +23,8 @@ func TestAssessPlannedVsActualRecordsCoreDifferences(t *testing.T) {
 		Difficulty:             "hard",
 		PainReported:           false,
 		FatigueAfter:           3,
+		RecoveryAfter:          &recoveryAfter,
+		RepeatConfidence:       &repeatConfidence,
 		DistanceKM:             &distance,
 		ElevationGainM:         &elevation,
 		AveragePowerW:          &power,
@@ -41,6 +45,12 @@ func TestAssessPlannedVsActualRecordsCoreDifferences(t *testing.T) {
 	}
 	if !slices.Contains(assessment.ObservedFields, "average_power_watts") || !slices.Contains(assessment.NotEvaluated, "sleep") {
 		t.Fatalf("observed/not evaluated fields = %#v / %#v", assessment.ObservedFields, assessment.NotEvaluated)
+	}
+	if assessment.RecoveryAfter == nil || *assessment.RecoveryAfter != 4 || assessment.RepeatConfidence == nil || *assessment.RepeatConfidence != 5 {
+		t.Fatalf("post-workout context = recovery %v, confidence %v", assessment.RecoveryAfter, assessment.RepeatConfidence)
+	}
+	if !slices.Contains(assessment.ObservedFields, "recovery_after") || !slices.Contains(assessment.ObservedFields, "repeat_confidence") {
+		t.Fatalf("post-workout context was not observed: %#v", assessment.ObservedFields)
 	}
 	if assessment.ProgressionEligible || assessment.UsedForPrescription {
 		t.Fatal("comparison must remain non-prescriptive")
@@ -107,5 +117,23 @@ func TestAssessPlannedVsActualRecordsPartialCompletionContext(t *testing.T) {
 	}
 	if !slices.Contains(assessment.ObservedFields, "partial_reason") || slices.Contains(assessment.NotEvaluated, "completion_reason") {
 		t.Fatalf("partial context fields = %#v / %#v", assessment.ObservedFields, assessment.NotEvaluated)
+	}
+}
+
+func TestAssessPlannedVsActualRejectsInvalidPostWorkoutContext(t *testing.T) {
+	recoveryAfter := 0
+	assessment := AssessPlannedVsActual(PlannedVsActualInput{
+		PlannedDurationMinutes: 45,
+		ActualDurationMinutes:  45,
+		TargetRPE:              5,
+		ActualRPE:              5,
+		FeedbackPresent:        true,
+		Difficulty:             "moderate",
+		FatigueAfter:           3,
+		RecoveryAfter:          &recoveryAfter,
+	}, time.Now())
+
+	if assessment.Status != "not_evaluated" || !slices.Contains(assessment.DataIssues, "invalid_recovery_after") {
+		t.Fatalf("invalid recovery context was not rejected: %+v", assessment)
 	}
 }

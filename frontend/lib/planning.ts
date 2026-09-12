@@ -80,6 +80,8 @@ export type Workout = {
       target_rpe: number;
         actual_rpe: number;
         rpe_delta?: number;
+      recovery_after?: number;
+      repeat_confidence?: number;
         observed_fields: string[];
         reasons: { code: string; message: string }[];
         missing_data: string[];
@@ -141,6 +143,8 @@ export type WorkoutFeedback = {
   difficulty: 'very_easy' | 'easy' | 'moderate' | 'hard' | 'very_hard';
   pain_reported: boolean;
   fatigue_after: number;
+  recovery_after?: number;
+  repeat_confidence?: number;
   notes?: string;
 };
 

@@ -236,6 +236,12 @@ Ao concluir um treino, o atleta informa se realizou a sessão completa ou apenas
 
 O contexto é informativo e não diagnostica a causa da interrupção. Uma sessão parcial pode entrar na observação quando seus dados são coerentes, mas não é usada como evidência de tolerância ao treino completo e não libera progressão. O trigger do `rules-v1` mantém proteções para dor, fadiga e esforço alto; somente a ramificação de progressão exige `completion_status = 'complete'`.
 
+### Contexto adicional pós-treino (`000021`)
+
+O feedback pode registrar também `recovery_after` e `repeat_confidence`, ambos em escala de 1 a 5. O primeiro descreve a recuperação percebida após a sessão; o segundo registra a confiança do atleta para repetir aquele treino. Os campos são opcionais no armazenamento para preservar feedbacks antigos e são preenchidos pelo formulário atual com uma resposta neutra inicial.
+
+Esses sinais são observacionais nesta versão: não são diagnóstico, não substituem o check-in diário, não autorizam progressão e não alteram o `rules-v1` ou o trigger pós-feedback. Quando presentes, aparecem no resumo da sessão, no histórico e em `planned-vs-actual-v1`; valores fora da faixa são rejeitados na API, no banco e na integridade observacional. A interpretação futura exige cobertura suficiente, comparação com a carga realizada e revisão específica antes de qualquer uso prescritivo.
+
 ### Rotação segura e recuperação ativa
 
 O catálogo geral possui o protocolo `active_recovery`, apresentado ao atleta como **Recuperação ativa**. O motor o seleciona somente para uma sessão de base na quarta semana do ciclo. A sessão mantém o multiplicador de recuperação já existente, usa alvo RPE 3,5 e uma instrução de pedal leve e contínuo; não representa uma prescrição universal de minutos ou intensidade.

@@ -15,6 +15,8 @@ type completeWorkoutInput struct {
 	Difficulty       string   `json:"difficulty"`
 	PainReported     bool     `json:"pain_reported"`
 	FatigueAfter     int      `json:"fatigue_after"`
+	RecoveryAfter    *int     `json:"recovery_after"`
+	RepeatConfidence *int     `json:"repeat_confidence"`
 	Notes            string   `json:"notes"`
 	DistanceKM       *float64 `json:"distance_km"`
 	ElevationGainM   *int     `json:"elevation_gain_m"`
@@ -51,6 +53,7 @@ func (s *Server) completeWorkout(w http.ResponseWriter, r *http.Request) {
 		CompletionStatus: input.CompletionStatus, PartialReason: strings.TrimSpace(input.PartialReason),
 		ActualRPE: input.ActualRPE, Difficulty: input.Difficulty,
 		PainReported: input.PainReported, FatigueAfter: input.FatigueAfter,
+		RecoveryAfter: input.RecoveryAfter, RepeatConfidence: input.RepeatConfidence,
 		Notes:      strings.TrimSpace(input.Notes),
 		DistanceKM: input.DistanceKM, ElevationGainM: input.ElevationGainM,
 		AveragePowerW: input.AveragePowerW, AverageHeartRate: input.AverageHeartRate,
