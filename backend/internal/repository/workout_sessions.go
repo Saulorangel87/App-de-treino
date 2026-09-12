@@ -107,16 +107,17 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 	defer tx.Rollback(ctx)
 
 	var profileID string
+	var plannedDurationMinutes int
 	var sourceTargetRPE float64
 	var status string
 	err = tx.QueryRow(ctx, `
-		SELECT ap.id::text, w.target_rpe::double precision, w.status
+		SELECT ap.id::text, w.duration_minutes, w.target_rpe::double precision, w.status
 		FROM workouts w
 		JOIN training_plans tp ON tp.id = w.training_plan_id
 		JOIN athlete_profiles ap ON ap.id = tp.athlete_profile_id
 		WHERE ap.user_id = $1 AND w.id = $2 AND tp.status = 'active'
 		FOR UPDATE OF w`, userID, workoutID,
-	).Scan(&profileID, &sourceTargetRPE, &status)
+	).Scan(&profileID, &plannedDurationMinutes, &sourceTargetRPE, &status)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return planning.ErrWorkoutMissing
 	}
@@ -181,6 +182,21 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 	}
 	periods, historyErr := trainingHistoryPeriodsFrom(ctx, tx, profileID)
 	shadow := planning.AssessRulesV2AdaptationShadowWithIntegrity(sourceTargetRPE, input, periods, integrity, integrityAssessedAt)
+	plannedVsActual := planning.AssessPlannedVsActual(planning.PlannedVsActualInput{
+		PlannedDurationMinutes: plannedDurationMinutes,
+		ActualDurationMinutes:  durationMinutes,
+		TargetRPE:              sourceTargetRPE,
+		ActualRPE:              input.ActualRPE,
+		FeedbackPresent:        true,
+		Difficulty:             input.Difficulty,
+		PainReported:           input.PainReported,
+		FatigueAfter:           input.FatigueAfter,
+		DistanceKM:             input.DistanceKM,
+		ElevationGainM:         input.ElevationGainM,
+		AveragePowerW:          input.AveragePowerW,
+		AverageHeartRate:       input.AverageHeartRate,
+	}, integrityAssessedAt)
+	shadow.PlannedVsActual = &plannedVsActual
 	if historyErr != nil {
 		if _, rollbackErr := tx.Exec(ctx, `ROLLBACK TO SAVEPOINT rules_v2_adaptation_shadow`); rollbackErr != nil {
 			return rollbackErr

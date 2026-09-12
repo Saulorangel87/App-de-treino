@@ -1315,4 +1315,10 @@ Com os dados completos e sem sinal protetivo, o resultado é somente `observatio
 
 Foram adicionados testes para evidência completa, lacuna de carga, esforço alto, períodos inconsistentes e isolamento prescritivo. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram; o lint geral continua com pendências antigas fora desta mudança. A API local foi reiniciada com a implementação nova e, após uma sessão concluída, o `GET /v1/plans/current` confirmou `explanation.adaptation_shadow.load_tolerance` com `version: "load-tolerance-v1"`, `progression_eligible: false` e `used_for_prescription: false`; `status: "not_evaluated"` foi aceito como esperado para a conta de teste. A implementação foi registrada no commit `36cfabb` e ainda não foi publicada em produção.
 
-Próxima etapa: documentar e especificar a próxima fatia observacional de adaptação em ciclo fechado, comparando o treino planejado com o realizado, sem substituir o motor prescritivo `rules-v1`.
+A etapa seguinte foi documentada e especificada como uma fatia observacional de adaptação em ciclo fechado, comparando o treino planejado com o realizado, sem substituir o motor prescritivo `rules-v1`.
+
+### Continuidade — comparação planejado versus realizado — 12 de setembro de 2026
+
+A fatia seguinte foi implementada localmente como `planned-vs-actual-v1`. Ao concluir uma sessão, o backend registra no `workouts.explanation.adaptation_shadow` a duração planejada e realizada, a diferença percentual de duração, o RPE-alvo e realizado, a diferença de RPE, a cobertura das métricas disponíveis e as lacunas ainda não coletadas. O bloco é descritivo, mantém `progression_eligible: false` e `used_for_prescription: false`, e não altera o `rules-v1`, o trigger, as sessões ou a interface.
+
+Foram adicionados testes para comparação válida, dados essenciais incompletos, métricas opcionais ausentes e isolamento prescritivo. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. Ainda falta a validação manual via API local após concluir uma sessão, conferindo `explanation.adaptation_shadow.planned_vs_actual`; não houve migração, atualização de versão, commit ou deploy desta fatia.

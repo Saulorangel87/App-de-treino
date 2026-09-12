@@ -132,6 +132,8 @@ A pesquisa seguinte avaliou resistência específica na bicicleta como possível
 
 Fatia técnica local implementada: `load-tolerance-v1` observa os dois períodos semanais mais recentes com carga session-RPE, feedback completo e recuperação registrada. Dor, fadiga alta, recuperação necessária ou esforço atual pelo menos dois pontos acima do alvo mantêm uma resposta protetiva; evidência completa sem esses sinais produz apenas `observation_only`. A leitura fica aninhada em `workouts.explanation.adaptation_shadow`, com `progression_eligible`, `applied` e `used_for_prescription` sempre falsos. Ela não calcula ACWR, não infere tolerância fisiológica e não altera `rules-v1`, o trigger, migrações, interface ou produção.
 
+Fatia técnica seguinte, local e ainda não publicada: `planned-vs-actual-v1` registra a comparação descritiva entre duração e RPE planejados e realizados, junto da cobertura de feedback e métricas opcionais disponíveis. A leitura é anexada ao mesmo `adaptation_shadow`, mantém `progression_eligible: false` e `used_for_prescription: false`, explicita campos ausentes e não interpreta tolerância, progressão ou efeito fisiológico. A validação manual ponta a ponta ainda está pendente; não há migração, alteração visual, atualização de versão ou deploy.
+
 ## ADR-010 — Modalidades fora do escopo do Cadência
 
 **Status:** Aceita e aplicada localmente.

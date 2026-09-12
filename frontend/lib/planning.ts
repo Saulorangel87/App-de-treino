@@ -60,6 +60,27 @@ export type Workout = {
       missing_data: string[];
       data_issues: string[];
       not_evaluated: string[];
+      planned_vs_actual?: {
+        version: 'planned-vs-actual-v1';
+        mode: 'observation';
+        scope: 'completed_workout';
+        assessed_at: string;
+        status: 'not_evaluated' | 'observed';
+        planned_duration_minutes: number;
+        actual_duration_minutes: number;
+        duration_delta_minutes?: number;
+        duration_completion_percent?: number;
+        target_rpe: number;
+        actual_rpe: number;
+        rpe_delta?: number;
+        observed_fields: string[];
+        reasons: { code: string; message: string }[];
+        missing_data: string[];
+        data_issues: string[];
+        not_evaluated: string[];
+        progression_eligible: false;
+        used_for_prescription: false;
+      };
       load_tolerance?: {
         version: 'load-tolerance-v1';
         mode: 'observation';

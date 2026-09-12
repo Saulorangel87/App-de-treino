@@ -204,7 +204,7 @@ O avaliador recebe o RPE-alvo, o feedback validado da sessão e os períodos obs
 - resposta dentro do esperado produz `maintain_observed`;
 - uma resposta claramente fácil só pode produzir `progress_duration_5pct` como candidata se houver seis períodos íntegros, dois períodos recentes com sessões, carga session-RPE e feedback completos, além de recuperação completa registrada nesses períodos. Sem isso, produz `defer_progression`.
 
-Mesmo com evidência suficiente, a candidata permanece em `mode: shadow`, com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. O módulo não infere destreinamento, tolerância, mudança fisiológica, efeito da prescrição ou dados de atividades fora do Cadência. Se a consulta dos períodos falhar, um savepoint impede que a observação bloqueie o feedback: o resultado fica `not_evaluated` e recebe `history_query_failed`. Os testes cobrem resposta fácil isolada, evidência completa, dor, período inconsistente e a invariância de não produzir candidata com observação inconsistente. A conferência manual de `explanation.adaptation_shadow` no `GET /v1/plans/current` após concluir um treino local é a próxima validação, sem ativar o resultado.
+Mesmo com evidência suficiente, a candidata permanece em `mode: shadow`, com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. O módulo não infere destreinamento, tolerância, mudança fisiológica, efeito da prescrição ou dados de atividades fora do Cadência. Se a consulta dos períodos falhar, um savepoint impede que a observação bloqueie o feedback: o resultado fica `not_evaluated` e recebe `history_query_failed`. Os testes cobrem resposta fácil isolada, evidência completa, dor, período inconsistente e a invariância de não produzir candidata com observação inconsistente. A conferência manual de `explanation.adaptation_shadow` no `GET /v1/plans/current` foi concluída; a validação seguinte é a do bloco de comparação planejado versus realizado.
 
 ### Integridade observacional da sessão (`data-integrity-v1`)
 
@@ -221,6 +221,14 @@ Esta fatia acrescenta uma leitura observacional dentro de `adaptation_shadow`. E
 Dor, fadiga alta, necessidade recente de recuperação e esforço percebido pelo menos dois pontos acima do alvo produzem `protective_signal`/`prefer_recovery`. Sem esses sinais e com os dois períodos completos, o resultado é `observation_only`/`maintain_observed`: isso descreve suporte observacional para manter a carga sob análise, não uma autorização para aumentá-la. A avaliação também fica com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`.
 
 O `rules-v1` continua sendo a única fonte prescritiva. A implementação não altera o trigger pós-feedback, não modifica sessões futuras, não cria migração e não muda a interface; por isso, não exige nova nota de versão nesta fatia. A evidência de session-RPE orienta o método de registro, mas os critérios de cobertura e os estados são barreiras prudentes do produto, não limiares fisiológicos universais.
+
+### Comparação observacional entre planejado e realizado (`planned-vs-actual-v1`)
+
+Esta fatia registra, dentro de `workouts.explanation.adaptation_shadow`, a diferença descritiva entre a sessão planejada e a sessão concluída. São comparados a duração planejada e realizada, o RPE-alvo e o RPE realizado, além da cobertura do feedback e das métricas opcionais disponíveis no encerramento.
+
+O resultado pode ficar `observed` quando os dados mínimos da comparação estão válidos ou `not_evaluated` quando há duração, RPE ou feedback inválidos/ausentes. Campos ainda não coletados — como cadência, sono, estresse, recuperação, extensão da conclusão e motivo de não conclusão — permanecem explícitos em `not_evaluated`; métricas opcionais ausentes ficam em `missing_data` sem invalidar a comparação principal.
+
+As diferenças de duração e RPE são apenas registros de execução. O bloco mantém `progression_eligible: false` e `used_for_prescription: false`, não interpreta tolerância fisiológica, não aplica limiares de progressão e não altera o trigger ou o plano ativo. Não há migração, mudança visual ou atualização de versão nesta fatia.
 
 ### Rotação segura e recuperação ativa
 
