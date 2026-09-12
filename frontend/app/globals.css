@@ -1503,10 +1503,15 @@ button {
 .workout-detail .completion-help {
   color: #a9bfb6;
 }
-.workout-detail .completion-context select {
+.workout-detail .session-feedback select {
   border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08);
-  color: white;
+  background: #1b5142;
+  color: #eef6f2;
+  color-scheme: dark;
+}
+.workout-detail .session-feedback select option {
+  background: #164a3b;
+  color: #eef6f2;
 }
 .workout-detail .session-feedback .pain-check {
   border-color: #d7e2da;
