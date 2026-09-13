@@ -230,6 +230,8 @@ O resultado protetivo de `load-tolerance-v1` participa também do gate do `rules
 
 Para uma candidata de progressão, o shadow também exige que `load-tolerance-v1` esteja em `observation_only`: cada um dos dois períodos precisa ter sessões com carga por session-RPE, feedback completo e ao menos um check-in de recuperação completo. Um check-in presente apenas no período anterior não cobre a lacuna do período recente; nesse caso, a candidata fica em `not_evaluated`/`defer_progression`.
 
+A aderência planejada também funciona como gate separado para a progressão shadow. Se qualquer um dos dois períodos de evidência tiver sessão prevista perdida (`missed_sessions`) ou treino em andamento vencido (`overdue_in_progress_sessions`), a candidata fica em `not_evaluated`/`defer_progression` com `low_adherence`. Cancelamentos explícitos (`cancelled_sessions`) continuam registrados, mas não são convertidos sozinhos em baixa aderência.
+
 O `rules-v1` continua sendo a única fonte prescritiva. A implementação não altera o trigger pós-feedback, não modifica sessões futuras, não cria migração e não muda a interface; por isso, não exige nova nota de versão nesta fatia. A evidência de session-RPE orienta o método de registro, mas os critérios de cobertura e os estados são barreiras prudentes do produto, não limiares fisiológicos universais.
 
 ### Comparação observacional entre planejado e realizado (`planned-vs-actual-v1`)

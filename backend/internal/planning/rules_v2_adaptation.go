@@ -59,6 +59,7 @@ func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input Complet
 			"feedback_integrity_gate",
 			"completion_context_gate",
 			"load_tolerance_gate",
+			"adherence_gate",
 			"protective_signal_gate",
 			"progression_evidence_gate",
 			"prescription_isolation_gate",
@@ -175,6 +176,13 @@ func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input Complet
 			addMissing("load_tolerance_observation")
 		}
 		addReason("progression_deferred_load_tolerance", "A avaliação de tolerância à carga ainda não está completa em cada período exigido; a progressão permanece adiada.")
+	}
+	for _, period := range comparison.Periods[:minInt(len(comparison.Periods), 2)] {
+		if period.MissedSessions > 0 || period.OverdueInProgressSessions > 0 {
+			addReason("low_adherence", "Há treino previsto perdido ou em andamento vencido nos períodos usados; a progressão permanece adiada até a aderência ser observada com mais consistência.")
+			result.CandidateResponse = "defer_progression"
+			return result
+		}
 	}
 
 	if len(comparison.Periods) < 2 {

@@ -61,6 +61,26 @@ func TestAssessRulesV2AdaptationShadowRequiresRecoveryInEachTolerancePeriod(t *t
 	}
 }
 
+func TestAssessRulesV2AdaptationShadowDefersAfterRecentMissedWorkout(t *testing.T) {
+	periods := validHistoryPeriods()
+	periods[0].ScheduledCompletedSessions = 1
+	periods[0].CancelledSessions = 0
+	periods[0].MissedSessions = 1
+	assessment := assessRulesV2AdaptationShadow(6, CompletionInput{
+		ActualRPE: 4, Difficulty: "easy", FatigueAfter: 2,
+	}, periods, time.Unix(0, 0))
+
+	if assessment.Status != "not_evaluated" || assessment.CandidateResponse != "defer_progression" {
+		t.Fatalf("recent missed workout produced an unexpected response: %+v", assessment)
+	}
+	if !slices.Contains(assessment.Reasons, ReadinessReason{
+		Code:    "low_adherence",
+		Message: "Há treino previsto perdido ou em andamento vencido nos períodos usados; a progressão permanece adiada até a aderência ser observada com mais consistência.",
+	}) {
+		t.Fatalf("missing low-adherence reason: %#v", assessment.Reasons)
+	}
+}
+
 func TestAssessRulesV2AdaptationShadowPrioritizesPain(t *testing.T) {
 	input := CompletionInput{ActualRPE: 4, Difficulty: "easy", FatigueAfter: 1, PainReported: true}
 	assessment := assessRulesV2AdaptationShadow(6, input, validHistoryPeriods(), time.Unix(0, 0))

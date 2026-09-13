@@ -1430,3 +1430,11 @@ A revisão seguinte encontrou uma divergência entre os gates: `load-tolerance-v
 O `rules-v2-adaptation-v1` agora só considera a candidata quando `load-tolerance-v1` está em `observation_only`. As lacunas de recuperação, carga ou feedback são propagadas para o resultado e mantêm `not_evaluated`/`defer_progression`; sinais protetivos continuam prioritários. Não há inferência de baixa tolerância por ausência de registro.
 
 Foi adicionada regressão para o caso de recuperação ausente no período recente. `go test -count=1 ./...`, `go vet` e `git diff --check` passaram. Não houve mudança visual, release, migração, infraestrutura ou deploy. Esta fatia está validada localmente e aguarda o commit autorizado. Próxima etapa: continuar a revisão dos gates de adaptação em shadow, mantendo a separação entre observação e prescrição.
+
+### Continuidade — gate de aderência na progressão shadow — 13 de setembro de 2026
+
+A revisão dos critérios de progressão encontrou outra lacuna: a candidata já exigia carga, feedback completo e recuperação em cada período, mas não consultava sessões previstas perdidas ou treinos em andamento vencidos nesses mesmos períodos. Uma única sessão fácil poderia parecer suficiente mesmo após uma quebra factual de aderência.
+
+O `rules-v2-adaptation-v1` agora bloqueia a candidata quando `missed_sessions` ou `overdue_in_progress_sessions` é maior que zero em qualquer um dos dois períodos de evidência. O resultado registra `low_adherence` e `defer_progression`; cancelamentos explícitos permanecem separados e não são interpretados sozinhos como baixa aderência. Não há reagendamento, compensação ou alteração no `rules-v1`.
+
+Foi adicionada regressão para treino perdido no período recente. `go test -count=1 ./...`, `go vet` e `git diff --check` passaram. Não houve mudança visual, release, migração, infraestrutura ou deploy. Esta fatia está validada localmente e aguarda o commit autorizado. Próxima etapa: continuar a revisão dos gates de adaptação em shadow, preservando a separação entre observação e prescrição.

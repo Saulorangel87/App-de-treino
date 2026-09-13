@@ -238,6 +238,14 @@ O candidato de progressão do `rules-v2-adaptation-v1` deve respeitar a mesma co
 
 Essa decisão evita que um check-in antigo cubra uma lacuna no período mais recente. Quando a avaliação de tolerância não está completa, a candidata fica adiada e a lacuna é registrada; nenhum resultado observacional altera `rules-v1`, o trigger ou a prescrição ativa.
 
+## ADR-022 — Treino perdido bloqueia progressão shadow
+
+**Status:** Implementada localmente; ainda não publicada.
+
+Uma candidata de progressão não deve ser considerada quando os períodos de evidência contêm sessões previstas perdidas ou treinos em andamento vencidos. O `rules-v2-adaptation-v1` registra `low_adherence` e adia a candidata, mantendo cancelamentos explícitos como estado separado.
+
+A decisão usa apenas estados factuais do histórico planejado; não presume o motivo da ausência, não cria compensação ou reagendamento e não altera a prescrição ativa. `rules-v1`, o trigger e o banco permanecem inalterados.
+
 ## Estado de produção
 
 Em 3 de setembro de 2026, o commit `57c241a` foi implantado na VPS Oracle. A imagem da API, do job de digest e do frontend foi reconstruída com Go 1.25; as migrações `000013` e `000014` foram aplicadas após backup preventivo. O serviço Ollama permanece isolado e parado após a medição de capacidade, e a API usa temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.

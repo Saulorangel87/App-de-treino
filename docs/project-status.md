@@ -87,6 +87,13 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - Foi adicionada regressão para impedir progressão com recuperação incompleta em um dos períodos. `go test -count=1 ./...`, `go vet` e `git diff --check` passaram.
 - Esta alteração é somente de shadow e testes: `rules-v1`, trigger, banco, interface, release, migrações, infraestrutura e produção permanecem inalterados.
 
+### Gate de aderência na progressão shadow — versão local (validado; sem publicação)
+
+- A candidata de progressão agora consulta os dois períodos de evidência e bloqueia quando há sessão prevista perdida (`missed_sessions`) ou treino em andamento vencido (`overdue_in_progress_sessions`). O resultado fica `not_evaluated`/`defer_progression` com `low_adherence`.
+- Cancelamentos explícitos continuam separados dos treinos perdidos e não são interpretados isoladamente como baixa aderência. A regra não cria reagendamento, compensação ou alteração no plano ativo.
+- Foi adicionada regressão para uma sessão perdida no período recente. `go test -count=1 ./...`, `go vet` e `git diff --check` passaram.
+- Esta alteração é somente de shadow e testes: `rules-v1`, trigger, banco, interface, release, migrações, infraestrutura e produção permanecem inalterados.
+
 ### Décima quarta fatia de melhorias — taper pré-prova orientado por evento (local)
 
 - O plano local passa a registrar `prescription_snapshot.event_taper` com `taper-v1`. A redução só é prescritiva para evento futuro entre 7 e 21 dias, atleta avançado, avaliação submáxima apta, pelo menos 8 semanas e 3 pedais semanais, sem limitação, dor ou necessidade recente de recuperação.
