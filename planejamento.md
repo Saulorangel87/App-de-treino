@@ -1460,3 +1460,11 @@ O repositório agora reconstrói a auditoria no fim do fluxo, antes da serializa
 Foi adicionado um teste de contrato para `GET /v1/plans/current` com plano sintético autenticado. A resposta preserva `adaptation_shadow`, `planned_vs_actual`, `decision_audit`, as lacunas observacionais e `used_for_prescription: false` até o cliente.
 
 Essa validação não usa conta real, não altera o banco, não exige navegador e não cria funcionalidade visível. A próxima etapa é consolidar a matriz final de não autoridade do shadow, cobrindo todos os gates com a mesma garantia no fluxo de resposta.
+
+### Continuidade — matriz final de não autoridade do shadow — 13 de setembro de 2026
+
+A revisão técnica local foi encerrada com uma matriz de invariantes cobrindo feedback inválido, proteção, conclusão parcial, evidência incompleta, baixa aderência, inconsistência histórica, integridade inválida da sessão atual e candidata de progressão com evidência completa.
+
+Todos os cenários confirmam `progression_eligible: false`, `applied: false` e `used_for_prescription: false`, inclusive no `decision_audit`, com `prescription_isolation_gate` avaliado. `go test -count=1 ./...`, `go vet ./...` e as validações PostgreSQL somente leitura permanecem aprovados.
+
+Com isso, a revisão técnica segura do shadow está concluída. O próximo avanço de adaptação em ciclo fechado depende de dados reais suficientes, calibração, revisão dos efeitos da prescrição e autorização própria; não deve ser ativado automaticamente.

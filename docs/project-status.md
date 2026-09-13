@@ -50,6 +50,12 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - O teste também confirmou que `history_query_gate` e as lacunas observacionais permanecem visíveis e que `used_for_prescription` continua falso.
 - Não foi necessário usar conta real, navegador, migração ou alteração de versão. A cobertura é de contrato HTTP e não transforma o shadow em motor prescritivo.
 
+### Matriz final de não autoridade do shadow — versão local (validado; sem publicação)
+
+- A matriz cobre feedback inválido, sinal protetivo, conclusão parcial, evidência incompleta, baixa aderência, histórico inconsistente, integridade da sessão atual e candidata com evidência completa.
+- Em todos os cenários, `progression_eligible`, `applied` e `used_for_prescription` permanecem falsos, inclusive no `decision_audit`, e `prescription_isolation_gate` permanece avaliado.
+- A suíte Go completa e `go vet` passaram. Esta etapa encerra a revisão técnica local do shadow; progressão em ciclo fechado continua condicionada a dados reais, calibração e nova revisão.
+
 ### Correção de layout e novidades — versão local `0.20.0`
 
 - A barra lateral passou a preservar o tamanho original dos menus e a usar rolagem própria somente quando a altura disponível não comporta todo o conteúdo. O bloco inferior não é comprimido e o rodapé fixo não cobre mais o acesso ao perfil.

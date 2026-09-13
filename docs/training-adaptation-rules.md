@@ -272,6 +272,8 @@ No fluxo transacional, o `decision_audit` é reconstruído após a anexação de
 
 O contrato HTTP autenticado foi coberto para garantir que essa auditoria final chega ao `GET /v1/plans/current` sem perder `planned_vs_actual`, lacunas ou a barreira `used_for_prescription: false`.
 
+Uma matriz final de invariantes cobre os estados protetivo, parcial, incompleto, inconsistente, baixa aderência, integridade inválida e candidato completo. Em todos eles, a avaliação permanece em shadow e `progression_eligible`, `applied` e `used_for_prescription` continuam falsos.
+
 ### Rotação segura e recuperação ativa
 
 O catálogo geral possui o protocolo `active_recovery`, apresentado ao atleta como **Recuperação ativa**. O motor o seleciona somente para uma sessão de base na quarta semana do ciclo. A sessão mantém o multiplicador de recuperação já existente, usa alvo RPE 3,5 e uma instrução de pedal leve e contínuo; não representa uma prescrição universal de minutos ou intensidade.
