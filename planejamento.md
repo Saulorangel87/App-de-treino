@@ -1454,3 +1454,9 @@ A revisão do fluxo transacional encontrou uma inconsistência: `planned_vs_actu
 O repositório agora reconstrói a auditoria no fim do fluxo, antes da serialização em `workouts.explanation`. Lacunas de `planned_vs_actual` entram na auditoria consolidada; quando o histórico falha, `history_query_failed` fica explícito, `history_query_gate` é registrado e `training_history_periods` não é declarado como dado utilizado. Foram adicionados testes de atualização e de serialização observacional.
 
 `go test -count=1 ./...`, `go vet ./...`, as fixtures PostgreSQL somente leitura e `git diff --check` passaram. Não houve mudança visual, release, migração, infraestrutura ou deploy. Próxima etapa: revisar a cobertura HTTP autenticada do retorno do plano e, depois, consolidar a matriz final de não autoridade do shadow.
+
+### Continuidade — cobertura HTTP autenticada do shadow — 13 de setembro de 2026
+
+Foi adicionado um teste de contrato para `GET /v1/plans/current` com plano sintético autenticado. A resposta preserva `adaptation_shadow`, `planned_vs_actual`, `decision_audit`, as lacunas observacionais e `used_for_prescription: false` até o cliente.
+
+Essa validação não usa conta real, não altera o banco, não exige navegador e não cria funcionalidade visível. A próxima etapa é consolidar a matriz final de não autoridade do shadow, cobrindo todos os gates com a mesma garantia no fluxo de resposta.

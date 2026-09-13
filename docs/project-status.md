@@ -44,6 +44,12 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - Foram adicionados testes para a atualização da auditoria após anexar observações e para a não utilização de histórico quando a consulta falha. A suíte Go completa, `go vet`, as fixtures PostgreSQL somente leitura e `git diff --check` passaram.
 - A alteração permanece observacional: não muda `rules-v1`, prescrição, interface, `APP_VERSION`, migrações, infraestrutura ou produção.
 
+### Cobertura HTTP do shadow — versão local (validado; sem publicação)
+
+- O endpoint autenticado `GET /v1/plans/current` foi coberto com um plano sintético e confirmou a serialização de `adaptation_shadow`, `planned_vs_actual` e `decision_audit` até o cliente.
+- O teste também confirmou que `history_query_gate` e as lacunas observacionais permanecem visíveis e que `used_for_prescription` continua falso.
+- Não foi necessário usar conta real, navegador, migração ou alteração de versão. A cobertura é de contrato HTTP e não transforma o shadow em motor prescritivo.
+
 ### Correção de layout e novidades — versão local `0.20.0`
 
 - A barra lateral passou a preservar o tamanho original dos menus e a usar rolagem própria somente quando a altura disponível não comporta todo o conteúdo. O bloco inferior não é comprimido e o rodapé fixo não cobre mais o acesso ao perfil.

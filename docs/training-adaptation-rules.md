@@ -270,6 +270,8 @@ Na revisão de precedência, sinais protetivos continuam vencendo uma conclusão
 
 No fluxo transacional, o `decision_audit` é reconstruído após a anexação de `planned_vs_actual` e após o tratamento de `history_query_failed`. Assim, as lacunas da comparação chegam à auditoria consolidada e um histórico indisponível não aparece em `data_used`; o `history_query_gate` deixa a falha explícita sem transformar a observação em bloqueio do feedback.
 
+O contrato HTTP autenticado foi coberto para garantir que essa auditoria final chega ao `GET /v1/plans/current` sem perder `planned_vs_actual`, lacunas ou a barreira `used_for_prescription: false`.
+
 ### Rotação segura e recuperação ativa
 
 O catálogo geral possui o protocolo `active_recovery`, apresentado ao atleta como **Recuperação ativa**. O motor o seleciona somente para uma sessão de base na quarta semana do ciclo. A sessão mantém o multiplicador de recuperação já existente, usa alvo RPE 3,5 e uma instrução de pedal leve e contínuo; não representa uma prescrição universal de minutos ou intensidade.
