@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão publicada: `0.20.0` — catálogo ampliado, contexto de conclusão e feedback pós-treino, auditoria observacional e histórico dedicado de novidades. O checkout local prepara a versão `0.23.0`: a correção de erros das telas autenticadas está no commit `77e57ec`, e a integridade mais clara dos registros pós-treino aguarda validação manual. A produção permanece em `0.20.0` até uma publicação própria. A release mais recente é a [v0.20.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.20.0).
+Versão publicada: `0.20.0` — catálogo ampliado, contexto de conclusão e feedback pós-treino, auditoria observacional e histórico dedicado de novidades. O checkout local contém a versão `0.23.0`: a correção de erros das telas autenticadas está no commit `77e57ec`, e a integridade mais clara dos registros pós-treino foi validada no commit `74f9493`, com o fechamento documental em `9736bf8`. A produção permanece em `0.20.0` até uma publicação própria. A release mais recente é a [v0.20.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.20.0).
 
 O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro não fazem parte deste app e não são aceitos como modalidades de treino.
 
