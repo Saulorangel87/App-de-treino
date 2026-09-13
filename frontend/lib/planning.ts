@@ -253,6 +253,43 @@ export type RulesV2ShadowAssessment = {
   used_for_prescription: false;
 };
 
+export type PeriodizationWeekObservation = {
+  week_index: number;
+  phase: 'progression' | 'recovery';
+  planned_sessions: number;
+  total_planned_minutes: number;
+  quality_sessions: number;
+  high_intensity_sessions: number;
+  recovery_sessions: number;
+  long_sessions: number;
+  tapered_sessions: number;
+  average_target_rpe: number | null;
+  minimum_days_between_quality_sessions: number | null;
+};
+
+export type PeriodizationShadowAssessment = {
+  version: 'periodization-shadow-v1';
+  mode: 'shadow';
+  scope: 'plan_generation_only';
+  assessed_at: string;
+  status: 'observed' | 'not_evaluated';
+  candidate_response: 'maintain_observed' | 'defer_evaluation';
+  rules_evaluated: string[];
+  reasons: Array<{ code: string; message: string }>;
+  missing_data: string[];
+  data_issues: string[];
+  not_evaluated: string[];
+  weeks: PeriodizationWeekObservation[];
+  total_planned_minutes: number;
+  quality_sessions: number;
+  high_intensity_sessions: number;
+  adjacent_quality_session_pairs: number;
+  minimum_days_between_quality_sessions: number | null;
+  progression_eligible: false;
+  applied: false;
+  used_for_prescription: false;
+};
+
 export type TrainingHistoryWindow = {
   window_days: 7 | 28 | 42;
   expected_sessions: number;
@@ -381,6 +418,7 @@ export type TrainingPlan = {
     sessions_per_week?: number;
     event_taper?: EventTaperAssessment;
     rules_v2_shadow?: RulesV2ShadowAssessment;
+    periodization_shadow?: PeriodizationShadowAssessment;
     readiness_assessment?: ReadinessAssessment;
     training_history?: TrainingHistorySnapshot;
     observed_training?: {

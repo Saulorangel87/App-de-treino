@@ -409,6 +409,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 		}
 	}
 
+	periodizationShadow := assessPeriodizationShadow(workouts, start, now)
 	plan := Plan{
 		StartsOn: start.Format("2006-01-02"),
 		EndsOn:   start.AddDate(0, 0, 27).Format("2006-01-02"),
@@ -417,6 +418,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 			"engine_version":       "rules-v1",
 			"event_taper":          eventTaper,
 			"rules_v2_shadow":      assessRulesV2Shadow(input, now),
+			"periodization_shadow": periodizationShadow,
 			"readiness_assessment": assessReadiness(input, now),
 			"training_history":     buildTrainingHistorySnapshot(input.TrainingHistory, now, input.TrainingHistoryPeriods),
 			"experience_level":     input.ExperienceLevel,

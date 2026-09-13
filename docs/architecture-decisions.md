@@ -262,6 +262,14 @@ O `decision_audit` deve ser reconstruído no fim do fluxo de conclusão do trein
 
 Uma falha recuperável do histórico não pode ser listada como dado utilizado. Ela deve aparecer como `history_query_failed`, com `history_query_gate`, enquanto o feedback principal continua seguindo o fluxo transacional definido. A regra continua observacional e não altera a prescrição ativa.
 
+## ADR-025 — Periodização observada sem autoridade prescritiva
+
+**Status:** Implementada localmente; ainda não publicada.
+
+Cada rascunho pode carregar uma auditoria `periodization-shadow-v1` da estrutura planejada de quatro semanas. Ela observa a sequência de três semanas de progressão e uma semana de recuperação, o volume planejado, a distribuição de sessões de qualidade, a alta intensidade, a recuperação, os treinos longos, o taper e o espaçamento entre estímulos exigentes.
+
+O bloco verifica incoerências estruturais e preserva lacunas sem escolher, substituir ou ajustar sessões. Ele permanece em `mode: shadow`, com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`; `rules-v1` continua sendo a única autoridade de prescrição. A decisão não cria migração, mudança visual ou nova nota de versão e exige revisão do contrato e validação antes de eventual publicação.
+
 ## Estado de produção
 
 Em 3 de setembro de 2026, o commit `57c241a` foi implantado na VPS Oracle. A imagem da API, do job de digest e do frontend foi reconstruída com Go 1.25; as migrações `000013` e `000014` foram aplicadas após backup preventivo. O serviço Ollama permanece isolado e parado após a medição de capacidade, e a API usa temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.

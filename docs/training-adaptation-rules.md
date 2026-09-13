@@ -199,6 +199,14 @@ Quando faltam períodos, datas de qualidade ou consistência, a avaliação de p
 
 Essa camada continua limitada por `mode: shadow`, `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. O corte de RPE usado para agrupar sessões e a regra de densidade não são zonas fisiológicas, prova de sobrecarga ou diagnóstico. Uma eventual ativação futura exige calibração, cobertura longitudinal, revisão profissional e autorização explícita.
 
+### Auditoria observacional da periodização (`periodization-shadow-v1`)
+
+Na geração de cada rascunho, o Cadência também observa a forma planejada do ciclo de quatro semanas. O bloco registra a fase ampla de cada semana (`progression` nas três primeiras e `recovery` na quarta), sessões planejadas, minutos, sessões de qualidade, alta intensidade, recuperação, endurance longo e eventual taper aplicado. A observação também registra a distância mínima entre sessões de qualidade sem expor datas internas de atividades.
+
+O auditor verifica a presença das quatro semanas, a ausência de qualidade na semana de recuperação, a redução do volume dessa semana, a quantidade de sessões de qualidade por semana e o espaçamento entre elas. Ausência de qualidade, por si só, não é erro. Semanas ausentes ficam em `missing_data`; uma estrutura incoerente fica em `data_issues` e não produz conclusão de coerência.
+
+O resultado permanece `mode: shadow`, `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. Ele não escolhe protocolos, não altera duração, RPE, frequência ou calendário e não substitui o `rules-v1`. A leitura descreve somente a estrutura do plano que já foi gerado; carga interna, tolerância, efeito fisiológico e atividades fora do Cadência continuam não avaliados.
+
 ### Avaliação shadow do motor (`rules-v2`)
 
 O `rules-v2` começou em paralelo, sem substituir o `rules-v1`. Durante a geração de um novo rascunho, `prescription_snapshot.rules_v2_shadow` avalia três gates determinísticos: integridade do período, sinais protetivos e evidência mínima para progressão. O resultado é congelado no snapshot com `mode: shadow` e escopo `plan_generation_only`. Essa avaliação foi incluída no commit `61d7939` e está publicada na produção, mas continua não autoritativa.
