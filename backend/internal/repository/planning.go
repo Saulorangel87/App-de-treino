@@ -159,7 +159,14 @@ const planningTrainingHistoryPeriodsQuery = `
 			COUNT(ws.id) FILTER (WHERE f.pain_reported = true) AS pain_reported_sessions,
 			COUNT(ws.id) FILTER (WHERE f.fatigue_after BETWEEN 4 AND 5) AS high_fatigue_sessions,
 			COUNT(ws.id) FILTER (WHERE ws.actual_rpe BETWEEN 1 AND 10 AND ws.target_rpe IS NOT NULL
-				AND ws.actual_rpe >= ws.target_rpe + 2) AS above_target_rpe_sessions
+				AND ws.actual_rpe >= ws.target_rpe + 2) AS above_target_rpe_sessions,
+			-- Keep these operational observation cutoffs in sync with planning/history.go.
+			COUNT(ws.id) FILTER (WHERE ws.target_rpe >= 6.0) AS quality_sessions,
+			COUNT(ws.id) FILTER (WHERE ws.target_rpe >= 6.0 AND ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10) AS quality_sessions_with_load,
+			COALESCE(SUM(COALESCE(ws.duration_minutes, 0)) FILTER (WHERE ws.target_rpe >= 6.0), 0) AS quality_performed_minutes,
+			COUNT(ws.id) FILTER (WHERE ws.target_rpe >= 7.0) AS high_intensity_sessions,
+			COALESCE(array_agg(to_char(ws.completed_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') ORDER BY ws.completed_at)
+				FILTER (WHERE ws.target_rpe >= 6.0), ARRAY[]::text[]) AS quality_session_dates
 		FROM period_sizes
 		LEFT JOIN eligible_completed_sessions ws
 			ON ws.completed_at >= now() - make_interval(days => period_sizes.end_days_ago)
@@ -211,6 +218,9 @@ const planningTrainingHistoryPeriodsQuery = `
 		performed.sessions_without_load, performed.session_rpe_load, performed.feedback_records,
 		performed.sessions_with_complete_feedback, performed.pain_reported_sessions,
 		performed.high_fatigue_sessions, performed.above_target_rpe_sessions,
+		performed.quality_sessions, performed.quality_sessions_with_load,
+		performed.quality_performed_minutes, performed.high_intensity_sessions,
+		performed.quality_session_dates,
 		recovery.recovery_checkins, recovery.complete_recovery_checkins,
 		recovery.checkins_with_protective_signal, recovery.recovery_needed_checkins
 	FROM performed
@@ -401,6 +411,9 @@ func trainingHistoryPeriodsFrom(ctx context.Context, queryer rowsQuerier, profil
 			&period.SessionsWithoutSessionRPELoad, &period.SessionRPELoad, &period.FeedbackRecords,
 			&period.SessionsWithCompleteFeedback, &period.PainReportedSessions,
 			&period.HighFatigueSessions, &period.AboveTargetRPESessions,
+			&period.QualitySessions, &period.QualitySessionsWithLoad,
+			&period.QualityPerformedMinutes, &period.HighIntensitySessions,
+			&period.QualitySessionDates,
 			&period.RecoveryCheckins, &period.CompleteRecoveryCheckins,
 			&period.CheckinsWithProtectiveSignal, &period.RecoveryNeededCheckins,
 		); err != nil {

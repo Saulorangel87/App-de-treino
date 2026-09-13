@@ -181,6 +181,16 @@ O contrato é `period-comparison-v1`, em `mode: observation`, com `used_for_pres
 
 Os testes unitários verificam ordenação, seis períodos, taxas, separação das medições, invariância da prescrição e rejeição de período que não tenha sete dias. `scripts/test-training-history-query.ps1` executa a consulta real com fixtures sintéticas em transação somente leitura e verifica os seis blocos, inclusive as fronteiras temporais e o isolamento do atleta. A validação manual via API foi concluída em um novo rascunho antes do commit `64e554d`.
 
+### Distribuição observacional dos estímulos (`training-history-v4` / `stimulus-distribution-v1`)
+
+A fatia seguinte acrescenta ao snapshot de novos rascunhos uma leitura da distribuição dos estímulos exigentes realizados nos seis períodos semanais. O `period_comparison` passa a `period-comparison-v2` e cada período registra `quality_sessions`, `quality_sessions_with_load`, `quality_performed_minutes`, `quality_density_percent` e `high_intensity_sessions`. A sessão é considerada de qualidade quando o RPE-alvo persistido é pelo menos 6,0; alta intensidade usa RPE-alvo de pelo menos 7,0. Esses cortes são convenções operacionais do produto para agrupar sessões, não zonas fisiológicas nem regras universais.
+
+O bloco `stimulus_distribution` resume a contagem de sessões de qualidade em 7, 14, 28 e 42 dias, o total de sessões de alta intensidade em 42 dias, a quantidade de pares de sessões de qualidade em dias consecutivos, o menor intervalo entre elas e a data da sessão mais recente. As datas de proximidade são normalizadas para o dia UTC de `completed_at`, porque o Cadência ainda não possui fuso horário individual. Sessões explicitamente inelegíveis pelo `data-integrity-v1` e sessões futuras não entram nessa leitura; duração ou RPE realizados ausentes geram lacunas de cobertura sem apagar o registro original.
+
+O resultado permanece `mode: observation`, `used_for_prescription: false` e não altera o `rules-v1`, a seleção de estímulo, a duração, o RPE ou o trigger pós-feedback. Proximidade entre sessões não é interpretada como excesso de carga nem como diagnóstico. Antes de qualquer uso prescritivo, será necessária cobertura real, comparação com recuperação e feedback, revisão dos critérios e validação longitudinal.
+
+Os testes unitários cobrem contagem por período, densidade, alta intensidade, recência, sessões em dias consecutivos, menor intervalo, datas ausentes e isolamento da prescrição. A fixture PostgreSQL verifica as novas colunas da consulta, o corte temporal, o filtro de integridade e o isolamento do atleta em transação somente leitura. Não há migração, mudança visual ou nota de versão nesta fatia backend-only.
+
 ### Avaliação shadow do motor (`rules-v2`)
 
 O `rules-v2` começou em paralelo, sem substituir o `rules-v1`. Durante a geração de um novo rascunho, `prescription_snapshot.rules_v2_shadow` avalia três gates determinísticos: integridade do período, sinais protetivos e evidência mínima para progressão. O resultado é congelado no snapshot com `mode: shadow` e escopo `plan_generation_only`. Essa avaliação foi incluída no commit `61d7939` e está publicada na produção, mas continua não autoritativa.

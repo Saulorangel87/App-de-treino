@@ -295,6 +295,11 @@ export type TrainingHistoryPeriod = {
   pain_reported_sessions: number;
   high_fatigue_sessions: number;
   above_target_rpe_sessions: number;
+  quality_sessions: number;
+  quality_sessions_with_load: number;
+  quality_performed_minutes: number;
+  quality_density_percent: number | null;
+  high_intensity_sessions: number;
   recovery_checkins: number;
   complete_recovery_checkins: number;
   checkins_with_protective_signal: number;
@@ -302,7 +307,7 @@ export type TrainingHistoryPeriod = {
 };
 
 export type TrainingHistoryPeriodComparison = {
-  version: 'period-comparison-v1';
+  version: 'period-comparison-v1' | 'period-comparison-v2';
   mode: 'observation';
   basis: 'six_non_overlapping_7_day_periods_by_database_clock';
   periods: TrainingHistoryPeriod[];
@@ -311,8 +316,28 @@ export type TrainingHistoryPeriodComparison = {
   used_for_prescription: false;
 };
 
+export type TrainingStimulusDistribution = {
+  version: 'stimulus-distribution-v1';
+  mode: 'observation';
+  basis: 'eligible_completed_sessions_by_completed_at_utc_day';
+  quality_target_rpe_threshold: number;
+  high_intensity_rpe_threshold: number;
+  quality_sessions_last_7d: number;
+  quality_sessions_last_14d: number;
+  quality_sessions_last_28d: number;
+  quality_sessions_last_42d: number;
+  high_intensity_sessions_last_42d: number;
+  adjacent_quality_session_pairs: number;
+  minimum_days_between_quality_sessions: number | null;
+  latest_quality_session_at: string | null;
+  days_since_latest_quality_session: number | null;
+  missing_data: string[];
+  data_issues: string[];
+  used_for_prescription: false;
+};
+
 export type TrainingHistorySnapshot = {
-  version: 'training-history-v1' | 'training-history-v2' | 'training-history-v3';
+  version: 'training-history-v1' | 'training-history-v2' | 'training-history-v3' | 'training-history-v4';
   mode: 'observation';
   captured_at: string;
   load_method: 'duration_minutes_x_actual_rpe';
@@ -322,6 +347,7 @@ export type TrainingHistorySnapshot = {
   evidence_keys: string[];
   windows: TrainingHistoryWindow[];
   period_comparison?: TrainingHistoryPeriodComparison;
+  stimulus_distribution?: TrainingStimulusDistribution;
   temporal_quality?: {
     athlete_timezone_available: false;
     latest_completed_at: string | null;

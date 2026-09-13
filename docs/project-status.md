@@ -10,6 +10,16 @@ O MVP de ciclismo está em produção real e foi validado no navegador e em um c
 
 O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e referências científicas. A camada opcional de IA explicativa foi preparada no backend, validada por uma rota remota protegida e preparada para uso local com Ollama. O padrão do código continua desligado; na produção, o Worker remoto está temporariamente selecionado como provedor para evitar consumo elevado da VPS.
 
+### Décima sexta fatia de melhorias — distribuição observacional dos estímulos (local)
+
+- Novos rascunhos passam a usar `training-history-v4` e `period-comparison-v2`. Os seis períodos semanais preservam contagem de sessões de qualidade, cobertura de carga, minutos realizados de qualidade, densidade e alta intensidade.
+- O bloco `stimulus-distribution-v1` resume a distribuição em 7/14/28/42 dias e observa proximidade entre estímulos por pares em dias consecutivos, menor intervalo e sessão mais recente. O corte operacional é RPE-alvo `>= 6,0` para qualidade e `>= 7,0` para alta intensidade; não representa zona fisiológica.
+- Sessões futuras e registros explicitamente inelegíveis pelo `data-integrity-v1` ficam fora. Datas são normalizadas para UTC porque o produto ainda não possui fuso individual. Lacunas de duração/RPE e de datas de qualidade ficam explícitas, sem reclassificar ou apagar atividades.
+- `rules-v1` continua sendo a única fonte prescritiva. `mode: observation`, `progression_eligible`, `applied` e `used_for_prescription` não recebem autoridade por causa desta medição; não há mudança visual, release, migração, deploy ou infraestrutura.
+- As alterações desta fatia ainda estão no checkout local e aguardam commit autorizado; a produção permanece em `0.20.0` sem essa medição.
+
+Validação desta fatia: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, lint direcionado de `frontend/lib/planning.ts`, validação de referências do OpenAPI, a fixture PostgreSQL somente leitura e `git diff --check` passaram. O lint geral ainda aponta débitos preexistentes em componentes/páginas não tocados nesta fatia. Não é necessário teste no navegador porque nenhum comportamento visível foi alterado.
+
 ## Repositório e produção
 
 - Repositório: <https://github.com/Saulorangel87/App-de-treino>

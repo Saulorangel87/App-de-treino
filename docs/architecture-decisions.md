@@ -315,6 +315,12 @@ A auditoria somente leitura de 2 de setembro de 2026 encontrou também Home Assi
 
 Nenhuma porta de outro aplicativo deve ser bloqueada sem mapear antes seus domínios, túneis, proxies e necessidade de acesso. O próximo hardening deve preservar Tailscale, Cloudflare e os aplicativos existentes.
 
+## Distribuição observacional de estímulos
+
+A leitura de sessões exigentes foi adicionada como `stimulus-distribution-v1`, derivada dos seis períodos semanais já existentes. O agrupamento usa o RPE-alvo persistido (`>= 6,0` para qualidade e `>= 7,0` para alta intensidade), e a proximidade usa dias UTC de `completed_at`. Essa escolha é determinística, reproduzível e explícita sobre a ausência de fuso individual; não pretende representar zonas fisiológicas.
+
+O bloco é calculado somente para observação e mantém `used_for_prescription: false`. Ele não altera o `rules-v1`, não modifica sessões, não cria um limite automático de carga e não transforma sessões em dias consecutivos em diagnóstico. A integração futura exigirá validação de cobertura, recuperação, feedback e efeito longitudinal, com o shadow preservado durante a revisão. Nenhuma migração ou alteração de infraestrutura é necessária porque os campos já existem em `workouts` e `workout_sessions`.
+
 ## Próximas decisões
 
 1. Observar os primeiros relatos reais em `/feedback` e confirmar a entregabilidade/utilidade do resumo semanal pelo Resend.

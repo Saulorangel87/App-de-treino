@@ -144,12 +144,31 @@ $periodsExpected = @(
     '4|days_29_35|7|0|0|0|0|0|1|30|0|1|0|0|0|0|0|0|1|1|1|1',
     '5|days_36_42|7|1|1|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0'
 )
+$qualityExpected = @(
+    '0|0|0|0',
+    '1|1|90|0',
+    '0|0|0|0',
+    '0|0|0|0',
+    '0|0|0|0',
+    '0|0|0|0'
+)
 if ($periodsActual.Count -ne $periodsExpected.Count) {
     throw "Quantidade inesperada de períodos: $($periodsActual -join '; ')"
 }
 for ($periodIndex = 0; $periodIndex -lt $periodsExpected.Count; $periodIndex++) {
-    if ($periodsActual[$periodIndex] -cne $periodsExpected[$periodIndex]) {
-        throw "Período divergente. Esperado '$($periodsExpected[$periodIndex])'; recebido '$($periodsActual[$periodIndex])'."
+    $periodColumns = $periodsActual[$periodIndex].Split('|')
+    $expectedColumns = $periodsExpected[$periodIndex].Split('|')
+    if ($periodColumns.Count -ne 27 -or ($periodColumns[0..17] -join '|') -cne ($expectedColumns[0..17] -join '|') -or ($periodColumns[18..21] -join '|') -cne $qualityExpected[$periodIndex] -or ($periodColumns[23..26] -join '|') -cne ($expectedColumns[18..21] -join '|')) {
+        throw "Período divergente. Esperado os campos-base '$($periodsExpected[$periodIndex])'; recebido '$($periodsActual[$periodIndex])'."
+    }
+    if ($periodIndex -eq 0 -and ($periodColumns[23..26] -join '|') -cne '4|3|2|1') {
+        throw "Sinais de recuperação divergentes no último período: '$($periodsActual[$periodIndex])'."
+    }
+    if ($periodIndex -eq 1 -and $periodColumns[22] -notmatch '^\{\d{4}-\d{2}-\d{2}\}$') {
+        throw "Data do estímulo de qualidade divergente: '$($periodsActual[$periodIndex])'."
+    }
+    if ($periodIndex -ne 1 -and $periodColumns[22] -cne '{}') {
+        throw "Período sem estímulo deveria ter datas vazias: '$($periodsActual[$periodIndex])'."
     }
 }
 Write-Output 'non-overlapping training history periods 0-42d: OK'

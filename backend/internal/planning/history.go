@@ -8,9 +8,12 @@ import (
 )
 
 const (
-	trainingHistoryVersion  = "training-history-v3"
-	periodComparisonVersion = "period-comparison-v1"
-	trainingHistoryMode     = "observation"
+	trainingHistoryVersion      = "training-history-v4"
+	periodComparisonVersion     = "period-comparison-v2"
+	stimulusDistributionVersion = "stimulus-distribution-v1"
+	trainingHistoryMode         = "observation"
+	qualityTargetRPEThreshold   = 6.0
+	highIntensityRPEThreshold   = 7.0
 )
 
 // TrainingHistoryWindow keeps adherence and performed load separate because
@@ -83,10 +86,20 @@ type TrainingHistoryPeriod struct {
 	PainReportedSessions          int      `json:"pain_reported_sessions"`
 	HighFatigueSessions           int      `json:"high_fatigue_sessions"`
 	AboveTargetRPESessions        int      `json:"above_target_rpe_sessions"`
+	QualitySessions               int      `json:"quality_sessions"`
+	QualitySessionsWithLoad       int      `json:"quality_sessions_with_load"`
+	QualityPerformedMinutes       int      `json:"quality_performed_minutes"`
+	QualityDensityPercent         *float64 `json:"quality_density_percent"`
+	HighIntensitySessions         int      `json:"high_intensity_sessions"`
 	RecoveryCheckins              int      `json:"recovery_checkins"`
 	CompleteRecoveryCheckins      int      `json:"complete_recovery_checkins"`
 	CheckinsWithProtectiveSignal  int      `json:"checkins_with_protective_signal"`
 	RecoveryNeededCheckins        int      `json:"recovery_needed_checkins"`
+
+	// QualitySessionDates is an internal UTC-day series used to observe the
+	// proximity between demanding stimuli. It is not exposed as raw activity
+	// data in the plan snapshot.
+	QualitySessionDates []string `json:"-"`
 }
 
 type TrainingHistoryPeriodComparison struct {
@@ -99,24 +112,48 @@ type TrainingHistoryPeriodComparison struct {
 	UsedForPrescription bool                    `json:"used_for_prescription"`
 }
 
+// TrainingStimulusDistribution measures the density and spacing of demanding
+// sessions without deciding the next prescription. The RPE cutoffs are
+// operational product thresholds for observation, not physiological zones.
+type TrainingStimulusDistribution struct {
+	Version                           string   `json:"version"`
+	Mode                              string   `json:"mode"`
+	Basis                             string   `json:"basis"`
+	QualityTargetRPEThreshold         float64  `json:"quality_target_rpe_threshold"`
+	HighIntensityRPEThreshold         float64  `json:"high_intensity_rpe_threshold"`
+	QualitySessionsLast7d             int      `json:"quality_sessions_last_7d"`
+	QualitySessionsLast14d            int      `json:"quality_sessions_last_14d"`
+	QualitySessionsLast28d            int      `json:"quality_sessions_last_28d"`
+	QualitySessionsLast42d            int      `json:"quality_sessions_last_42d"`
+	HighIntensitySessionsLast42d      int      `json:"high_intensity_sessions_last_42d"`
+	AdjacentQualitySessionPairs       int      `json:"adjacent_quality_session_pairs"`
+	MinimumDaysBetweenQualitySessions *int     `json:"minimum_days_between_quality_sessions"`
+	LatestQualitySessionAt            *string  `json:"latest_quality_session_at"`
+	DaysSinceLatestQualitySession     *int     `json:"days_since_latest_quality_session"`
+	MissingData                       []string `json:"missing_data"`
+	DataIssues                        []string `json:"data_issues"`
+	UsedForPrescription               bool     `json:"used_for_prescription"`
+}
+
 // TrainingHistorySnapshot records measurements only. It is deliberately not
 // consumed by rules-v1 until adherence and tolerance rules are reviewed.
 type TrainingHistorySnapshot struct {
-	Version             string                          `json:"version"`
-	Mode                string                          `json:"mode"`
-	CapturedAt          string                          `json:"captured_at"`
-	LoadMethod          string                          `json:"load_method"`
-	LoadUnit            string                          `json:"load_unit"`
-	AdherenceBasis      string                          `json:"adherence_basis"`
-	CompletionTimeBasis string                          `json:"completion_time_basis"`
-	EvidenceKeys        []string                        `json:"evidence_keys"`
-	Windows             []TrainingHistoryWindow         `json:"windows"`
-	TemporalQuality     TrainingHistoryTemporalQuality  `json:"temporal_quality"`
-	PeriodComparison    TrainingHistoryPeriodComparison `json:"period_comparison"`
-	MissingData         []string                        `json:"missing_data"`
-	DataIssues          []string                        `json:"data_issues"`
-	NotEvaluated        []string                        `json:"not_evaluated"`
-	UsedForPrescription bool                            `json:"used_for_prescription"`
+	Version              string                          `json:"version"`
+	Mode                 string                          `json:"mode"`
+	CapturedAt           string                          `json:"captured_at"`
+	LoadMethod           string                          `json:"load_method"`
+	LoadUnit             string                          `json:"load_unit"`
+	AdherenceBasis       string                          `json:"adherence_basis"`
+	CompletionTimeBasis  string                          `json:"completion_time_basis"`
+	EvidenceKeys         []string                        `json:"evidence_keys"`
+	Windows              []TrainingHistoryWindow         `json:"windows"`
+	TemporalQuality      TrainingHistoryTemporalQuality  `json:"temporal_quality"`
+	PeriodComparison     TrainingHistoryPeriodComparison `json:"period_comparison"`
+	StimulusDistribution TrainingStimulusDistribution    `json:"stimulus_distribution"`
+	MissingData          []string                        `json:"missing_data"`
+	DataIssues           []string                        `json:"data_issues"`
+	NotEvaluated         []string                        `json:"not_evaluated"`
+	UsedForPrescription  bool                            `json:"used_for_prescription"`
 }
 
 func buildTrainingHistorySnapshot(history []TrainingHistoryWindow, now time.Time, periodSets ...[]TrainingHistoryPeriod) TrainingHistorySnapshot {
@@ -137,9 +174,10 @@ func buildTrainingHistorySnapshot(history []TrainingHistoryWindow, now time.Time
 		TemporalQuality: TrainingHistoryTemporalQuality{
 			AppRecordingGapInterpretation: "recorded_activity_gap_only_not_confirmed_training_cessation",
 		},
-		PeriodComparison: buildTrainingHistoryPeriodComparison(nil),
-		MissingData:      []string{},
-		DataIssues:       []string{},
+		PeriodComparison:     buildTrainingHistoryPeriodComparison(nil),
+		StimulusDistribution: buildTrainingStimulusDistribution(nil, now),
+		MissingData:          []string{},
+		DataIssues:           []string{},
 		NotEvaluated: []string{
 			"load_tolerance", "detraining", "fitness_change", "activities_outside_cadencia",
 			"athlete_timezone", "progression_from_history", "period_trend_for_prescription",
@@ -204,6 +242,7 @@ func buildTrainingHistorySnapshot(history []TrainingHistoryWindow, now time.Time
 	if len(periods) > 0 {
 		result.PeriodComparison = buildTrainingHistoryPeriodComparison(periods)
 	}
+	result.StimulusDistribution = buildTrainingStimulusDistribution(periods, now)
 	if result.TemporalQuality.LatestCompletedAt == nil {
 		result.MissingData = append(result.MissingData, "latest_completed_session")
 	}
@@ -345,6 +384,12 @@ func buildTrainingHistoryPeriodComparison(periods []TrainingHistoryPeriod) Train
 		} else {
 			period.CompletionRatePercent = nil
 		}
+		if period.PerformedSessions > 0 && period.QualitySessions >= 0 && period.QualitySessions <= period.PerformedSessions {
+			rate := float64(period.QualitySessions) / float64(period.PerformedSessions) * 100
+			period.QualityDensityPercent = &rate
+		} else {
+			period.QualityDensityPercent = nil
+		}
 		if !validTrainingHistoryPeriod(*period) {
 			result.DataIssues = append(result.DataIssues, fmt.Sprintf("inconsistent_period_%d", period.PeriodIndex))
 		}
@@ -364,6 +409,8 @@ func validTrainingHistoryPeriod(period TrainingHistoryPeriod) bool {
 		period.PerformedSessions, period.PerformedMinutes, period.SessionsWithSessionRPELoad,
 		period.SessionsWithoutSessionRPELoad, period.FeedbackRecords, period.SessionsWithCompleteFeedback,
 		period.PainReportedSessions, period.HighFatigueSessions, period.AboveTargetRPESessions,
+		period.QualitySessions, period.QualitySessionsWithLoad, period.QualityPerformedMinutes,
+		period.HighIntensitySessions,
 		period.RecoveryCheckins, period.CompleteRecoveryCheckins, period.CheckinsWithProtectiveSignal,
 		period.RecoveryNeededCheckins,
 	}
@@ -380,7 +427,133 @@ func validTrainingHistoryPeriod(period TrainingHistoryPeriod) bool {
 		period.PainReportedSessions <= period.FeedbackRecords &&
 		period.HighFatigueSessions <= period.SessionsWithCompleteFeedback &&
 		period.AboveTargetRPESessions <= period.PerformedSessions &&
+		period.QualitySessions <= period.PerformedSessions &&
+		period.QualitySessionsWithLoad <= period.QualitySessions &&
+		period.QualitySessionsWithLoad <= period.SessionsWithSessionRPELoad &&
+		period.QualityPerformedMinutes <= period.PerformedMinutes &&
+		period.HighIntensitySessions <= period.QualitySessions &&
 		period.CompleteRecoveryCheckins <= period.RecoveryCheckins &&
 		period.CheckinsWithProtectiveSignal <= period.CompleteRecoveryCheckins &&
 		period.RecoveryNeededCheckins <= period.CheckinsWithProtectiveSignal
+}
+
+func buildTrainingStimulusDistribution(periods []TrainingHistoryPeriod, now time.Time) TrainingStimulusDistribution {
+	result := TrainingStimulusDistribution{
+		Version:                           stimulusDistributionVersion,
+		Mode:                              trainingHistoryMode,
+		Basis:                             "eligible_completed_sessions_by_completed_at_utc_day",
+		QualityTargetRPEThreshold:         qualityTargetRPEThreshold,
+		HighIntensityRPEThreshold:         highIntensityRPEThreshold,
+		MissingData:                       []string{},
+		DataIssues:                        []string{},
+		UsedForPrescription:               false,
+		MinimumDaysBetweenQualitySessions: nil,
+	}
+
+	if len(periods) == 0 {
+		result.MissingData = append(result.MissingData, "stimulus_distribution_periods")
+		return result
+	}
+
+	periodsByIndex := make(map[int]TrainingHistoryPeriod, len(periods))
+	qualityDates := make([]time.Time, 0)
+	performedSessions := 0
+	qualitySessions := 0
+	for _, period := range periods {
+		if period.PeriodIndex < 0 || period.PeriodIndex >= 6 {
+			result.DataIssues = appendUniqueString(result.DataIssues, fmt.Sprintf("unsupported_stimulus_period_%d", period.PeriodIndex))
+		}
+		if _, exists := periodsByIndex[period.PeriodIndex]; exists {
+			result.DataIssues = appendUniqueString(result.DataIssues, fmt.Sprintf("duplicate_stimulus_period_%d", period.PeriodIndex))
+		}
+		periodsByIndex[period.PeriodIndex] = period
+		performedSessions += period.PerformedSessions
+		qualitySessions += period.QualitySessions
+		for _, rawDate := range period.QualitySessionDates {
+			parsed, err := time.Parse("2006-01-02", rawDate)
+			if err != nil {
+				result.DataIssues = appendUniqueString(result.DataIssues, "invalid_quality_session_date")
+				continue
+			}
+			qualityDates = append(qualityDates, parsed)
+		}
+	}
+	if len(periodsByIndex) != 6 {
+		result.MissingData = append(result.MissingData, "stimulus_distribution_periods")
+	}
+
+	if performedSessions == 0 {
+		result.MissingData = append(result.MissingData, "stimulus_distribution_history")
+	}
+	if qualitySessions > 0 && len(qualityDates) < qualitySessions {
+		result.MissingData = append(result.MissingData, "quality_session_date_coverage_42d")
+	}
+
+	result.QualitySessionsLast7d = qualitySessionsForPeriod(periodsByIndex, 0)
+	result.QualitySessionsLast14d = result.QualitySessionsLast7d + qualitySessionsForPeriod(periodsByIndex, 1)
+	result.QualitySessionsLast28d = result.QualitySessionsLast14d + qualitySessionsForPeriod(periodsByIndex, 2) + qualitySessionsForPeriod(periodsByIndex, 3)
+	result.QualitySessionsLast42d = result.QualitySessionsLast28d + qualitySessionsForPeriod(periodsByIndex, 4) + qualitySessionsForPeriod(periodsByIndex, 5)
+	result.HighIntensitySessionsLast42d = sumHighIntensitySessions(periods)
+
+	if qualitySessions > 0 && len(qualityDates) == 0 {
+		result.MissingData = appendUniqueString(result.MissingData, "quality_session_proximity_42d")
+	}
+	if len(qualityDates) > 0 {
+		slices.SortFunc(qualityDates, func(left, right time.Time) int {
+			if left.Before(right) {
+				return -1
+			}
+			if left.After(right) {
+				return 1
+			}
+			return 0
+		})
+		latest := qualityDates[len(qualityDates)-1]
+		latestText := latest.Format("2006-01-02")
+		result.LatestQualitySessionAt = &latestText
+		daysSince := daysBetween(latest, now.UTC())
+		if daysSince >= 0 {
+			result.DaysSinceLatestQualitySession = &daysSince
+		} else {
+			result.DataIssues = appendUniqueString(result.DataIssues, "future_quality_session_date")
+		}
+		if len(qualityDates) >= 2 {
+			minimumDays := int(qualityDates[1].Sub(qualityDates[0]).Hours() / 24)
+			for index := 2; index < len(qualityDates); index++ {
+				gap := int(qualityDates[index].Sub(qualityDates[index-1]).Hours() / 24)
+				if gap < minimumDays {
+					minimumDays = gap
+				}
+			}
+			result.MinimumDaysBetweenQualitySessions = &minimumDays
+			for index := 1; index < len(qualityDates); index++ {
+				if int(qualityDates[index].Sub(qualityDates[index-1]).Hours()/24) <= 1 {
+					result.AdjacentQualitySessionPairs++
+				}
+			}
+		}
+	}
+	return result
+}
+
+func qualitySessionsForPeriod(periods map[int]TrainingHistoryPeriod, index int) int {
+	period, ok := periods[index]
+	if !ok {
+		return 0
+	}
+	return period.QualitySessions
+}
+
+func sumHighIntensitySessions(periods []TrainingHistoryPeriod) int {
+	total := 0
+	for _, period := range periods {
+		total += period.HighIntensitySessions
+	}
+	return total
+}
+
+func daysBetween(date, now time.Time) int {
+	dateUTC := time.Date(date.UTC().Year(), date.UTC().Month(), date.UTC().Day(), 0, 0, 0, 0, time.UTC)
+	nowUTC := time.Date(now.UTC().Year(), now.UTC().Month(), now.UTC().Day(), 0, 0, 0, 0, time.UTC)
+	return int(nowUTC.Sub(dateUTC).Hours() / 24)
 }

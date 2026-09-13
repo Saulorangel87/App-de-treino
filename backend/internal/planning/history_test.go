@@ -5,6 +5,7 @@ import (
 	"math"
 	"reflect"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 )
@@ -152,6 +153,94 @@ func TestBuildTrainingHistorySnapshotKeepsNonOverlappingPeriodsObservational(t *
 	}
 	if len(comparison.MissingData) != 0 || len(comparison.DataIssues) != 0 {
 		t.Fatalf("unexpected period quality flags: missing=%v issues=%v", comparison.MissingData, comparison.DataIssues)
+	}
+}
+
+func TestBuildTrainingHistorySnapshotObservesStimulusDensityAndProximity(t *testing.T) {
+	periods := validHistoryPeriods()
+	periods[0].ExpectedSessions = 4
+	periods[0].ScheduledCompletedSessions = 3
+	periods[0].CancelledSessions = 1
+	periods[0].PerformedSessions = 3
+	periods[0].PerformedMinutes = 120
+	periods[0].SessionsWithSessionRPELoad = 3
+	periods[0].SessionRPELoad = 600
+	periods[0].FeedbackRecords = 3
+	periods[0].SessionsWithCompleteFeedback = 3
+	periods[0].QualitySessions = 2
+	periods[0].QualitySessionsWithLoad = 2
+	periods[0].QualityPerformedMinutes = 80
+	periods[0].HighIntensitySessions = 1
+	periods[0].QualitySessionDates = []string{"2026-09-12", "2026-09-13"}
+	periods[1].QualitySessions = 1
+	periods[1].QualitySessionsWithLoad = 1
+	periods[1].QualityPerformedMinutes = 30
+	periods[1].QualitySessionDates = []string{"2026-09-10"}
+
+	snapshot := buildTrainingHistorySnapshot(
+		[]TrainingHistoryWindow{validHistoryWindow(7), validHistoryWindow(28), validHistoryWindow(42)},
+		time.Date(2026, 9, 14, 12, 0, 0, 0, time.UTC), periods,
+	)
+	distribution := snapshot.StimulusDistribution
+	if distribution.Version != stimulusDistributionVersion || distribution.Mode != trainingHistoryMode || distribution.UsedForPrescription {
+		t.Fatalf("unexpected stimulus distribution authority: %+v", distribution)
+	}
+	if distribution.QualityTargetRPEThreshold != qualityTargetRPEThreshold || distribution.HighIntensityRPEThreshold != highIntensityRPEThreshold {
+		t.Fatalf("unexpected operational thresholds: %+v", distribution)
+	}
+	if distribution.QualitySessionsLast7d != 2 || distribution.QualitySessionsLast14d != 3 || distribution.QualitySessionsLast42d != 3 || distribution.HighIntensitySessionsLast42d != 1 {
+		t.Fatalf("unexpected stimulus counts: %+v", distribution)
+	}
+	if distribution.AdjacentQualitySessionPairs != 1 || distribution.MinimumDaysBetweenQualitySessions == nil || *distribution.MinimumDaysBetweenQualitySessions != 1 {
+		t.Fatalf("unexpected stimulus proximity: %+v", distribution)
+	}
+	if distribution.LatestQualitySessionAt == nil || *distribution.LatestQualitySessionAt != "2026-09-13" || distribution.DaysSinceLatestQualitySession == nil || *distribution.DaysSinceLatestQualitySession != 1 {
+		t.Fatalf("unexpected quality recency: %+v", distribution)
+	}
+	if snapshot.PeriodComparison.Periods[0].QualityDensityPercent == nil || math.Abs(*snapshot.PeriodComparison.Periods[0].QualityDensityPercent-200.0/3.0) > 0.0001 {
+		t.Fatalf("unexpected quality density: %+v", snapshot.PeriodComparison.Periods[0])
+	}
+	if len(distribution.MissingData) != 0 || len(distribution.DataIssues) != 0 {
+		t.Fatalf("unexpected stimulus quality flags: %+v", distribution)
+	}
+}
+
+func TestBuildTrainingHistorySnapshotFlagsMissingStimulusProximityData(t *testing.T) {
+	periods := validHistoryPeriods()
+	periods[0].QualitySessions = 1
+	periods[0].QualitySessionsWithLoad = 1
+	periods[0].QualityPerformedMinutes = 30
+	periods[0].HighIntensitySessions = 1
+	snapshot := buildTrainingHistorySnapshot(
+		[]TrainingHistoryWindow{validHistoryWindow(7), validHistoryWindow(28), validHistoryWindow(42)},
+		time.Date(2026, 9, 14, 12, 0, 0, 0, time.UTC), periods,
+	)
+	for _, missing := range []string{"quality_session_date_coverage_42d", "quality_session_proximity_42d"} {
+		if !slices.Contains(snapshot.StimulusDistribution.MissingData, missing) {
+			t.Fatalf("missing stimulus gap %q: %+v", missing, snapshot.StimulusDistribution)
+		}
+	}
+	if snapshot.StimulusDistribution.UsedForPrescription {
+		t.Fatal("stimulus distribution became authoritative")
+	}
+}
+
+func TestTrainingStimulusDistributionDoesNotExposeInternalDates(t *testing.T) {
+	periods := validHistoryPeriods()
+	periods[0].QualitySessions = 1
+	periods[0].QualitySessionsWithLoad = 1
+	periods[0].QualityPerformedMinutes = 30
+	periods[0].QualitySessionDates = []string{"2026-09-13"}
+	snapshot := buildTrainingHistorySnapshot(
+		[]TrainingHistoryWindow{validHistoryWindow(7), validHistoryWindow(28), validHistoryWindow(42)},
+		time.Date(2026, 9, 14, 12, 0, 0, 0, time.UTC), periods,
+	)
+	data, err := json.Marshal(snapshot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(data), "quality_session_dates") {
+		t.Fatalf("internal quality dates leaked into snapshot: %s", data)
 	}
 }
 

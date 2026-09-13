@@ -795,7 +795,7 @@ components:
       description: Medição observacional congelada na geração do plano. Não altera a prescrição do rules-v1.
       required: [version, mode, captured_at, load_method, load_unit, adherence_basis, completion_time_basis, evidence_keys, windows, missing_data, data_issues, used_for_prescription]
       properties:
-        version: { type: string, enum: [training-history-v1, training-history-v2, training-history-v3] }
+        version: { type: string, enum: [training-history-v1, training-history-v2, training-history-v3, training-history-v4] }
         mode: { type: string, enum: [observation] }
         captured_at: { type: string, format: date-time }
         load_method: { type: string, enum: [duration_minutes_x_actual_rpe] }
@@ -814,6 +814,8 @@ components:
           $ref: '#/components/schemas/TrainingHistoryTemporalQuality'
         period_comparison:
           $ref: '#/components/schemas/TrainingHistoryPeriodComparison'
+        stimulus_distribution:
+          $ref: '#/components/schemas/TrainingStimulusDistribution'
         missing_data: { type: array, items: { type: string } }
         data_issues: { type: array, items: { type: string } }
         not_evaluated:
@@ -906,7 +908,7 @@ components:
       description: Seis blocos semanais não sobrepostos, do período mais recente ao mais antigo, para comparação observacional. Não produz tendência nem autoriza carga.
       required: [version, mode, basis, periods, missing_data, data_issues, used_for_prescription]
       properties:
-        version: { type: string, enum: [period-comparison-v1] }
+        version: { type: string, enum: [period-comparison-v1, period-comparison-v2] }
         mode: { type: string, enum: [observation] }
         basis: { type: string, enum: [six_non_overlapping_7_day_periods_by_database_clock] }
         periods:
@@ -941,10 +943,48 @@ components:
         pain_reported_sessions: { type: integer, minimum: 0 }
         high_fatigue_sessions: { type: integer, minimum: 0 }
         above_target_rpe_sessions: { type: integer, minimum: 0 }
+        quality_sessions: { type: integer, minimum: 0 }
+        quality_sessions_with_load: { type: integer, minimum: 0 }
+        quality_performed_minutes: { type: integer, minimum: 0 }
+        quality_density_percent:
+          oneOf:
+            - { type: number, minimum: 0, maximum: 100 }
+            - { type: 'null' }
+        high_intensity_sessions: { type: integer, minimum: 0 }
         recovery_checkins: { type: integer, minimum: 0 }
         complete_recovery_checkins: { type: integer, minimum: 0 }
         checkins_with_protective_signal: { type: integer, minimum: 0 }
         recovery_needed_checkins: { type: integer, minimum: 0 }
+    TrainingStimulusDistribution:
+      type: object
+      description: Medição observacional da densidade e proximidade dos estímulos exigentes; não autoriza progressão.
+      properties:
+        version: { type: string, enum: [stimulus-distribution-v1] }
+        mode: { type: string, enum: [observation] }
+        basis: { type: string, enum: [eligible_completed_sessions_by_completed_at_utc_day] }
+        quality_target_rpe_threshold: { type: number, enum: [6] }
+        high_intensity_rpe_threshold: { type: number, enum: [7] }
+        quality_sessions_last_7d: { type: integer, minimum: 0 }
+        quality_sessions_last_14d: { type: integer, minimum: 0 }
+        quality_sessions_last_28d: { type: integer, minimum: 0 }
+        quality_sessions_last_42d: { type: integer, minimum: 0 }
+        high_intensity_sessions_last_42d: { type: integer, minimum: 0 }
+        adjacent_quality_session_pairs: { type: integer, minimum: 0 }
+        minimum_days_between_quality_sessions:
+          oneOf:
+            - { type: integer, minimum: 0 }
+            - { type: 'null' }
+        latest_quality_session_at:
+          oneOf:
+            - { type: string, format: date }
+            - { type: 'null' }
+        days_since_latest_quality_session:
+          oneOf:
+            - { type: integer, minimum: 0 }
+            - { type: 'null' }
+        missing_data: { type: array, items: { type: string } }
+        data_issues: { type: array, items: { type: string } }
+        used_for_prescription: { type: boolean, enum: [false] }
     Workout:
       type: object
       required: [id, scheduled_on, name, objective, duration_minutes, target_rpe, structure, explanation, status]
