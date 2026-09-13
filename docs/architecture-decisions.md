@@ -254,6 +254,14 @@ Na avaliação `rules-v2-adaptation-v1`, sinais protetivos devem prevalecer sobr
 
 Essa decisão separa três situações que não devem ser confundidas: proteção observada, evidência insuficiente e candidata observacional. Nenhuma delas altera `rules-v1`, a sessão seguinte, `progression_eligible`, `applied` ou `used_for_prescription`. A regressão combinada permanece como barreira antes de qualquer integração prescritiva.
 
+## ADR-024 — Auditoria finalizada após a transação shadow
+
+**Status:** Implementada localmente; ainda não publicada.
+
+O `decision_audit` deve ser reconstruído no fim do fluxo de conclusão do treino, depois que o repositório anexar `planned_vs_actual` e depois que registrar o resultado de uma consulta histórica protegida por savepoint. Isso garante que a auditoria consolidada represente o mesmo estado que será serializado em `workouts.explanation`.
+
+Uma falha recuperável do histórico não pode ser listada como dado utilizado. Ela deve aparecer como `history_query_failed`, com `history_query_gate`, enquanto o feedback principal continua seguindo o fluxo transacional definido. A regra continua observacional e não altera a prescrição ativa.
+
 ## Estado de produção
 
 Em 3 de setembro de 2026, o commit `57c241a` foi implantado na VPS Oracle. A imagem da API, do job de digest e do frontend foi reconstruída com Go 1.25; as migrações `000013` e `000014` foram aplicadas após backup preventivo. O serviço Ollama permanece isolado e parado após a medição de capacidade, e a API usa temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.

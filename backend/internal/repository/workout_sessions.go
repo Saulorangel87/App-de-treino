@@ -224,6 +224,7 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 	if _, err := tx.Exec(ctx, `RELEASE SAVEPOINT rules_v2_adaptation_shadow`); err != nil {
 		return err
 	}
+	planning.RefreshAdaptationDecisionAudit(&shadow, sourceTargetRPE, input, integrityAssessedAt)
 	integrityJSON, err := json.Marshal(integrity)
 	if err != nil {
 		return err

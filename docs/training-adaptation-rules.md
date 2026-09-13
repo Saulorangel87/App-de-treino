@@ -268,6 +268,8 @@ A proveniência também consolida as lacunas de `post_workout_context`, `load_to
 
 Na revisão de precedência, sinais protetivos continuam vencendo uma conclusão parcial. Sem proteção, a progressão permanece adiada quando `load-tolerance-v1` não consegue classificar os dois períodos exigidos; nesse caso, `decision_audit.constraints_applied` registra `load_tolerance_gate` para deixar explícito que a lacuna foi aplicada como barreira. A candidata continua em shadow e não é autorização de carga.
 
+No fluxo transacional, o `decision_audit` é reconstruído após a anexação de `planned_vs_actual` e após o tratamento de `history_query_failed`. Assim, as lacunas da comparação chegam à auditoria consolidada e um histórico indisponível não aparece em `data_used`; o `history_query_gate` deixa a falha explícita sem transformar a observação em bloqueio do feedback.
+
 ### Rotação segura e recuperação ativa
 
 O catálogo geral possui o protocolo `active_recovery`, apresentado ao atleta como **Recuperação ativa**. O motor o seleciona somente para uma sessão de base na quarta semana do ciclo. A sessão mantém o multiplicador de recuperação já existente, usa alvo RPE 3,5 e uma instrução de pedal leve e contínuo; não representa uma prescrição universal de minutos ou intensidade.

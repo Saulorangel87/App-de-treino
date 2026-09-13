@@ -37,6 +37,13 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - Foram adicionadas regressões para a precedência entre dor e conclusão parcial e para a preservação do gate de tolerância incompleto. `go test -count=1 ./...`, `go vet ./...` e `git diff --check` passaram.
 - A alteração permanece observacional: `rules-v1` continua prescritivo, `progression_eligible`, `applied` e `used_for_prescription` continuam falsos. Não houve migração, mudança visual, atualização de `APP_VERSION`, deploy ou alteração de infraestrutura.
 
+### Consistência transacional da auditoria shadow — versão local (validado; sem publicação)
+
+- A finalização da transação agora reconstrói o `decision_audit` depois de anexar `planned_vs_actual` e depois de registrar uma eventual falha recuperável da consulta histórica.
+- Lacunas da comparação planejado versus realizado passam a aparecer também na auditoria consolidada. Quando o histórico não pode ser consultado, `history_query_failed` não é apresentado como dado utilizado e o audit registra `history_query_gate`.
+- Foram adicionados testes para a atualização da auditoria após anexar observações e para a não utilização de histórico quando a consulta falha. A suíte Go completa, `go vet`, as fixtures PostgreSQL somente leitura e `git diff --check` passaram.
+- A alteração permanece observacional: não muda `rules-v1`, prescrição, interface, `APP_VERSION`, migrações, infraestrutura ou produção.
+
 ### Correção de layout e novidades — versão local `0.20.0`
 
 - A barra lateral passou a preservar o tamanho original dos menus e a usar rolagem própria somente quando a altura disponível não comporta todo o conteúdo. O bloco inferior não é comprimido e o rodapé fixo não cobre mais o acesso ao perfil.

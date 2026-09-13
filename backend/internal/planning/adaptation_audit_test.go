@@ -128,3 +128,54 @@ func TestAdaptationDecisionAuditUsesStableJSONField(t *testing.T) {
 		t.Fatalf("decision_audit JSON = %#v", audit)
 	}
 }
+
+func TestRefreshAdaptationDecisionAuditIncludesAttachedObservations(t *testing.T) {
+	assessment := assessRulesV2AdaptationShadow(6, CompletionInput{
+		ActualRPE: 5, Difficulty: "moderate", FatigueAfter: 3,
+	}, validHistoryPeriods(), time.Unix(0, 0))
+	planned := AssessPlannedVsActual(PlannedVsActualInput{
+		PlannedDurationMinutes: 35,
+		ActualDurationMinutes:  3,
+		TargetRPE:              6,
+		ActualRPE:              5,
+		FeedbackPresent:        true,
+		CompletionStatus:       "complete",
+		Difficulty:             "moderate",
+		FatigueAfter:           3,
+	}, time.Unix(0, 0))
+	assessment.PlannedVsActual = &planned
+	RefreshAdaptationDecisionAudit(&assessment, 6, CompletionInput{
+		ActualRPE: 5, Difficulty: "moderate", FatigueAfter: 3,
+	}, time.Unix(0, 0))
+
+	if assessment.DecisionAudit == nil {
+		t.Fatal("refreshed audit was not attached")
+	}
+	for _, missing := range []string{"average_power_watts", "average_heart_rate"} {
+		if !slices.Contains(assessment.DecisionAudit.MissingData, missing) {
+			t.Fatalf("attached planned-vs-actual gap %q was not preserved: %#v", missing, assessment.DecisionAudit.MissingData)
+		}
+	}
+}
+
+func TestRefreshAdaptationDecisionAuditDoesNotClaimHistoryAfterQueryFailure(t *testing.T) {
+	assessment := assessRulesV2AdaptationShadow(6, CompletionInput{
+		ActualRPE: 5, Difficulty: "moderate", FatigueAfter: 3,
+	}, validHistoryPeriods(), time.Unix(0, 0))
+	assessment.DataIssues = append(assessment.DataIssues, "history_query_failed")
+	assessment.Status = "not_evaluated"
+	assessment.CandidateResponse = "not_evaluated"
+	RefreshAdaptationDecisionAudit(&assessment, 6, CompletionInput{
+		ActualRPE: 5, Difficulty: "moderate", FatigueAfter: 3,
+	}, time.Unix(0, 0))
+
+	if assessment.DecisionAudit == nil {
+		t.Fatal("refreshed audit was not attached")
+	}
+	if slices.Contains(assessment.DecisionAudit.DataUsed, "training_history_periods") {
+		t.Fatalf("failed history query was reported as used data: %#v", assessment.DecisionAudit.DataUsed)
+	}
+	if !slices.Contains(assessment.DecisionAudit.ConstraintsApplied, "history_query_gate") {
+		t.Fatalf("history query gate was not recorded: %#v", assessment.DecisionAudit.ConstraintsApplied)
+	}
+}

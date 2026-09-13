@@ -1446,3 +1446,11 @@ A revisão encontrou uma lacuna de auditabilidade: quando a tolerância à carga
 O audit agora registra `load_tolerance_gate` também quando a candidata de progressão é adiada por tolerância não classificada. Foram adicionadas regressões para confirmar que um sinal protetivo prevalece sobre conclusão parcial e que a falta de recuperação em um período não autoriza progressão. `go test -count=1 ./...`, `go vet ./...` e `git diff --check` passaram.
 
 Não houve mudança visual, release, migração, infraestrutura ou deploy. `rules-v1` continua prescritivo e os campos `progression_eligible`, `applied` e `used_for_prescription` continuam falsos. Próxima etapa: revisar se os gates do shadow preservam essa mesma precedência no fluxo transacional e na serialização HTTP, sem transferir autoridade ao `rules-v2`.
+
+### Continuidade — auditoria finalizada após a transação shadow — 13 de setembro de 2026
+
+A revisão do fluxo transacional encontrou uma inconsistência: `planned_vs_actual` e `history_query_failed` eram anexados depois da construção do `decision_audit`. O resultado principal ficava atualizado, mas a auditoria podia não refletir as lacunas da comparação nem a falha de histórico.
+
+O repositório agora reconstrói a auditoria no fim do fluxo, antes da serialização em `workouts.explanation`. Lacunas de `planned_vs_actual` entram na auditoria consolidada; quando o histórico falha, `history_query_failed` fica explícito, `history_query_gate` é registrado e `training_history_periods` não é declarado como dado utilizado. Foram adicionados testes de atualização e de serialização observacional.
+
+`go test -count=1 ./...`, `go vet ./...`, as fixtures PostgreSQL somente leitura e `git diff --check` passaram. Não houve mudança visual, release, migração, infraestrutura ou deploy. Próxima etapa: revisar a cobertura HTTP autenticada do retorno do plano e, depois, consolidar a matriz final de não autoridade do shadow.

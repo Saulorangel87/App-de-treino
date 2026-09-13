@@ -83,7 +83,14 @@ func buildAdaptationDecisionAudit(result RulesV2AdaptationShadowAssessment, targ
 			addDataUsed(value)
 		}
 	}
-	if result.LoadTolerance != nil {
+	historyQueryFailed := false
+	for _, issue := range result.DataIssues {
+		if issue == "history_query_failed" {
+			historyQueryFailed = true
+			break
+		}
+	}
+	if result.LoadTolerance != nil && !historyQueryFailed {
 		addDataUsed("training_history_periods")
 	}
 
@@ -100,6 +107,10 @@ func buildAdaptationDecisionAudit(result RulesV2AdaptationShadowAssessment, targ
 	if len(result.DataIssues) > 0 {
 		addConstraint("data_integrity_gate")
 		addCondition("corrigir_inconsistencias_antes_de_reavaliar")
+	}
+	if historyQueryFailed {
+		addConstraint("history_query_gate")
+		addCondition("repetir_avaliacao_com_historico_disponivel")
 	}
 	if len(result.MissingData) > 0 {
 		addConstraint("insufficient_evidence_gate")
@@ -118,4 +129,15 @@ func buildAdaptationDecisionAudit(result RulesV2AdaptationShadowAssessment, targ
 	}
 
 	return audit
+}
+
+// RefreshAdaptationDecisionAudit rebuilds the audit after the repository has
+// attached transaction-only observations or recorded a recoverable history
+// query failure. The shadow remains non-authoritative.
+func RefreshAdaptationDecisionAudit(result *RulesV2AdaptationShadowAssessment, targetRPE float64, input CompletionInput, now time.Time) {
+	if result == nil {
+		return
+	}
+	audit := buildAdaptationDecisionAudit(*result, targetRPE, input, now)
+	result.DecisionAudit = &audit
 }
