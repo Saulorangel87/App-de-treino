@@ -599,4 +599,10 @@ Essa implementação reduz a perda de contexto no cadastro, mas não transforma 
 
 Validações automatizadas: `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. A validação manual confirmou a persistência dos novos campos e a remoção da limitação. O `npm run lint` geral ainda possui pendências anteriores, inclusive em componentes e páginas não relacionados; a limpeza completa não faz parte desta fatia.
 
+### Continuidade — tratamento correto de falhas no perfil — versão local `0.22.0`
+
+O cliente HTTP passou a expor o status das respostas e o perfil deixou de tratar qualquer falha como logout. Apenas `401` redireciona para a entrada; erro de API ou rede permanece na tela com orientação em português. Essa correção evita uma falsa indicação de sessão expirada e facilita diagnosticar banco, API ou configuração local.
+
+A nota foi adicionada em `UPDATE_NOTES`. O build do frontend e `git diff --check` passaram. Falta validar manualmente o carregamento autenticado e o comportamento com a API temporariamente indisponível; depois disso a fatia poderá ser commitada.
+
 Enquanto essas pendências existirem, não declarar o roadmap encerrado nem substituir o `rules-v1`. A ativação prescritiva exige uma revisão separada e autorização explícita.

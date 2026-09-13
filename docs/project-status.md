@@ -635,6 +635,12 @@ A migração `000022_limitation_context` adiciona os campos ao PostgreSQL sem ap
 
 A versão local passou para `0.21.0` e a nota foi registrada em `frontend/lib/release.ts`, para aparecer na tela de novidades após a atualização. A migração `000022` foi aplicada no PostgreSQL local e a validação manual confirmou persistência e remoção da limitação. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. O `npm run lint` geral continua apontando pendências anteriores em arquivos do projeto, além dos avisos do próprio `page.tsx`; elas não foram ampliadas para uma limpeza fora do escopo. A implementação foi registrada no commit `9514a00`; ainda falta backup, aplicação da migração em produção e autorização própria para publicação. A produção permanece em `0.20.0` e `000021`.
 
+### Continuidade — erros de autenticação separados de falhas da API — versão local `0.22.0`
+
+O cliente HTTP agora preserva o status da resposta em `ApiError`. Na tela de perfil, somente `401 Unauthorized` redireciona para `/entrar`; falhas `500`, indisponibilidade da API ou problemas temporários de banco permanecem na tela e exibem uma mensagem orientando a verificar a API. Isso evita mascarar falhas operacionais como sessão expirada.
+
+A mudança é somente frontend, não altera autenticação, banco, prescrição ou produção. A nota `0.22.0` foi adicionada à tela de novidades. `npm run build` e `git diff --check` passaram; o lint direcionado continua apontando regras antigas já existentes no `api.ts` e no `page.tsx`. Falta a validação manual dos dois estados antes do commit.
+
 ## Como iniciar localmente
 
 1. Inicie o Docker Desktop.

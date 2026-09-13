@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.21.0';
+export const APP_VERSION = '0.22.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.22.0',
+    title: 'Erros de acesso mais claros',
+    description:
+      'Problemas temporários da API ou do banco agora aparecem como erro de carregamento no perfil. O Cadência só volta ao login quando a sessão realmente não está autenticada.',
+  },
   {
     version: '0.21.0',
     title: 'Contexto de segurança mais completo',
