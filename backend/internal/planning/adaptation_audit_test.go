@@ -25,7 +25,7 @@ func TestAdaptationDecisionAuditExplainsShadowLimits(t *testing.T) {
 	if audit.Version != "adaptation-audit-v1" || audit.Confidence != "not_calibrated" {
 		t.Fatalf("audit metadata = %+v", audit)
 	}
-	for _, field := range []string{"target_rpe", "actual_rpe", "recovery_after", "repeat_confidence"} {
+	for _, field := range []string{"target_rpe", "actual_rpe", "recovery_after", "repeat_confidence", "training_history_periods"} {
 		if !slices.Contains(audit.DataUsed, field) {
 			t.Fatalf("audit data used did not include %q: %#v", field, audit.DataUsed)
 		}
@@ -55,6 +55,9 @@ func TestAdaptationDecisionAuditPreservesMissingEvidence(t *testing.T) {
 	if !slices.Contains(assessment.DecisionAudit.ConditionsForChange, "obter_dados_minimos_de_carga_feedback_e_recuperacao") {
 		t.Fatalf("audit conditions = %#v", assessment.DecisionAudit.ConditionsForChange)
 	}
+	if !slices.Contains(assessment.DecisionAudit.MissingData, "recovery_after") || !slices.Contains(assessment.DecisionAudit.MissingData, "repeat_confidence") {
+		t.Fatalf("nested context gaps were not preserved: %#v", assessment.DecisionAudit.MissingData)
+	}
 }
 
 func TestAdaptationDecisionAuditRecordsLoadToleranceGate(t *testing.T) {
@@ -69,6 +72,21 @@ func TestAdaptationDecisionAuditRecordsLoadToleranceGate(t *testing.T) {
 	}
 	if !slices.Contains(assessment.DecisionAudit.ConstraintsApplied, "load_tolerance_gate") {
 		t.Fatalf("load tolerance gate was not recorded: %#v", assessment.DecisionAudit.ConstraintsApplied)
+	}
+}
+
+func TestAdaptationDecisionAuditDoesNotClaimInvalidFeedbackWasUsed(t *testing.T) {
+	assessment := assessRulesV2AdaptationShadow(0, CompletionInput{
+		ActualRPE: 0, Difficulty: "", FatigueAfter: 0,
+	}, nil, time.Unix(0, 0))
+
+	if assessment.DecisionAudit == nil {
+		t.Fatal("shadow assessment did not include decision audit")
+	}
+	for _, field := range []string{"target_rpe", "actual_rpe", "difficulty", "fatigue_after", "pain_reported", "completion_status", "training_history_periods"} {
+		if slices.Contains(assessment.DecisionAudit.DataUsed, field) {
+			t.Fatalf("invalid feedback was reported as used field %q: %#v", field, assessment.DecisionAudit.DataUsed)
+		}
 	}
 }
 

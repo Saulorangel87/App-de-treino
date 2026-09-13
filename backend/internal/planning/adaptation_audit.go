@@ -22,14 +22,14 @@ type AdaptationDecisionAudit struct {
 	UsedForPrescription  bool     `json:"used_for_prescription"`
 }
 
-func buildAdaptationDecisionAudit(result RulesV2AdaptationShadowAssessment, input CompletionInput, now time.Time) AdaptationDecisionAudit {
+func buildAdaptationDecisionAudit(result RulesV2AdaptationShadowAssessment, targetRPE float64, input CompletionInput, now time.Time) AdaptationDecisionAudit {
 	audit := AdaptationDecisionAudit{
 		Version:              adaptationDecisionAuditVersion,
 		Mode:                 "observation",
 		Scope:                "post_workout_feedback",
 		AssessedAt:           now.UTC().Format(time.RFC3339Nano),
-		DataUsed:             []string{"target_rpe", "actual_rpe", "difficulty", "fatigue_after", "pain_reported", "completion_status"},
-		MissingData:          append([]string{}, result.MissingData...),
+		DataUsed:             []string{},
+		MissingData:          []string{},
 		ConstraintsApplied:   []string{"rules_v1_prescription_isolation"},
 		AlternativesRejected: append([]string{}, result.RulesDeferred...),
 		ConditionsForChange: []string{
@@ -49,6 +49,42 @@ func buildAdaptationDecisionAudit(result RulesV2AdaptationShadowAssessment, inpu
 	}
 	addCondition := func(value string) {
 		audit.ConditionsForChange = appendUniqueString(audit.ConditionsForChange, value)
+	}
+	addMissing := func(value string) {
+		audit.MissingData = appendUniqueString(audit.MissingData, value)
+	}
+	for _, value := range result.MissingData {
+		addMissing(value)
+	}
+	for _, assessment := range []*PostWorkoutContextAssessment{result.PostWorkoutContext} {
+		if assessment == nil {
+			continue
+		}
+		for _, value := range assessment.MissingData {
+			addMissing(value)
+		}
+	}
+	for _, assessment := range []*LoadToleranceAssessment{result.LoadTolerance} {
+		if assessment == nil {
+			continue
+		}
+		for _, value := range assessment.MissingData {
+			addMissing(value)
+		}
+	}
+	if result.PlannedVsActual != nil {
+		for _, value := range result.PlannedVsActual.MissingData {
+			addMissing(value)
+		}
+	}
+
+	if finiteInRange(targetRPE, 1, 10) && validCompletion(input) {
+		for _, value := range []string{"target_rpe", "actual_rpe", "difficulty", "fatigue_after", "pain_reported", "completion_status"} {
+			addDataUsed(value)
+		}
+	}
+	if result.LoadTolerance != nil {
+		addDataUsed("training_history_periods")
 	}
 
 	if input.RecoveryAfter != nil && *input.RecoveryAfter >= 1 && *input.RecoveryAfter <= 5 {

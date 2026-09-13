@@ -44,7 +44,7 @@ func assessRulesV2AdaptationShadow(targetRPE float64, input CompletionInput, per
 
 func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input CompletionInput, periods []TrainingHistoryPeriod, integrity *WorkoutDataIntegrityAssessment, now time.Time) (result RulesV2AdaptationShadowAssessment) {
 	defer func() {
-		audit := buildAdaptationDecisionAudit(result, input, now)
+		audit := buildAdaptationDecisionAudit(result, targetRPE, input, now)
 		result.DecisionAudit = &audit
 	}()
 

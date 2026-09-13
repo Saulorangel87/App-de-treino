@@ -73,6 +73,13 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - A auditoria passou a registrar `load_tolerance_gate` quando a tolerância observada está protetiva. A matriz automatizada cobre a conclusão parcial e a auditoria do gate; `go test -count=1 ./...`, `go vet` e `git diff --check` passaram.
 - Esta é uma correção somente de shadow, testes e documentação: `rules-v1`, trigger, banco, interface, release, migrações, infraestrutura e produção permanecem inalterados.
 
+### Fidelidade da proveniência na auditoria shadow — versão local (validado; sem publicação)
+
+- `adaptation-audit-v1` agora consolida as lacunas dos blocos `post_workout_context`, `load_tolerance` e `planned_vs_actual` quando presentes, sem substituir os dados específicos de cada bloco.
+- Os campos básicos entram em `data_used` somente quando o feedback e o RPE passaram pela validação mínima. Feedback inválido não aparece como se tivesse sustentado a avaliação; períodos históricos avaliados ficam identificados como `training_history_periods`.
+- Foram adicionados testes para lacunas aninhadas, campos inválidos e registro do gate de tolerância. `go test -count=1 ./...`, `go vet` e `git diff --check` passaram.
+- A alteração é somente observacional e documental: `rules-v1`, trigger, banco, interface, release, migrações, infraestrutura e produção permanecem inalterados.
+
 ### Décima quarta fatia de melhorias — taper pré-prova orientado por evento (local)
 
 - O plano local passa a registrar `prescription_snapshot.event_taper` com `taper-v1`. A redução só é prescritiva para evento futuro entre 7 e 21 dias, atleta avançado, avaliação submáxima apta, pelo menos 8 semanas e 3 pedais semanais, sem limitação, dor ou necessidade recente de recuperação.

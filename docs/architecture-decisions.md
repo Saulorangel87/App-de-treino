@@ -222,6 +222,14 @@ Uma sessão marcada como `partial` não representa tolerância ao treino complet
 
 A decisão torna explícita a coerência entre o contexto de conclusão, a integridade e os gates de carga sem interpretar o motivo da interrupção como diagnóstico. O `rules-v1`, o trigger SQL e a prescrição ativa permanecem inalterados; o resultado continua com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. A auditoria também identifica o `load_tolerance_gate` quando a tolerância observada está protetiva.
 
+## ADR-020 — Proveniência da auditoria deve refletir dados válidos
+
+**Status:** Implementada localmente; ainda não publicada.
+
+O `adaptation-audit-v1` deve distinguir dados realmente considerados de campos inválidos ou ausentes. As lacunas dos blocos observacionais aninhados são consolidadas na auditoria, enquanto os campos básicos só aparecem em `data_used` quando o feedback e o RPE passam pela validação mínima. Os períodos históricos avaliados são identificados separadamente.
+
+Essa decisão evita uma explicação que pareça mais completa do que os dados permitem. Ela não altera a classificação fisiológica, não ativa qualquer candidato do `rules-v2`, não modifica `rules-v1` ou o trigger e mantém a auditoria sem autoridade prescritiva.
+
 ## Estado de produção
 
 Em 3 de setembro de 2026, o commit `57c241a` foi implantado na VPS Oracle. A imagem da API, do job de digest e do frontend foi reconstruída com Go 1.25; as migrações `000013` e `000014` foram aplicadas após backup preventivo. O serviço Ollama permanece isolado e parado após a medição de capacidade, e a API usa temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.
