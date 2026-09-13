@@ -1468,3 +1468,9 @@ A revisão técnica local foi encerrada com uma matriz de invariantes cobrindo f
 Todos os cenários confirmam `progression_eligible: false`, `applied: false` e `used_for_prescription: false`, inclusive no `decision_audit`, com `prescription_isolation_gate` avaliado. `go test -count=1 ./...`, `go vet ./...` e as validações PostgreSQL somente leitura permanecem aprovados.
 
 Com isso, a revisão técnica segura do shadow está concluída. O próximo avanço de adaptação em ciclo fechado depende de dados reais suficientes, calibração, revisão dos efeitos da prescrição e autorização própria; não deve ser ativado automaticamente.
+
+### Deploy completo da versão `0.20.0` — 13 de setembro de 2026
+
+Após autorização explícita, o commit `84b653b` foi publicado na VPS Oracle por fast-forward. Foi criado e verificado o backup preventivo `cadencia-20260913T161932Z.dump`; as migrações `000020_completion_context` e `000021_post_workout_context` foram aplicadas em ordem pelo perfil `maintenance`. API e frontend foram reconstruídos e recriados; PostgreSQL e o Tunnel permaneceram ativos.
+
+A validação pós-deploy confirmou os serviços saudáveis, `/health` e `/ready` internos, HTTP 200 nos dois domínios oficiais, a presença da versão `0.20.0` no HTML público e HTTP 401 para `/v1/plans/current` sem sessão. A release `v0.20.0` ainda será registrada no GitHub após o commit desta atualização documental. O `rules-v1` continua prescritivo; as avaliações shadow, a comparação planejado versus realizado e os contextos pós-treino continuam observacionais.

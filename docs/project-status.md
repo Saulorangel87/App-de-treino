@@ -18,14 +18,14 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - API: <https://cadencia-api.devsaulo.com.br>
 - VPS: Oracle Cloud, Ubuntu, acesso administrativo por SSH na porta 22.
 - Código na VPS: `/home/ubuntu/apps/cadencia`.
-- Commit implantado: `6fdbe45 docs(status): atualiza estado local do catalogo`; API e frontend foram reconstruídos, as migrações `000017`–`000019` foram aplicadas e PostgreSQL e túnel permaneceram ativos.
-- O backup preventivo `cadencia-20260912T155746Z.dump` foi criado e verificado antes da aplicação das migrações. O endpoint interno `/ready`, os dois domínios públicos e os quatro serviços retornaram estado saudável após o deploy.
-- A versão do produto publicada é `0.16.0`, registrada na release [v0.16.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.16.0).
+- Commit implantado: `84b653b test(shadow): fecha matriz de nao autoridade`; API e frontend foram reconstruídos, as migrações `000020` e `000021` foram aplicadas e PostgreSQL e túnel permaneceram ativos.
+- O backup preventivo `cadencia-20260913T161932Z.dump` foi criado e verificado antes da aplicação das migrações. `/health` e `/ready` internos, os quatro serviços e os dois domínios públicos retornaram estado saudável após o deploy.
+- A versão do produto publicada é `0.20.0`; a release correspondente ainda será registrada no GitHub após o commit documental deste deploy.
 - O Cloudflare Tunnel dedicado expõe somente frontend e API; o PostgreSQL não possui hostname, rota pública ou porta publicada.
 
 ## Estado do checkout local
 
-- A produção está no commit `6fdbe45`, na versão `0.16.0`, registrada na release [v0.16.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.16.0). As migrações `000017`, `000018` e `000019`, o taper, o piloto de VO₂max, o piloto de intervalos curtos e a decisão de escopo de modalidades foram publicados e validados na VPS.
+- A produção está no commit `84b653b`, na versão `0.20.0`, com as migrações `000017` a `000021` aplicadas. O taper, os pilotos de VO₂max e intervalos curtos, o contexto de conclusão, o contexto pós-treino e a revisão técnica do shadow foram publicados e validados na VPS.
 - A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local), `9034287` (matriz comparativa), `61d7939` (pin do digest do Tunnel), `1358ac1` (status da versão `0.12.0`), `53cbadc` (acesso ao perfil no mobile), `66f70ed` (decisão do taper pré-prova), `0eb34d6` (implementação local do taper), `01875c9` (piloto local de VO₂max de estrada), `1eab2c8` (piloto local de intervalos curtos), `3b3639a` (exclusão de modalidades fora do produto), `9aff39f` (sincronização documental), `6fdbe45` (estado do catálogo) e o deploy autorizado da versão `0.16.0`.
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
@@ -55,6 +55,13 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - A matriz cobre feedback inválido, sinal protetivo, conclusão parcial, evidência incompleta, baixa aderência, histórico inconsistente, integridade da sessão atual e candidata com evidência completa.
 - Em todos os cenários, `progression_eligible`, `applied` e `used_for_prescription` permanecem falsos, inclusive no `decision_audit`, e `prescription_isolation_gate` permanece avaliado.
 - A suíte Go completa e `go vet` passaram. Esta etapa encerra a revisão técnica local do shadow; progressão em ciclo fechado continua condicionada a dados reais, calibração e nova revisão.
+
+### Deploy da versão `0.20.0` — 13 de setembro de 2026
+
+- O commit `84b653b` foi atualizado na VPS por fast-forward após confirmação do checkout remoto. O backup preventivo `cadencia-20260913T161932Z.dump` foi criado e verificado; as migrações `000020_completion_context` e `000021_post_workout_context` foram aplicadas em ordem.
+- As imagens da API e do frontend foram reconstruídas e os dois serviços foram recriados. PostgreSQL e o Cloudflare Tunnel permaneceram ativos; nenhum serviço opcional foi iniciado.
+- A API interna respondeu `{"service":"cadencia-api","status":"ok"}` em `/health` e `{"status":"ready"}` em `/ready`. `https://cadencia-api.devsaulo.com.br/health`, `/ready`, `https://cadencia.devsaulo.com.br/` e `/novidades` retornaram HTTP 200. O endpoint autenticado `/v1/plans/current` retornou HTTP 401 sem sessão, conforme esperado.
+- O HTML público contém a versão `0.20.0`. A tela de novidades e o contexto de conclusão/feedback pós-treino passam a estar publicados; o `rules-v1` continua sendo o motor prescritivo e o shadow permanece sem autoridade sobre a prescrição.
 
 ### Correção de layout e novidades — versão local `0.20.0`
 
