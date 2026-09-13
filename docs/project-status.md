@@ -54,6 +54,15 @@ Validação desta fatia: `go test -count=1 ./...`, `go vet ./...`, `npm run buil
 
 Validação local: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, `git diff --check` e referências do OpenAPI passaram. O commit `c5d8822` foi publicado após backup e validação operacional; a versão visível permanece `0.20.0`.
 
+### Vigésima fatia de melhorias — coerência integrada dos shadows (local; validada)
+
+- O novo bloco `planning-coherence-shadow-v1` resume periodização, distribuição histórica e seleção de estímulos no mesmo resultado de geração de plano.
+- A auditoria registra os estados dos três componentes, verificações de coerência, sinais de densidade e a semana de recuperação. Divergências produzem `observed_mismatch`/`review_coherence`; cobertura insuficiente produz `not_evaluated`/`defer_evaluation`.
+- A integração preserva `progression_eligible: false`, `applied: false` e `used_for_prescription: false` em todos os componentes. O `rules-v1` permanece como única fonte prescritiva.
+- O contrato foi atualizado no OpenAPI e no tipo compartilhado do frontend. Não há migração, mudança visual, atualização de `APP_VERSION`, release, deploy ou alteração de infraestrutura.
+
+Validação local: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, validação das referências do OpenAPI e `git diff --check` passaram. A publicação ainda depende de revisão e autorização próprias.
+
 ## Repositório e produção
 
 - Repositório: <https://github.com/Saulorangel87/App-de-treino>

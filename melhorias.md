@@ -573,6 +573,7 @@ Atualizado em 13 de setembro de 2026. Este arquivo continua sendo um roadmap; os
 - A base de evidências e o catálogo inicial de protocolos de ciclismo foram estruturados, com pilotos restritos e exclusão explícita de modalidades fora do escopo.
 - Feedback pós-treino, decisões auditáveis, filtros contra dados inconsistentes e cobertura automatizada dos principais gates já estão implementados.
 - A auditoria observacional da seleção de estímulos foi validada e publicada, relacionando necessidade inferida, estímulos esperados e estímulos selecionados, sem autoridade sobre a prescrição.
+- A primeira integração observacional entre periodização, distribuição histórica e seleção de estímulos foi implementada localmente como `planning-coherence-shadow-v1`; ela resume os componentes, verifica precedência de recuperação e registra divergências sem autoridade sobre a prescrição.
 
 ### Tópicos ainda parciais
 
@@ -588,5 +589,6 @@ Atualizado em 13 de setembro de 2026. Este arquivo continua sendo um roadmap; os
 - Selecionar estímulos plenamente pela necessidade atual do atleta, com comparação segura contra o comportamento vigente.
 - Completar o questionário de segurança, os fluxos de correção de inconsistências e a análise longitudinal do feedback.
 - Completar todos os cenários de aceitação e a validação operacional dos novos protocolos.
+- Publicar e validar em produção a integração `planning-coherence-shadow-v1` após revisão e autorização próprias; esta etapa ainda não está publicada.
 
 Enquanto essas pendências existirem, não declarar o roadmap encerrado nem substituir o `rules-v1`. A próxima etapa técnica é continuar a integração observacional entre periodização, distribuição e seleção de estímulos; a ativação prescritiva exige uma revisão separada e autorização explícita.

@@ -559,6 +559,8 @@ components:
               $ref: '#/components/schemas/PeriodizationShadowAssessment'
             stimulus_selection_shadow:
               $ref: '#/components/schemas/StimulusSelectionShadowAssessment'
+            planning_coherence_shadow:
+              $ref: '#/components/schemas/PlanningCoherenceShadowAssessment'
             readiness_assessment:
               $ref: '#/components/schemas/ReadinessAssessment'
             training_history:
@@ -717,6 +719,50 @@ components:
         progression_eligible: { type: boolean, enum: [false] }
         applied: { type: boolean, enum: [false] }
         used_for_prescription: { type: boolean, enum: [false] }
+    PlanningCoherenceShadowAssessment:
+      type: object
+      description: Auditoria observacional que compara periodização, distribuição histórica e seleção de estímulos. Não substitui o rules-v1 nem altera os treinos gerados.
+      required: [version, mode, scope, assessed_at, status, candidate_response, components, candidate_need, coherence_checks, periodization_recovery_week_quality_sessions, periodization_recovery_week_high_intensity_sessions, distribution_quality_sessions_last_7d, distribution_adjacent_quality_session_pairs, rules_evaluated, reasons, missing_data, data_issues, not_evaluated, progression_eligible, applied, used_for_prescription]
+      properties:
+        version: { type: string, enum: [planning-coherence-shadow-v1] }
+        mode: { type: string, enum: [shadow] }
+        scope: { type: string, enum: [plan_generation_only] }
+        assessed_at: { type: string, format: date-time }
+        status: { type: string, enum: [observed, observed_mismatch, not_evaluated] }
+        candidate_response: { type: string, enum: [maintain_observed, review_coherence, defer_evaluation] }
+        components:
+          type: array
+          items: { $ref: '#/components/schemas/PlanningCoherenceComponentObservation' }
+        candidate_need: { type: string }
+        coherence_checks: { type: array, items: { type: string } }
+        periodization_recovery_week_quality_sessions: { type: integer, minimum: 0 }
+        periodization_recovery_week_high_intensity_sessions: { type: integer, minimum: 0 }
+        distribution_quality_sessions_last_7d: { type: integer, minimum: 0 }
+        distribution_adjacent_quality_session_pairs: { type: integer, minimum: 0 }
+        rules_evaluated: { type: array, items: { type: string } }
+        reasons:
+          type: array
+          items:
+            type: object
+            required: [code, message]
+            properties:
+              code: { type: string }
+              message: { type: string }
+        missing_data: { type: array, items: { type: string } }
+        data_issues: { type: array, items: { type: string } }
+        not_evaluated: { type: array, items: { type: string } }
+        progression_eligible: { type: boolean, enum: [false] }
+        applied: { type: boolean, enum: [false] }
+        used_for_prescription: { type: boolean, enum: [false] }
+    PlanningCoherenceComponentObservation:
+      type: object
+      required: [component, version, mode, status]
+      properties:
+        component: { type: string, enum: [periodization, stimulus_distribution, stimulus_selection] }
+        version: { type: string }
+        mode: { type: string, enum: [shadow, observation] }
+        status: { type: string }
+        candidate_response: { type: string }
     PostWorkoutContextAssessment:
       type: object
       description: Classificação observacional da cobertura dos sinais subjetivos pós-treino. Não interpreta fisiologia nem altera a prescrição.

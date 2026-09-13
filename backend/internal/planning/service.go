@@ -411,6 +411,8 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 
 	periodizationShadow := assessPeriodizationShadow(workouts, start, now)
 	stimulusSelectionShadow := assessStimulusSelectionShadow(input, workouts, now, restricted)
+	trainingHistory := buildTrainingHistorySnapshot(input.TrainingHistory, now, input.TrainingHistoryPeriods)
+	planningCoherenceShadow := assessPlanningCoherenceShadow(periodizationShadow, trainingHistory.StimulusDistribution, stimulusSelectionShadow, now)
 	plan := Plan{
 		StartsOn: start.Format("2006-01-02"),
 		EndsOn:   start.AddDate(0, 0, 27).Format("2006-01-02"),
@@ -421,8 +423,9 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 			"rules_v2_shadow":           assessRulesV2Shadow(input, now),
 			"periodization_shadow":      periodizationShadow,
 			"stimulus_selection_shadow": stimulusSelectionShadow,
+			"planning_coherence_shadow": planningCoherenceShadow,
 			"readiness_assessment":      assessReadiness(input, now),
-			"training_history":          buildTrainingHistorySnapshot(input.TrainingHistory, now, input.TrainingHistoryPeriods),
+			"training_history":          trainingHistory,
 			"experience_level":          input.ExperienceLevel,
 			"primary_goal":              input.PrimaryGoal,
 			"restricted":                restricted,

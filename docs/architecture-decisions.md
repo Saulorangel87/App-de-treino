@@ -352,3 +352,9 @@ O bloco é calculado somente para observação e mantém `used_for_prescription:
 O Cadência passa a reutilizar `stimulus-distribution-v1` dentro dos avaliadores `rules-v2` e `rules-v2-adaptation-v1`, mas mantém a separação entre medição e prescrição. O gate observa duas ou mais sessões de qualidade em sete dias e sessões de qualidade em dias consecutivos nos 42 dias disponíveis. São critérios operacionais para detectar padrões que merecem revisão, não limiares fisiológicos universais.
 
 Dados incompletos ou inconsistentes mantêm a candidata de progressão não avaliada/adiada e aparecem na auditoria; histórico completo sem estímulos de qualidade não é bloqueado. A distribuição é anexada ao resultado shadow, o gate é auditado e `rules-v1` continua sendo a única fonte capaz de alterar o plano. Não há migração, mudança visual, release ou deploy.
+
+## Coerência integrada dos shadows — decisão local
+
+`planning-coherence-shadow-v1` integra, para fins de auditoria, a estrutura de periodização do plano, a distribuição histórica de estímulos e a seleção de famílias de estímulos. O bloco registra estados e sinais resumidos, identifica divergências entre recuperação, fase e estímulo e mantém a decisão explicável sem duplicar os snapshots completos.
+
+Esta integração não possui autoridade prescritiva: `rules-v1` continua gerando o plano, enquanto `progression_eligible`, `applied` e `used_for_prescription` permanecem falsos. A etapa está validada localmente, mas ainda aguarda revisão e autorização antes de qualquer publicação.

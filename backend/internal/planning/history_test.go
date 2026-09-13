@@ -312,6 +312,8 @@ func TestBuildPlanRecordsHistoryWithoutChangingPrescription(t *testing.T) {
 	delete(withoutHistory.PrescriptionSnapshot, "training_history")
 	delete(withHistory.PrescriptionSnapshot, "stimulus_selection_shadow")
 	delete(withoutHistory.PrescriptionSnapshot, "stimulus_selection_shadow")
+	delete(withHistory.PrescriptionSnapshot, "planning_coherence_shadow")
+	delete(withoutHistory.PrescriptionSnapshot, "planning_coherence_shadow")
 	if !reflect.DeepEqual(withHistory, withoutHistory) {
 		t.Fatal("observational history changed the rules-v1 prescription")
 	}

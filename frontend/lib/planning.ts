@@ -310,6 +310,38 @@ export type StimulusSelectionShadowAssessment = {
   used_for_prescription: false;
 };
 
+export type PlanningCoherenceComponentObservation = {
+  component: 'periodization' | 'stimulus_distribution' | 'stimulus_selection';
+  version: string;
+  mode: 'shadow' | 'observation';
+  status: string;
+  candidate_response?: string;
+};
+
+export type PlanningCoherenceShadowAssessment = {
+  version: 'planning-coherence-shadow-v1';
+  mode: 'shadow';
+  scope: 'plan_generation_only';
+  assessed_at: string;
+  status: 'observed' | 'observed_mismatch' | 'not_evaluated';
+  candidate_response: 'maintain_observed' | 'review_coherence' | 'defer_evaluation';
+  components: PlanningCoherenceComponentObservation[];
+  candidate_need: string;
+  coherence_checks: string[];
+  periodization_recovery_week_quality_sessions: number;
+  periodization_recovery_week_high_intensity_sessions: number;
+  distribution_quality_sessions_last_7d: number;
+  distribution_adjacent_quality_session_pairs: number;
+  rules_evaluated: string[];
+  reasons: Array<{ code: string; message: string }>;
+  missing_data: string[];
+  data_issues: string[];
+  not_evaluated: string[];
+  progression_eligible: false;
+  applied: false;
+  used_for_prescription: false;
+};
+
 export type TrainingHistoryWindow = {
   window_days: 7 | 28 | 42;
   expected_sessions: number;
@@ -440,6 +472,7 @@ export type TrainingPlan = {
     rules_v2_shadow?: RulesV2ShadowAssessment;
     periodization_shadow?: PeriodizationShadowAssessment;
     stimulus_selection_shadow?: StimulusSelectionShadowAssessment;
+    planning_coherence_shadow?: PlanningCoherenceShadowAssessment;
     readiness_assessment?: ReadinessAssessment;
     training_history?: TrainingHistorySnapshot;
     observed_training?: {

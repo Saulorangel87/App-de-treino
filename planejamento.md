@@ -1510,3 +1510,11 @@ A auditoria seguinte foi implementada como `stimulus-selection-shadow-v1` e publ
 O resultado registra estímulos esperados, estímulos selecionados, regras avaliadas, lacunas e incoerências. Um desencontro gera apenas `observed_mismatch` e `review_selection`; não troca, reduz ou aumenta sessão alguma. `rules-v1` continua prescritivo e os campos `progression_eligible`, `applied` e `used_for_prescription` permanecem falsos.
 
 Foram adicionados testes para seleção alinhada, baixa aderência, necessidade de recuperação e presença não autoritativa no snapshot. `go test -count=1 ./...`, `go vet ./...`, `npm run build`, validação das referências do OpenAPI e `git diff --check` passaram. O deploy foi concluído após backup; API, frontend, PostgreSQL e Tunnel ficaram saudáveis. Não há migração, mudança visual ou atualização de versão.
+
+### Continuidade — coerência integrada dos shadows — 13 de setembro de 2026
+
+A etapa seguinte integrou, localmente, as auditorias de periodização, distribuição histórica e seleção de estímulos em `planning-coherence-shadow-v1`. O novo bloco registra o estado dos três componentes, a necessidade candidata, verificações de coerência, sinais resumidos de densidade e a semana de recuperação, além de preservar lacunas, inconsistências e a precedência de proteção.
+
+A integração é deliberadamente observacional: divergências produzem `observed_mismatch` e `review_coherence`; dados incompletos produzem `not_evaluated` e `defer_evaluation`. Nenhum componente pode tornar-se autoritativo, e `rules-v1` continua sendo o único motor prescritivo. Não houve mudança visual, release, migração, deploy ou infraestrutura.
+
+Foram adicionados testes para coerência alinhada, conflito entre recuperação e periodização, distribuição incompleta e anexação do snapshot sem substituir `rules-v1`. A validação passou com `go test -count=1 ./...`, `go vet ./...`, `npm run build`, validação das referências do OpenAPI e `git diff --check`. A próxima etapa é revisar a matriz de cenários e decidir a publicação desta integração; não se deve ativar prescrição automática.
