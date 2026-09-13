@@ -57,6 +57,7 @@ func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input Complet
 		CandidateResponse: "not_evaluated",
 		RulesEvaluated: []string{
 			"feedback_integrity_gate",
+			"load_tolerance_gate",
 			"protective_signal_gate",
 			"progression_evidence_gate",
 			"prescription_isolation_gate",
@@ -114,15 +115,19 @@ func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input Complet
 		addMissing("period_comparison")
 	}
 	result.DataIssues = append(result.DataIssues, comparison.DataIssues...)
-	recentProtective := false
+	recentProtective := loadTolerance.Status == "protective_signal"
 	if len(comparison.Periods) > 0 {
 		recent := comparison.Periods[0]
-		recentProtective = recent.PainReportedSessions > 0 || recent.HighFatigueSessions > 0 || recent.RecoveryNeededCheckins > 0
+		recentProtective = recentProtective || recent.PainReportedSessions > 0 || recent.HighFatigueSessions > 0 ||
+			recent.AboveTargetRPESessions > 0 || recent.RecoveryNeededCheckins > 0
 		if recent.PainReportedSessions > 0 {
 			addReason("recent_pain", "O período mais recente contém dor após sessão; a progressão deve permanecer bloqueada.")
 		}
 		if recent.HighFatigueSessions > 0 {
 			addReason("recent_high_fatigue", "O período mais recente contém fadiga alta após sessão; a resposta candidata deve ser protetiva.")
+		}
+		if recent.AboveTargetRPESessions > 0 {
+			addReason("recent_above_target_rpe", "O período mais recente contém esforço acima do alvo; a progressão deve permanecer bloqueada.")
 		}
 		if recent.RecoveryNeededCheckins > 0 {
 			addReason("recent_recovery_need", "O período mais recente contém necessidade de recuperação; a carga não deve ser aumentada.")

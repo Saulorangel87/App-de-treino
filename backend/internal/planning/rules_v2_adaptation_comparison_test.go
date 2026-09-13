@@ -56,6 +56,19 @@ func TestRulesV2AdaptationShadowMatrixKeepsRulesV1Authoritative(t *testing.T) {
 			candidateResponse: "prefer_recovery",
 		},
 		{
+			name:              "recent above-target effort",
+			targetRPE:         6,
+			input:             CompletionInput{ActualRPE: 4, Difficulty: "easy", FatigueAfter: 2},
+			periods: func() []TrainingHistoryPeriod {
+				periods := validHistoryPeriods()
+				periods[0].AboveTargetRPESessions = 1
+				return periods
+			}(),
+			rulesV1Kind:       "progression",
+			shadowStatus:      "protective_signal",
+			candidateResponse: "prefer_recovery",
+		},
+		{
 			name:              "easy response without evidence",
 			targetRPE:         6,
 			input:             CompletionInput{ActualRPE: 4, Difficulty: "easy", FatigueAfter: 2},

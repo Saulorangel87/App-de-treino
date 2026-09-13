@@ -1396,3 +1396,13 @@ As quatro consultas agora aceitam somente sessões concluídas com `completed_at
 O novo teste `scripts/test-evolution-queries.ps1` executa as consultas reais com CTEs sintéticas em transação somente leitura. Ele confirmou o resumo total, a semana atual, as sessões recentes e os pontos de recuperação sem sessões/check-ins futuros ou dados de outro atleta. Não houve migração, alteração visual, atualização de release, deploy ou mudança de infraestrutura.
 
 Esta fatia está validada localmente e aguarda o commit do proprietário. Próxima etapa: revisar os demais agregados observacionais e, só depois, continuar a avaliação shadow de adaptação/carga sem transferir autoridade ao `rules-v2`.
+
+### Continuidade — gate de tolerância integrado ao shadow de adaptação — 13 de setembro de 2026
+
+A revisão da integração encontrou uma lacuna: `load-tolerance-v1` já classificava esforço acima do alvo no período mais recente como sinal protetivo, mas `rules-v2-adaptation-v1` não usava esse resultado para bloquear sua candidata de progressão. Uma sessão atual fácil poderia, portanto, coexistir com uma resposta recente incompatível com aumento de carga.
+
+O shadow agora incorpora esse gate. Quando a tolerância observada está protetiva, ou quando o período recente contém `AboveTargetRPESessions`, a resposta candidata fica em `protective_signal`/`prefer_recovery` e registra `recent_above_target_rpe`; `load_tolerance_gate` também aparece em `rules_evaluated`. A alteração continua observacional e não modifica o `rules-v1`, o trigger, a sessão seguinte ou qualquer prescrição.
+
+A matriz comparativa foi ampliada com o cenário de resposta fácil e esforço acima do alvo recente. Os testes direcionados de planejamento, repositório e HTTP, `go vet` e `git diff --check` passaram. Não houve migração, mudança visual, atualização de release, deploy ou alteração de infraestrutura.
+
+Esta fatia está validada localmente e aguarda o commit do proprietário. Próxima etapa: continuar a revisão dos gates de adaptação em shadow, especialmente a coerência entre contexto de conclusão, integridade, carga e evidência, antes de qualquer integração prescritiva.

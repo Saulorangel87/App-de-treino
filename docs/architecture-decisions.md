@@ -206,6 +206,14 @@ Os agregados observacionais da Evolução devem ignorar eventos futuros: sessõe
 
 Isso evita que correções de relógio, fixtures ou inconsistências operacionais apresentem atividade futura como histórico já realizado. A separação de atleta e a exclusão por `eligible_for_history: false` permanecem ativas. A decisão não apaga dados, não altera a aderência planejada e não autoriza qualquer prescrição nova; `rules-v1` continua como único motor ativo.
 
+## ADR-018 — Gate de tolerância integrado ao shadow de adaptação
+
+**Status:** Implementada localmente; ainda não publicada.
+
+Quando `load-tolerance-v1` classifica um sinal protetivo recente, o `rules-v2-adaptation-v1` deve bloquear sua própria candidata de progressão e registrar `prefer_recovery`. A resposta fácil da sessão atual não pode neutralizar um esforço recente acima do alvo, dor, fadiga alta ou necessidade de recuperação observada.
+
+Essa decisão fecha a integração entre o avaliador de tolerância e o shadow sem ativar prescrição: `rules-v1` e o trigger continuam responsáveis pela adaptação real, enquanto `progression_eligible`, `applied` e `used_for_prescription` permanecem falsos. O motivo específico e a regra avaliada ficam disponíveis para auditoria e regressão.
+
 ## Estado de produção
 
 Em 3 de setembro de 2026, o commit `57c241a` foi implantado na VPS Oracle. A imagem da API, do job de digest e do frontend foi reconstruída com Go 1.25; as migrações `000013` e `000014` foram aplicadas após backup preventivo. O serviço Ollama permanece isolado e parado após a medição de capacidade, e a API usa temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.

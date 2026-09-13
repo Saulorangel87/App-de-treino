@@ -226,6 +226,8 @@ Esta fatia acrescenta uma leitura observacional dentro de `adaptation_shadow`. E
 
 Dor, fadiga alta, necessidade recente de recuperação e esforço percebido pelo menos dois pontos acima do alvo produzem `protective_signal`/`prefer_recovery`. Sem esses sinais e com os dois períodos completos, o resultado é `observation_only`/`maintain_observed`: isso descreve suporte observacional para manter a carga sob análise, não uma autorização para aumentá-la. A avaliação também fica com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`.
 
+O resultado protetivo de `load-tolerance-v1` participa também do gate do `rules-v2-adaptation-v1`. Assim, um sinal recente de esforço acima do alvo (`recent_above_target_rpe`), além de dor, fadiga alta ou recuperação necessária, mantém a candidata em `protective_signal`/`prefer_recovery`, mesmo que a sessão atual isoladamente pareça fácil. Essa integração continua em shadow e não concede autoridade prescritiva ao bloco.
+
 O `rules-v1` continua sendo a única fonte prescritiva. A implementação não altera o trigger pós-feedback, não modifica sessões futuras, não cria migração e não muda a interface; por isso, não exige nova nota de versão nesta fatia. A evidência de session-RPE orienta o método de registro, mas os critérios de cobertura e os estados são barreiras prudentes do produto, não limiares fisiológicos universais.
 
 ### Comparação observacional entre planejado e realizado (`planned-vs-actual-v1`)
