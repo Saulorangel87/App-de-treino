@@ -645,7 +645,7 @@ A mudança é somente frontend, não altera autenticação, banco, prescrição 
 
 O gate `data-integrity-v1` agora identifica também uma combinação operacionalmente incompatível entre distância e duração, sem transformar o corte em limite fisiológico ou prescrição de velocidade. O registro original continua salvo, mas permanece fora da observação histórica quando há inconsistência.
 
-Após concluir um treino, a tela passa a informar quando o registro foi preservado para revisão e não será usado no histórico observado. A nota `0.23.0` foi adicionada à tela de novidades. A mudança não altera autenticação, banco, catálogo, `rules-v1` ou infraestrutura. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` ainda precisam ser executados nesta fatia; a validação manual do aviso é obrigatória antes do commit.
+Após concluir um treino, a tela passa a informar quando o registro foi preservado para revisão e não será usado no histórico observado. A nota `0.23.0` foi adicionada à tela de novidades. A mudança não altera autenticação, banco, catálogo, `rules-v1` ou infraestrutura. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. A validação manual confirmou `distance_duration_incompatible`, `eligible_for_history: false`, `progression_eligible: false` e `used_for_prescription: false` após concluir um treino com 3 minutos e 55 km. O commit `74f9493` foi registrado; produção permanece em `0.20.0` até deploy autorizado.
 
 ## Como iniciar localmente
 
