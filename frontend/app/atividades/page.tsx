@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { Activity, ArrowLeft, Bike, CalendarDays, Clock3, Gauge, HeartPulse, LoaderCircle, MapPinned, XCircle, Zap } from 'lucide-react';
-import { apiRequest } from '@/lib/api';
+import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { AccountActions } from '@/components/account-actions';
+import { ApiErrorState } from '@/components/api-error-state';
 import { parseTrainingDate, type Activity as TrainingActivity } from '@/lib/planning';
 
 type User = { display_name: string };
@@ -40,16 +41,17 @@ export default function ActivitiesPage() {
         setActivities(result.activities);
       })
       .catch((caught) => {
-        if (caught instanceof Error && caught.message === 'Faça login para continuar.') {
+        if (caught instanceof ApiError && caught.status === 401) {
           window.location.href = '/entrar';
           return;
         }
-        setError(caught instanceof Error ? caught.message : 'Não foi possível carregar suas atividades.');
+        setError(apiErrorMessage(caught, 'Não foi possível carregar suas atividades.'));
       })
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) return <main className="profile-loading"><LoaderCircle className="spin" />Carregando suas atividades…</main>;
+  if (!user) return <ApiErrorState message={error || 'Não foi possível carregar suas atividades.'} />;
 
   return (
     <main className="activities-shell">

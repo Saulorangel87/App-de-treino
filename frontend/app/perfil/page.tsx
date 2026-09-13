@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, Bike, CalendarDays, Check, CircleAlert, Flag, He
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ApiError, apiRequest } from '@/lib/api';
+import { apiErrorMessage, isUnauthorized, apiRequest } from '@/lib/api';
 import { AccountActions } from '@/components/account-actions';
 
 type User = { display_name: string; email: string; email_verified: boolean };
@@ -104,11 +104,11 @@ export default function ProfilePage() {
           setCompleted(onboarding.availability.some((day) => day.available_minutes > 0));
         }
       } catch (caught) {
-        if (caught instanceof ApiError && caught.status === 401) {
+        if (isUnauthorized(caught)) {
           window.location.href = '/entrar';
           return;
         }
-        setError(caught instanceof ApiError ? caught.message : 'Não foi possível carregar seu perfil. Verifique se a API está em execução e tente novamente.');
+        setError(apiErrorMessage(caught, 'Não foi possível carregar seu perfil. Verifique se a API está em execução e tente novamente.'));
       } finally {
         setLoading(false);
       }

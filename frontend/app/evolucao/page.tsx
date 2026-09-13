@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Bike, CalendarCheck2, CircleAlert, Clock3, HeartPulse, LineChart, LoaderCircle, MapPinned, MoonStar, Mountain, Target, Zap } from 'lucide-react';
-import { apiRequest } from '@/lib/api';
+import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { AccountActions } from '@/components/account-actions';
+import { ApiErrorState } from '@/components/api-error-state';
 
 type User = { display_name: string };
 type Week = { week_start: string; completed_sessions: number; cancelled_sessions: number; total_minutes: number; average_rpe: number; total_distance_km: number; total_elevation_m: number; average_power_watts: number; average_heart_rate: number };
@@ -27,17 +28,25 @@ export default function EvolutionPage() {
   const [user, setUser] = useState<User | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     Promise.all([apiRequest<{ user: User }>('/v1/me'), apiRequest<{ summary: Summary }>('/v1/evolution/summary')])
       .then(([account, result]) => { setUser(account.user); setSummary(result.summary); })
-      .catch(() => { window.location.href = '/entrar'; })
+      .catch((caught) => {
+        if (caught instanceof ApiError && caught.status === 401) {
+          window.location.href = '/entrar';
+          return;
+        }
+        setError(apiErrorMessage(caught, 'Não foi possível carregar sua evolução.'));
+      })
       .finally(() => setLoading(false));
   }, []);
 
   const maxMinutes = useMemo(() => Math.max(...(summary?.weeks.map((week) => week.total_minutes) || [1]), 1), [summary]);
   const maxDistance = useMemo(() => Math.max(...(summary?.weeks.map((week) => week.total_distance_km) || [1]), 1), [summary]);
-  if (loading || !user || !summary) return <main className="profile-loading"><LoaderCircle className="spin" />Carregando sua evolução…</main>;
+  if (loading) return <main className="profile-loading"><LoaderCircle className="spin" />Carregando sua evolução…</main>;
+  if (!user || !summary) return <ApiErrorState message={error || 'Não foi possível carregar sua evolução.'} />;
   const hasActivities = summary.completed_sessions + summary.cancelled_sessions > 0;
   const hasCyclingMetrics = summary.total_distance_km > 0 || summary.total_elevation_m > 0 || summary.average_power_watts > 0 || summary.average_heart_rate > 0;
   const recentSessions = summary.recent_sessions || [];

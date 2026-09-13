@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Bike, CheckCircle2, HeartPulse, LoaderCircle, MoonStar, ShieldAlert } from 'lucide-react';
-import { apiRequest } from '@/lib/api';
+import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { AccountActions } from '@/components/account-actions';
+import { ApiErrorState } from '@/components/api-error-state';
 
 type User = { display_name: string };
 type AdaptedWorkout = { id: string; scheduled_on: string; name: string; duration_minutes: number; target_rpe: number };
@@ -51,7 +52,13 @@ export default function RecoveryPage() {
         setFatigueLevel(result.recovery.fatigue_level);
         setNotes(result.recovery.notes || '');
       }
-    }).catch(() => { window.location.href = '/entrar'; }).finally(() => setLoading(false));
+    }).catch((caught) => {
+      if (caught instanceof ApiError && caught.status === 401) {
+        window.location.href = '/entrar';
+        return;
+      }
+      setError(apiErrorMessage(caught, 'Não foi possível carregar sua recuperação.'));
+    }).finally(() => setLoading(false));
   }, [today]);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -66,7 +73,8 @@ export default function RecoveryPage() {
     } finally { setSaving(false); }
   }
 
-  if (loading || !user) return <main className="profile-loading"><LoaderCircle className="spin" />Carregando sua recuperação…</main>;
+  if (loading) return <main className="profile-loading"><LoaderCircle className="spin" />Carregando sua recuperação…</main>;
+  if (!user) return <ApiErrorState message={error || 'Não foi possível carregar sua recuperação.'} />;
   const resultCopy = recovery ? readinessCopy[recovery.readiness] : null;
   return <main className="recovery-shell">
     <header className="profile-topbar"><a href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</a><AccountActions label="ATLETA" name={user.display_name} /></header>

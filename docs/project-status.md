@@ -637,9 +637,9 @@ A versão local passou para `0.21.0` e a nota foi registrada em `frontend/lib/re
 
 ### Continuidade — erros de autenticação separados de falhas da API — versão local `0.22.0`
 
-O cliente HTTP agora preserva o status da resposta em `ApiError`. Na tela de perfil, somente `401 Unauthorized` redireciona para `/entrar`; falhas `500`, indisponibilidade da API ou problemas temporários de banco permanecem na tela e exibem uma mensagem orientando a verificar a API. Isso evita mascarar falhas operacionais como sessão expirada.
+O cliente HTTP agora preserva o status da resposta em `ApiError` e traduz falhas de conexão. Nas telas autenticadas, somente `401 Unauthorized` redireciona para `/entrar`; falhas `500`, indisponibilidade da API ou problemas temporários de banco permanecem na rota solicitada e exibem uma mensagem com opção de tentar novamente. Isso evita mascarar falhas operacionais como sessão expirada.
 
-A mudança é somente frontend, não altera autenticação, banco, prescrição ou produção. A nota `0.22.0` foi adicionada à tela de novidades. `npm run build` e `git diff --check` passaram; o lint direcionado continua apontando regras antigas já existentes no `api.ts` e no `page.tsx`. Falta a validação manual dos dois estados antes do commit.
+A mudança é somente frontend, não altera autenticação, banco, prescrição ou produção. A nota `0.22.0` foi adicionada à tela de novidades. `npm run build` e `git diff --check` passaram; o lint direcionado continua apontando regras antigas já existentes no `api.ts` e em páginas do frontend. Falta validar manualmente uma rota autenticada com a API desligada e confirmar que o login continua sendo usado quando a sessão expira, antes do commit.
 
 ## Como iniciar localmente
 

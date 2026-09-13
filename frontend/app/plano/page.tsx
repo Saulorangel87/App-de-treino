@@ -20,7 +20,8 @@ import { AdaptationCard } from '@/components/adaptation-card';
 import { RpeHelp } from '@/components/rpe-help';
 import { WorkoutSessionActions } from '@/components/workout-session-actions';
 import { WorkoutStructure } from '@/components/workout-structure';
-import { apiRequest } from '@/lib/api';
+import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
+import { ApiErrorState } from '@/components/api-error-state';
 import {
   parseTrainingDate,
   type TrainingPlan,
@@ -65,8 +66,12 @@ export default function PlanPage() {
         if (current.plan?.workouts.length)
           setSelected(current.plan.workouts[0]);
       })
-      .catch(() => {
-        window.location.href = '/entrar';
+      .catch((caught) => {
+        if (caught instanceof ApiError && caught.status === 401) {
+          window.location.href = '/entrar';
+          return;
+        }
+        setError(apiErrorMessage(caught, 'Não foi possível carregar seu plano.'));
       })
       .finally(() => setLoading(false));
   }, []);
@@ -216,6 +221,7 @@ export default function PlanPage() {
         Carregando seu plano…
       </main>
     );
+  if (!user) return <ApiErrorState message={error || 'Não foi possível carregar seu plano.'} />;
 
   return (
     <main className="plan-shell">

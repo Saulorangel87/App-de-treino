@@ -10,6 +10,19 @@ export class ApiError extends Error {
   }
 }
 
+export function isUnauthorized(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 401;
+}
+
+export function apiErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ApiError) return error.message;
+  if (error instanceof TypeError && error.message === 'Failed to fetch') {
+    return 'Não foi possível conectar à API. Verifique se ela está em execução e tente novamente.';
+  }
+  if (error instanceof Error) return error.message;
+  return fallback;
+}
+
 export async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
     ...options,

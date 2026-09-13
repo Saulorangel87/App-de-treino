@@ -11,7 +11,8 @@ import {
   Send,
 } from 'lucide-react';
 import { AccountActions } from '@/components/account-actions';
-import { apiRequest } from '@/lib/api';
+import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
+import { ApiErrorState } from '@/components/api-error-state';
 
 type User = { display_name: string };
 type Category = 'experience' | 'bug' | 'suggestion';
@@ -35,8 +36,12 @@ export default function FeedbackPage() {
   useEffect(() => {
     apiRequest<{ user: User }>('/v1/me')
       .then(({ user: account }) => setUser(account))
-      .catch(() => {
-        window.location.href = '/entrar';
+      .catch((caught) => {
+        if (caught instanceof ApiError && caught.status === 401) {
+          window.location.href = '/entrar';
+          return;
+        }
+        setError(apiErrorMessage(caught, 'Não foi possível carregar o feedback.'));
       })
       .finally(() => setLoading(false));
   }, []);
@@ -61,9 +66,10 @@ export default function FeedbackPage() {
     }
   }
 
-  if (loading || !user) {
+  if (loading) {
     return <main className="profile-loading"><LoaderCircle className="spin" />Carregando feedback…</main>;
   }
+  if (!user) return <ApiErrorState message={error || 'Não foi possível carregar o feedback.'} />;
 
   return (
     <main className="feedback-shell">

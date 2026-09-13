@@ -11,7 +11,8 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { AccountActions } from '@/components/account-actions';
-import { apiRequest } from '@/lib/api';
+import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
+import { ApiErrorState } from '@/components/api-error-state';
 import { APP_VERSION, UPDATE_NOTES, type UpdateNote } from '@/lib/release';
 
 type User = { display_name: string };
@@ -29,18 +30,23 @@ function groupNotesByVersion(notes: readonly UpdateNote[]) {
 export default function NoveltiesPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const versions = useMemo(() => groupNotesByVersion(UPDATE_NOTES), []);
 
   useEffect(() => {
     apiRequest<{ user: User }>('/v1/me')
       .then(({ user: account }) => setUser(account))
-      .catch(() => {
-        window.location.href = '/entrar';
+      .catch((caught) => {
+        if (caught instanceof ApiError && caught.status === 401) {
+          window.location.href = '/entrar';
+          return;
+        }
+        setError(apiErrorMessage(caught, 'Não foi possível carregar as novidades.'));
       })
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading || !user) {
+  if (loading) {
     return (
       <main className="profile-loading">
         <LoaderCircle className="spin" />
@@ -48,6 +54,7 @@ export default function NoveltiesPage() {
       </main>
     );
   }
+  if (!user) return <ApiErrorState message={error || 'Não foi possível carregar as novidades.'} />;
 
   return (
     <main className="updates-shell">

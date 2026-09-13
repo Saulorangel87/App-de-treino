@@ -1524,3 +1524,9 @@ Foram adicionados testes para coerência alinhada, conflito entre recuperação 
 Enquanto a observação dos shadows e os dados reais seguem em paralelo, o perfil recebeu uma extensão local para registrar, de forma opcional, localização, intensidade percebida, movimento agravante e data de início de uma limitação. A API valida os formatos, os limites de tamanho e a data; a migração `000022_limitation_context` é aditiva e preserva registros existentes.
 
 Esses dados melhoram o contexto de segurança e a auditabilidade, mas não são diagnóstico e não alteram a prescrição. O fluxo de planejamento continua usando somente o tipo da limitação e a recomendação de liberação profissional; `rules-v1` permanece prescritivo e os shadows permanecem observacionais. A versão local é `0.21.0`, com nota na tela de novidades; a produção segue em `0.20.0` até validação manual, commit, backup, migração e autorização de deploy.
+
+### Continuidade — falhas temporárias não devem encerrar a sessão — 13 de setembro de 2026
+
+Após a correção do carregamento do perfil, a mesma separação foi estendida ao painel, plano, atividades, avaliação, recuperação, evolução, feedback e novidades. O cliente HTTP preserva o status HTTP e traduz falhas de conexão; somente `401 Unauthorized` redireciona para a entrada. Erros de API, banco ou rede permanecem na rota solicitada com orientação e opção de tentar novamente.
+
+A mudança é somente frontend e não altera autenticação, banco, regras de prescrição, catálogo ou infraestrutura. A versão local continua em `0.22.0`, com a nota registrada na tela de novidades. `npm run build` e `git diff --check` passaram; o lint direcionado mantém pendências antigas. Falta a validação manual com a API desligada e com sessão expirada antes de oferecer o commit. Produção permanece em `0.20.0`.

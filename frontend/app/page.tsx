@@ -26,7 +26,8 @@ import { LogoutButton } from '@/components/account-actions';
 import { RpeHelp } from '@/components/rpe-help';
 import { WorkoutSessionActions } from '@/components/workout-session-actions';
 import { WorkoutStructure } from '@/components/workout-structure';
-import { apiRequest } from '@/lib/api';
+import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
+import { ApiErrorState } from '@/components/api-error-state';
 import {
   parseTrainingDate,
   type TrainingPlan,
@@ -158,6 +159,7 @@ export default function HomePage() {
   const [selected, setSelected] = useState<Workout | null>(null);
   const [recovery, setRecovery] = useState<Recovery | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const today = dateKey(new Date());
@@ -171,8 +173,12 @@ export default function HomePage() {
         setPlan(current.plan);
         setRecovery(daily.recovery);
       })
-      .catch(() => {
-        window.location.href = '/entrar';
+      .catch((caught) => {
+        if (caught instanceof ApiError && caught.status === 401) {
+          window.location.href = '/entrar';
+          return;
+        }
+        setError(apiErrorMessage(caught, 'Não foi possível carregar seu painel.'));
       })
       .finally(() => setLoading(false));
   }, []);
@@ -241,7 +247,7 @@ export default function HomePage() {
     });
   }, [activePlan, focusWorkout]);
 
-  if (loading || !user) {
+  if (loading) {
     return (
       <main className="profile-loading">
         <LoaderCircle className="spin" />
@@ -249,6 +255,7 @@ export default function HomePage() {
       </main>
     );
   }
+  if (!user) return <ApiErrorState message={error || 'Não foi possível carregar seu painel.'} />;
 
   if (!activePlan || !focusWorkout) {
     const completedCycle = plan?.status === 'completed';

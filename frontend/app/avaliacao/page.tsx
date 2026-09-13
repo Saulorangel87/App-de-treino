@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { Activity, AlertTriangle, ArrowLeft, Bike, CheckCircle2, Clock3, LoaderCircle } from 'lucide-react';
-import { apiRequest } from '@/lib/api';
+import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { AccountActions } from '@/components/account-actions';
+import { ApiErrorState } from '@/components/api-error-state';
 
 type User = { display_name: string };
 type Assessment = { id: string; duration_minutes: number; actual_rpe: number; pain_reported: boolean; eligible_for_progression: boolean };
@@ -23,7 +24,13 @@ export default function AssessmentPage() {
   useEffect(() => {
     Promise.all([apiRequest<{ user: User }>('/v1/me'), apiRequest<{ assessment: Assessment | null }>('/v1/assessments/current')])
       .then(([account, current]) => { setUser(account.user); setAssessment(current.assessment); })
-      .catch(() => { window.location.href = '/entrar'; })
+      .catch((caught) => {
+        if (caught instanceof ApiError && caught.status === 401) {
+          window.location.href = '/entrar';
+          return;
+        }
+        setError(apiErrorMessage(caught, 'Não foi possível carregar sua avaliação.'));
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -35,7 +42,8 @@ export default function AssessmentPage() {
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Não foi possível registrar a avaliação.'); } finally { setSaving(false); }
   }
 
-  if (loading || !user) return <main className="profile-loading"><LoaderCircle className="spin" />Carregando sua avaliação…</main>;
+  if (loading) return <main className="profile-loading"><LoaderCircle className="spin" />Carregando sua avaliação…</main>;
+  if (!user) return <ApiErrorState message={error || 'Não foi possível carregar sua avaliação.'} />;
   return <main className="assessment-shell">
     <header className="profile-topbar"><a href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</a><AccountActions label="ATLETA" name={user.display_name} /></header>
     <section className="assessment-content">

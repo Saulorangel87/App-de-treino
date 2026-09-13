@@ -11,7 +11,7 @@ export const UPDATE_NOTES: readonly UpdateNote[] = [
     version: '0.22.0',
     title: 'Erros de acesso mais claros',
     description:
-      'Problemas temporários da API ou do banco agora aparecem como erro de carregamento no perfil. O Cadência só volta ao login quando a sessão realmente não está autenticada.',
+      'Problemas temporários da API ou do banco agora aparecem como erro de carregamento nas telas autenticadas. O Cadência só volta ao login quando a sessão realmente não está autenticada.',
   },
   {
     version: '0.21.0',

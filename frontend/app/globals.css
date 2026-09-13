@@ -2122,6 +2122,20 @@ button {
   color: #66766d;
   font-size: 11px;
 }
+.api-error-state {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  color: #16382c;
+  text-align: center;
+}
+.api-error-state strong { font-size: 18px; }
+.api-error-state p { max-width: 420px; margin: 0; color: #66766d; font-size: 13px; line-height: 1.5; }
+.api-error-state button { margin-top: 8px; padding: 10px 16px; border: 1px solid #1f7656; border-radius: 9px; background: #155a42; color: white; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .spin {
   animation: spinner 0.8s linear infinite;
 }
