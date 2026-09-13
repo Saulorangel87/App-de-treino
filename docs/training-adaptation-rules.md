@@ -244,6 +244,12 @@ Esses sinais são observacionais nesta versão: não são diagnóstico, não sub
 
 Na fatia técnica seguinte, esses mesmos sinais passaram a ser classificados também pelo bloco `post-workout-context-v1`, aninhado em `workouts.explanation.adaptation_shadow`. O bloco registra cobertura completa, parcial, ausente ou inválida por meio de `observed_fields`, `missing_data`, `data_issues` e motivos explicáveis. Mesmo quando os dois valores estão presentes, `candidate_response: maintain_observed`, `progression_eligible: false` e `used_for_prescription: false` deixam explícito que o resultado é somente registro; não há limiar fisiológico, tendência longitudinal ou efeito prescritivo sendo inferido.
 
+### Auditoria da decisão em shadow
+
+O bloco `adaptation-audit-v1`, também aninhado em `adaptation_shadow`, registra a proveniência da avaliação: dados considerados, lacunas, restrições aplicadas, caminhos de adaptação não selecionados e condições informativas para uma futura revisão. `confidence` permanece `not_calibrated`, porque ainda não existe calibração estatística ou validação de efeito que justifique um nível de confiança.
+
+Essa auditoria não transforma condições futuras em gatilhos automáticos. Ela mantém `used_for_prescription: false`, não altera o `rules-v1`, não substitui o check-in diário e não interpreta o efeito fisiológico de uma sessão. Os caminhos listados como não selecionados são explicativos; qualquer mudança prescritiva exigirá cobertura, comparação, calibração e revisão específicas.
+
 ### Rotação segura e recuperação ativa
 
 O catálogo geral possui o protocolo `active_recovery`, apresentado ao atleta como **Recuperação ativa**. O motor o seleciona somente para uma sessão de base na quarta semana do ciclo. A sessão mantém o multiplicador de recuperação já existente, usa alvo RPE 3,5 e uma instrução de pedal leve e contínuo; não representa uma prescrição universal de minutos ou intensidade.

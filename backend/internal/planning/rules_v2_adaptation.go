@@ -27,6 +27,7 @@ type RulesV2AdaptationShadowAssessment struct {
 	NotEvaluated        []string                      `json:"not_evaluated"`
 	PlannedVsActual     *PlannedVsActualAssessment    `json:"planned_vs_actual,omitempty"`
 	PostWorkoutContext  *PostWorkoutContextAssessment `json:"post_workout_context,omitempty"`
+	DecisionAudit       *AdaptationDecisionAudit      `json:"decision_audit,omitempty"`
 	LoadTolerance       *LoadToleranceAssessment      `json:"load_tolerance,omitempty"`
 	ProgressionEligible bool                          `json:"progression_eligible"`
 	Applied             bool                          `json:"applied"`
@@ -41,8 +42,13 @@ func assessRulesV2AdaptationShadow(targetRPE float64, input CompletionInput, per
 	return assessRulesV2AdaptationShadowWithIntegrity(targetRPE, input, periods, nil, now)
 }
 
-func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input CompletionInput, periods []TrainingHistoryPeriod, integrity *WorkoutDataIntegrityAssessment, now time.Time) RulesV2AdaptationShadowAssessment {
-	result := RulesV2AdaptationShadowAssessment{
+func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input CompletionInput, periods []TrainingHistoryPeriod, integrity *WorkoutDataIntegrityAssessment, now time.Time) (result RulesV2AdaptationShadowAssessment) {
+	defer func() {
+		audit := buildAdaptationDecisionAudit(result, input, now)
+		result.DecisionAudit = &audit
+	}()
+
+	result = RulesV2AdaptationShadowAssessment{
 		Version:           rulesV2AdaptationVersion,
 		Mode:              rulesV2AdaptationMode,
 		Scope:             rulesV2AdaptationScope,

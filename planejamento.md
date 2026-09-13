@@ -1349,4 +1349,12 @@ A próxima fatia técnica integra `recovery_after` e `repeat_confidence` à aval
 
 Mesmo com os dois sinais válidos, o resultado permanece `candidate_response: maintain_observed`, `progression_eligible: false` e `used_for_prescription: false`. O `rules-v1`, o trigger, o banco e o comportamento das próximas sessões permanecem inalterados; não foi criada migração nem houve mudança visual ou de versão. A tipagem TypeScript e o contrato OpenAPI foram atualizados para leitura do novo bloco.
 
-Os testes cobrem contexto completo, parcial e inválido, além da anexação ao shadow sem torná-lo autoritativo. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. Esta fatia permanece local, sem commit, deploy ou alteração de infraestrutura. Próxima etapa: validar manualmente o retorno via API local após reiniciar o binário atual e, em seguida, oferecer o commit.
+Os testes cobrem contexto completo, parcial e inválido, além da anexação ao shadow sem torná-lo autoritativo. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. A validação manual via API local confirmou os dois sinais com `status: "observed"`, sem progressão ou aplicação prescritiva. A implementação foi registrada no commit `46a900f`; não houve deploy ou alteração de infraestrutura. Próxima etapa: registrar a proveniência da decisão shadow antes de qualquer uso prescritivo.
+
+### Continuidade — auditoria da decisão em shadow — 12 de setembro de 2026
+
+A etapa seguinte tornou a avaliação `rules-v2-adaptation-v1` mais auditável com o bloco `adaptation-audit-v1`. Ele registra os dados usados, as lacunas, as restrições aplicadas, os caminhos de adaptação não selecionados e as condições informativas para uma futura revisão. O campo `confidence` fica em `not_calibrated`, pois ainda não há calibração estatística nem evidência de efeito que permita apresentar um nível de confiança.
+
+O bloco não cria gatilhos, não muda a duração, o RPE, o estímulo ou o status das próximas sessões e mantém `used_for_prescription: false`. O `rules-v1`, o trigger e a infraestrutura permanecem inalterados; não houve migração, mudança visual ou atualização da versão visível. A tipagem TypeScript e o contrato OpenAPI foram atualizados.
+
+Foram adicionados testes de proveniência, lacunas e serialização JSON. `go test -count=1 ./...`, `go vet ./...`, `npm run build`, `oxlint` da tipagem alterada e `git diff --check` passaram. Esta fatia permanece local, sem deploy. Próxima etapa: validar manualmente o novo bloco no `GET /v1/plans/current` após reiniciar a API atual e, depois, oferecer o commit.

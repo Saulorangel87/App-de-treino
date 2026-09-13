@@ -681,8 +681,27 @@ components:
           $ref: '#/components/schemas/LoadToleranceAssessment'
         post_workout_context:
           $ref: '#/components/schemas/PostWorkoutContextAssessment'
+        decision_audit:
+          $ref: '#/components/schemas/AdaptationDecisionAudit'
         progression_eligible: { type: boolean, enum: [false] }
         applied: { type: boolean, enum: [false] }
+        used_for_prescription: { type: boolean, enum: [false] }
+    AdaptationDecisionAudit:
+      type: object
+      description: Proveniência e limites da avaliação shadow. A confiança não está calibrada e o bloco não autoriza prescrição.
+      required: [version, mode, scope, assessed_at, data_used, missing_data, constraints_applied, alternatives_rejected, conditions_for_change, confidence, not_evaluated, used_for_prescription]
+      properties:
+        version: { type: string, enum: [adaptation-audit-v1] }
+        mode: { type: string, enum: [observation] }
+        scope: { type: string, enum: [post_workout_feedback] }
+        assessed_at: { type: string, format: date-time }
+        data_used: { type: array, items: { type: string } }
+        missing_data: { type: array, items: { type: string } }
+        constraints_applied: { type: array, items: { type: string } }
+        alternatives_rejected: { type: array, items: { type: string } }
+        conditions_for_change: { type: array, items: { type: string } }
+        confidence: { type: string, enum: [not_calibrated] }
+        not_evaluated: { type: array, items: { type: string } }
         used_for_prescription: { type: boolean, enum: [false] }
     PlannedVsActualAssessment:
       type: object

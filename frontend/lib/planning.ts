@@ -77,6 +77,20 @@ export type Workout = {
         progression_eligible: false;
         used_for_prescription: false;
       };
+      decision_audit?: {
+        version: 'adaptation-audit-v1';
+        mode: 'observation';
+        scope: 'post_workout_feedback';
+        assessed_at: string;
+        data_used: string[];
+        missing_data: string[];
+        constraints_applied: string[];
+        alternatives_rejected: string[];
+        conditions_for_change: string[];
+        confidence: 'not_calibrated';
+        not_evaluated: string[];
+        used_for_prescription: false;
+      };
       planned_vs_actual?: {
         version: 'planned-vs-actual-v1';
         mode: 'observation';

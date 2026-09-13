@@ -219,9 +219,18 @@ Arquivos desta fatia: `frontend/app/novidades/page.tsx`, `frontend/app/globals.c
 - `post-workout-context-v1` classifica a cobertura de `recovery_after` e `repeat_confidence` dentro de `workouts.explanation.adaptation_shadow`. O bloco distingue os dois sinais completos, contexto parcial, ausência de registro e valores fora da faixa, mantendo `observed_fields`, `missing_data`, `data_issues` e motivos explícitos.
 - O bloco é estritamente observacional: `progression_eligible` e `used_for_prescription` permanecem `false`, `rules-v1` continua sendo o único motor ativo e a resposta `maintain_observed` significa apenas que os dados foram registrados, não que uma prescrição foi validada.
 - Foram adicionados testes para contexto completo, parcial, inválido e para o isolamento da avaliação dentro do shadow. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram.
-- Não houve migração, mudança visual, atualização de versão, alteração de infraestrutura, commit ou deploy nesta fatia. Produção permanece em `0.16.0`/`000019`.
+- A validação manual via API local confirmou os dois valores no bloco `post_workout_context`, com `status: "observed"`, e preservou `progression_eligible: false` e `used_for_prescription: false`. A implementação foi registrada no commit `46a900f`; não houve migração, mudança visual, atualização de versão, alteração de infraestrutura ou deploy. Produção permanece em `0.16.0`/`000019`.
 
 Arquivos desta fatia: `backend/internal/planning/post_workout_context.go`, `backend/internal/planning/post_workout_context_test.go`, `backend/internal/planning/rules_v2_adaptation.go`, `frontend/lib/planning.ts`, `api/openapi.yaml` e esta documentação.
+
+### Auditoria da decisão do shadow — versão local (sem mudança visual)
+
+- `adaptation-audit-v1` registra, junto da avaliação `rules-v2-adaptation-v1`, os dados considerados, as lacunas, as restrições aplicadas, os caminhos de adaptação não selecionados e as condições informativas para uma futura revisão.
+- O campo `confidence` permanece `not_calibrated`; nenhum nível de confiança é inventado. O bloco também mantém `used_for_prescription: false`, e as condições registradas não funcionam como gatilhos automáticos.
+- Foram adicionados testes para proveniência, lacunas de evidência e serialização JSON estável. `go test -count=1 ./...`, `go vet ./...`, `npm run build`, `oxlint` da tipagem alterada e `git diff --check` passaram.
+- Não houve migração, mudança visual, atualização de versão, alteração de infraestrutura, commit ou deploy nesta fatia. Produção permanece em `0.16.0`/`000019`.
+
+Arquivos desta fatia: `backend/internal/planning/adaptation_audit.go`, `backend/internal/planning/adaptation_audit_test.go`, `backend/internal/planning/rules_v2_adaptation.go`, `frontend/lib/planning.ts`, `api/openapi.yaml` e esta documentação.
 
 ### Décima fatia de melhorias — piloto publicado de intervalos aeróbicos XCO
 

@@ -174,6 +174,14 @@ O aviso exibido no primeiro acesso após uma atualização deve comunicar soment
 
 Essa separação preserva a exigência de informar mudanças logo após uma atualização sem transformar o modal em uma lista extensa. A confirmação continua sendo armazenada por conta, versão e navegador; abrir o histórico pelo aviso também encerra o aviso atual. A versão local foi atualizada para `0.19.0`, validada visualmente e registrada no commit `8798ea3`; produção permanece em `0.16.0` até backup, deploy e autorização explícita.
 
+## ADR-014 — Auditoria da avaliação shadow de adaptação
+
+**Status:** Implementada localmente; ainda não publicada.
+
+Toda avaliação `rules-v2-adaptation-v1` deve expor sua proveniência em `adaptation-audit-v1`: dados considerados, lacunas, restrições aplicadas, caminhos não selecionados e condições informativas para uma eventual revisão. A confiança fica explicitamente como `not_calibrated` até existir base de dados e calibração suficientes.
+
+O bloco é observacional e não é um novo motor de prescrição. `rules-v1`, o trigger e o comportamento das sessões permanecem inalterados; `used_for_prescription` é sempre `false`. A decisão evita esconder limitações atrás de uma resposta genérica e cria uma superfície estável para auditoria antes de qualquer adaptação em ciclo fechado.
+
 ## Estado de produção
 
 Em 3 de setembro de 2026, o commit `57c241a` foi implantado na VPS Oracle. A imagem da API, do job de digest e do frontend foi reconstruída com Go 1.25; as migrações `000013` e `000014` foram aplicadas após backup preventivo. O serviço Ollama permanece isolado e parado após a medição de capacidade, e a API usa temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.
