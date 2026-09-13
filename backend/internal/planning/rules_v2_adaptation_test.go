@@ -40,6 +40,27 @@ func TestAssessRulesV2AdaptationShadowKeepsCompleteProgressionAsCandidate(t *tes
 	}
 }
 
+func TestAssessRulesV2AdaptationShadowRequiresRecoveryInEachTolerancePeriod(t *testing.T) {
+	periods := validHistoryPeriods()
+	periods[0].CompleteRecoveryCheckins = 0
+	assessment := assessRulesV2AdaptationShadow(6, CompletionInput{
+		ActualRPE: 4, Difficulty: "easy", FatigueAfter: 2,
+	}, periods, time.Unix(0, 0))
+
+	if assessment.Status != "not_evaluated" || assessment.CandidateResponse != "defer_progression" {
+		t.Fatalf("missing recent recovery evidence produced a progression candidate: %+v", assessment)
+	}
+	if !slices.Contains(assessment.MissingData, "recent_complete_recovery_checkin") {
+		t.Fatalf("load-tolerance recovery gap was not propagated: %#v", assessment.MissingData)
+	}
+	if !slices.Contains(assessment.Reasons, ReadinessReason{
+		Code:    "progression_deferred_load_tolerance",
+		Message: "A avaliação de tolerância à carga ainda não está completa em cada período exigido; a progressão permanece adiada.",
+	}) {
+		t.Fatalf("missing load-tolerance deferral reason: %#v", assessment.Reasons)
+	}
+}
+
 func TestAssessRulesV2AdaptationShadowPrioritizesPain(t *testing.T) {
 	input := CompletionInput{ActualRPE: 4, Difficulty: "easy", FatigueAfter: 1, PainReported: true}
 	assessment := assessRulesV2AdaptationShadow(6, input, validHistoryPeriods(), time.Unix(0, 0))

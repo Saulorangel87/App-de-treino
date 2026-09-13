@@ -230,6 +230,14 @@ O `adaptation-audit-v1` deve distinguir dados realmente considerados de campos i
 
 Essa decisão evita uma explicação que pareça mais completa do que os dados permitem. Ela não altera a classificação fisiológica, não ativa qualquer candidato do `rules-v2`, não modifica `rules-v1` ou o trigger e mantém a auditoria sem autoridade prescritiva.
 
+## ADR-021 — Progressão shadow exige recuperação em cada período
+
+**Status:** Implementada localmente; ainda não publicada.
+
+O candidato de progressão do `rules-v2-adaptation-v1` deve respeitar a mesma cobertura de recuperação definida por `load-tolerance-v1`: cada um dos dois períodos recentes precisa ter carga por session-RPE, feedback completo e ao menos um check-in de recuperação completo.
+
+Essa decisão evita que um check-in antigo cubra uma lacuna no período mais recente. Quando a avaliação de tolerância não está completa, a candidata fica adiada e a lacuna é registrada; nenhum resultado observacional altera `rules-v1`, o trigger ou a prescrição ativa.
+
 ## Estado de produção
 
 Em 3 de setembro de 2026, o commit `57c241a` foi implantado na VPS Oracle. A imagem da API, do job de digest e do frontend foi reconstruída com Go 1.25; as migrações `000013` e `000014` foram aplicadas após backup preventivo. O serviço Ollama permanece isolado e parado após a medição de capacidade, e a API usa temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.

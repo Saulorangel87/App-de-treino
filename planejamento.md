@@ -1422,3 +1422,11 @@ A revisão seguinte encontrou uma limitação de auditabilidade: `adaptation-aud
 A auditoria agora consolida essas lacunas quando os blocos estão disponíveis, identifica `training_history_periods` quando o histórico foi avaliado e só lista os campos básicos como usados quando o feedback e o RPE passam pela validação mínima. Dados inválidos não são apresentados como fundamento da decisão; a avaliação continua observacional e o `rules-v1` permanece prescritivo.
 
 Foram adicionados testes para lacunas aninhadas, feedback inválido e proveniência do gate de tolerância. `go test -count=1 ./...`, `go vet` e `git diff --check` passaram. Não houve mudança visual, release, migração, infraestrutura ou deploy. Esta fatia está validada localmente e será registrada no commit autorizado. Próxima etapa: continuar a revisão de coerência entre integridade, carga, contexto pós-treino e evidência.
+
+### Continuidade — recuperação exigida em cada período de tolerância — 13 de setembro de 2026
+
+A revisão seguinte encontrou uma divergência entre os gates: `load-tolerance-v1` exigia um check-in de recuperação completo em cada um dos dois períodos, mas o gate de progressão do shadow aceitava qualquer check-in distribuído entre os dois. Assim, uma recuperação registrada apenas no período anterior poderia deixar a candidata de progressão parecer mais sustentada do que a evidência permitia.
+
+O `rules-v2-adaptation-v1` agora só considera a candidata quando `load-tolerance-v1` está em `observation_only`. As lacunas de recuperação, carga ou feedback são propagadas para o resultado e mantêm `not_evaluated`/`defer_progression`; sinais protetivos continuam prioritários. Não há inferência de baixa tolerância por ausência de registro.
+
+Foi adicionada regressão para o caso de recuperação ausente no período recente. `go test -count=1 ./...`, `go vet` e `git diff --check` passaram. Não houve mudança visual, release, migração, infraestrutura ou deploy. Esta fatia está validada localmente e aguarda o commit autorizado. Próxima etapa: continuar a revisão dos gates de adaptação em shadow, mantendo a separação entre observação e prescrição.

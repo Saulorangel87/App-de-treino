@@ -164,6 +164,18 @@ func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input Complet
 		result.CandidateResponse = "maintain_observed"
 		return result
 	}
+	if loadTolerance.Status != "observation_only" {
+		for _, value := range loadTolerance.MissingData {
+			addMissing(value)
+		}
+		for _, value := range loadTolerance.DataIssues {
+			result.DataIssues = appendUniqueString(result.DataIssues, value)
+		}
+		if len(loadTolerance.MissingData) == 0 && len(loadTolerance.DataIssues) == 0 {
+			addMissing("load_tolerance_observation")
+		}
+		addReason("progression_deferred_load_tolerance", "A avaliação de tolerância à carga ainda não está completa em cada período exigido; a progressão permanece adiada.")
+	}
 
 	if len(comparison.Periods) < 2 {
 		addMissing("recent_period")

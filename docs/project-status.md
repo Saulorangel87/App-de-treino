@@ -80,6 +80,13 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - Foram adicionados testes para lacunas aninhadas, campos inválidos e registro do gate de tolerância. `go test -count=1 ./...`, `go vet` e `git diff --check` passaram.
 - A alteração é somente observacional e documental: `rules-v1`, trigger, banco, interface, release, migrações, infraestrutura e produção permanecem inalterados.
 
+### Coerência da evidência de recuperação por período — versão local (validado; sem publicação)
+
+- A candidata de progressão do `rules-v2-adaptation-v1` agora só avança na avaliação quando `load-tolerance-v1` está em `observation_only`. Isso exige carga, feedback completo e um check-in de recuperação completo em cada um dos dois períodos não sobrepostos.
+- Quando a recuperação existe apenas no período anterior, a lacuna do período recente é propagada e o resultado fica `not_evaluated`/`defer_progression`, sem tratar a ausência de registro como diagnóstico ou baixa tolerância.
+- Foi adicionada regressão para impedir progressão com recuperação incompleta em um dos períodos. `go test -count=1 ./...`, `go vet` e `git diff --check` passaram.
+- Esta alteração é somente de shadow e testes: `rules-v1`, trigger, banco, interface, release, migrações, infraestrutura e produção permanecem inalterados.
+
 ### Décima quarta fatia de melhorias — taper pré-prova orientado por evento (local)
 
 - O plano local passa a registrar `prescription_snapshot.event_taper` com `taper-v1`. A redução só é prescritiva para evento futuro entre 7 e 21 dias, atleta avançado, avaliação submáxima apta, pelo menos 8 semanas e 3 pedais semanais, sem limitação, dor ou necessidade recente de recuperação.
