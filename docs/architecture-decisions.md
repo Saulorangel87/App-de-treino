@@ -284,7 +284,7 @@ Um desencontro é registrado como observação e não dispara troca de treino, a
 
 O perfil pode registrar localização, intensidade percebida, movimento agravante e data de início de uma limitação, além dos campos já existentes. Esses dados são opcionais, possuem limites de formato e tamanho e não aceitam data futura. O texto da interface informa que o registro não é diagnóstico e mantém a recomendação de avaliação profissional quando aplicável.
 
-Os detalhes servem para contexto informado pelo atleta e auditabilidade do cadastro. O fluxo de planejamento consulta somente o tipo da limitação e a recomendação de liberação profissional; localização, intensidade e movimento agravante não entram no `prescription_snapshot` nem autorizam interpretação clínica. `rules-v1` continua sendo a única autoridade prescritiva, e os shadows permanecem não autoritativos. A migração `000022` é aditiva e preserva registros anteriores; a versão local `0.21.0` é comunicada pela tela de novidades e aguarda validação manual antes de commit e publicação.
+Os detalhes servem para contexto informado pelo atleta e auditabilidade do cadastro. O fluxo de planejamento consulta somente o tipo da limitação e a recomendação de liberação profissional; localização, intensidade e movimento agravante não entram no `prescription_snapshot` nem autorizam interpretação clínica. `rules-v1` continua sendo a única autoridade prescritiva, e os shadows permanecem não autoritativos. A migração `000022` é aditiva e preserva registros anteriores; a versão local `0.21.0` é comunicada pela tela de novidades, foi validada e está no commit `9514a00`, mas ainda não foi publicada.
 
 ## Estado de produção
 

@@ -345,7 +345,7 @@ O perfil pode registrar, além do tipo e da descrição, localização, intensid
 
 Esses detalhes permanecem separados da prescrição. O contexto usado na geração do plano consulta somente a existência da limitação ativa, seu tipo e a recomendação de liberação profissional. Assim, o `rules-v1` continua aplicando as proteções existentes sem interpretar localização, intensidade ou movimento como diagnóstico, e os shadows continuam sem autoridade. Planos já gerados não são recalculados.
 
-A migração `000022_limitation_context` preserva registros anteriores usando valores vazios/nulos compatíveis. A versão local `0.21.0` comunica a mudança pela tela de novidades; produção permanece em `0.20.0` até validação manual, backup, aplicação ordenada da migração e autorização de publicação.
+A migração `000022_limitation_context` preserva registros anteriores usando valores vazios/nulos compatíveis. A versão local `0.21.0` comunica a mudança pela tela de novidades; a fatia foi validada no navegador e registrada no commit `9514a00`. Produção permanece em `0.20.0` até backup, aplicação ordenada da migração e autorização de publicação.
 
 ### Estado operacional para a próxima revisão
 
