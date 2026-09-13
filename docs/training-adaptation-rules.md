@@ -244,6 +244,8 @@ Ao concluir um treino, o atleta informa se realizou a sessão completa ou apenas
 
 O contexto é informativo e não diagnostica a causa da interrupção. Uma sessão parcial pode entrar na observação quando seus dados são coerentes, mas não é usada como evidência de tolerância ao treino completo e não libera progressão. O trigger do `rules-v1` mantém proteções para dor, fadiga e esforço alto; somente a ramificação de progressão exige `completion_status = 'complete'`.
 
+Na avaliação `rules-v2-adaptation-v1`, a conclusão parcial agora é um gate explícito do shadow. Depois que sinais protetivos de dor, fadiga ou esforço alto são priorizados, uma sessão `partial` recebe `status: not_evaluated`, `candidate_response: defer_progression` e o motivo `partial_completion`. O `adaptation-audit-v1` também registra `partial_completion` como restrição; isso torna visível que a sessão foi observada, mas não serve como evidência de tolerância ao treino inteiro.
+
 ### Contexto adicional pós-treino (`000021`)
 
 O feedback pode registrar também `recovery_after` e `repeat_confidence`, ambos em escala de 1 a 5. O primeiro descreve a recuperação percebida após a sessão; o segundo registra a confiança do atleta para repetir aquele treino. Os campos são opcionais no armazenamento para preservar feedbacks antigos e são preenchidos pelo formulário atual com uma resposta neutra inicial.

@@ -73,6 +73,9 @@ func buildAdaptationDecisionAudit(result RulesV2AdaptationShadowAssessment, inpu
 		addConstraint("protective_signal_gate")
 		addCondition("confirmar_recuperacao_adequada_antes_de_considerar_progressao")
 	}
+	if result.LoadTolerance != nil && result.LoadTolerance.Status == "protective_signal" {
+		addConstraint("load_tolerance_gate")
+	}
 	if result.CandidateResponse == "progress_duration_5pct" {
 		addConstraint("progression_remains_shadow_only")
 	}

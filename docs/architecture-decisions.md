@@ -214,6 +214,14 @@ Quando `load-tolerance-v1` classifica um sinal protetivo recente, o `rules-v2-ad
 
 Essa decisão fecha a integração entre o avaliador de tolerância e o shadow sem ativar prescrição: `rules-v1` e o trigger continuam responsáveis pela adaptação real, enquanto `progression_eligible`, `applied` e `used_for_prescription` permanecem falsos. O motivo específico e a regra avaliada ficam disponíveis para auditoria e regressão.
 
+## ADR-019 — Conclusão parcial bloqueia progressão observacional
+
+**Status:** Implementada localmente; ainda não publicada.
+
+Uma sessão marcada como `partial` não representa tolerância ao treino completo. O `rules-v2-adaptation-v1` deve priorizar sinais protetivos de dor, fadiga ou esforço alto e, quando eles não existirem, registrar `not_evaluated`/`defer_progression` com o motivo `partial_completion`.
+
+A decisão torna explícita a coerência entre o contexto de conclusão, a integridade e os gates de carga sem interpretar o motivo da interrupção como diagnóstico. O `rules-v1`, o trigger SQL e a prescrição ativa permanecem inalterados; o resultado continua com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. A auditoria também identifica o `load_tolerance_gate` quando a tolerância observada está protetiva.
+
 ## Estado de produção
 
 Em 3 de setembro de 2026, o commit `57c241a` foi implantado na VPS Oracle. A imagem da API, do job de digest e do frontend foi reconstruída com Go 1.25; as migrações `000013` e `000014` foram aplicadas após backup preventivo. O serviço Ollama permanece isolado e parado após a medição de capacidade, e a API usa temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.

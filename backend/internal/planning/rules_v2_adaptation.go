@@ -57,6 +57,7 @@ func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input Complet
 		CandidateResponse: "not_evaluated",
 		RulesEvaluated: []string{
 			"feedback_integrity_gate",
+			"completion_context_gate",
 			"load_tolerance_gate",
 			"protective_signal_gate",
 			"progression_evidence_gate",
@@ -143,6 +144,12 @@ func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input Complet
 		}
 		result.Status = "protective_signal"
 		result.CandidateResponse = "prefer_recovery"
+		return result
+	}
+	if normalizeCompletionStatus(input.CompletionStatus) == "partial" {
+		addReason("partial_completion", "A sessão foi concluída parcialmente; ela pode ser observada, mas não é evidência de tolerância ao treino completo e não libera progressão.")
+		result.Status = "not_evaluated"
+		result.CandidateResponse = "defer_progression"
 		return result
 	}
 

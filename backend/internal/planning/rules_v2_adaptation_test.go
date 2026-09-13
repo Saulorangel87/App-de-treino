@@ -52,6 +52,23 @@ func TestAssessRulesV2AdaptationShadowPrioritizesPain(t *testing.T) {
 	}
 }
 
+func TestAssessRulesV2AdaptationShadowDefersPartialCompletion(t *testing.T) {
+	assessment := assessRulesV2AdaptationShadow(6, CompletionInput{
+		ActualRPE: 4, Difficulty: "easy", FatigueAfter: 2,
+		CompletionStatus: "partial", PartialReason: "time_available_changed",
+	}, validHistoryPeriods(), time.Unix(0, 0))
+
+	if assessment.Status != "not_evaluated" || assessment.CandidateResponse != "defer_progression" {
+		t.Fatalf("partial completion produced an adaptation candidate: %+v", assessment)
+	}
+	if !slices.Contains(assessment.Reasons, ReadinessReason{
+		Code:    "partial_completion",
+		Message: "A sessão foi concluída parcialmente; ela pode ser observada, mas não é evidência de tolerância ao treino completo e não libera progressão.",
+	}) {
+		t.Fatalf("missing partial-completion reason: %+v", assessment.Reasons)
+	}
+}
+
 func TestAssessRulesV2AdaptationShadowRejectsInconsistentEvidence(t *testing.T) {
 	periods := validHistoryPeriods()
 	periods[0].PeriodDays = 6

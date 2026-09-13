@@ -66,6 +66,13 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - A matriz comparativa recebeu o cenário de resposta fácil atual com esforço acima do alvo recente e confirmou `protective_signal`/`prefer_recovery`, mantendo `progression_eligible`, `applied` e `used_for_prescription` como `false`.
 - Os testes direcionados de planejamento, repositório e HTTP, `go vet` e `git diff --check` passaram. Não houve mudança visual, migração, release, infraestrutura ou deploy; não é necessário teste no navegador nesta fatia.
 
+### Coerência da conclusão parcial no shadow — versão local (validado; sem publicação)
+
+- O `rules-v2-adaptation-v1` agora avalia explicitamente `completion_status` antes de considerar uma candidata de progressão. Após priorizar sinais protetivos reais, uma sessão `partial` fica como `not_evaluated`/`defer_progression` com o motivo `partial_completion`.
+- A decisão não transforma falta de tempo, interrupção ou outra conclusão parcial em sinal fisiológico de recuperação; apenas impede que a sessão seja confundida com tolerância ao treino completo. O histórico e o `load-tolerance-v1` continuam exigindo feedback completo para evidência de carga tolerada.
+- A auditoria passou a registrar `load_tolerance_gate` quando a tolerância observada está protetiva. A matriz automatizada cobre a conclusão parcial e a auditoria do gate; `go test -count=1 ./...`, `go vet` e `git diff --check` passaram.
+- Esta é uma correção somente de shadow, testes e documentação: `rules-v1`, trigger, banco, interface, release, migrações, infraestrutura e produção permanecem inalterados.
+
 ### Décima quarta fatia de melhorias — taper pré-prova orientado por evento (local)
 
 - O plano local passa a registrar `prescription_snapshot.event_taper` com `taper-v1`. A redução só é prescritiva para evento futuro entre 7 e 21 dias, atleta avançado, avaliação submáxima apta, pelo menos 8 semanas e 3 pedais semanais, sem limitação, dor ou necessidade recente de recuperação.

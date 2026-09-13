@@ -57,6 +57,21 @@ func TestAdaptationDecisionAuditPreservesMissingEvidence(t *testing.T) {
 	}
 }
 
+func TestAdaptationDecisionAuditRecordsLoadToleranceGate(t *testing.T) {
+	periods := validHistoryPeriods()
+	periods[0].AboveTargetRPESessions = 1
+	assessment := assessRulesV2AdaptationShadow(6, CompletionInput{
+		ActualRPE: 4, Difficulty: "easy", FatigueAfter: 2,
+	}, periods, time.Unix(0, 0))
+
+	if assessment.DecisionAudit == nil {
+		t.Fatal("shadow assessment did not include decision audit")
+	}
+	if !slices.Contains(assessment.DecisionAudit.ConstraintsApplied, "load_tolerance_gate") {
+		t.Fatalf("load tolerance gate was not recorded: %#v", assessment.DecisionAudit.ConstraintsApplied)
+	}
+}
+
 func TestAdaptationDecisionAuditUsesStableJSONField(t *testing.T) {
 	assessment := assessRulesV2AdaptationShadow(6, CompletionInput{
 		ActualRPE: 5, Difficulty: "moderate", FatigueAfter: 3,

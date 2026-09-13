@@ -1406,3 +1406,11 @@ O shadow agora incorpora esse gate. Quando a tolerância observada está proteti
 A matriz comparativa foi ampliada com o cenário de resposta fácil e esforço acima do alvo recente. Os testes direcionados de planejamento, repositório e HTTP, `go vet` e `git diff --check` passaram. Não houve migração, mudança visual, atualização de release, deploy ou alteração de infraestrutura.
 
 Esta fatia está validada localmente e aguarda o commit do proprietário. Próxima etapa: continuar a revisão dos gates de adaptação em shadow, especialmente a coerência entre contexto de conclusão, integridade, carga e evidência, antes de qualquer integração prescritiva.
+
+### Continuidade — conclusão parcial explícita no shadow — 13 de setembro de 2026
+
+A revisão da coerência entre contexto de conclusão, integridade, carga e evidência encontrou uma lacuna de auditabilidade: uma sessão `partial` já não liberava a adaptação ativa do `rules-v1`, mas a avaliação `rules-v2-adaptation-v1` podia terminar como `observation_only`/`maintain_observed`, sem deixar explícito no resultado principal que a progressão deveria ser adiada.
+
+O shadow agora prioriza as proteções de dor, fadiga e esforço alto e, na ausência delas, aplica o gate de conclusão parcial: `status: not_evaluated`, `candidate_response: defer_progression` e motivo `partial_completion`. A auditoria também registra `load_tolerance_gate` quando o avaliador de tolerância está protetivo. Isso não interpreta o motivo da interrupção como diagnóstico nem transforma a sessão parcial em evidência de tolerância ao treino completo.
+
+Foram adicionados testes para a conclusão parcial e para a proveniência do gate de tolerância. `go test -count=1 ./...`, `go vet` e `git diff --check` passaram. `rules-v1`, trigger, migrações, banco, interface, release, infraestrutura e produção permanecem inalterados; `progression_eligible`, `applied` e `used_for_prescription` continuam falsos. Esta fatia está validada localmente e aguarda o commit do proprietário. Próxima etapa: continuar a revisão dos gates de adaptação em shadow, mantendo a separação entre observação e prescrição.
