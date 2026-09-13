@@ -54,14 +54,14 @@ Validação desta fatia: `go test -count=1 ./...`, `go vet ./...`, `npm run buil
 
 Validação local: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, `git diff --check` e referências do OpenAPI passaram. O commit `c5d8822` foi publicado após backup e validação operacional; a versão visível permanece `0.20.0`.
 
-### Vigésima fatia de melhorias — coerência integrada dos shadows (local; validada)
+### Vigésima fatia de melhorias — coerência integrada dos shadows (publicada; validada)
 
 - O novo bloco `planning-coherence-shadow-v1` resume periodização, distribuição histórica e seleção de estímulos no mesmo resultado de geração de plano.
 - A auditoria registra os estados dos três componentes, verificações de coerência, sinais de densidade e a semana de recuperação. Divergências produzem `observed_mismatch`/`review_coherence`; cobertura insuficiente produz `not_evaluated`/`defer_evaluation`.
 - A integração preserva `progression_eligible: false`, `applied: false` e `used_for_prescription: false` em todos os componentes. O `rules-v1` permanece como única fonte prescritiva.
 - O contrato foi atualizado no OpenAPI e no tipo compartilhado do frontend. Não há migração, mudança visual, atualização de `APP_VERSION`, release, deploy ou alteração de infraestrutura.
 
-Validação local: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, validação das referências do OpenAPI e `git diff --check` passaram. A publicação ainda depende de revisão e autorização próprias.
+Validação local: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, validação das referências do OpenAPI e `git diff --check` passaram. O commit `f0fec8b` foi publicado após backup preventivo; não houve migração nova, mudança visual ou atualização de versão. API, frontend, PostgreSQL e Tunnel ficaram saudáveis, `/ready` respondeu corretamente e os dois domínios públicos retornaram HTTP 200.
 
 ## Repositório e produção
 
@@ -78,7 +78,7 @@ Validação local: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, va
 
 ## Estado do checkout local
 
-- A produção está no commit `c5d8822`, na versão `0.20.0`, com as migrações `000017` a `000021` aplicadas. O taper, os pilotos de VO₂max e intervalos curtos, o contexto de conclusão, o contexto pós-treino, a revisão técnica do shadow, o gate observacional de distribuição, a auditoria observacional da periodização e a auditoria observacional da seleção de estímulos foram publicados conforme deploy informado.
+- A produção está no commit `f0fec8b`, na versão `0.20.0`, com as migrações `000017` a `000021` aplicadas. O taper, os pilotos de VO₂max e intervalos curtos, o contexto de conclusão, o contexto pós-treino, a revisão técnica do shadow, o gate observacional de distribuição, a auditoria observacional da periodização, a auditoria observacional da seleção de estímulos e a coerência integrada dos shadows foram publicados conforme deploy validado.
 - A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local), `9034287` (matriz comparativa), `61d7939` (pin do digest do Tunnel), `1358ac1` (status da versão `0.12.0`), `53cbadc` (acesso ao perfil no mobile), `66f70ed` (decisão do taper pré-prova), `0eb34d6` (implementação local do taper), `01875c9` (piloto local de VO₂max de estrada), `1eab2c8` (piloto local de intervalos curtos), `3b3639a` (exclusão de modalidades fora do produto), `9aff39f` (sincronização documental), `6fdbe45` (estado do catálogo) e o deploy autorizado da versão `0.16.0`.
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
