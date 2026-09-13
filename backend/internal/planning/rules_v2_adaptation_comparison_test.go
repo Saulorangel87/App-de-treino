@@ -56,9 +56,9 @@ func TestRulesV2AdaptationShadowMatrixKeepsRulesV1Authoritative(t *testing.T) {
 			candidateResponse: "prefer_recovery",
 		},
 		{
-			name:              "recent above-target effort",
-			targetRPE:         6,
-			input:             CompletionInput{ActualRPE: 4, Difficulty: "easy", FatigueAfter: 2},
+			name:      "recent above-target effort",
+			targetRPE: 6,
+			input:     CompletionInput{ActualRPE: 4, Difficulty: "easy", FatigueAfter: 2},
 			periods: func() []TrainingHistoryPeriod {
 				periods := validHistoryPeriods()
 				periods[0].AboveTargetRPESessions = 1
@@ -117,4 +117,32 @@ func TestRulesV2AdaptationShadowMatrixKeepsRulesV1Authoritative(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRulesV2AdaptationShadowPreservesGatePrecedence(t *testing.T) {
+	t.Run("protective signal wins over partial completion", func(t *testing.T) {
+		assessment := assessRulesV2AdaptationShadow(6, CompletionInput{
+			ActualRPE: 4, Difficulty: "easy", FatigueAfter: 2,
+			PainReported: true, CompletionStatus: "partial", PartialReason: "pain_or_discomfort",
+		}, validHistoryPeriods(), time.Unix(0, 0))
+
+		if assessment.Status != "protective_signal" || assessment.CandidateResponse != "prefer_recovery" {
+			t.Fatalf("protective signal did not take precedence: %+v", assessment)
+		}
+	})
+
+	t.Run("incomplete tolerance remains deferred", func(t *testing.T) {
+		periods := validHistoryPeriods()
+		periods[0].CompleteRecoveryCheckins = 0
+		assessment := assessRulesV2AdaptationShadow(6, CompletionInput{
+			ActualRPE: 4, Difficulty: "easy", FatigueAfter: 2,
+		}, periods, time.Unix(0, 0))
+
+		if assessment.Status != "not_evaluated" || assessment.CandidateResponse != "defer_progression" {
+			t.Fatalf("incomplete tolerance was not deferred: %+v", assessment)
+		}
+		if assessment.ProgressionEligible || assessment.Applied || assessment.UsedForPrescription {
+			t.Fatalf("incomplete tolerance became authoritative: %+v", assessment)
+		}
+	})
 }

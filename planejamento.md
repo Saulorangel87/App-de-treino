@@ -1438,3 +1438,11 @@ A revisão dos critérios de progressão encontrou outra lacuna: a candidata já
 O `rules-v2-adaptation-v1` agora bloqueia a candidata quando `missed_sessions` ou `overdue_in_progress_sessions` é maior que zero em qualquer um dos dois períodos de evidência. O resultado registra `low_adherence` e `defer_progression`; cancelamentos explícitos permanecem separados e não são interpretados sozinhos como baixa aderência. Não há reagendamento, compensação ou alteração no `rules-v1`.
 
 Foi adicionada regressão para treino perdido no período recente. `go test -count=1 ./...`, `go vet` e `git diff --check` passaram. Não houve mudança visual, release, migração, infraestrutura ou deploy. Esta fatia está validada localmente e aguarda o commit autorizado. Próxima etapa: continuar a revisão dos gates de adaptação em shadow, preservando a separação entre observação e prescrição.
+
+### Continuidade — precedência explícita dos gates de adaptação shadow — 13 de setembro de 2026
+
+A revisão encontrou uma lacuna de auditabilidade: quando a tolerância à carga estava incompleta, a candidata era corretamente adiada, mas o `decision_audit` só registrava `load_tolerance_gate` quando havia sinal protetivo. Isso dificultava distinguir uma proteção observada de uma evidência ainda insuficiente.
+
+O audit agora registra `load_tolerance_gate` também quando a candidata de progressão é adiada por tolerância não classificada. Foram adicionadas regressões para confirmar que um sinal protetivo prevalece sobre conclusão parcial e que a falta de recuperação em um período não autoriza progressão. `go test -count=1 ./...`, `go vet ./...` e `git diff --check` passaram.
+
+Não houve mudança visual, release, migração, infraestrutura ou deploy. `rules-v1` continua prescritivo e os campos `progression_eligible`, `applied` e `used_for_prescription` continuam falsos. Próxima etapa: revisar se os gates do shadow preservam essa mesma precedência no fluxo transacional e na serialização HTTP, sem transferir autoridade ao `rules-v2`.

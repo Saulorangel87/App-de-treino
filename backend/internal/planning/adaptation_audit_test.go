@@ -75,6 +75,24 @@ func TestAdaptationDecisionAuditRecordsLoadToleranceGate(t *testing.T) {
 	}
 }
 
+func TestAdaptationDecisionAuditRecordsIncompleteLoadToleranceGate(t *testing.T) {
+	periods := validHistoryPeriods()
+	periods[0].CompleteRecoveryCheckins = 0
+	assessment := assessRulesV2AdaptationShadow(6, CompletionInput{
+		ActualRPE: 4, Difficulty: "easy", FatigueAfter: 2,
+	}, periods, time.Unix(0, 0))
+
+	if assessment.LoadTolerance == nil || assessment.LoadTolerance.Status != "not_evaluated" {
+		t.Fatalf("incomplete load tolerance was not preserved: %+v", assessment.LoadTolerance)
+	}
+	if assessment.CandidateResponse != "defer_progression" {
+		t.Fatalf("incomplete load tolerance did not defer progression: %+v", assessment)
+	}
+	if assessment.DecisionAudit == nil || !slices.Contains(assessment.DecisionAudit.ConstraintsApplied, "load_tolerance_gate") {
+		t.Fatalf("incomplete load tolerance gate was not recorded: %+v", assessment.DecisionAudit)
+	}
+}
+
 func TestAdaptationDecisionAuditDoesNotClaimInvalidFeedbackWasUsed(t *testing.T) {
 	assessment := assessRulesV2AdaptationShadow(0, CompletionInput{
 		ActualRPE: 0, Difficulty: "", FatigueAfter: 0,

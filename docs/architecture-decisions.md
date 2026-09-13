@@ -1,6 +1,6 @@
 # Decisões de arquitetura
 
-Última revisão: 12 de setembro de 2026.
+Última revisão: 13 de setembro de 2026.
 
 ## ADR-001 — Banco de dados próprio
 
@@ -245,6 +245,14 @@ Essa decisão evita que um check-in antigo cubra uma lacuna no período mais rec
 Uma candidata de progressão não deve ser considerada quando os períodos de evidência contêm sessões previstas perdidas ou treinos em andamento vencidos. O `rules-v2-adaptation-v1` registra `low_adherence` e adia a candidata, mantendo cancelamentos explícitos como estado separado.
 
 A decisão usa apenas estados factuais do histórico planejado; não presume o motivo da ausência, não cria compensação ou reagendamento e não altera a prescrição ativa. `rules-v1`, o trigger e o banco permanecem inalterados.
+
+## ADR-023 — Precedência explícita dos gates de adaptação shadow
+
+**Status:** Implementada localmente; ainda não publicada.
+
+Na avaliação `rules-v2-adaptation-v1`, sinais protetivos devem prevalecer sobre conclusão parcial. Quando não há proteção, uma candidata de progressão só pode ser registrada depois que a tolerância à carga e os dois períodos de evidência estejam completos. Se a tolerância estiver incompleta, o `decision_audit` registra `load_tolerance_gate` junto da candidata adiada.
+
+Essa decisão separa três situações que não devem ser confundidas: proteção observada, evidência insuficiente e candidata observacional. Nenhuma delas altera `rules-v1`, a sessão seguinte, `progression_eligible`, `applied` ou `used_for_prescription`. A regressão combinada permanece como barreira antes de qualquer integração prescritiva.
 
 ## Estado de produção
 

@@ -30,6 +30,13 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
 
+### Coerência da precedência dos gates no shadow — versão local (validado; sem publicação)
+
+- A revisão confirmou que sinais protetivos têm precedência sobre conclusão parcial e que uma resposta fácil sem cobertura completa de tolerância permanece `not_evaluated`/`defer_progression`.
+- O `decision_audit` agora registra `load_tolerance_gate` também quando a tolerância está incompleta e a candidata é adiada, não apenas quando existe um sinal protetivo. Isso torna explícita a diferença entre proteção observada e evidência ainda insuficiente.
+- Foram adicionadas regressões para a precedência entre dor e conclusão parcial e para a preservação do gate de tolerância incompleto. `go test -count=1 ./...`, `go vet ./...` e `git diff --check` passaram.
+- A alteração permanece observacional: `rules-v1` continua prescritivo, `progression_eligible`, `applied` e `used_for_prescription` continuam falsos. Não houve migração, mudança visual, atualização de `APP_VERSION`, deploy ou alteração de infraestrutura.
+
 ### Correção de layout e novidades — versão local `0.20.0`
 
 - A barra lateral passou a preservar o tamanho original dos menus e a usar rolagem própria somente quando a altura disponível não comporta todo o conteúdo. O bloco inferior não é comprimido e o rodapé fixo não cobre mais o acesso ao perfil.
