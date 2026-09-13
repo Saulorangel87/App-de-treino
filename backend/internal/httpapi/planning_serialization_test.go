@@ -79,6 +79,10 @@ func (s *httpTestPlanStore) CompleteWorkoutByUserID(context.Context, string, str
 	return errHTTPTestUnused
 }
 
+func (s *httpTestPlanStore) CorrectWorkoutDataByUserID(context.Context, string, string, planning.WorkoutCorrectionInput) error {
+	return errHTTPTestUnused
+}
+
 func (s *httpTestPlanStore) CancelWorkoutByUserID(context.Context, string, string) error {
 	return errHTTPTestUnused
 }

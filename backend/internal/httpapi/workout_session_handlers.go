@@ -24,6 +24,13 @@ type completeWorkoutInput struct {
 	AverageHeartRate *int     `json:"average_heart_rate"`
 }
 
+type correctWorkoutInput struct {
+	DistanceKM       *float64 `json:"distance_km"`
+	ElevationGainM   *int     `json:"elevation_gain_m"`
+	AveragePowerW    *int     `json:"average_power_watts"`
+	AverageHeartRate *int     `json:"average_heart_rate"`
+}
+
 func (s *Server) startWorkout(w http.ResponseWriter, r *http.Request) {
 	user, ok := s.requireUser(w, r)
 	if !ok {
@@ -55,6 +62,25 @@ func (s *Server) completeWorkout(w http.ResponseWriter, r *http.Request) {
 		PainReported: input.PainReported, FatigueAfter: input.FatigueAfter,
 		RecoveryAfter: input.RecoveryAfter, RepeatConfidence: input.RepeatConfidence,
 		Notes:      strings.TrimSpace(input.Notes),
+		DistanceKM: input.DistanceKM, ElevationGainM: input.ElevationGainM,
+		AveragePowerW: input.AveragePowerW, AverageHeartRate: input.AverageHeartRate,
+	})
+	if writeWorkoutError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"plan": plan})
+}
+
+func (s *Server) correctWorkout(w http.ResponseWriter, r *http.Request) {
+	user, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	var input correctWorkoutInput
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+	plan, err := s.planning.CorrectWorkout(r.Context(), user.ID, r.PathValue("workoutID"), planning.WorkoutCorrectionInput{
 		DistanceKM: input.DistanceKM, ElevationGainM: input.ElevationGainM,
 		AveragePowerW: input.AveragePowerW, AverageHeartRate: input.AverageHeartRate,
 	})
@@ -96,6 +122,10 @@ func writeWorkoutError(w http.ResponseWriter, err error) bool {
 		writeError(w, http.StatusBadRequest, "invalid_workout_id", "O identificador do treino é inválido.")
 	case errors.Is(err, planning.ErrInvalidFeedback):
 		writeError(w, http.StatusBadRequest, "invalid_feedback", "Informe conclusão completa ou parcial, motivo quando parcial, RPE de 1 a 10, fadiga de 1 a 5 e uma dificuldade válida.")
+	case errors.Is(err, planning.ErrInvalidCorrection):
+		writeError(w, http.StatusBadRequest, "invalid_workout_correction", "Informe métricas do pedal válidas ou remova o valor que não deseja manter.")
+	case errors.Is(err, planning.ErrWorkoutCorrection):
+		writeError(w, http.StatusConflict, "workout_correction_not_allowed", "Somente uma sessão concluída com dados inelegíveis pode receber correção.")
 	case errors.Is(err, planning.ErrWorkoutMissing):
 		writeError(w, http.StatusNotFound, "workout_not_found", "O treino não pertence ao seu plano ativo.")
 	case errors.Is(err, planning.ErrInvalidTransition):

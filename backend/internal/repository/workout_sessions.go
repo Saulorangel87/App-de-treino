@@ -247,6 +247,148 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 	return tx.Commit(ctx)
 }
 
+func (s *Store) CorrectWorkoutDataByUserID(ctx context.Context, userID, workoutID string, input planning.WorkoutCorrectionInput) error {
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	var workoutStatus string
+	var explanationJSON []byte
+	err = tx.QueryRow(ctx, `
+		SELECT w.status, w.explanation
+		FROM workouts w
+		JOIN training_plans tp ON tp.id = w.training_plan_id
+		JOIN athlete_profiles ap ON ap.id = tp.athlete_profile_id
+		WHERE ap.user_id = $1 AND w.id = $2 AND tp.status IN ('active', 'completed')
+		FOR UPDATE OF w`, userID, workoutID).Scan(&workoutStatus, &explanationJSON)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return planning.ErrWorkoutMissing
+	}
+	if err != nil {
+		return err
+	}
+	if workoutStatus != "completed" {
+		return planning.ErrWorkoutCorrection
+	}
+
+	var sessionID string
+	var durationMinutes, elevationGainM, averagePowerW, averageHeartRate *int
+	var actualRPE, distanceKM *float64
+	err = tx.QueryRow(ctx, `
+		SELECT id::text, duration_minutes, actual_rpe::double precision,
+			distance_km::double precision, elevation_gain_m, average_power_watts, average_heart_rate
+		FROM workout_sessions
+		WHERE workout_id = $1 AND status = 'completed'
+		ORDER BY created_at DESC
+		LIMIT 1
+		FOR UPDATE`, workoutID).Scan(&sessionID, &durationMinutes, &actualRPE, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return planning.ErrWorkoutCorrection
+	}
+	if err != nil {
+		return err
+	}
+
+	var completionStatus, partialReason, difficulty *string
+	var painReported *bool
+	var fatigueAfter, recoveryAfter, repeatConfidence *int
+	err = tx.QueryRow(ctx, `
+		SELECT completion_status, partial_reason, difficulty, pain_reported, fatigue_after,
+			recovery_after, repeat_confidence
+		FROM feedback WHERE workout_session_id = $1`, sessionID).Scan(
+		&completionStatus, &partialReason, &difficulty, &painReported, &fatigueAfter,
+		&recoveryAfter, &repeatConfidence,
+	)
+	feedbackPresent := err == nil
+	if errors.Is(err, pgx.ErrNoRows) {
+		err = nil
+	}
+	if err != nil {
+		return err
+	}
+
+	var explanation map[string]any
+	if err := json.Unmarshal(explanationJSON, &explanation); err != nil {
+		return err
+	}
+	currentIntegrity, ok := explanation["data_integrity"].(map[string]any)
+	eligible, eligibleValue := currentIntegrity["eligible_for_history"].(bool)
+	if !ok || (eligibleValue && eligible) {
+		return planning.ErrWorkoutCorrection
+	}
+
+	correctedAt := time.Now().UTC()
+	correction := map[string]any{
+		"version":      "data-integrity-correction-v1",
+		"corrected_at": correctedAt.Format(time.RFC3339Nano),
+		"original": map[string]any{
+			"duration_minutes":    durationMinutes,
+			"actual_rpe":          actualRPE,
+			"distance_km":         distanceKM,
+			"elevation_gain_m":    elevationGainM,
+			"average_power_watts": averagePowerW,
+			"average_heart_rate":  averageHeartRate,
+		},
+		"corrected": map[string]any{
+			"distance_km":         input.DistanceKM,
+			"elevation_gain_m":    input.ElevationGainM,
+			"average_power_watts": input.AveragePowerW,
+			"average_heart_rate":  input.AverageHeartRate,
+		},
+	}
+	history, _ := explanation["data_integrity_corrections"].([]any)
+	explanation["data_integrity_corrections"] = append(history, correction)
+
+	completionValue, partialReasonValue, difficultyValue := "", "", ""
+	painValue := false
+	if completionStatus != nil {
+		completionValue = *completionStatus
+	}
+	if partialReason != nil {
+		partialReasonValue = *partialReason
+	}
+	if difficulty != nil {
+		difficultyValue = *difficulty
+	}
+	if painReported != nil {
+		painValue = *painReported
+	}
+	integrity := planning.AssessWorkoutDataIntegrity(planning.WorkoutDataIntegrityInput{
+		DurationMinutes:  durationMinutes,
+		ActualRPE:        actualRPE,
+		DistanceKM:       input.DistanceKM,
+		ElevationGainM:   input.ElevationGainM,
+		AveragePowerW:    input.AveragePowerW,
+		AverageHeartRate: input.AverageHeartRate,
+		FeedbackPresent:  feedbackPresent,
+		CompletionStatus: completionValue,
+		PartialReason:    partialReasonValue,
+		Difficulty:       difficultyValue,
+		PainReported:     painValue,
+		FatigueAfter:     fatigueAfter,
+		RecoveryAfter:    recoveryAfter,
+		RepeatConfidence: repeatConfidence,
+	}, correctedAt)
+
+	if _, err := tx.Exec(ctx, `
+		UPDATE workout_sessions
+		SET distance_km = $2, elevation_gain_m = $3, average_power_watts = $4, average_heart_rate = $5
+		WHERE id = $1`, sessionID, input.DistanceKM, input.ElevationGainM, input.AveragePowerW, input.AverageHeartRate); err != nil {
+		return err
+	}
+	explanation["data_integrity"] = integrity
+	updatedExplanation, err := json.Marshal(explanation)
+	if err != nil {
+		return err
+	}
+	if _, err := tx.Exec(ctx, `UPDATE workouts SET explanation = $2::jsonb WHERE id = $1`, workoutID, updatedExplanation); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
+}
+
 func (s *Store) CancelWorkoutByUserID(ctx context.Context, userID, workoutID string) error {
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {

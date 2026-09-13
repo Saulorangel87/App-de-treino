@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.23.0';
+export const APP_VERSION = '0.24.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.24.0',
+    title: 'Correção segura de métricas do pedal',
+    description:
+      'Registros pós-treino marcados para revisão agora podem ter suas métricas opcionais corrigidas sem alterar duração, RPE, feedback ou o plano. O valor original fica preservado para auditoria.',
+  },
   {
     version: '0.23.0',
     title: 'Registros inconsistentes mais claros',

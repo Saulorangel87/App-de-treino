@@ -61,6 +61,7 @@ func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Ser
 	mux.HandleFunc("POST /v1/plans/{planID}/activate", server.activatePlan)
 	mux.HandleFunc("POST /v1/workouts/{workoutID}/start", server.startWorkout)
 	mux.HandleFunc("POST /v1/workouts/{workoutID}/complete", server.completeWorkout)
+	mux.HandleFunc("POST /v1/workouts/{workoutID}/correct", server.correctWorkout)
 	mux.HandleFunc("POST /v1/workouts/{workoutID}/cancel", server.cancelWorkout)
 	mux.HandleFunc("POST /v1/workouts/{workoutID}/missed", server.markWorkoutMissed)
 	return securityHeaders(secureCookies, cors(allowedOrigin, csrfProtection(allowedOrigin, mux)))

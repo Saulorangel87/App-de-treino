@@ -19,6 +19,8 @@ var (
 	ErrInvalidTransition    = errors.New("invalid workout transition")
 	ErrWorkoutNotPast       = errors.New("workout date has not passed")
 	ErrInvalidFeedback      = errors.New("invalid workout feedback")
+	ErrInvalidCorrection    = errors.New("invalid workout correction")
+	ErrWorkoutCorrection    = errors.New("workout correction not allowed")
 )
 
 var planIDPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
@@ -157,6 +159,15 @@ type CompletionInput struct {
 	AverageHeartRate *int
 }
 
+// WorkoutCorrectionInput replaces only optional pedal metrics on a completed
+// session. Nil values intentionally clear the corresponding metric.
+type WorkoutCorrectionInput struct {
+	DistanceKM       *float64
+	ElevationGainM   *int
+	AveragePowerW    *int
+	AverageHeartRate *int
+}
+
 type Activity struct {
 	ID               string     `json:"id"`
 	WorkoutID        string     `json:"workout_id"`
@@ -204,6 +215,7 @@ type Store interface {
 	ActivatePlanByUserID(context.Context, string, string) error
 	StartWorkoutByUserID(context.Context, string, string) error
 	CompleteWorkoutByUserID(context.Context, string, string, CompletionInput) error
+	CorrectWorkoutDataByUserID(context.Context, string, string, WorkoutCorrectionInput) error
 	CancelWorkoutByUserID(context.Context, string, string) error
 	MarkWorkoutMissedByUserID(context.Context, string, string) error
 	ActivitiesByUserID(context.Context, string) ([]Activity, error)
@@ -283,6 +295,19 @@ func (s *Service) CompleteWorkout(ctx context.Context, userID, workoutID string,
 	return s.store.CurrentPlanByUserID(ctx, userID)
 }
 
+func (s *Service) CorrectWorkout(ctx context.Context, userID, workoutID string, input WorkoutCorrectionInput) (Plan, error) {
+	if !planIDPattern.MatchString(workoutID) {
+		return Plan{}, ErrInvalidWorkoutID
+	}
+	if !validWorkoutCorrection(input) {
+		return Plan{}, ErrInvalidCorrection
+	}
+	if err := s.store.CorrectWorkoutDataByUserID(ctx, userID, workoutID, input); err != nil {
+		return Plan{}, err
+	}
+	return s.store.CurrentPlanByUserID(ctx, userID)
+}
+
 func (s *Service) CancelWorkout(ctx context.Context, userID, workoutID string) (Plan, error) {
 	if !planIDPattern.MatchString(workoutID) {
 		return Plan{}, ErrInvalidWorkoutID
@@ -345,6 +370,22 @@ func validCompletion(input CompletionInput) bool {
 	default:
 		return false
 	}
+}
+
+func validWorkoutCorrection(input WorkoutCorrectionInput) bool {
+	if input.DistanceKM != nil && !finiteInRange(*input.DistanceKM, 0, 2000) {
+		return false
+	}
+	if input.ElevationGainM != nil && (*input.ElevationGainM < 0 || *input.ElevationGainM > 20000) {
+		return false
+	}
+	if input.AveragePowerW != nil && (*input.AveragePowerW < 0 || *input.AveragePowerW > 2000) {
+		return false
+	}
+	if input.AverageHeartRate != nil && (*input.AverageHeartRate < 30 || *input.AverageHeartRate > 250) {
+		return false
+	}
+	return true
 }
 
 func normalizeCompletionStatus(value string) string {

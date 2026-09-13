@@ -332,6 +332,23 @@ paths:
         '401': { description: Sessão de usuário ausente ou expirada }
         '404': { description: Treino não encontrado no plano ativo }
         '409': { description: Treino não está em andamento }
+  /v1/workouts/{workoutID}/correct:
+    post:
+      summary: Corrige métricas opcionais de uma sessão concluída inelegível
+      description: Substitui distância, elevação, frequência cardíaca e potência opcionais. Null remove a métrica; duração, RPE, feedback e prescrição não são alterados. O valor anterior fica preservado para auditoria.
+      parameters:
+        - $ref: '#/components/parameters/WorkoutID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkoutCorrectionRequest' }
+      responses:
+        '200': { description: Métricas corrigidas, integridade reavaliada e plano preservado }
+        '400': { description: Identificador ou métrica inválida }
+        '401': { description: Sessão de usuário ausente ou expirada }
+        '404': { description: Treino não encontrado no plano do atleta }
+        '409': { description: Sessão não concluída ou sem inconsistência corrigível }
   /v1/workouts/{workoutID}/cancel:
     post:
       summary: Cancela uma sessão em andamento e marca o treino como não realizado
@@ -1247,6 +1264,26 @@ components:
         elevation_gain_m: { type: integer, minimum: 0, maximum: 20000 }
         average_heart_rate: { type: integer, minimum: 30, maximum: 250 }
         average_power_watts: { type: integer, minimum: 0, maximum: 2000 }
+    WorkoutCorrectionRequest:
+      type: object
+      description: Substituição completa das métricas opcionais do pedal; envie null para remover um valor. Não altera duração, RPE, feedback ou prescrição.
+      properties:
+        distance_km:
+          oneOf:
+            - { type: number, minimum: 0, maximum: 2000 }
+            - { type: 'null' }
+        elevation_gain_m:
+          oneOf:
+            - { type: integer, minimum: 0, maximum: 20000 }
+            - { type: 'null' }
+        average_heart_rate:
+          oneOf:
+            - { type: integer, minimum: 30, maximum: 250 }
+            - { type: 'null' }
+        average_power_watts:
+          oneOf:
+            - { type: integer, minimum: 0, maximum: 2000 }
+            - { type: 'null' }
     Activity:
       type: object
       required: [id, workout_id, name, objective, scheduled_on, status]

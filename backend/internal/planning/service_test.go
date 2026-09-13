@@ -13,9 +13,11 @@ type planStore struct {
 	activateErr error
 	startedID   string
 	completedID string
+	correctedID string
 	cancelledID string
 	missedID    string
 	completion  CompletionInput
+	correction  WorkoutCorrectionInput
 	activities  []Activity
 }
 
@@ -42,6 +44,11 @@ func (s *planStore) StartWorkoutByUserID(_ context.Context, _ string, workoutID 
 func (s *planStore) CompleteWorkoutByUserID(_ context.Context, _ string, workoutID string, input CompletionInput) error {
 	s.completedID = workoutID
 	s.completion = input
+	return nil
+}
+func (s *planStore) CorrectWorkoutDataByUserID(_ context.Context, _ string, workoutID string, input WorkoutCorrectionInput) error {
+	s.correctedID = workoutID
+	s.correction = input
 	return nil
 }
 func (s *planStore) CancelWorkoutByUserID(_ context.Context, _ string, workoutID string) error {
@@ -796,6 +803,29 @@ func TestWorkoutLifecycleValidatesAndDelegates(t *testing.T) {
 	}
 	if store.startedID != workoutID || store.completedID != workoutID || store.cancelledID != workoutID || store.completion.ActualRPE != 7 {
 		t.Fatalf("unexpected delegated lifecycle: %#v", store)
+	}
+}
+
+func TestCorrectWorkoutValidatesAndDelegates(t *testing.T) {
+	const workoutID = "9a1eead7-6168-4d50-8c7c-451301e29d85"
+	distance := 32.5
+	store := &planStore{saved: Plan{Status: "active"}}
+	service := NewService(store)
+
+	if _, err := service.CorrectWorkout(context.Background(), "user-1", workoutID, WorkoutCorrectionInput{DistanceKM: &distance}); err != nil {
+		t.Fatalf("correction failed: %v", err)
+	}
+	if store.correctedID != workoutID || store.correction.DistanceKM == nil || *store.correction.DistanceKM != distance {
+		t.Fatalf("unexpected correction delegation: %#v", store)
+	}
+}
+
+func TestCorrectWorkoutRejectsInvalidOptionalMetric(t *testing.T) {
+	store := &planStore{}
+	invalidDistance := 2001.0
+	_, err := NewService(store).CorrectWorkout(context.Background(), "user-1", "9a1eead7-6168-4d50-8c7c-451301e29d85", WorkoutCorrectionInput{DistanceKM: &invalidDistance})
+	if err != ErrInvalidCorrection || store.correctedID != "" {
+		t.Fatalf("invalid correction must be rejected: %#v, %v", store, err)
 	}
 }
 

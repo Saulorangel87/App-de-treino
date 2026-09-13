@@ -77,6 +77,12 @@ export function WorkoutSessionActions({
   const [elevationGainM, setElevationGainM] = useState('');
   const [averageHeartRate, setAverageHeartRate] = useState('');
   const [averagePowerW, setAveragePowerW] = useState('');
+  const [correctionOpen, setCorrectionOpen] = useState(false);
+  const [correctionDistanceKM, setCorrectionDistanceKM] = useState('');
+  const [correctionElevationGainM, setCorrectionElevationGainM] = useState('');
+  const [correctionAverageHeartRate, setCorrectionAverageHeartRate] = useState('');
+  const [correctionAveragePowerW, setCorrectionAveragePowerW] = useState('');
+  const [correctionNotice, setCorrectionNotice] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -125,6 +131,47 @@ export function WorkoutSessionActions({
     });
   }
 
+  function openCorrection() {
+    setCorrectionDistanceKM(workout.session?.distance_km?.toString() ?? '');
+    setCorrectionElevationGainM(workout.session?.elevation_gain_m?.toString() ?? '');
+    setCorrectionAverageHeartRate(workout.session?.average_heart_rate?.toString() ?? '');
+    setCorrectionAveragePowerW(workout.session?.average_power_watts?.toString() ?? '');
+    setCorrectionNotice('');
+    setError('');
+    setCorrectionOpen(true);
+  }
+
+  async function correctWorkoutData() {
+    setAction('correct');
+    setError('');
+    setCorrectionNotice('');
+    try {
+      const result = await apiRequest<{ plan: TrainingPlan }>(
+        `/v1/workouts/${workout.id}/correct`,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            distance_km: optionalNumber(correctionDistanceKM),
+            elevation_gain_m: optionalNumber(correctionElevationGainM),
+            average_heart_rate: correctionHeartRateVisible ? optionalNumber(correctionAverageHeartRate) : undefined,
+            average_power_watts: correctionPowerVisible ? optionalNumber(correctionAveragePowerW) : undefined,
+          }),
+        },
+      );
+      onPlanUpdated(result.plan, workout.id);
+      setCorrectionOpen(false);
+      setCorrectionNotice('Correção salva. O registro foi reavaliado sem recalcular o plano.');
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : 'Não foi possível corrigir os dados do treino.',
+      );
+    } finally {
+      setAction('');
+    }
+  }
+
   const session = workout.session;
   const feedback = session?.feedback;
   const busy = Boolean(action);
@@ -138,6 +185,14 @@ export function WorkoutSessionActions({
     (workout.status === 'planned' || workout.status === 'adapted');
   const startLabel =
     workout.status === 'adapted' ? 'Iniciar treino adaptado' : 'Iniciar treino';
+  const dataIntegrityIssue =
+    workout.status === 'completed' &&
+    workout.explanation.data_integrity &&
+    workout.explanation.data_integrity.status !== 'valid';
+  const correctionHeartRateVisible =
+    usesHeartRate || workout.session?.average_heart_rate !== undefined;
+  const correctionPowerVisible =
+    usesPower || workout.session?.average_power_watts !== undefined;
 
   return (
     <section className="session-actions" aria-label="Acompanhamento da sessão">
@@ -481,6 +536,60 @@ export function WorkoutSessionActions({
             </p>
           </div>
         </div>
+      )}
+
+      {correctionNotice && (
+        <p className="session-correction-success" role="status">
+          {correctionNotice}
+        </p>
+      )}
+
+      {dataIntegrityIssue && !correctionOpen && (
+        <Button type="button" variant="outline" disabled={busy} onClick={openCorrection}>
+          Corrigir dados do pedal
+        </Button>
+      )}
+
+      {dataIntegrityIssue && correctionOpen && (
+        <form
+          className="session-feedback session-correction-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void correctWorkoutData();
+          }}
+        >
+          <div className="feedback-heading">
+            <div>
+              <strong>Corrigir dados do pedal</strong>
+              <small>Apague um campo para removê-lo. Duração, RPE e feedback não serão alterados.</small>
+            </div>
+            <button type="button" onClick={() => setCorrectionOpen(false)} aria-label="Cancelar correção">
+              <RotateCcw />
+            </button>
+          </div>
+          <div className="feedback-grid">
+            <label>
+              Distância (km)
+              <input type="number" min="0" max="2000" step="0.1" inputMode="decimal" value={correctionDistanceKM} onChange={(event) => setCorrectionDistanceKM(event.target.value)} />
+            </label>
+            <label>
+              Ganho de elevação (m)
+              <input type="number" min="0" max="20000" step="1" inputMode="numeric" value={correctionElevationGainM} onChange={(event) => setCorrectionElevationGainM(event.target.value)} />
+            </label>
+            {correctionHeartRateVisible && <label>
+              FC média (bpm)
+              <input type="number" min="30" max="250" step="1" inputMode="numeric" value={correctionAverageHeartRate} onChange={(event) => setCorrectionAverageHeartRate(event.target.value)} />
+            </label>}
+            {correctionPowerVisible && <label>
+              Potência média (W)
+              <input type="number" min="0" max="2000" step="1" inputMode="numeric" value={correctionAveragePowerW} onChange={(event) => setCorrectionAveragePowerW(event.target.value)} />
+            </label>}
+          </div>
+          <Button type="submit" className="session-primary" disabled={busy}>
+            {action === 'correct' ? <LoaderCircle className="spin" /> : <CheckCircle2 />}
+            {action === 'correct' ? 'Salvando correção…' : 'Salvar correção'}
+          </Button>
+        </form>
       )}
 
       {workout.status === 'skipped' && (
