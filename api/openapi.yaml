@@ -621,6 +621,8 @@ components:
         missing_data: { type: array, items: { type: string } }
         data_issues: { type: array, items: { type: string } }
         not_evaluated: { type: array, items: { type: string } }
+        stimulus_distribution:
+          $ref: '#/components/schemas/TrainingStimulusDistribution'
         progression_eligible: { type: boolean, enum: [false] }
         applied: { type: boolean, enum: [false] }
         used_for_prescription: { type: boolean, enum: [false] }
@@ -675,6 +677,8 @@ components:
         missing_data: { type: array, items: { type: string } }
         data_issues: { type: array, items: { type: string } }
         not_evaluated: { type: array, items: { type: string } }
+        stimulus_distribution:
+          $ref: '#/components/schemas/TrainingStimulusDistribution'
         planned_vs_actual:
           $ref: '#/components/schemas/PlannedVsActualAssessment'
         load_tolerance:

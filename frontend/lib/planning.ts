@@ -60,6 +60,7 @@ export type Workout = {
       missing_data: string[];
       data_issues: string[];
       not_evaluated: string[];
+      stimulus_distribution?: TrainingStimulusDistribution;
       post_workout_context?: {
         version: 'post-workout-context-v1';
         mode: 'observation';
@@ -246,6 +247,7 @@ export type RulesV2ShadowAssessment = {
   missing_data: string[];
   data_issues: string[];
   not_evaluated: string[];
+  stimulus_distribution?: TrainingStimulusDistribution;
   progression_eligible: false;
   applied: false;
   used_for_prescription: false;

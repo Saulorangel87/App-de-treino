@@ -191,6 +191,14 @@ O resultado permanece `mode: observation`, `used_for_prescription: false` e não
 
 Os testes unitários cobrem contagem por período, densidade, alta intensidade, recência, sessões em dias consecutivos, menor intervalo, datas ausentes e isolamento da prescrição. A fixture PostgreSQL verifica as novas colunas da consulta, o corte temporal, o filtro de integridade e o isolamento do atleta em transação somente leitura. Não há migração, mudança visual ou nota de versão nesta fatia backend-only.
 
+### Gate observacional de distribuição no shadow
+
+O `rules-v2` e o `rules-v2-adaptation-v1` passaram a ler `stimulus_distribution` sem assumir sua autoridade. O gate usa duas convenções operacionais do produto: pelo menos duas sessões de qualidade em `last_7d` e pelo menos um par de sessões de qualidade em dias consecutivos nos seis períodos observados. Quando os dados estão completos, esses padrões produzem a resposta candidata `prefer_recovery` e impedem uma candidata shadow de progressão; não alteram a sessão real, o calendário ou o trigger do `rules-v1`.
+
+Quando faltam períodos, datas de qualidade ou consistência, a avaliação de progressão não é tratada como negativa nem positiva: ela fica não avaliada ou adiada e preserva `missing_data`/`data_issues`. Histórico íntegro sem sessões de qualidade não aciona o gate. O `stimulus_distribution_gate` é incluído em `rules_evaluated` e, quando acionado, no `decision_audit.constraints_applied`; `stimulus_distribution` também é listado como dado observado quando a consulta histórica está disponível.
+
+Essa camada continua limitada por `mode: shadow`, `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. O corte de RPE usado para agrupar sessões e a regra de densidade não são zonas fisiológicas, prova de sobrecarga ou diagnóstico. Uma eventual ativação futura exige calibração, cobertura longitudinal, revisão profissional e autorização explícita.
+
 ### Avaliação shadow do motor (`rules-v2`)
 
 O `rules-v2` começou em paralelo, sem substituir o `rules-v1`. Durante a geração de um novo rascunho, `prescription_snapshot.rules_v2_shadow` avalia três gates determinísticos: integridade do período, sinais protetivos e evidência mínima para progressão. O resultado é congelado no snapshot com `mode: shadow` e escopo `plan_generation_only`. Essa avaliação foi incluída no commit `61d7939` e está publicada na produção, mas continua não autoritativa.

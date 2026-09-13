@@ -20,6 +20,16 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 
 Validação desta fatia: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, lint direcionado de `frontend/lib/planning.ts`, validação de referências do OpenAPI, a fixture PostgreSQL somente leitura e `git diff --check` passaram. O lint geral ainda aponta débitos preexistentes em componentes/páginas não tocados nesta fatia. Não é necessário teste no navegador porque nenhum comportamento visível foi alterado.
 
+### Décima sétima fatia de melhorias — gate observacional de distribuição dos estímulos (local)
+
+- O `rules-v2` e o `rules-v2-adaptation-v1` agora consomem o bloco `stimulus-distribution-v1` em paralelo, sem substituir o `rules-v1`.
+- A avaliação observa dois padrões operacionais: pelo menos duas sessões de qualidade nos últimos 7 dias e sessões de qualidade em dias consecutivos dentro dos 42 dias observados. Esses padrões geram `prefer_recovery` somente no shadow; não são diagnóstico nem limiar fisiológico universal.
+- Se a cobertura de períodos, datas de qualidade ou consistência estiver incompleta, a progressão shadow fica `not_evaluated`/`defer_progression` e explicita as lacunas. Ausência de sessões de qualidade, com histórico íntegro, não é tratada como bloqueio.
+- O `decision_audit` passa a registrar `stimulus_distribution` como dado observado e `stimulus_distribution_gate` como restrição quando o gate é acionado. `progression_eligible`, `applied` e `used_for_prescription` continuam falsos.
+- A alteração é somente backend/contrato: não há migração, mudança visual, nota de versão, deploy ou infraestrutura. A produção continua em `0.20.0`.
+
+Validação desta fatia: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, lint direcionado de `frontend/lib/planning.ts` e `git diff --check` passaram. O lint geral mantém apenas pendências preexistentes fora dos arquivos tocados. Não é necessário teste no navegador porque nenhum comportamento visível foi alterado.
+
 ## Repositório e produção
 
 - Repositório: <https://github.com/Saulorangel87/App-de-treino>

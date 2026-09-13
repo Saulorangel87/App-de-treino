@@ -13,25 +13,26 @@ const (
 // remains the authoritative rules-v1 implementation until this assessment is
 // reviewed and integrated explicitly.
 type RulesV2AdaptationShadowAssessment struct {
-	Version             string                        `json:"version"`
-	Mode                string                        `json:"mode"`
-	Scope               string                        `json:"scope"`
-	AssessedAt          string                        `json:"assessed_at"`
-	Status              string                        `json:"status"`
-	CandidateResponse   string                        `json:"candidate_response"`
-	RulesEvaluated      []string                      `json:"rules_evaluated"`
-	RulesDeferred       []string                      `json:"rules_deferred"`
-	Reasons             []ReadinessReason             `json:"reasons"`
-	MissingData         []string                      `json:"missing_data"`
-	DataIssues          []string                      `json:"data_issues"`
-	NotEvaluated        []string                      `json:"not_evaluated"`
-	PlannedVsActual     *PlannedVsActualAssessment    `json:"planned_vs_actual,omitempty"`
-	PostWorkoutContext  *PostWorkoutContextAssessment `json:"post_workout_context,omitempty"`
-	DecisionAudit       *AdaptationDecisionAudit      `json:"decision_audit,omitempty"`
-	LoadTolerance       *LoadToleranceAssessment      `json:"load_tolerance,omitempty"`
-	ProgressionEligible bool                          `json:"progression_eligible"`
-	Applied             bool                          `json:"applied"`
-	UsedForPrescription bool                          `json:"used_for_prescription"`
+	Version              string                        `json:"version"`
+	Mode                 string                        `json:"mode"`
+	Scope                string                        `json:"scope"`
+	AssessedAt           string                        `json:"assessed_at"`
+	Status               string                        `json:"status"`
+	CandidateResponse    string                        `json:"candidate_response"`
+	RulesEvaluated       []string                      `json:"rules_evaluated"`
+	RulesDeferred        []string                      `json:"rules_deferred"`
+	Reasons              []ReadinessReason             `json:"reasons"`
+	MissingData          []string                      `json:"missing_data"`
+	DataIssues           []string                      `json:"data_issues"`
+	NotEvaluated         []string                      `json:"not_evaluated"`
+	PlannedVsActual      *PlannedVsActualAssessment    `json:"planned_vs_actual,omitempty"`
+	PostWorkoutContext   *PostWorkoutContextAssessment `json:"post_workout_context,omitempty"`
+	DecisionAudit        *AdaptationDecisionAudit      `json:"decision_audit,omitempty"`
+	LoadTolerance        *LoadToleranceAssessment      `json:"load_tolerance,omitempty"`
+	StimulusDistribution *TrainingStimulusDistribution `json:"stimulus_distribution,omitempty"`
+	ProgressionEligible  bool                          `json:"progression_eligible"`
+	Applied              bool                          `json:"applied"`
+	UsedForPrescription  bool                          `json:"used_for_prescription"`
 }
 
 // assessRulesV2AdaptationShadow compares one completed workout with the
@@ -61,6 +62,7 @@ func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input Complet
 			"load_tolerance_gate",
 			"adherence_gate",
 			"protective_signal_gate",
+			"stimulus_distribution_gate",
 			"progression_evidence_gate",
 			"prescription_isolation_gate",
 		},
@@ -117,6 +119,16 @@ func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input Complet
 		addMissing("period_comparison")
 	}
 	result.DataIssues = append(result.DataIssues, comparison.DataIssues...)
+	distribution := buildTrainingStimulusDistribution(periods, now)
+	result.StimulusDistribution = &distribution
+	distributionIncomplete := len(periods) > 0 && stimulusDistributionHasIncompleteData(distribution)
+	distributionProtective := false
+	if len(periods) > 0 && !distributionIncomplete {
+		distributionProtective = appendStimulusDistributionQualityReasons(addReason, distribution)
+	}
+	if len(periods) > 0 {
+		appendStimulusDistributionQuality(&result.MissingData, &result.DataIssues, distribution)
+	}
 	recentProtective := loadTolerance.Status == "protective_signal"
 	if len(comparison.Periods) > 0 {
 		recent := comparison.Periods[0]
@@ -135,6 +147,7 @@ func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input Complet
 			addReason("recent_recovery_need", "O período mais recente contém necessidade de recuperação; a carga não deve ser aumentada.")
 		}
 	}
+	recentProtective = recentProtective || distributionProtective
 
 	decision := DecideAdaptation(targetRPE, input)
 	if decision.Kind == "safety" || decision.Kind == "recovery" || recentProtective {
@@ -163,6 +176,11 @@ func assessRulesV2AdaptationShadowWithIntegrity(targetRPE float64, input Complet
 		addReason("shadow_only", "A resposta observada não justifica mudança; o rules-v1 permanece responsável pela adaptação ativa.")
 		result.Status = "observation_only"
 		result.CandidateResponse = "maintain_observed"
+		return result
+	}
+	if distributionIncomplete {
+		addReason("progression_deferred_stimulus_distribution", "A distribuição observada dos estímulos está incompleta ou inconsistente; a progressão permanece adiada até que densidade e espaçamento tenham cobertura confiável.")
+		result.CandidateResponse = "defer_progression"
 		return result
 	}
 	if loadTolerance.Status != "observation_only" {

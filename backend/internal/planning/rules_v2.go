@@ -12,21 +12,22 @@ const (
 // prescription may use. It is intentionally not connected to workout
 // generation: rules-v1 remains the only prescribing engine in this phase.
 type RulesV2ShadowAssessment struct {
-	Version             string            `json:"version"`
-	Mode                string            `json:"mode"`
-	Scope               string            `json:"scope"`
-	AssessedAt          string            `json:"assessed_at"`
-	Status              string            `json:"status"`
-	CandidateResponse   string            `json:"candidate_response"`
-	RulesEvaluated      []string          `json:"rules_evaluated"`
-	RulesDeferred       []string          `json:"rules_deferred"`
-	Reasons             []ReadinessReason `json:"reasons"`
-	MissingData         []string          `json:"missing_data"`
-	DataIssues          []string          `json:"data_issues"`
-	NotEvaluated        []string          `json:"not_evaluated"`
-	ProgressionEligible bool              `json:"progression_eligible"`
-	Applied             bool              `json:"applied"`
-	UsedForPrescription bool              `json:"used_for_prescription"`
+	Version              string                        `json:"version"`
+	Mode                 string                        `json:"mode"`
+	Scope                string                        `json:"scope"`
+	AssessedAt           string                        `json:"assessed_at"`
+	Status               string                        `json:"status"`
+	CandidateResponse    string                        `json:"candidate_response"`
+	RulesEvaluated       []string                      `json:"rules_evaluated"`
+	RulesDeferred        []string                      `json:"rules_deferred"`
+	Reasons              []ReadinessReason             `json:"reasons"`
+	MissingData          []string                      `json:"missing_data"`
+	DataIssues           []string                      `json:"data_issues"`
+	NotEvaluated         []string                      `json:"not_evaluated"`
+	StimulusDistribution *TrainingStimulusDistribution `json:"stimulus_distribution,omitempty"`
+	ProgressionEligible  bool                          `json:"progression_eligible"`
+	Applied              bool                          `json:"applied"`
+	UsedForPrescription  bool                          `json:"used_for_prescription"`
 }
 
 func assessRulesV2Shadow(input Context, now time.Time) RulesV2ShadowAssessment {
@@ -40,6 +41,7 @@ func assessRulesV2Shadow(input Context, now time.Time) RulesV2ShadowAssessment {
 		RulesEvaluated: []string{
 			"period_data_integrity_gate",
 			"protective_signal_gate",
+			"stimulus_distribution_gate",
 			"progression_evidence_gate",
 		},
 		RulesDeferred: []string{
@@ -90,6 +92,11 @@ func assessRulesV2Shadow(input Context, now time.Time) RulesV2ShadowAssessment {
 	}
 	result.DataIssues = append(result.DataIssues, comparison.DataIssues...)
 	periods := comparison.Periods
+	distribution := buildTrainingStimulusDistribution(input.TrainingHistoryPeriods, now)
+	result.StimulusDistribution = &distribution
+	if len(input.TrainingHistoryPeriods) > 0 {
+		appendStimulusDistributionQuality(&result.MissingData, &result.DataIssues, distribution)
+	}
 
 	if len(input.Limitations) > 0 {
 		addReason("active_limitation", "Há limitação ativa; uma futura versão deve manter a proteção antes de considerar carga.")
@@ -112,9 +119,16 @@ func assessRulesV2Shadow(input Context, now time.Time) RulesV2ShadowAssessment {
 			addReason("recent_recovery_need", "O período mais recente contém check-in que já atende à proteção de recuperação.")
 		}
 	}
+	if !stimulusDistributionHasIncompleteData(distribution) {
+		appendStimulusDistributionQualityReasons(addReason, distribution)
+	}
 	if len(result.Reasons) > 0 {
 		result.Status = "protective_signal"
 		result.CandidateResponse = "prefer_recovery"
+		return result
+	}
+	if len(input.TrainingHistoryPeriods) > 0 && stimulusDistributionHasIncompleteData(distribution) {
+		addReason("insufficient_stimulus_distribution", "A distribuição observada dos estímulos ainda não tem cobertura ou consistência suficiente para avaliar densidade e espaçamento.")
 		return result
 	}
 

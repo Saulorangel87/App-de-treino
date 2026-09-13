@@ -93,6 +93,9 @@ func buildAdaptationDecisionAudit(result RulesV2AdaptationShadowAssessment, targ
 	if result.LoadTolerance != nil && !historyQueryFailed {
 		addDataUsed("training_history_periods")
 	}
+	if result.StimulusDistribution != nil && !historyQueryFailed {
+		addDataUsed("stimulus_distribution")
+	}
 
 	if input.RecoveryAfter != nil && *input.RecoveryAfter >= 1 && *input.RecoveryAfter <= 5 {
 		addDataUsed("recovery_after")
@@ -123,6 +126,15 @@ func buildAdaptationDecisionAudit(result RulesV2AdaptationShadowAssessment, targ
 	if result.LoadTolerance != nil && (result.LoadTolerance.Status == "protective_signal" ||
 		(result.CandidateResponse == "defer_progression" && result.LoadTolerance.Status != "observation_only")) {
 		addConstraint("load_tolerance_gate")
+	}
+	if result.StimulusDistribution != nil && stimulusDistributionGateTriggered(*result.StimulusDistribution) {
+		addConstraint("stimulus_distribution_gate")
+		if stimulusDistributionHasIncompleteData(*result.StimulusDistribution) {
+			addCondition("obter_cobertura_completa_da_distribuicao_de_estimulos")
+		}
+		if stimulusDistributionRequiresRecovery(*result.StimulusDistribution) {
+			addCondition("validar_espacamento_e_densidade_dos_estimulos_em_dados_reais")
+		}
 	}
 	if result.CandidateResponse == "progress_duration_5pct" {
 		addConstraint("progression_remains_shadow_only")
