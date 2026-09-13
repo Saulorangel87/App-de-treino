@@ -666,3 +666,11 @@ Antes de alterar o projeto:
 2. Confira `git status` e os commits recentes.
 3. Preserve os bancos PostgreSQL local e da VPS.
 4. Não publique, faça commit ou altere infraestrutura sem autorização explícita.
+
+### Continuidade — correção segura de métricas do pedal — versão local `0.24.0`
+
+Sessões concluídas marcadas por `data-integrity-v1` como `incomplete` ou `inconsistent` agora podem receber uma correção controlada somente nas métricas opcionais do pedal: distância, elevação, potência média e frequência cardíaca média. A rota autenticada `POST /v1/workouts/{workoutID}/correct` exige que o treino esteja concluído e inelegível; duração, RPE, feedback, plano ativo e prescrição ficam fora do escopo da operação.
+
+Cada correção preserva os valores anteriores em `workouts.explanation.data_integrity_corrections`, reavalia o gate de integridade dentro da mesma transação e só permite que a sessão volte à observação histórica quando os dados corrigidos forem coerentes. A interface explica que campos vazios removem a métrica e informa que o plano não será recalculado. `rules-v1` continua prescritivo e `used_for_prescription` permanece falso.
+
+Validação concluída localmente: `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. O build manteve apenas os avisos preexistentes do Vite sobre importação JSON nativa e classificação de rotas dinâmicas. No navegador, uma sessão com 3 minutos e 55 km foi corrigida para `0,3 km`; a mensagem de sucesso apareceu, o aviso desapareceu após `F5`, duração e RPE permaneceram inalterados e a consulta PostgreSQL confirmou `status: valid`, `distance_km: 0.3` e o valor original `55` no histórico de correção. A API precisou ser reiniciada para carregar a rota nova; sem a sessão, a rota respondeu `401`, confirmando que o endpoint estava registrado. Não houve migração, deploy ou alteração de infraestrutura; a produção permanece em `0.20.0`.

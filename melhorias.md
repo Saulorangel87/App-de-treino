@@ -612,3 +612,11 @@ O gate de integridade agora identifica combinações obviamente incompatíveis e
 Após a conclusão, a interface informa que o registro foi salvo para revisão quando faltam dados mínimos ou existem dados incompatíveis. A nota foi adicionada em `UPDATE_NOTES`. Foram incluídos teste automatizado para distância/duração e `ApiErrorState` permanece separado da lógica do motor. A suíte completa, `go vet`, o build do frontend e `git diff --check` passaram. A validação manual confirmou `distance_duration_incompatible`, `eligible_for_history: false`, `progression_eligible: false` e `used_for_prescription: false` após concluir um treino com 3 minutos e 55 km. O commit `74f9493` foi registrado; produção permanece em `0.20.0` até deploy autorizado.
 
 Enquanto essas pendências existirem, não declarar o roadmap encerrado nem substituir o `rules-v1`. A ativação prescritiva exige uma revisão separada e autorização explícita.
+
+### Continuidade — correção auditável de inconsistências do pedal — versão local `0.24.0`
+
+O fluxo de integridade ganhou uma primeira correção controlada para sessões concluídas marcadas como `incomplete` ou `inconsistent`. O atleta pode substituir somente distância, elevação, potência média e frequência cardíaca média; campos vazios removem o valor. Duração, RPE, feedback, plano e motor prescritivo ficam protegidos.
+
+A operação é autenticada, exige uma sessão concluída inelegível e reavalia `data-integrity-v1` dentro da mesma transação. Os valores anteriores ficam preservados em `data_integrity_corrections`, permitindo auditoria e evitando correção silenciosa. A sessão só volta à observação histórica se os dados corrigidos passarem nos gates; `rules-v1` continua sendo a única fonte prescritiva.
+
+A versão local passou para `0.24.0` porque a mudança é visível. A validação manual corrigiu uma sessão de 3 minutos e 55 km para `0,3 km`, confirmou a mensagem de sucesso, a persistência após atualização e a preservação do plano, duração e RPE. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. A produção continua em `0.20.0`; o tópico 11 permanece parcial porque ainda faltam fluxos mais completos de correção, análise longitudinal e validação com dados reais suficientes.

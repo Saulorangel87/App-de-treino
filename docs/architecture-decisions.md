@@ -366,3 +366,9 @@ Dados incompletos ou inconsistentes mantêm a candidata de progressão não aval
 `planning-coherence-shadow-v1` integra, para fins de auditoria, a estrutura de periodização do plano, a distribuição histórica de estímulos e a seleção de famílias de estímulos. O bloco registra estados e sinais resumidos, identifica divergências entre recuperação, fase e estímulo e mantém a decisão explicável sem duplicar os snapshots completos.
 
 Esta integração não possui autoridade prescritiva: `rules-v1` continua gerando o plano, enquanto `progression_eligible`, `applied` e `used_for_prescription` permanecem falsos. A etapa foi validada localmente e publicada no commit `f0fec8b` após backup e validação operacional, sem migração, release ou mudança visual.
+
+## Correção controlada de registros inelegíveis
+
+Uma sessão concluída marcada por `data-integrity-v1` como incompleta ou inconsistente pode receber uma correção autenticada somente nas métricas opcionais do pedal. O fluxo não aceita alterar duração, RPE, feedback, status, plano ou qualquer campo de prescrição. Campos omitidos são tratados como remoção explícita da métrica opcional.
+
+Os valores anteriores são anexados a `workouts.explanation.data_integrity_corrections` antes da nova avaliação. A atualização da sessão e da explicação ocorre na mesma transação, e a sessão só volta a ser elegível para observação se o resultado recalculado for coerente. O endpoint não concede autoridade ao `rules-v2` e não modifica o `rules-v1`; essa separação é necessária para corrigir qualidade de dados sem transformar uma edição manual em adaptação automática.
