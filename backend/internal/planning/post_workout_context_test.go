@@ -73,6 +73,48 @@ func TestAssessPostWorkoutContextRejectsInvalidValues(t *testing.T) {
 	}
 }
 
+func TestAssessPostWorkoutContextRecordsStructuredContext(t *testing.T) {
+	satisfaction := 5
+	assessment := AssessPostWorkoutContext(CompletionInput{
+		Satisfaction:       &satisfaction,
+		Terrain:            "rolling",
+		ExternalConditions: "wind",
+	}, time.Unix(0, 0))
+
+	if assessment.Satisfaction == nil || *assessment.Satisfaction != 5 {
+		t.Fatalf("satisfaction = %v, want 5", assessment.Satisfaction)
+	}
+	if assessment.Terrain != "rolling" || assessment.ExternalConditions != "wind" {
+		t.Fatalf("structured context = terrain %q, conditions %q", assessment.Terrain, assessment.ExternalConditions)
+	}
+	for _, field := range []string{"satisfaction", "terrain", "external_conditions"} {
+		if !slices.Contains(assessment.ObservedFields, field) {
+			t.Fatalf("observed fields did not include %q: %#v", field, assessment.ObservedFields)
+		}
+	}
+	if assessment.ProgressionEligible || assessment.UsedForPrescription {
+		t.Fatal("structured context must remain non-prescriptive")
+	}
+}
+
+func TestAssessPostWorkoutContextRejectsInvalidStructuredContext(t *testing.T) {
+	satisfaction := 0
+	assessment := AssessPostWorkoutContext(CompletionInput{
+		Satisfaction:       &satisfaction,
+		Terrain:            "downhill",
+		ExternalConditions: "storm",
+	}, time.Unix(0, 0))
+
+	for _, issue := range []string{"invalid_satisfaction", "invalid_terrain", "invalid_external_conditions"} {
+		if !slices.Contains(assessment.DataIssues, issue) {
+			t.Fatalf("data issues did not include %q: %#v", issue, assessment.DataIssues)
+		}
+	}
+	if assessment.Status != "not_evaluated" || assessment.UsedForPrescription {
+		t.Fatalf("invalid structured context was interpreted: %+v", assessment)
+	}
+}
+
 func TestAssessRulesV2AdaptationShadowAttachesPostWorkoutContext(t *testing.T) {
 	recoveryAfter := 4
 	repeatConfidence := 5

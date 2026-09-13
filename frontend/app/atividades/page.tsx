@@ -25,6 +25,14 @@ const partialReasonLabels = {
   other: 'outro motivo',
 } as const;
 
+const terrainLabels = {
+  flat: 'plano', rolling: 'ondulado', hilly: 'montanhoso', mixed: 'misto', technical: 'técnico', indoor: 'indoor',
+} as const;
+
+const externalConditionLabels = {
+  normal: 'condições normais', heat: 'calor', cold: 'frio', wind: 'vento', rain: 'chuva', poor_visibility: 'baixa visibilidade', other: 'outra condição',
+} as const;
+
 export default function ActivitiesPage() {
   const [user, setUser] = useState<User | null>(null);
   const [activities, setActivities] = useState<TrainingActivity[]>([]);
@@ -92,7 +100,7 @@ export default function ActivitiesPage() {
                     {item.elevation_gain_m !== undefined && <span><MapPinned size={14} /><b>{item.elevation_gain_m} m+</b></span>}
                     {item.average_heart_rate !== undefined && <span><HeartPulse size={14} /><b>{item.average_heart_rate} bpm</b></span>}
                     {item.average_power_watts !== undefined && <span><Zap size={14} /><b>{item.average_power_watts} W</b></span>}
-                    {item.feedback && <><span><b>{item.feedback.completion_status === 'partial' ? `Parcial · ${item.feedback.partial_reason ? partialReasonLabels[item.feedback.partial_reason] : 'motivo não informado'}` : 'Completa'}</b></span><span><b>{difficultyLabels[item.feedback.difficulty]}</b></span><span>Fadiga <b>{item.feedback.fatigue_after}/5</b></span>{item.feedback.recovery_after !== undefined && <span>Recuperação <b>{item.feedback.recovery_after}/5</b></span>}{item.feedback.repeat_confidence !== undefined && <span>Confiança <b>{item.feedback.repeat_confidence}/5</b></span>}<span className={item.feedback.pain_reported ? 'pain' : ''}>{item.feedback.pain_reported ? 'Dor relatada' : 'Sem dor'}</span></>}
+                    {item.feedback && <><span><b>{item.feedback.completion_status === 'partial' ? `Parcial · ${item.feedback.partial_reason ? partialReasonLabels[item.feedback.partial_reason] : 'motivo não informado'}` : 'Completa'}</b></span><span><b>{difficultyLabels[item.feedback.difficulty]}</b></span><span>Fadiga <b>{item.feedback.fatigue_after}/5</b></span>{item.feedback.recovery_after !== undefined && <span>Recuperação <b>{item.feedback.recovery_after}/5</b></span>}{item.feedback.repeat_confidence !== undefined && <span>Confiança <b>{item.feedback.repeat_confidence}/5</b></span>}{item.feedback.satisfaction !== undefined && <span>Satisfação <b>{item.feedback.satisfaction}/5</b></span>}{item.feedback.terrain && <span>Terreno <b>{terrainLabels[item.feedback.terrain]}</b></span>}{item.feedback.external_conditions && <span>Condições <b>{externalConditionLabels[item.feedback.external_conditions]}</b></span>}<span className={item.feedback.pain_reported ? 'pain' : ''}>{item.feedback.pain_reported ? 'Dor relatada' : 'Sem dor'}</span></>}
                   </div>
                   {item.feedback?.notes && <p className="activity-notes">{item.feedback.notes}</p>}
                 </div>

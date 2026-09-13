@@ -133,30 +133,36 @@ type WorkoutSession struct {
 }
 
 type Feedback struct {
-	CompletionStatus string `json:"completion_status"`
-	PartialReason    string `json:"partial_reason,omitempty"`
-	Difficulty       string `json:"difficulty"`
-	PainReported     bool   `json:"pain_reported"`
-	FatigueAfter     int    `json:"fatigue_after"`
-	RecoveryAfter    *int   `json:"recovery_after,omitempty"`
-	RepeatConfidence *int   `json:"repeat_confidence,omitempty"`
-	Notes            string `json:"notes,omitempty"`
+	CompletionStatus   string `json:"completion_status"`
+	PartialReason      string `json:"partial_reason,omitempty"`
+	Difficulty         string `json:"difficulty"`
+	PainReported       bool   `json:"pain_reported"`
+	FatigueAfter       int    `json:"fatigue_after"`
+	RecoveryAfter      *int   `json:"recovery_after,omitempty"`
+	RepeatConfidence   *int   `json:"repeat_confidence,omitempty"`
+	Satisfaction       *int   `json:"satisfaction,omitempty"`
+	Terrain            string `json:"terrain,omitempty"`
+	ExternalConditions string `json:"external_conditions,omitempty"`
+	Notes              string `json:"notes,omitempty"`
 }
 
 type CompletionInput struct {
-	CompletionStatus string
-	PartialReason    string
-	ActualRPE        float64
-	Difficulty       string
-	PainReported     bool
-	FatigueAfter     int
-	RecoveryAfter    *int
-	RepeatConfidence *int
-	Notes            string
-	DistanceKM       *float64
-	ElevationGainM   *int
-	AveragePowerW    *int
-	AverageHeartRate *int
+	CompletionStatus   string
+	PartialReason      string
+	ActualRPE          float64
+	Difficulty         string
+	PainReported       bool
+	FatigueAfter       int
+	RecoveryAfter      *int
+	RepeatConfidence   *int
+	Satisfaction       *int
+	Terrain            string
+	ExternalConditions string
+	Notes              string
+	DistanceKM         *float64
+	ElevationGainM     *int
+	AveragePowerW      *int
+	AverageHeartRate   *int
 }
 
 // WorkoutCorrectionInput replaces only optional pedal metrics on a completed
@@ -364,6 +370,15 @@ func validCompletion(input CompletionInput) bool {
 	if input.RepeatConfidence != nil && (*input.RepeatConfidence < 1 || *input.RepeatConfidence > 5) {
 		return false
 	}
+	if input.Satisfaction != nil && (*input.Satisfaction < 1 || *input.Satisfaction > 5) {
+		return false
+	}
+	if input.Terrain != "" && !validFeedbackTerrain(input.Terrain) {
+		return false
+	}
+	if input.ExternalConditions != "" && !validExternalConditions(input.ExternalConditions) {
+		return false
+	}
 	switch input.Difficulty {
 	case "very_easy", "easy", "moderate", "hard", "very_hard":
 		return true
@@ -398,6 +413,24 @@ func normalizeCompletionStatus(value string) string {
 func validPartialReason(value string) bool {
 	switch value {
 	case "time_available_changed", "fatigue_or_recovery", "pain_or_discomfort", "equipment_or_conditions", "other":
+		return true
+	default:
+		return false
+	}
+}
+
+func validFeedbackTerrain(value string) bool {
+	switch value {
+	case "flat", "rolling", "hilly", "mixed", "technical", "indoor":
+		return true
+	default:
+		return false
+	}
+}
+
+func validExternalConditions(value string) bool {
+	switch value {
+	case "normal", "heat", "cold", "wind", "rain", "poor_visibility", "other":
 		return true
 	default:
 		return false

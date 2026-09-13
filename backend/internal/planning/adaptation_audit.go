@@ -103,6 +103,15 @@ func buildAdaptationDecisionAudit(result RulesV2AdaptationShadowAssessment, targ
 	if input.RepeatConfidence != nil && *input.RepeatConfidence >= 1 && *input.RepeatConfidence <= 5 {
 		addDataUsed("repeat_confidence")
 	}
+	if input.Satisfaction != nil && *input.Satisfaction >= 1 && *input.Satisfaction <= 5 {
+		addDataUsed("satisfaction")
+	}
+	if validFeedbackTerrain(input.Terrain) {
+		addDataUsed("terrain")
+	}
+	if validExternalConditions(input.ExternalConditions) {
+		addDataUsed("external_conditions")
+	}
 	if input.CompletionStatus == "partial" && input.PartialReason != "" {
 		addDataUsed("partial_reason")
 		addConstraint("partial_completion")

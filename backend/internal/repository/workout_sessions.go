@@ -17,7 +17,7 @@ func (s *Store) ActivitiesByUserID(ctx context.Context, userID string) ([]planni
 			ws.duration_minutes, ws.actual_rpe, ws.distance_km::double precision, ws.elevation_gain_m,
 			ws.average_power_watts, ws.average_heart_rate,
 			f.completion_status, f.partial_reason, f.difficulty, f.pain_reported, f.fatigue_after,
-			f.recovery_after, f.repeat_confidence, f.notes
+			f.recovery_after, f.repeat_confidence, f.satisfaction, f.terrain, f.external_conditions, f.notes
 		FROM workout_sessions ws
 		JOIN athlete_profiles ap ON ap.id = ws.athlete_profile_id
 		JOIN workouts w ON w.id = ws.workout_id
@@ -36,12 +36,12 @@ func (s *Store) ActivitiesByUserID(ctx context.Context, userID string) ([]planni
 		var duration, elevationGainM, averagePowerW, averageHeartRate *int
 		var rpe *float64
 		var distanceKM *float64
-		var completionStatus, partialReason, difficulty, notes *string
+		var completionStatus, partialReason, difficulty, terrain, externalConditions, notes *string
 		var pain *bool
-		var fatigue, recoveryAfter, repeatConfidence *int
+		var fatigue, recoveryAfter, repeatConfidence, satisfaction *int
 		if err := rows.Scan(&activity.ID, &activity.WorkoutID, &activity.Name, &activity.Objective, &activity.ScheduledOn,
 			&activity.Status, &startedAt, &completedAt, &cancelledAt, &duration, &rpe, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate,
-			&completionStatus, &partialReason, &difficulty, &pain, &fatigue, &recoveryAfter, &repeatConfidence, &notes); err != nil {
+			&completionStatus, &partialReason, &difficulty, &pain, &fatigue, &recoveryAfter, &repeatConfidence, &satisfaction, &terrain, &externalConditions, &notes); err != nil {
 			return nil, err
 		}
 		activity.StartedAt, activity.CompletedAt, activity.CancelledAt = startedAt, completedAt, cancelledAt
@@ -49,12 +49,18 @@ func (s *Store) ActivitiesByUserID(ctx context.Context, userID string) ([]planni
 		activity.DistanceKM, activity.ElevationGainM = distanceKM, elevationGainM
 		activity.AveragePowerW, activity.AverageHeartRate = averagePowerW, averageHeartRate
 		if difficulty != nil {
-			activity.Feedback = &planning.Feedback{CompletionStatus: *completionStatus, Difficulty: *difficulty, PainReported: *pain, FatigueAfter: *fatigue, RecoveryAfter: recoveryAfter, RepeatConfidence: repeatConfidence}
+			activity.Feedback = &planning.Feedback{CompletionStatus: *completionStatus, Difficulty: *difficulty, PainReported: *pain, FatigueAfter: *fatigue, RecoveryAfter: recoveryAfter, RepeatConfidence: repeatConfidence, Satisfaction: satisfaction}
 			if partialReason != nil {
 				activity.Feedback.PartialReason = *partialReason
 			}
 			if notes != nil {
 				activity.Feedback.Notes = *notes
+			}
+			if terrain != nil {
+				activity.Feedback.Terrain = *terrain
+			}
+			if externalConditions != nil {
+				activity.Feedback.ExternalConditions = *externalConditions
 			}
 		}
 		activities = append(activities, activity)
@@ -179,9 +185,9 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 		RepeatConfidence: input.RepeatConfidence,
 	}, integrityAssessedAt)
 	if _, err := tx.Exec(ctx, `
-		INSERT INTO feedback (workout_session_id, completion_status, partial_reason, difficulty, pain_reported, fatigue_after, recovery_after, repeat_confidence, notes)
-		VALUES ($1, $2, NULLIF($3, ''), $4, $5, $6, $7, $8, NULLIF($9, ''))`,
-		sessionID, input.CompletionStatus, input.PartialReason, input.Difficulty, input.PainReported, input.FatigueAfter, input.RecoveryAfter, input.RepeatConfidence, input.Notes,
+		INSERT INTO feedback (workout_session_id, completion_status, partial_reason, difficulty, pain_reported, fatigue_after, recovery_after, repeat_confidence, satisfaction, terrain, external_conditions, notes)
+		VALUES ($1, $2, NULLIF($3, ''), $4, $5, $6, $7, $8, $9, NULLIF($10, ''), NULLIF($11, ''), NULLIF($12, ''))`,
+		sessionID, input.CompletionStatus, input.PartialReason, input.Difficulty, input.PainReported, input.FatigueAfter, input.RecoveryAfter, input.RepeatConfidence, input.Satisfaction, input.Terrain, input.ExternalConditions, input.Notes,
 	); err != nil {
 		return err
 	}

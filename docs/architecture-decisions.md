@@ -372,3 +372,9 @@ Esta integração não possui autoridade prescritiva: `rules-v1` continua gerand
 Uma sessão concluída marcada por `data-integrity-v1` como incompleta ou inconsistente pode receber uma correção autenticada somente nas métricas opcionais do pedal. O fluxo não aceita alterar duração, RPE, feedback, status, plano ou qualquer campo de prescrição. Campos omitidos são tratados como remoção explícita da métrica opcional.
 
 Os valores anteriores são anexados a `workouts.explanation.data_integrity_corrections` antes da nova avaliação. A atualização da sessão e da explicação ocorre na mesma transação, e a sessão só volta a ser elegível para observação se o resultado recalculado for coerente. O endpoint não concede autoridade ao `rules-v2` e não modifica o `rules-v1`; essa separação é necessária para corrigir qualidade de dados sem transformar uma edição manual em adaptação automática.
+
+## Contexto estruturado do feedback sem autoridade prescritiva
+
+A satisfação da sessão, o terreno e as condições externas passaram a ser armazenados como contexto opcional do feedback. A satisfação usa escala de 1 a 5; terreno e condições externas usam valores controlados para manter a leitura comparável e evitar que texto livre seja tratado como classificação automática. Feedbacks anteriores continuam válidos quando esses campos estão nulos.
+
+A migração `000023_feedback_context` é aditiva. Os valores são retornados no plano e no histórico e entram na auditoria `post-workout-context-v2` apenas como observação. Nenhum deles muda duração, RPE, estímulo, adaptação ou prescrição: `rules-v1` permanece a fonte autoritativa enquanto calibração, efeito longitudinal e dados reais ainda não foram demonstrados.

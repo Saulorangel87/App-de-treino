@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão publicada: `0.20.0` — catálogo ampliado, contexto de conclusão e feedback pós-treino, auditoria observacional e histórico dedicado de novidades. O checkout local contém a versão `0.24.0`: a correção de erros das telas autenticadas está no commit `77e57ec`, a integridade mais clara dos registros pós-treino foi validada no commit `74f9493` e a correção segura de métricas do pedal foi validada localmente. A produção permanece em `0.20.0` até uma publicação própria. A release mais recente é a [v0.20.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.20.0).
+Versão publicada: `0.20.0` — catálogo ampliado, contexto de conclusão e feedback pós-treino, auditoria observacional e histórico dedicado de novidades. O checkout local contém a versão `0.25.0`: a correção de erros das telas autenticadas está no commit `77e57ec`, a integridade mais clara dos registros pós-treino foi validada no commit `74f9493`, a correção segura de métricas do pedal foi validada localmente e o feedback estruturado foi validado localmente com a migração `000023`. A produção permanece em `0.20.0` até uma publicação própria. A release mais recente é a [v0.20.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.20.0).
 
 O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro não fazem parte deste app e não são aceitos como modalidades de treino.
 
@@ -21,7 +21,7 @@ O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Spr
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui a migração `000015` (fontes do catálogo inicial), a `000016` (fonte do piloto XCO), a `000017` (fontes do taper pré-prova), a `000018` (fontes do piloto VO₂max de estrada), a `000019` (fontes do piloto de intervalos curtos), a `000020` (contexto de conclusão parcial), a `000021` (contexto adicional pós-treino) e a `000022` (contexto opcional de segurança das limitações); elas ainda precisam ser aplicadas nos ambientes que estiverem em uma versão anterior.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui a migração `000015` (fontes do catálogo inicial), a `000016` (fonte do piloto XCO), a `000017` (fontes do taper pré-prova), a `000018` (fontes do piloto VO₂max de estrada), a `000019` (fonte do piloto de intervalos curtos), a `000020` (contexto de conclusão parcial), a `000021` (contexto adicional pós-treino), a `000022` (contexto opcional de segurança das limitações) e a `000023` (contexto estruturado do feedback); elas ainda precisam ser aplicadas nos ambientes que estiverem em uma versão anterior.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 

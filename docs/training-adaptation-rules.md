@@ -362,3 +362,9 @@ O roadmap atual prioriza prontidão, evolução versionada das regras, adaptaç�
 ### Estado publicado do catálogo ampliado — 12 de setembro de 2026
 
 Os pilotos `taper-v1`, `road_vo2_intervals` e `short_self_regulated_intervals` foram publicados após validação local, backup e aplicação ordenada das migrações. Eles continuam limitados pelos gates documentados e pelo `rules-v1`. Sprint/pista/BMX e downhill/enduro permanecem fora do produto e não são candidatos de prescrição.
+
+## Contexto estruturado do feedback pós-treino (`000023`)
+
+O feedback pode registrar também satisfação da sessão em escala de 1 a 5, terreno e condição externa por listas controladas. Esses sinais complementam o relato livre e permitem comparar sessões sem depender exclusivamente de texto aberto. Os campos são opcionais no banco para preservar registros antigos; o formulário atual envia uma satisfação neutra inicial e permite deixar terreno e condição externa sem informação.
+
+O backend valida os valores antes de persistir, e o histórico devolve os campos sem convertê-los em diagnóstico ou prescrição. `post-workout-context-v2` e `decision_audit.data_used` registram a cobertura observada, mas `rules-v1` continua sendo a única autoridade do plano; `progression_eligible`, `applied` e `used_for_prescription` permanecem falsos. A coleta deve ser usada futuramente para calibrar interpretação e efeito longitudinal, não para aumentar carga por um relato isolado.

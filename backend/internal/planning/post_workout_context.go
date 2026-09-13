@@ -2,7 +2,7 @@ package planning
 
 import "time"
 
-const postWorkoutContextVersion = "post-workout-context-v1"
+const postWorkoutContextVersion = "post-workout-context-v2"
 
 // PostWorkoutContextAssessment records the optional subjective context added
 // after a workout. It describes data coverage only; it does not interpret
@@ -16,6 +16,9 @@ type PostWorkoutContextAssessment struct {
 	CandidateResponse   string            `json:"candidate_response"`
 	RecoveryAfter       *int              `json:"recovery_after,omitempty"`
 	RepeatConfidence    *int              `json:"repeat_confidence,omitempty"`
+	Satisfaction        *int              `json:"satisfaction,omitempty"`
+	Terrain             string            `json:"terrain,omitempty"`
+	ExternalConditions  string            `json:"external_conditions,omitempty"`
 	ObservedFields      []string          `json:"observed_fields"`
 	Reasons             []ReadinessReason `json:"reasons"`
 	MissingData         []string          `json:"missing_data"`
@@ -79,6 +82,32 @@ func AssessPostWorkoutContext(input CompletionInput, now time.Time) PostWorkoutC
 		addObserved("repeat_confidence")
 	}
 
+	if input.Satisfaction != nil {
+		if *input.Satisfaction < 1 || *input.Satisfaction > 5 {
+			addIssue("invalid_satisfaction")
+		} else {
+			value := *input.Satisfaction
+			result.Satisfaction = &value
+			addObserved("satisfaction")
+		}
+	}
+	if input.Terrain != "" {
+		if !validFeedbackTerrain(input.Terrain) {
+			addIssue("invalid_terrain")
+		} else {
+			result.Terrain = input.Terrain
+			addObserved("terrain")
+		}
+	}
+	if input.ExternalConditions != "" {
+		if !validExternalConditions(input.ExternalConditions) {
+			addIssue("invalid_external_conditions")
+		} else {
+			result.ExternalConditions = input.ExternalConditions
+			addObserved("external_conditions")
+		}
+	}
+
 	if len(result.DataIssues) > 0 {
 		result.Reasons = append(result.Reasons, ReadinessReason{
 			Code:    "invalid_post_workout_context",
@@ -107,7 +136,7 @@ func AssessPostWorkoutContext(input CompletionInput, now time.Time) PostWorkoutC
 	result.CandidateResponse = "maintain_observed"
 	result.Reasons = append(result.Reasons, ReadinessReason{
 		Code:    "post_workout_context_recorded",
-		Message: "Os dois sinais pós-treino foram registrados para observação; nenhum deles altera a prescrição.",
+		Message: "Os sinais pós-treino disponíveis foram registrados para observação; nenhum deles altera a prescrição.",
 	})
 	return result
 }

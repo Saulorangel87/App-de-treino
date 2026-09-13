@@ -62,7 +62,7 @@ export type Workout = {
       not_evaluated: string[];
       stimulus_distribution?: TrainingStimulusDistribution;
       post_workout_context?: {
-        version: 'post-workout-context-v1';
+        version: 'post-workout-context-v2';
         mode: 'observation';
         scope: 'post_workout_feedback';
         assessed_at: string;
@@ -70,6 +70,9 @@ export type Workout = {
         candidate_response: 'not_evaluated' | 'maintain_observed';
         recovery_after?: number;
         repeat_confidence?: number;
+        satisfaction?: number;
+        terrain?: 'flat' | 'rolling' | 'hilly' | 'mixed' | 'technical' | 'indoor';
+        external_conditions?: 'normal' | 'heat' | 'cold' | 'wind' | 'rain' | 'poor_visibility' | 'other';
         observed_fields: string[];
         reasons: { code: string; message: string }[];
         missing_data: string[];
@@ -177,6 +180,9 @@ export type WorkoutFeedback = {
   fatigue_after: number;
   recovery_after?: number;
   repeat_confidence?: number;
+  satisfaction?: number;
+  terrain?: 'flat' | 'rolling' | 'hilly' | 'mixed' | 'technical' | 'indoor';
+  external_conditions?: 'normal' | 'heat' | 'cold' | 'wind' | 'rain' | 'poor_visibility' | 'other';
   notes?: string;
 };
 

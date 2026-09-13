@@ -9,19 +9,22 @@ import (
 )
 
 type completeWorkoutInput struct {
-	CompletionStatus string   `json:"completion_status"`
-	PartialReason    string   `json:"partial_reason"`
-	ActualRPE        float64  `json:"actual_rpe"`
-	Difficulty       string   `json:"difficulty"`
-	PainReported     bool     `json:"pain_reported"`
-	FatigueAfter     int      `json:"fatigue_after"`
-	RecoveryAfter    *int     `json:"recovery_after"`
-	RepeatConfidence *int     `json:"repeat_confidence"`
-	Notes            string   `json:"notes"`
-	DistanceKM       *float64 `json:"distance_km"`
-	ElevationGainM   *int     `json:"elevation_gain_m"`
-	AveragePowerW    *int     `json:"average_power_watts"`
-	AverageHeartRate *int     `json:"average_heart_rate"`
+	CompletionStatus   string   `json:"completion_status"`
+	PartialReason      string   `json:"partial_reason"`
+	ActualRPE          float64  `json:"actual_rpe"`
+	Difficulty         string   `json:"difficulty"`
+	PainReported       bool     `json:"pain_reported"`
+	FatigueAfter       int      `json:"fatigue_after"`
+	RecoveryAfter      *int     `json:"recovery_after"`
+	RepeatConfidence   *int     `json:"repeat_confidence"`
+	Satisfaction       *int     `json:"satisfaction"`
+	Terrain            string   `json:"terrain"`
+	ExternalConditions string   `json:"external_conditions"`
+	Notes              string   `json:"notes"`
+	DistanceKM         *float64 `json:"distance_km"`
+	ElevationGainM     *int     `json:"elevation_gain_m"`
+	AveragePowerW      *int     `json:"average_power_watts"`
+	AverageHeartRate   *int     `json:"average_heart_rate"`
 }
 
 type correctWorkoutInput struct {
@@ -61,8 +64,10 @@ func (s *Server) completeWorkout(w http.ResponseWriter, r *http.Request) {
 		ActualRPE: input.ActualRPE, Difficulty: input.Difficulty,
 		PainReported: input.PainReported, FatigueAfter: input.FatigueAfter,
 		RecoveryAfter: input.RecoveryAfter, RepeatConfidence: input.RepeatConfidence,
-		Notes:      strings.TrimSpace(input.Notes),
-		DistanceKM: input.DistanceKM, ElevationGainM: input.ElevationGainM,
+		Satisfaction: input.Satisfaction, Terrain: strings.TrimSpace(input.Terrain),
+		ExternalConditions: strings.TrimSpace(input.ExternalConditions),
+		Notes:              strings.TrimSpace(input.Notes),
+		DistanceKM:         input.DistanceKM, ElevationGainM: input.ElevationGainM,
 		AveragePowerW: input.AveragePowerW, AverageHeartRate: input.AverageHeartRate,
 	})
 	if writeWorkoutError(w, err) {

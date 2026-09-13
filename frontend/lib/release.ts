@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.24.0';
+export const APP_VERSION = '0.25.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.25.0',
+    title: 'Feedback pós-treino mais completo',
+    description:
+      'Ao concluir um pedal, você pode registrar satisfação, terreno e condições externas em campos estruturados. Esses dados ficam disponíveis no histórico e continuam observacionais, sem alterar automaticamente o plano.',
+  },
   {
     version: '0.24.0',
     title: 'Correção segura de métricas do pedal',

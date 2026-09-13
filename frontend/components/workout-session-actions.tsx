@@ -46,6 +46,25 @@ const partialReasonLabels = {
   other: 'Outro motivo',
 } as const;
 
+const terrainLabels = {
+  flat: 'Plano',
+  rolling: 'Ondulado',
+  hilly: 'Montanhoso',
+  mixed: 'Misto',
+  technical: 'Técnico',
+  indoor: 'Indoor',
+} as const;
+
+const externalConditionLabels = {
+  normal: 'Condições normais',
+  heat: 'Calor',
+  cold: 'Frio',
+  wind: 'Vento',
+  rain: 'Chuva',
+  poor_visibility: 'Baixa visibilidade',
+  other: 'Outra condição',
+} as const;
+
 const timeFormatter = new Intl.DateTimeFormat('pt-BR', {
   hour: '2-digit',
   minute: '2-digit',
@@ -71,6 +90,9 @@ export function WorkoutSessionActions({
   const [fatigueAfter, setFatigueAfter] = useState(3);
   const [recoveryAfter, setRecoveryAfter] = useState(3);
   const [repeatConfidence, setRepeatConfidence] = useState(3);
+  const [satisfaction, setSatisfaction] = useState(3);
+  const [terrain, setTerrain] = useState<keyof typeof terrainLabels | ''>('');
+  const [externalConditions, setExternalConditions] = useState<keyof typeof externalConditionLabels | ''>('');
   const [painReported, setPainReported] = useState(false);
   const [notes, setNotes] = useState('');
   const [distanceKM, setDistanceKM] = useState('');
@@ -122,6 +144,9 @@ export function WorkoutSessionActions({
       fatigue_after: fatigueAfter,
       recovery_after: recoveryAfter,
       repeat_confidence: repeatConfidence,
+      satisfaction,
+      terrain: terrain || undefined,
+      external_conditions: externalConditions || undefined,
       pain_reported: painReported,
       notes,
       distance_km: optionalNumber(distanceKM),
@@ -416,6 +441,47 @@ export function WorkoutSessionActions({
 
           <div className="feedback-grid">
             <label>
+              Satisfação com a sessão
+              <select
+                value={satisfaction}
+                onChange={(event) => setSatisfaction(Number(event.target.value))}
+              >
+                <option value="1">1 de 5 · Muito baixa</option>
+                <option value="2">2 de 5 · Baixa</option>
+                <option value="3">3 de 5 · Neutra</option>
+                <option value="4">4 de 5 · Boa</option>
+                <option value="5">5 de 5 · Muito boa</option>
+              </select>
+            </label>
+            <label>
+              Terreno
+              <select
+                value={terrain}
+                onChange={(event) => setTerrain(event.target.value as keyof typeof terrainLabels | '')}
+              >
+                <option value="">Não informado</option>
+                {Object.entries(terrainLabels).map(([value, label]) => (
+                  <option value={value} key={value}>{label}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <label>
+            Condições externas
+            <select
+              value={externalConditions}
+              onChange={(event) => setExternalConditions(event.target.value as keyof typeof externalConditionLabels | '')}
+            >
+              <option value="">Não informado</option>
+              {Object.entries(externalConditionLabels).map(([value, label]) => (
+                <option value={value} key={value}>{label}</option>
+              ))}
+            </select>
+          </label>
+
+          <div className="feedback-grid">
+            <label>
               Recuperação percebida
               <select
                 value={recoveryAfter}
@@ -516,6 +582,9 @@ export function WorkoutSessionActions({
               {feedback.fatigue_after}/5
               {feedback.recovery_after !== undefined && ` · recuperação ${feedback.recovery_after}/5`}
               {feedback.repeat_confidence !== undefined && ` · confiança ${feedback.repeat_confidence}/5`}
+              {feedback.satisfaction !== undefined && ` · satisfação ${feedback.satisfaction}/5`}
+              {feedback.terrain && ` · ${terrainLabels[feedback.terrain]}`}
+              {feedback.external_conditions && ` · ${externalConditionLabels[feedback.external_conditions]}`}
               {feedback.pain_reported ? ' · dor relatada' : ' · sem dor'}
             </span>
             {feedback.notes && <p>{feedback.notes}</p>}
