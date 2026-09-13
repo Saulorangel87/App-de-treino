@@ -10,10 +10,14 @@ import (
 var ErrInvalidOnboarding = errors.New("invalid onboarding data")
 
 type Limitation struct {
-	Kind                             string `json:"kind"`
-	Description                      string `json:"description"`
-	IsActive                         bool   `json:"is_active"`
-	ProfessionalClearanceRecommended bool   `json:"professional_clearance_recommended"`
+	Kind                             string  `json:"kind"`
+	Description                      string  `json:"description"`
+	Location                         string  `json:"location,omitempty"`
+	Intensity                        *int    `json:"intensity,omitempty"`
+	AggravatingMovement              string  `json:"aggravating_movement,omitempty"`
+	StartedOn                        *string `json:"started_on,omitempty"`
+	IsActive                         bool    `json:"is_active"`
+	ProfessionalClearanceRecommended bool    `json:"professional_clearance_recommended"`
 }
 
 type Goal struct {
@@ -126,8 +130,23 @@ func (s *OnboardingService) SaveLimitations(ctx context.Context, userID string, 
 	for index := range limitations {
 		limitations[index].Kind = strings.TrimSpace(limitations[index].Kind)
 		limitations[index].Description = strings.TrimSpace(limitations[index].Description)
-		if !kinds[limitations[index].Kind] || len(limitations[index].Description) < 3 || len(limitations[index].Description) > 500 {
+		limitations[index].Location = strings.TrimSpace(limitations[index].Location)
+		limitations[index].AggravatingMovement = strings.TrimSpace(limitations[index].AggravatingMovement)
+		if !kinds[limitations[index].Kind] || len(limitations[index].Description) < 3 || len(limitations[index].Description) > 500 || len(limitations[index].Location) > 120 || len(limitations[index].AggravatingMovement) > 200 {
 			return nil, ErrInvalidOnboarding
+		}
+		if limitations[index].Intensity != nil && (*limitations[index].Intensity < 1 || *limitations[index].Intensity > 10) {
+			return nil, ErrInvalidOnboarding
+		}
+		if limitations[index].StartedOn != nil {
+			startedOn, err := time.Parse("2006-01-02", strings.TrimSpace(*limitations[index].StartedOn))
+			today := s.now()
+			todayDate := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, today.Location())
+			if err != nil || startedOn.After(todayDate) {
+				return nil, ErrInvalidOnboarding
+			}
+			startedOnValue := startedOn.Format("2006-01-02")
+			limitations[index].StartedOn = &startedOnValue
 		}
 		limitations[index].IsActive = true
 	}

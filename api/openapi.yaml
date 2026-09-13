@@ -409,6 +409,10 @@ components:
       properties:
         kind: { type: string, enum: [pain, injury, medical_condition, mobility, other] }
         description: { type: string, minLength: 3, maxLength: 500 }
+        location: { type: string, maxLength: 120 }
+        intensity: { type: [integer, 'null'], minimum: 1, maximum: 10, description: Escala percebida opcional; não é diagnóstico. }
+        aggravating_movement: { type: string, maxLength: 200 }
+        started_on: { type: [string, 'null'], format: date }
         is_active: { type: boolean }
         professional_clearance_recommended: { type: boolean }
     Goal:

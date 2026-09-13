@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão publicada: `0.20.0` — catálogo ampliado, contexto de conclusão e feedback pós-treino, auditoria observacional e histórico dedicado de novidades. A release mais recente é a [v0.20.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.20.0).
+Versão publicada: `0.20.0` — catálogo ampliado, contexto de conclusão e feedback pós-treino, auditoria observacional e histórico dedicado de novidades. O checkout local prepara a versão `0.21.0`, ainda pendente de validação manual e publicação. A release mais recente é a [v0.20.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.20.0).
 
 O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro não fazem parte deste app e não são aceitos como modalidades de treino.
 
@@ -21,7 +21,7 @@ O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Spr
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui a migração `000015` (fontes do catálogo inicial), a `000016` (fonte do piloto XCO), a `000017` (fontes do taper pré-prova), a `000018` (fontes do piloto VO₂max de estrada), a `000019` (fontes do piloto de intervalos curtos), a `000020` (contexto de conclusão parcial) e a `000021` (contexto adicional pós-treino); elas ainda precisam ser aplicadas nos ambientes que estiverem em uma versão anterior.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui a migração `000015` (fontes do catálogo inicial), a `000016` (fonte do piloto XCO), a `000017` (fontes do taper pré-prova), a `000018` (fontes do piloto VO₂max de estrada), a `000019` (fontes do piloto de intervalos curtos), a `000020` (contexto de conclusão parcial), a `000021` (contexto adicional pós-treino) e a `000022` (contexto opcional de segurança das limitações); elas ainda precisam ser aplicadas nos ambientes que estiverem em uma versão anterior.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -41,7 +41,7 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `GET /v1/profile`: consulta o perfil básico do ciclista.
 - `PUT /v1/profile`: cria ou atualiza o perfil básico.
 - `GET /v1/onboarding`: consulta limitações, objetivos, disponibilidade e contexto opcional de ciclismo.
-- `PUT /v1/onboarding/limitations`: salva informações de segurança.
+- `PUT /v1/onboarding/limitations`: salva informações de segurança, incluindo opcionalmente localização, intensidade percebida, movimento agravante e data de início. Esses campos são contexto informado pelo atleta e não constituem diagnóstico.
 - `PUT /v1/onboarding/goals`: salva até dois objetivos priorizados.
 - `PUT /v1/onboarding/availability`: salva a disponibilidade semanal.
 - `PUT /v1/onboarding/cycling-context`: salva histórico resumido (horas, pedais, distância semanal recente, semanas de regularidade e maior distância), preferências de sessão, equipamento, terreno e meta opcional de prova com distância e data futura válidas.

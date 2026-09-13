@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.20.0';
+export const APP_VERSION = '0.21.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.21.0',
+    title: 'Contexto de segurança mais completo',
+    description:
+      'Ao informar uma limitação, você pode registrar localização, intensidade percebida, o que agrava e quando começou. Esses dados ajudam a preservar uma leitura mais segura e não substituem avaliação profissional.',
+  },
   {
     version: '0.20.0',
     title: 'Perfil sempre acessível no menu',

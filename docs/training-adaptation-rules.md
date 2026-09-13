@@ -339,6 +339,14 @@ As referências de ciclismo sobre periodização, cadência, testes submáximos 
 - Capostagno, Lambert e Lamberts (2016): https://pubmed.ncbi.nlm.nih.gov/27701968/
 - Seiler (2010): https://pubmed.ncbi.nlm.nih.gov/20861519/
 
+### Contexto detalhado de segurança das limitações (`000022`)
+
+O perfil pode registrar, além do tipo e da descrição, localização, intensidade percebida de 1 a 10, movimento agravante e data de início. Todos esses campos são opcionais; a API normaliza os textos, valida seus limites, rejeita intensidade fora da faixa e impede datas futuras. A interface deixa explícito que o registro é contextual e não substitui diagnóstico ou orientação profissional.
+
+Esses detalhes permanecem separados da prescrição. O contexto usado na geração do plano consulta somente a existência da limitação ativa, seu tipo e a recomendação de liberação profissional. Assim, o `rules-v1` continua aplicando as proteções existentes sem interpretar localização, intensidade ou movimento como diagnóstico, e os shadows continuam sem autoridade. Planos já gerados não são recalculados.
+
+A migração `000022_limitation_context` preserva registros anteriores usando valores vazios/nulos compatíveis. A versão local `0.21.0` comunica a mudança pela tela de novidades; produção permanece em `0.20.0` até validação manual, backup, aplicação ordenada da migração e autorização de publicação.
+
 ### Estado operacional para a próxima revisão
 
 O histórico observado, o fluxo de feedback, o check-in de recuperação e o fallback da IA explicativa já estão disponíveis em produção. Os fluxos funcionais e a latência, os limites e o fallback do Worker já foram testados. Relatos reais e o primeiro resumo semanal do Resend serão avaliados quando disponíveis, em paralelo às melhorias; não são pré-requisitos para desenvolver e testar a evolução do motor. Alterações de prescrição continuam exigindo critérios próprios, testes e revisão dos limites.

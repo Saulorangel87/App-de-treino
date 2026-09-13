@@ -68,7 +68,7 @@ A primeira implementação de IA usa Ollama local como provedor opcional. `AI_EN
 
 **Status:** Aplicada.
 
-As migrações `000001` a `000020` estão versionadas no checkout; a produção está aplicada até `000019`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos e a `000020` adiciona o contexto de conclusão parcial. As migrações `000017`, `000018` e `000019` foram aplicadas pelo perfil `maintenance` no deploy do commit `6fdbe45`, após backup verificável. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
+As migrações `000001` a `000022` estão versionadas no checkout; a produção está aplicada até `000021`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` adiciona o contexto de conclusão parcial, a `000021` adiciona o contexto pós-treino e a `000022` adiciona contexto opcional de segurança às limitações. As migrações `000017`, `000018` e `000019` foram aplicadas pelo perfil `maintenance` no deploy do commit `6fdbe45`, após backup verificável; `000020` e `000021` foram aplicadas no deploy da versão `0.20.0`. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
 
 ## ADR-006 — Feedback de produto
 
@@ -277,6 +277,14 @@ O bloco verifica incoerências estruturais e preserva lacunas sem escolher, subs
 Cada rascunho pode carregar `stimulus-selection-shadow-v1`, que compara a necessidade inferida do contexto atual com as famílias de estímulos selecionadas pelo `rules-v1`. A leitura considera proteção/recuperação, aderência e base, especificidade de evento e progressão de qualidade, preservando as lacunas quando o contexto não permite uma avaliação segura.
 
 Um desencontro é registrado como observação e não dispara troca de treino, ajuste de duração, mudança de RPE ou progressão. O bloco permanece em `mode: shadow`, com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. Essa separação permite avaliar a futura seleção inteligente sem substituir o motor determinístico antes de haver calibração e efeito longitudinal demonstrados.
+
+## ADR-027 — Contexto de segurança detalhado sem diagnóstico
+
+**Status:** Implementada localmente; ainda não publicada.
+
+O perfil pode registrar localização, intensidade percebida, movimento agravante e data de início de uma limitação, além dos campos já existentes. Esses dados são opcionais, possuem limites de formato e tamanho e não aceitam data futura. O texto da interface informa que o registro não é diagnóstico e mantém a recomendação de avaliação profissional quando aplicável.
+
+Os detalhes servem para contexto informado pelo atleta e auditabilidade do cadastro. O fluxo de planejamento consulta somente o tipo da limitação e a recomendação de liberação profissional; localização, intensidade e movimento agravante não entram no `prescription_snapshot` nem autorizam interpretação clínica. `rules-v1` continua sendo a única autoridade prescritiva, e os shadows permanecem não autoritativos. A migração `000022` é aditiva e preserva registros anteriores; a versão local `0.21.0` é comunicada pela tela de novidades e aguarda validação manual antes de commit e publicação.
 
 ## Estado de produção
 

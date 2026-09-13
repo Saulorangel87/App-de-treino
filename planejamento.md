@@ -1518,3 +1518,9 @@ A etapa seguinte integrou as auditorias de periodização, distribuição histó
 A integração é deliberadamente observacional: divergências produzem `observed_mismatch` e `review_coherence`; dados incompletos produzem `not_evaluated` e `defer_evaluation`. Nenhum componente pode tornar-se autoritativo, e `rules-v1` continua sendo o único motor prescritivo. Não houve mudança visual, release, migração, deploy ou infraestrutura.
 
 Foram adicionados testes para coerência alinhada, conflito entre recuperação e periodização, distribuição incompleta e anexação do snapshot sem substituir `rules-v1`. A validação passou com `go test -count=1 ./...`, `go vet ./...`, `npm run build`, validação das referências do OpenAPI e `git diff --check`. O commit `f0fec8b` foi publicado após backup e validação dos serviços, sem migração ou mudança de versão. A próxima etapa é observar a matriz de cenários com dados reais e não ativar prescrição automática.
+
+### Continuidade — contexto detalhado de segurança das limitações — 13 de setembro de 2026
+
+Enquanto a observação dos shadows e os dados reais seguem em paralelo, o perfil recebeu uma extensão local para registrar, de forma opcional, localização, intensidade percebida, movimento agravante e data de início de uma limitação. A API valida os formatos, os limites de tamanho e a data; a migração `000022_limitation_context` é aditiva e preserva registros existentes.
+
+Esses dados melhoram o contexto de segurança e a auditabilidade, mas não são diagnóstico e não alteram a prescrição. O fluxo de planejamento continua usando somente o tipo da limitação e a recomendação de liberação profissional; `rules-v1` permanece prescritivo e os shadows permanecem observacionais. A versão local é `0.21.0`, com nota na tela de novidades; a produção segue em `0.20.0` até validação manual, commit, backup, migração e autorização de deploy.

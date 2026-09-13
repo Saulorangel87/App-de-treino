@@ -627,6 +627,14 @@ Nesta primeira etapa, os relatos continuam centralizados no banco e não geram u
 
 O feedback real e o primeiro envio automático do Resend seguem em paralelo, sem bloquear as melhorias. Os testes manuais de e-mail e de latência/limites/fallback já foram realizados e não precisam ser repetidos como condição para avançar. O catálogo ampliado foi publicado em `0.16.0`; a operação deve observar taper, VO₂max de estrada e intervalos curtos somente dentro dos critérios de elegibilidade documentados.
 
+### Vigésima primeira fatia — contexto detalhado de segurança do perfil — 13 de setembro de 2026
+
+O formulário de limitações da etapa 2 do perfil agora permite registrar, opcionalmente, localização, intensidade percebida de 1 a 10, movimento agravante e data de início. O backend normaliza espaços, limita o tamanho dos textos, rejeita intensidade fora da faixa e não aceita data futura. A tela informa que esses dados não são diagnóstico e mantém a recomendação de orientação profissional quando aplicável.
+
+A migração `000022_limitation_context` adiciona os campos ao PostgreSQL sem apagar registros existentes. A consulta do planejamento continua lendo somente o tipo da limitação e a recomendação de liberação profissional; portanto, os detalhes não entram como diagnóstico, não alteram a duração ou o RPE e não transferem autoridade ao `rules-v2`. O `rules-v1` e os planos existentes permanecem inalterados.
+
+A versão local passou para `0.21.0` e a nota foi registrada em `frontend/lib/release.ts`, para aparecer na tela de novidades após a atualização. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. O `npm run lint` geral continua apontando pendências anteriores em arquivos do projeto, além dos avisos do próprio `page.tsx`; elas não foram ampliadas para uma limpeza fora do escopo. Falta validação manual no navegador local, commit, aplicação da migração e autorização própria para publicação. A produção permanece em `0.20.0` e `000021`.
+
 ## Como iniciar localmente
 
 1. Inicie o Docker Desktop.

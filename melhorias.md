@@ -591,4 +591,12 @@ Atualizado em 13 de setembro de 2026. Este arquivo continua sendo um roadmap; os
 - Completar todos os cenários de aceitação e a validação operacional dos novos protocolos.
 - Observar a integração `planning-coherence-shadow-v1` com dados reais suficientes e manter sua autoridade desativada até a revisão do efeito longitudinal.
 
-Enquanto essas pendências existirem, não declarar o roadmap encerrado nem substituir o `rules-v1`. A próxima etapa técnica é continuar a integração observacional entre periodização, distribuição e seleção de estímulos; a ativação prescritiva exige uma revisão separada e autorização explícita.
+### Continuidade — contexto de segurança detalhado do perfil — versão local `0.21.0`
+
+A etapa de segurança do perfil foi ampliada com quatro campos opcionais para uma limitação: localização, intensidade percebida, movimento agravante e data de início. A API valida tamanho, faixa e data; a migração `000022_limitation_context` é aditiva e preserva dados anteriores. A tela informa que o contexto não é diagnóstico e continua recomendando avaliação profissional quando necessário.
+
+Essa implementação reduz a perda de contexto no cadastro, mas não transforma os relatos em diagnóstico nem em autorização de carga. O planejamento continua consultando apenas o tipo da limitação e a recomendação de liberação profissional; `rules-v1` permanece prescritivo e os shadows permanecem observacionais. A versão local `0.21.0` foi registrada em `UPDATE_NOTES`; produção segue em `0.20.0` até validação manual, commit, backup, migração e autorização de deploy.
+
+Validações automatizadas: `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. O `npm run lint` geral ainda possui pendências anteriores, inclusive em componentes e páginas não relacionados; a limpeza completa não faz parte desta fatia. Falta testar a persistência dos novos campos e a remoção da limitação no navegador local.
+
+Enquanto essas pendências existirem, não declarar o roadmap encerrado nem substituir o `rules-v1`. A ativação prescritiva exige uma revisão separada e autorização explícita.

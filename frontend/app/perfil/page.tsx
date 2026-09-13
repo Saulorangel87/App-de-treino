@@ -10,7 +10,7 @@ import { AccountActions } from '@/components/account-actions';
 
 type User = { display_name: string; email: string; email_verified: boolean };
 type Profile = { birth_date?: string | null; sex?: string | null; height_cm?: number | null; weight_kg?: number | null; experience_level: string; activity_level?: string | null };
-type Limitation = { kind: string; description: string; is_active: boolean; professional_clearance_recommended: boolean };
+type Limitation = { kind: string; description: string; location?: string; intensity?: number | null; aggravating_movement?: string; started_on?: string | null; is_active: boolean; professional_clearance_recommended: boolean };
 type Goal = { goal_type: string; priority: number; target_date?: string | null; details: string };
 type Availability = { weekday: number; available_minutes: number; preferred_time?: string | null; location?: string | null };
 type CyclingContext = { weekly_hours: number; longest_ride_minutes: number; weekly_rides: number; recent_weekly_distance_km: number; recent_training_weeks: number; recent_best_distance_km: number; preferred_session_types: string[]; discipline: string; bike_type: string; terrain: string; uses_heart_rate: boolean; uses_power: boolean; ftp?: number; event_goal: boolean; event_distance_km?: number; event_date?: string };
@@ -48,7 +48,7 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [hasLimitation, setHasLimitation] = useState(false);
-  const [limitation, setLimitation] = useState({ kind: 'pain', description: '', professional_clearance_recommended: false });
+  const [limitation, setLimitation] = useState({ kind: 'pain', description: '', location: '', intensity: '', aggravating_movement: '', started_on: '', professional_clearance_recommended: false });
   const [primaryGoal, setPrimaryGoal] = useState({ goal_type: 'health', target_date: '', details: '' });
   const [secondaryGoal, setSecondaryGoal] = useState('');
   const [availability, setAvailability] = useState<Availability[]>(initialAvailability);
@@ -89,7 +89,7 @@ export default function ProfilePage() {
         if (onboarding.limitations.length) {
           const saved = onboarding.limitations[0];
           setHasLimitation(true);
-          setLimitation({ kind: saved.kind, description: saved.description, professional_clearance_recommended: saved.professional_clearance_recommended });
+          setLimitation({ kind: saved.kind, description: saved.description, location: saved.location || '', intensity: saved.intensity?.toString() || '', aggravating_movement: saved.aggravating_movement || '', started_on: saved.started_on || '', professional_clearance_recommended: saved.professional_clearance_recommended });
         }
         if (onboarding.goals.length) {
           const primary = onboarding.goals.find((goal) => goal.priority === 1) || onboarding.goals[0];
@@ -162,7 +162,7 @@ export default function ProfilePage() {
   async function saveLimitations(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await runSave(async () => {
-      const limitations: Limitation[] = hasLimitation ? [{ ...limitation, is_active: true }] : [];
+      const limitations: Limitation[] = hasLimitation ? [{ ...limitation, intensity: limitation.intensity ? Number(limitation.intensity) : null, started_on: limitation.started_on || null, is_active: true }] : [];
       await apiRequest('/v1/onboarding/limitations', { method: 'PUT', body: JSON.stringify({ limitations }) });
       setStep(3);
     });
@@ -242,7 +242,7 @@ export default function ProfilePage() {
 
           {step === 2 && <form onSubmit={saveLimitations} className="profile-form">
             <fieldset><legend>Condição atual</legend><div className="binary-choice"><label><input type="radio" name="has_limitation" checked={!hasLimitation} onChange={() => setHasLimitation(false)} /><span><strong>Nenhuma limitação atual</strong><small>Posso pedalar sem dor ou restrição conhecida</small></span></label><label><input type="radio" name="has_limitation" checked={hasLimitation} onChange={() => setHasLimitation(true)} /><span><strong>Tenho algo a considerar</strong><small>Dor, lesão, condição ou restrição de movimento</small></span></label></div></fieldset>
-            {hasLimitation && <fieldset><legend>O que devemos respeitar?</legend><div className="form-grid"><div><Label htmlFor="limitation_kind">Tipo</Label><select id="limitation_kind" value={limitation.kind} onChange={(event) => setLimitation((current) => ({ ...current, kind: event.target.value }))}><option value="pain">Dor ou desconforto</option><option value="injury">Lesão</option><option value="medical_condition">Condição de saúde</option><option value="mobility">Limitação de movimento</option><option value="other">Outro</option></select></div><label className="clearance-check"><input type="checkbox" checked={limitation.professional_clearance_recommended} onChange={(event) => setLimitation((current) => ({ ...current, professional_clearance_recommended: event.target.checked }))} /><span><strong>Orientação profissional recomendada</strong><small>Marque se um médico ou fisioterapeuta deve liberar o treino</small></span></label></div><div className="textarea-field"><Label htmlFor="limitation_description">Descreva brevemente</Label><textarea id="limitation_description" minLength={3} maxLength={500} required value={limitation.description} onChange={(event) => setLimitation((current) => ({ ...current, description: event.target.value }))} placeholder="Ex.: desconforto no joelho direito ao subir…" /></div></fieldset>}
+            {hasLimitation && <fieldset><legend>O que devemos respeitar?</legend><p className="fieldset-intro">Esses detalhes são opcionais e ajudam a registrar o contexto com mais precisão. Não são um diagnóstico.</p><div className="form-grid"><div><Label htmlFor="limitation_kind">Tipo</Label><select id="limitation_kind" value={limitation.kind} onChange={(event) => setLimitation((current) => ({ ...current, kind: event.target.value }))}><option value="pain">Dor ou desconforto</option><option value="injury">Lesão</option><option value="medical_condition">Condição de saúde</option><option value="mobility">Limitação de movimento</option><option value="other">Outro</option></select></div><div><Label htmlFor="limitation_location">Localização</Label><Input id="limitation_location" maxLength={120} value={limitation.location} onChange={(event) => setLimitation((current) => ({ ...current, location: event.target.value }))} placeholder="Ex.: joelho direito" /></div><div><Label htmlFor="limitation_intensity">Intensidade percebida</Label><select id="limitation_intensity" value={limitation.intensity} onChange={(event) => setLimitation((current) => ({ ...current, intensity: event.target.value }))}><option value="">Não informar</option>{Array.from({ length: 10 }, (_, index) => <option key={index + 1} value={index + 1}>{index + 1} de 10</option>)}</select></div><div><Label htmlFor="limitation_started_on">Quando começou?</Label><Input id="limitation_started_on" type="date" value={limitation.started_on} onChange={(event) => setLimitation((current) => ({ ...current, started_on: event.target.value }))} /></div><label className="clearance-check"><input type="checkbox" checked={limitation.professional_clearance_recommended} onChange={(event) => setLimitation((current) => ({ ...current, professional_clearance_recommended: event.target.checked }))} /><span><strong>Orientação profissional recomendada</strong><small>Marque se um médico ou fisioterapeuta deve liberar o treino</small></span></label></div><div className="form-grid"><div className="textarea-field"><Label htmlFor="limitation_description">Descreva brevemente</Label><textarea id="limitation_description" minLength={3} maxLength={500} required value={limitation.description} onChange={(event) => setLimitation((current) => ({ ...current, description: event.target.value }))} placeholder="Ex.: desconforto no joelho direito ao subir…" /></div><div className="textarea-field"><Label htmlFor="limitation_aggravating_movement">O que agrava?</Label><textarea id="limitation_aggravating_movement" maxLength={200} value={limitation.aggravating_movement} onChange={(event) => setLimitation((current) => ({ ...current, aggravating_movement: event.target.value }))} placeholder="Ex.: subir em pé ou pedalar forte" /></div></div></fieldset>}
             <FormFeedback error={error} message={message} />
             <div className="form-actions"><Button type="button" variant="outline" onClick={() => setStep(1)}><ArrowLeft size={15} /> Voltar</Button><Button type="submit" disabled={saving} className="profile-submit">{saving ? 'Salvando…' : 'Salvar e continuar'}<ArrowRight size={16} /></Button></div>
           </form>}
