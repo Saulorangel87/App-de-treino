@@ -45,6 +45,13 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - A fixture de `scripts/test-training-history-query.ps1` passou a incluir uma sessão inelegível e confirmou que ela não contamina minutos, carga session-RPE, dor ou fadiga nas janelas e períodos.
 - `go test -count=1 ./...`, `go vet ./...`, `npm run build`, a consulta PostgreSQL somente leitura e `git diff --check` passaram. Não houve migração, mudança visual, atualização de `APP_VERSION`, deploy ou alteração de infraestrutura.
 
+### Consistência temporal do resumo observado — versão local (validado; sem publicação)
+
+- O resumo observado de 28 dias usado para montar o contexto de prontidão agora aceita somente sessões concluídas até `now()`. Isso alinha essa consulta às janelas cumulativas, aos períodos não sobrepostos e à qualidade temporal do histórico.
+- Sessões futuras não entram em minutos, RPE médio, fadiga, dor ou cobertura de dados. Sessões explicitamente inelegíveis por `data-integrity-v1` continuam fora; a aderência planejada permanece separada.
+- A regressão SQL sintética cobre sessão elegível, sessão inelegível, sessão futura, sessão fora da janela, sessão cancelada e conta sem registros. A validação passou em transação somente leitura; `go test -count=1 ./...`, `go vet ./...` e `git diff --check` também passaram.
+- Esta é uma correção somente de backend e teste: não muda interface, `rules-v1`, migração, release, infraestrutura ou produção. O próximo passo é revisar os agregados observacionais restantes com a mesma referência temporal, sem transferir autoridade ao `rules-v2`.
+
 ### Décima quarta fatia de melhorias — taper pré-prova orientado por evento (local)
 
 - O plano local passa a registrar `prescription_snapshot.event_taper` com `taper-v1`. A redução só é prescritiva para evento futuro entre 7 e 21 dias, atleta avançado, avaliação submáxima apta, pelo menos 8 semanas e 3 pedais semanais, sem limitação, dor ou necessidade recente de recuperação.
@@ -483,9 +490,10 @@ Nesta primeira etapa, os relatos continuam centralizados no banco e não geram u
 1. Observar os pilotos publicados — taper, VO₂max de estrada e intervalos curtos — dentro dos gates documentados, sem transformar um caso isolado em autorização de carga.
 2. Acompanhar o primeiro resumo semanal do Resend e os relatos reais, sem repetir como bloqueio os testes já concluídos de latência, limites e fallback do Worker.
 3. ~~Validar via API local o bloco `adaptation_shadow.load_tolerance` após concluir uma sessão, confirmando os estados observacionais e as barreiras de não aplicação.~~ Concluído localmente e registrado no commit `36cfabb`.
-4. Retomar a evolução em shadow de adaptação, carga/progressão e integridade dos dados, preservando `rules-v1` até que a nova versão esteja testada, comparável e auditável.
-5. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
-6. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
+4. ~~Alinhar o resumo observado de prontidão ao limite temporal das demais consultas.~~ Concluído localmente nesta fatia; falta apenas o commit do proprietário.
+5. Retomar a evolução em shadow de adaptação, carga/progressão e integridade dos dados, preservando `rules-v1` até que a nova versão esteja testada, comparável e auditável.
+6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
+7. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
 
 O feedback real e o primeiro envio automático do Resend seguem em paralelo, sem bloquear as melhorias. Os testes manuais de e-mail e de latência/limites/fallback já foram realizados e não precisam ser repetidos como condição para avançar. O catálogo ampliado foi publicado em `0.16.0`; a operação deve observar taper, VO₂max de estrada e intervalos curtos somente dentro dos critérios de elegibilidade documentados.
 

@@ -14,20 +14,27 @@ if ($readinessSessionMatches.Count -ne 1 -or $readinessRecoveryMatches.Count -ne
 $readinessSessionQuery = $readinessSessionMatches[0].Groups['sql'].Value
 $readinessRecoveryQuery = $readinessRecoveryMatches[0].Groups['sql'].Value
 $readinessFixture = @'
-WITH workout_sessions(id, athlete_profile_id, status, completed_at, duration_minutes, actual_rpe) AS (
+WITH workouts(id, explanation) AS (
     VALUES
-    (1, 'full', 'completed', now(), 45, 4::numeric),
-    (2, 'full', 'completed', now() - interval '1 day', 60, 6),
-    (3, 'mixed', 'completed', now(), 45, 5),
-    (4, 'mixed', 'completed', now(), 0, 0),
-    (5, 'mixed', 'completed', now(), 30, NULL),
-    (6, 'mixed', 'completed', now(), NULL, 8),
-    (7, 'mixed', 'cancelled', now(), 60, 8),
-    (8, 'mixed', 'completed', now() - interval '40 days', 60, 8),
-    (9, 'other', 'completed', now(), 120, 10)
+    (1, '{}'::jsonb), (2, '{}'::jsonb), (3, '{}'::jsonb), (4, '{}'::jsonb),
+    (5, '{"data_integrity":{"eligible_for_history":false}}'::jsonb),
+    (6, '{}'::jsonb), (7, '{}'::jsonb), (8, '{}'::jsonb), (9, '{}'::jsonb),
+    (10, '{}'::jsonb)
+), workout_sessions(id, workout_id, athlete_profile_id, status, completed_at, duration_minutes, actual_rpe) AS (
+    VALUES
+    (1, 1, 'full', 'completed', now(), 45, 4::numeric),
+    (2, 2, 'full', 'completed', now() - interval '1 day', 60, 6),
+    (3, 3, 'mixed', 'completed', now(), 45, 5),
+    (4, 4, 'mixed', 'completed', now(), 0, 0),
+    (5, 5, 'mixed', 'completed', now(), 30, NULL),
+    (6, 6, 'mixed', 'completed', now(), NULL, 8),
+    (7, 7, 'mixed', 'completed', now() + interval '1 day', 120, 10),
+    (8, 8, 'mixed', 'cancelled', now(), 60, 8),
+    (9, 9, 'mixed', 'completed', now() - interval '40 days', 60, 8),
+    (10, 10, 'other', 'completed', now(), 120, 10)
 ), feedback(workout_session_id, fatigue_after, pain_reported) AS (
     VALUES (1, 2, false), (2, 2, false), (3, 2, false),
-    (6, 5, true), (7, 5, true), (8, 5, true), (9, 5, true)
+    (5, 5, true), (6, 5, true), (7, 5, true), (8, 5, true), (9, 5, true)
 ), recovery_data(athlete_profile_id, recorded_on, fatigue_level) AS (
     VALUES
     ('full', CURRENT_DATE, 2), ('full', CURRENT_DATE - 1, 2),
@@ -38,7 +45,7 @@ WITH workout_sessions(id, athlete_profile_id, status, completed_at, duration_min
 '@
 $readinessCases = @(
     @{ Name = 'full'; Sessions = "(2, 105, 5::double precision, 2::double precision, false, 2, 2, 2, 2)"; Recovery = '(2, 2::double precision, 2)' },
-    @{ Name = 'mixed'; Sessions = "(4, 75, (13.0/3)::double precision, 3.5::double precision, true, 2, 2, 2, 1)"; Recovery = '(2, 4::double precision, 1)' },
+    @{ Name = 'mixed'; Sessions = "(3, 45, (13.0/3)::double precision, 3.5::double precision, true, 1, 2, 2, 1)"; Recovery = '(2, 4::double precision, 1)' },
     @{ Name = 'empty'; Sessions = '(0, 0, 0::double precision, 0::double precision, false, 0, 0, 0, 0)'; Recovery = '(0, 0::double precision, 0)' },
     @{ Name = 'checkins_only'; Sessions = '(0, 0, 0::double precision, 0::double precision, false, 0, 0, 0, 0)'; Recovery = '(1, 3::double precision, 1)' }
 )

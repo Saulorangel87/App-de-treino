@@ -1376,3 +1376,13 @@ As consultas de resumo observado, janelas cumulativas de 7/28/42 dias, seis per�
 A fixture `scripts/test-training-history-query.ps1` passou a conter uma sessão com `eligible_for_history: false` e confirmou a exclusão dos seus minutos, carga session-RPE, dor e fadiga nas janelas e períodos. `go test -count=1 ./...`, `go vet ./...`, `npm run build`, a consulta PostgreSQL em transação somente leitura e `git diff --check` passaram. Não houve migração, alteração visual, atualização de versão, deploy ou mudança de infraestrutura.
 
 Próxima etapa: revisar o diff desta fatia e, após o commit, avaliar a próxima evolução observacional de adaptação/carga sem transferir autoridade ao `rules-v2`.
+
+### Continuidade — consistência temporal do resumo observado — 13 de setembro de 2026
+
+A revisão após o filtro de integridade encontrou uma segunda inconsistência: as janelas cumulativas, os períodos semanais e a qualidade temporal já excluíam sessões com `completed_at` no futuro, mas o resumo observado de 28 dias carregado em `PlanningContextByUserID` não tinha o limite superior `completed_at <= now()`.
+
+O resumo agora usa a mesma referência temporal das demais consultas. Uma sessão futura não influencia sessões concluídas, minutos, RPE médio, fadiga, dor ou cobertura de dados; sessões inelegíveis por `data-integrity-v1` continuam excluídas. A aderência planejada permanece separada e nenhum registro original é removido.
+
+O teste `scripts/test-readiness-queries.ps1` foi alinhado à consulta atual e passou em transação PostgreSQL somente leitura com cenários de sessão inelegível, futura, fora da janela, cancelada e conta sem registros. `go test -count=1 ./...`, `go vet ./...` e `git diff --check` também passaram. Não houve migração, alteração visual, atualização de release, deploy ou mudança de infraestrutura.
+
+Esta correção é somente local e aguarda o commit do proprietário. Próxima etapa: revisar os agregados observacionais restantes com a mesma consistência temporal antes de propor qualquer ampliação prescritiva do `rules-v2`.

@@ -255,6 +255,7 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 		LEFT JOIN feedback f ON f.workout_session_id = ws.id
 		WHERE ws.athlete_profile_id = $1
 		  AND ws.completed_at >= now() - interval '28 days'
+		  AND ws.completed_at <= now()
 		  AND (
 			  source_workout.explanation->'data_integrity' IS NULL
 			  OR source_workout.explanation->'data_integrity'->>'eligible_for_history' = 'true'

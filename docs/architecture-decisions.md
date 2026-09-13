@@ -190,6 +190,14 @@ O resultado `data-integrity-v1` é salvo junto do treino concluído em `workouts
 
 A regra é aplicada somente às métricas de sessões realizadas. A aderência planejada continua baseada nos estados dos treinos e não é apagada por uma inconsistência de medição. Registros legados sem `data_integrity` permanecem aceitos para preservar históricos anteriores; a ausência desse bloco não é convertida retroativamente em validade comprovada. Nenhuma prescrição nova é ativada: `rules-v1` continua sendo a única autoridade e não há migração de banco.
 
+## ADR-016 — Limite temporal único para o resumo observado
+
+**Status:** Implementada localmente; ainda não publicada.
+
+O resumo observado de 28 dias usado na construção do contexto de prontidão deve considerar somente sessões com `completed_at` entre `now() - interval '28 days'` e `now()`. O limite superior impede que registros futuros, criados por correção de relógio, fixture ou inconsistência operacional, contaminem minutos, RPE, fadiga, dor ou cobertura.
+
+Essa consulta passa a seguir a mesma referência temporal já usada nas janelas cumulativas, nos seis períodos não sobrepostos e na qualidade temporal do histórico. O filtro não altera a aderência planejada, não apaga registros e não reclassifica sessões; apenas mantém a observação coerente. `rules-v1` continua como autoridade prescritiva, sem ativação de regra nova, migração ou mudança visual.
+
 ## Estado de produção
 
 Em 3 de setembro de 2026, o commit `57c241a` foi implantado na VPS Oracle. A imagem da API, do job de digest e do frontend foi reconstruída com Go 1.25; as migrações `000013` e `000014` foram aplicadas após backup preventivo. O serviço Ollama permanece isolado e parado após a medição de capacidade, e a API usa temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.
