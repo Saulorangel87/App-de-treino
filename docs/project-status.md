@@ -1,6 +1,6 @@
 # Estado atual do projeto Cadência
 
-Última atualização: 12 de setembro de 2026.
+Última atualização: 13 de setembro de 2026.
 
 Este é o documento principal de continuidade. Ele registra o que está implementado, validado, publicado e pendente. Não incluir senhas, tokens, chaves de API ou conteúdo de arquivos `.env`.
 
@@ -29,6 +29,13 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local), `9034287` (matriz comparativa), `61d7939` (pin do digest do Tunnel), `1358ac1` (status da versão `0.12.0`), `53cbadc` (acesso ao perfil no mobile), `66f70ed` (decisão do taper pré-prova), `0eb34d6` (implementação local do taper), `01875c9` (piloto local de VO₂max de estrada), `1eab2c8` (piloto local de intervalos curtos), `3b3639a` (exclusão de modalidades fora do produto), `9aff39f` (sincronização documental), `6fdbe45` (estado do catálogo) e o deploy autorizado da versão `0.16.0`.
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
+
+### Correção de layout e novidades — versão local `0.20.0`
+
+- A barra lateral passou a preservar o tamanho original dos menus e a usar rolagem própria somente quando a altura disponível não comporta todo o conteúdo. O bloco inferior não é comprimido e o rodapé fixo não cobre mais o acesso ao perfil.
+- A versão principal do produto foi corrigida para `0.20.0`, mantendo a nota correspondente em `frontend/lib/release.ts`. A validação visual local confirmou o aviso `NOVIDADES · V0.20.0`, a mensagem `Plano explicável` no menu lateral e o rodapé com a versão atual.
+- A validação do treino concluído confirmou `planned_vs_actual-v1` com 3 minutos realizados de 31 planejados, `data_issues: []`, `status: observed`, `progression_eligible: false` e `used_for_prescription: false`. O RPE realizado acima do alvo acionou somente a proteção observacional de esforço alto.
+- `npm run build` e `git diff --check` passaram. A implementação foi registrada no commit `2828049`; produção permanece em `0.16.0`, sem deploy, migração ou alteração de infraestrutura.
 
 ### Décima quarta fatia de melhorias — taper pré-prova orientado por evento (local)
 

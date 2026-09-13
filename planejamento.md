@@ -1358,3 +1358,11 @@ A etapa seguinte tornou a avaliação `rules-v2-adaptation-v1` mais auditável c
 O bloco não cria gatilhos, não muda a duração, o RPE, o estímulo ou o status das próximas sessões e mantém `used_for_prescription: false`. O `rules-v1`, o trigger e a infraestrutura permanecem inalterados; não houve migração, mudança visual ou atualização da versão visível. A tipagem TypeScript e o contrato OpenAPI foram atualizados.
 
 Foram adicionados testes de proveniência, lacunas e serialização JSON. `go test -count=1 ./...`, `go vet ./...`, `npm run build`, `oxlint` da tipagem alterada e `git diff --check` passaram. Esta fatia permanece local, sem deploy. Próxima etapa: validar manualmente o novo bloco no `GET /v1/plans/current` após reiniciar a API atual e, depois, oferecer o commit.
+
+### Continuidade — correção do acesso ao perfil e da versão das novidades — 13 de setembro de 2026
+
+A validação manual da auditoria shadow foi concluída. O bloco `planned_vs_actual-v1` registrou 3 minutos realizados de 31 planejados, sem `data_issues`, com estado `observed`, `progression_eligible: false` e `used_for_prescription: false`. O RPE realizado acima do alvo acionou a proteção observacional de esforço alto, sem substituir o `rules-v1` ou alterar a prescrição fora das proteções já existentes.
+
+Também foi corrigida a interface: a barra lateral preserva o tamanho dos menus, pode rolar quando a altura da janela é insuficiente e mantém o acesso ao perfil fora da área coberta pelo rodapé fixo. A mensagem `Plano explicável` foi preservada. A versão principal foi corrigida para `0.20.0`, e a tela de novidades passou a exibir a nota dessa atualização. `npm run build` e `git diff --check` passaram; a confirmação visual local validou o aviso `NOVIDADES · V0.20.0`, o menu lateral e o rodapé. A correção foi registrada no commit `2828049`; não houve deploy, migração ou alteração de infraestrutura.
+
+Próxima etapa: iniciar a próxima melhoria técnica do shadow somente após este registro documental, mantendo `rules-v1` como único motor prescritivo e a produção em `0.16.0` até revisão e autorização explícita.
