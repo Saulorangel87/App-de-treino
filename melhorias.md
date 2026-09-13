@@ -603,6 +603,6 @@ Validações automatizadas: `go test -count=1 ./...`, `go vet ./...`, `npm run b
 
 O cliente HTTP passou a expor o status das respostas e as telas autenticadas deixaram de tratar qualquer falha como logout. Apenas `401` redireciona para a entrada; erro de API ou rede permanece na rota solicitada com orientação em português e opção de tentar novamente. Essa correção evita uma falsa indicação de sessão expirada e facilita diagnosticar banco, API ou configuração local.
 
-A nota foi adicionada em `UPDATE_NOTES`. O build do frontend e `git diff --check` passaram. Falta validar manualmente uma rota autenticada com a API temporariamente indisponível e confirmar o redirecionamento para uma sessão realmente expirada; depois disso a fatia poderá ser commitada.
+A nota foi adicionada em `UPDATE_NOTES`. O build do frontend e `git diff --check` passaram. A validação manual confirmou que uma rota autenticada permanece acessível com a API temporariamente indisponível e que uma sessão realmente expirada continua redirecionando para a entrada. A fatia foi registrada no commit `77e57ec`; produção permanece fora desta etapa.
 
 Enquanto essas pendências existirem, não declarar o roadmap encerrado nem substituir o `rules-v1`. A ativação prescritiva exige uma revisão separada e autorização explícita.
