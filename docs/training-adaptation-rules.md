@@ -212,6 +212,8 @@ Antes de uma futura adaptação prescritiva, a sessão concluída recebe uma lei
 
 São verificados os dados mínimos de duração positiva, RPE realizado, feedback e fadiga, além das faixas das métricas opcionais. Também são registradas combinações incompatíveis, como duração zero com distância ou elevação. Um valor ausente é lacuna; um valor impossível ou incompatível é inconsistência. Sessões incompletas ou inconsistentes não entram como elegíveis no shadow do pós-treino, e a decisão continua sem aplicação.
 
+As consultas que montam o resumo observado, as janelas de histórico, os seis períodos comparativos e os agregados da tela de Evolução respeitam `workouts.explanation.data_integrity.eligible_for_history`. Um registro explicitamente inelegível deixa de alimentar minutos, carga session-RPE, dor, fadiga, RPE acima do alvo e recência observados. Treinos legados sem esse bloco continuam legíveis; a aderência planejada permanece separada da qualidade dos dados realizados.
+
 Esta fatia não altera o trigger `feedback_adapts_future_workouts` nem a prescrição `rules-v1`. Portanto, a barreira ativa contra progressão de registros inconsistentes continua sendo uma decisão posterior, depois de validar a observação e sua integração com o histórico.
 
 ### Observação de tolerância à carga (`load-tolerance-v1`)

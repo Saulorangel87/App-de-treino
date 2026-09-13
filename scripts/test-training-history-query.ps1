@@ -23,22 +23,22 @@ WITH training_plans(id, athlete_profile_id, status) AS (
         (4, 'other-profile', 'active'),
         (5, 'profile-test', 'cancelled')
 ),
-workouts(id, training_plan_id, scheduled_on, status, target_rpe) AS (
+workouts(id, training_plan_id, scheduled_on, status, target_rpe, explanation) AS (
     VALUES
-        (1, 1, CURRENT_DATE - 1, 'completed', 4::numeric),
-        (2, 1, CURRENT_DATE - 2, 'skipped', 5),
-        (3, 1, CURRENT_DATE - 3, 'planned', 5),
-        (4, 1, CURRENT_DATE - 4, 'adapted', 5),
-        (5, 1, CURRENT_DATE - 5, 'in_progress', 6),
-        (6, 1, CURRENT_DATE, 'planned', 5),
-        (7, 1, CURRENT_DATE, 'completed', 6),
-        (8, 1, CURRENT_DATE, 'skipped', 5),
-        (9, 1, CURRENT_DATE - 8, 'completed', 6),
-        (10, 2, CURRENT_DATE - 20, 'completed', 5),
-        (11, 2, CURRENT_DATE - 35, 'completed', 5),
-        (12, 3, CURRENT_DATE - 1, 'completed', 5),
-        (13, 4, CURRENT_DATE - 1, 'completed', 5),
-        (14, 5, CURRENT_DATE - 1, 'completed', 5)
+        (1, 1, CURRENT_DATE - 1, 'completed', 4::numeric, '{}'::jsonb),
+        (2, 1, CURRENT_DATE - 2, 'skipped', 5, '{}'::jsonb),
+        (3, 1, CURRENT_DATE - 3, 'planned', 5, '{}'::jsonb),
+        (4, 1, CURRENT_DATE - 4, 'adapted', 5, '{}'::jsonb),
+        (5, 1, CURRENT_DATE - 5, 'in_progress', 6, '{"data_integrity":{"eligible_for_history":false}}'::jsonb),
+        (6, 1, CURRENT_DATE, 'planned', 5, '{}'::jsonb),
+        (7, 1, CURRENT_DATE, 'completed', 6, '{}'::jsonb),
+        (8, 1, CURRENT_DATE, 'skipped', 5, '{}'::jsonb),
+        (9, 1, CURRENT_DATE - 8, 'completed', 6, '{}'::jsonb),
+        (10, 2, CURRENT_DATE - 20, 'completed', 5, '{}'::jsonb),
+        (11, 2, CURRENT_DATE - 35, 'completed', 5, '{}'::jsonb),
+        (12, 3, CURRENT_DATE - 1, 'completed', 5, '{}'::jsonb),
+        (13, 4, CURRENT_DATE - 1, 'completed', 5, '{}'::jsonb),
+        (14, 5, CURRENT_DATE - 1, 'completed', 5, '{}'::jsonb)
 ),
 workout_sessions(id, workout_id, athlete_profile_id, status, completed_at, duration_minutes, actual_rpe) AS (
     VALUES
@@ -52,14 +52,14 @@ workout_sessions(id, workout_id, athlete_profile_id, status, completed_at, durat
         (8, 13, 'other-profile', 'completed', now() - interval '1 day', 120, 8),
         (9, 1, 'profile-test', 'cancelled', NULL, 120, 8)
 ),
-feedback(id, workout_session_id, pain_reported, fatigue_after) AS (
+feedback(id, workout_session_id, pain_reported, fatigue_after, completion_status) AS (
     VALUES
-        (1, 1, false, 2),
-        (2, 2, true, 4),
-        (3, 3, false, 5),
-        (4, 4, false, 3),
-        (5, 7, true, 5),
-        (6, 5, true, NULL)
+        (1, 1, false, 2, 'complete'),
+        (2, 2, true, 4, 'complete'),
+        (3, 3, false, 5, 'complete'),
+        (4, 4, false, 3, 'complete'),
+        (5, 7, true, 5, 'complete'),
+        (6, 5, true, NULL, 'complete')
 ),
 recovery_data(id, athlete_profile_id, recorded_on, sleep_minutes, sleep_quality, stress_level, fatigue_level) AS (
     VALUES
@@ -89,9 +89,9 @@ finally {
 
 $historyActual = @($historyOutput | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 $historyExpectedPrefix = @(
-    '7|7|2|2|2|1|3|105|2|1|600|3|3|1|2|1|4|3|2|1',
-    '28|9|4|2|2|1|5|195|3|2|1140|5|4|2|2|1|5|4|2|1',
-    '42|10|5|2|2|1|6|225|3|3|1140|5|4|2|2|1|6|5|3|2'
+    '7|7|2|2|2|1|2|105|2|0|600|2|2|1|1|1|4|3|2|1',
+    '28|9|4|2|2|1|4|195|3|1|1140|4|3|2|1|1|5|4|2|1',
+    '42|10|5|2|2|1|5|225|3|2|1140|4|3|2|1|1|6|5|3|2'
 )
 if ($historyActual.Count -ne $historyExpectedPrefix.Count) {
     throw "Quantidade inesperada de janelas: $($historyActual -join '; ')"
@@ -137,7 +137,7 @@ finally {
 
 $periodsActual = @($periodsOutput | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 $periodsExpected = @(
-    '0|last_7d|7|7|2|2|2|1|3|105|2|1|600|3|3|1|2|1|4|3|2|1',
+    '0|last_7d|7|7|2|2|2|1|2|105|2|0|600|2|2|1|1|1|4|3|2|1',
     '1|days_8_14|7|1|1|0|0|0|1|90|1|0|540|1|1|0|0|0|1|1|0|0',
     '2|days_15_21|7|1|1|0|0|0|1|0|0|1|0|1|0|1|0|0|0|0|0|0',
     '3|days_22_28|7|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0',

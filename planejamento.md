@@ -1366,3 +1366,13 @@ A validação manual da auditoria shadow foi concluída. O bloco `planned_vs_act
 Também foi corrigida a interface: a barra lateral preserva o tamanho dos menus, pode rolar quando a altura da janela é insuficiente e mantém o acesso ao perfil fora da área coberta pelo rodapé fixo. A mensagem `Plano explicável` foi preservada. A versão principal foi corrigida para `0.20.0`, e a tela de novidades passou a exibir a nota dessa atualização. `npm run build` e `git diff --check` passaram; a confirmação visual local validou o aviso `NOVIDADES · V0.20.0`, o menu lateral e o rodapé. A correção foi registrada no commit `2828049`; não houve deploy, migração ou alteração de infraestrutura.
 
 Próxima etapa: iniciar a próxima melhoria técnica do shadow somente após este registro documental, mantendo `rules-v1` como único motor prescritivo e a produção em `0.16.0` até revisão e autorização explícita.
+
+### Continuidade — filtro de integridade no histórico observado — 13 de setembro de 2026
+
+A auditoria da fatia de integridade encontrou uma lacuna de integração: `data-integrity-v1` gravava `eligible_for_history: false` para sessões incompletas ou inconsistentes, e o shadow da sessão atual respeitava esse resultado, mas as consultas históricas ainda podiam incluir esses registros em agregados de carga, dor, fadiga e recência. Isso permitia que uma observação já classificada como inelegível influenciasse a leitura de períodos posteriores.
+
+As consultas de resumo observado, janelas cumulativas de 7/28/42 dias, seis períodos semanais e agregados da tela de Evolução agora usam somente sessões sem marca explícita de inelegibilidade. A aderência planejada continua separada, e os treinos legados sem `data_integrity` permanecem legíveis. Nenhum registro original é apagado ou corrigido automaticamente; o filtro apenas impede que a sessão inelegível alimente métricas observacionais usadas na análise do plano, do shadow e da Evolução.
+
+A fixture `scripts/test-training-history-query.ps1` passou a conter uma sessão com `eligible_for_history: false` e confirmou a exclusão dos seus minutos, carga session-RPE, dor e fadiga nas janelas e períodos. `go test -count=1 ./...`, `go vet ./...`, `npm run build`, a consulta PostgreSQL em transação somente leitura e `git diff --check` passaram. Não houve migração, alteração visual, atualização de versão, deploy ou mudança de infraestrutura.
+
+Próxima etapa: revisar o diff desta fatia e, após o commit, avaliar a próxima evolução observacional de adaptação/carga sem transferir autoridade ao `rules-v2`.

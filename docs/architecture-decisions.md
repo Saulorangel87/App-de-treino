@@ -182,6 +182,14 @@ Toda avaliação `rules-v2-adaptation-v1` deve expor sua proveniência em `adapt
 
 O bloco é observacional e não é um novo motor de prescrição. `rules-v1`, o trigger e o comportamento das sessões permanecem inalterados; `used_for_prescription` é sempre `false`. A decisão evita esconder limitações atrás de uma resposta genérica e cria uma superfície estável para auditoria antes de qualquer adaptação em ciclo fechado.
 
+## ADR-015 — Exclusão de sessões inelegíveis das métricas observacionais
+
+**Status:** Implementada localmente; ainda não publicada.
+
+O resultado `data-integrity-v1` é salvo junto do treino concluído em `workouts.explanation.data_integrity`. Quando `eligible_for_history` é explicitamente `false`, a sessão não deve alimentar o resumo observado, as janelas de carga, os períodos usados pelo shadow ou os agregados da tela de Evolução. Isso evita que um registro já classificado como incompleto ou inconsistente altere dor, fadiga, RPE acima do alvo, recência ou carga observados.
+
+A regra é aplicada somente às métricas de sessões realizadas. A aderência planejada continua baseada nos estados dos treinos e não é apagada por uma inconsistência de medição. Registros legados sem `data_integrity` permanecem aceitos para preservar históricos anteriores; a ausência desse bloco não é convertida retroativamente em validade comprovada. Nenhuma prescrição nova é ativada: `rules-v1` continua sendo a única autoridade e não há migração de banco.
+
 ## Estado de produção
 
 Em 3 de setembro de 2026, o commit `57c241a` foi implantado na VPS Oracle. A imagem da API, do job de digest e do frontend foi reconstruída com Go 1.25; as migrações `000013` e `000014` foram aplicadas após backup preventivo. O serviço Ollama permanece isolado e parado após a medição de capacidade, e a API usa temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.

@@ -12,6 +12,17 @@ import (
 
 const planningTrainingHistoryQuery = `
 	WITH window_sizes(window_days) AS (VALUES (7), (28), (42)),
+	eligible_completed_sessions AS (
+		SELECT ws.*, source_workout.target_rpe
+		FROM workout_sessions ws
+		JOIN workouts source_workout ON source_workout.id = ws.workout_id
+		WHERE ws.athlete_profile_id = $1
+			AND ws.status = 'completed'
+			AND (
+				source_workout.explanation->'data_integrity' IS NULL
+				OR source_workout.explanation->'data_integrity'->>'eligible_for_history' = 'true'
+			)
+	),
 	performed AS (
 		SELECT window_sizes.window_days,
 			COUNT(ws.id) AS performed_sessions,
@@ -25,15 +36,12 @@ const planningTrainingHistoryQuery = `
 				AND f.fatigue_after BETWEEN 1 AND 5) AS sessions_with_complete_feedback,
 			COUNT(ws.id) FILTER (WHERE f.pain_reported = true) AS pain_reported_sessions,
 			COUNT(ws.id) FILTER (WHERE f.fatigue_after BETWEEN 4 AND 5) AS high_fatigue_sessions,
-			COUNT(ws.id) FILTER (WHERE ws.actual_rpe BETWEEN 1 AND 10 AND source_workout.target_rpe IS NOT NULL
-				AND ws.actual_rpe >= source_workout.target_rpe + 2) AS above_target_rpe_sessions
+			COUNT(ws.id) FILTER (WHERE ws.actual_rpe BETWEEN 1 AND 10 AND ws.target_rpe IS NOT NULL
+				AND ws.actual_rpe >= ws.target_rpe + 2) AS above_target_rpe_sessions
 		FROM window_sizes
-		LEFT JOIN workout_sessions ws
-			ON ws.athlete_profile_id = $1
-			AND ws.status = 'completed'
-			AND ws.completed_at >= now() - make_interval(days => window_sizes.window_days)
+		LEFT JOIN eligible_completed_sessions ws
+			ON ws.completed_at >= now() - make_interval(days => window_sizes.window_days)
 			AND ws.completed_at <= now()
-		LEFT JOIN workouts source_workout ON source_workout.id = ws.workout_id
 		LEFT JOIN feedback f ON f.workout_session_id = ws.id
 		GROUP BY window_sizes.window_days
 	),
@@ -64,8 +72,7 @@ const planningTrainingHistoryQuery = `
 			MAX(ws.completed_at) FILTER (WHERE ws.status = 'completed' AND ws.completed_at <= now()
 				AND ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10) AS latest_session_rpe_load_at,
 			COUNT(ws.id) FILTER (WHERE ws.status = 'completed' AND ws.completed_at > now()) AS future_completed_sessions_excluded
-		FROM workout_sessions ws
-		WHERE ws.athlete_profile_id = $1
+		FROM eligible_completed_sessions ws
 	),
 	recovery_temporal AS (
 		SELECT
@@ -125,6 +132,17 @@ const planningTrainingHistoryPeriodsQuery = `
 			(4, 'days_29_35', 7, 28, 35),
 			(5, 'days_36_42', 7, 35, 42)
 	),
+	eligible_completed_sessions AS (
+		SELECT ws.*, source_workout.target_rpe
+		FROM workout_sessions ws
+		JOIN workouts source_workout ON source_workout.id = ws.workout_id
+		WHERE ws.athlete_profile_id = $1
+			AND ws.status = 'completed'
+			AND (
+				source_workout.explanation->'data_integrity' IS NULL
+				OR source_workout.explanation->'data_integrity'->>'eligible_for_history' = 'true'
+			)
+	),
 	performed AS (
 		SELECT period_sizes.period_index,
 			period_sizes.period_key,
@@ -140,15 +158,12 @@ const planningTrainingHistoryPeriodsQuery = `
 				AND f.fatigue_after BETWEEN 1 AND 5) AS sessions_with_complete_feedback,
 			COUNT(ws.id) FILTER (WHERE f.pain_reported = true) AS pain_reported_sessions,
 			COUNT(ws.id) FILTER (WHERE f.fatigue_after BETWEEN 4 AND 5) AS high_fatigue_sessions,
-			COUNT(ws.id) FILTER (WHERE ws.actual_rpe BETWEEN 1 AND 10 AND source_workout.target_rpe IS NOT NULL
-				AND ws.actual_rpe >= source_workout.target_rpe + 2) AS above_target_rpe_sessions
+			COUNT(ws.id) FILTER (WHERE ws.actual_rpe BETWEEN 1 AND 10 AND ws.target_rpe IS NOT NULL
+				AND ws.actual_rpe >= ws.target_rpe + 2) AS above_target_rpe_sessions
 		FROM period_sizes
-		LEFT JOIN workout_sessions ws
-			ON ws.athlete_profile_id = $1
-			AND ws.status = 'completed'
-			AND ws.completed_at >= now() - make_interval(days => period_sizes.end_days_ago)
+		LEFT JOIN eligible_completed_sessions ws
+			ON ws.completed_at >= now() - make_interval(days => period_sizes.end_days_ago)
 			AND ws.completed_at < now() - make_interval(days => period_sizes.start_days_ago)
-		LEFT JOIN workouts source_workout ON source_workout.id = ws.workout_id
 		LEFT JOIN feedback f ON f.workout_session_id = ws.id
 		GROUP BY period_sizes.period_index, period_sizes.period_key, period_sizes.period_days
 	),
@@ -236,9 +251,14 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 			COUNT(*) FILTER (WHERE ws.status = 'completed' AND ws.duration_minutes > 0
 				AND ws.actual_rpe BETWEEN 1 AND 10 AND f.fatigue_after BETWEEN 1 AND 5 AND f.pain_reported IS NOT NULL)
 		FROM workout_sessions ws
+		JOIN workouts source_workout ON source_workout.id = ws.workout_id
 		LEFT JOIN feedback f ON f.workout_session_id = ws.id
 		WHERE ws.athlete_profile_id = $1
-		  AND ws.completed_at >= now() - interval '28 days'`, input.ProfileID,
+		  AND ws.completed_at >= now() - interval '28 days'
+		  AND (
+			  source_workout.explanation->'data_integrity' IS NULL
+			  OR source_workout.explanation->'data_integrity'->>'eligible_for_history' = 'true'
+		  )`, input.ProfileID,
 	).Scan(&completedSessions, &input.Observed.CompletedMinutes, &input.Observed.AverageRPE,
 		&input.Observed.AverageFatigue, &input.Observed.PainReported,
 		&input.Observed.DataCoverage.SessionsWithDuration, &input.Observed.DataCoverage.SessionsWithRPE,

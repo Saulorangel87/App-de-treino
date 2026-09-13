@@ -22,8 +22,13 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 			COALESCE(AVG(ws.average_heart_rate) FILTER (WHERE ws.status = 'completed'), 0)::double precision
 		FROM workout_sessions ws
 		JOIN athlete_profiles ap ON ap.id = ws.athlete_profile_id
+		JOIN workouts source_workout ON source_workout.id = ws.workout_id
 		LEFT JOIN feedback f ON f.workout_session_id = ws.id
-		WHERE ap.user_id = $1`, userID,
+		WHERE ap.user_id = $1
+		  AND (
+			  source_workout.explanation->'data_integrity' IS NULL
+			  OR source_workout.explanation->'data_integrity'->>'eligible_for_history' = 'true'
+		  )`, userID,
 	).Scan(&completed, &cancelled, &result.TotalMinutes, &result.AverageRPE, &result.AverageFatigue,
 		&result.TotalDistanceKM, &result.TotalElevationM, &result.AveragePowerW, &result.AverageHeartRate); err != nil {
 		return evolution.Summary{}, err
@@ -41,6 +46,12 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 				date_trunc('week', CURRENT_DATE)::date,
 				interval '7 days'
 			) AS value
+		), eligible_sessions AS (
+			SELECT ws.*
+			FROM workout_sessions ws
+			JOIN workouts source_workout ON source_workout.id = ws.workout_id
+			WHERE source_workout.explanation->'data_integrity' IS NULL
+			   OR source_workout.explanation->'data_integrity'->>'eligible_for_history' = 'true'
 		)
 		SELECT w.week_start::text,
 			COUNT(ws.id) FILTER (WHERE ws.status = 'completed'),
@@ -53,7 +64,7 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 			COALESCE(AVG(ws.average_heart_rate) FILTER (WHERE ws.status = 'completed'), 0)::double precision
 		FROM weeks w
 		LEFT JOIN athlete_profiles ap ON ap.user_id = $1
-		LEFT JOIN workout_sessions ws ON ws.athlete_profile_id = ap.id
+		LEFT JOIN eligible_sessions ws ON ws.athlete_profile_id = ap.id
 			AND COALESCE(ws.completed_at, ws.cancelled_at)::date >= w.week_start
 			AND COALESCE(ws.completed_at, ws.cancelled_at)::date < w.week_start + 7
 		GROUP BY w.week_start
@@ -88,6 +99,10 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 		JOIN workouts w ON w.id = ws.workout_id
 		LEFT JOIN feedback f ON f.workout_session_id = ws.id
 		WHERE ap.user_id = $1 AND ws.status = 'completed'
+		  AND (
+			  w.explanation->'data_integrity' IS NULL
+			  OR w.explanation->'data_integrity'->>'eligible_for_history' = 'true'
+		  )
 		ORDER BY ws.completed_at DESC, ws.created_at DESC
 		LIMIT 12`, userID)
 	if err != nil {

@@ -37,6 +37,14 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - A validação do treino concluído confirmou `planned_vs_actual-v1` com 3 minutos realizados de 31 planejados, `data_issues: []`, `status: observed`, `progression_eligible: false` e `used_for_prescription: false`. O RPE realizado acima do alvo acionou somente a proteção observacional de esforço alto.
 - `npm run build` e `git diff --check` passaram. A implementação foi registrada no commit `2828049`; produção permanece em `0.16.0`, sem deploy, migração ou alteração de infraestrutura.
 
+### Filtro de integridade no histórico observado — versão local (validado; sem publicação)
+
+- O `data-integrity-v1` já marcava sessões concluídas como elegíveis ou inelegíveis, mas as consultas de histórico ainda podiam contar uma sessão explicitamente inelegível em sinais agregados de carga, dor, fadiga e recência.
+- `backend/internal/repository/planning.go` e `backend/internal/repository/evolution.go` agora filtram sessões com `workouts.explanation.data_integrity.eligible_for_history = false` no resumo observado usado na geração do plano, nas janelas de 7/28/42 dias, nos seis períodos semanais do shadow e nos agregados da tela de Evolução. A aderência planejada continua separada e o registro original não é apagado.
+- Treinos legados sem o bloco de integridade permanecem legíveis para não quebrar históricos anteriores; apenas registros que carregam explicitamente `eligible_for_history: false` são excluídos dessas métricas observacionais.
+- A fixture de `scripts/test-training-history-query.ps1` passou a incluir uma sessão inelegível e confirmou que ela não contamina minutos, carga session-RPE, dor ou fadiga nas janelas e períodos.
+- `go test -count=1 ./...`, `go vet ./...`, `npm run build`, a consulta PostgreSQL somente leitura e `git diff --check` passaram. Não houve migração, mudança visual, atualização de `APP_VERSION`, deploy ou alteração de infraestrutura.
+
 ### Décima quarta fatia de melhorias — taper pré-prova orientado por evento (local)
 
 - O plano local passa a registrar `prescription_snapshot.event_taper` com `taper-v1`. A redução só é prescritiva para evento futuro entre 7 e 21 dias, atleta avançado, avaliação submáxima apta, pelo menos 8 semanas e 3 pedais semanais, sem limitação, dor ou necessidade recente de recuperação.
