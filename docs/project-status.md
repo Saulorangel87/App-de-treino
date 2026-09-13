@@ -45,6 +45,15 @@ Validação desta fatia: `go test -count=1 ./...`, `go vet ./...`, `npm run buil
 
 Validação desta fatia: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, lint direcionado de `frontend/lib/planning.ts`, validação das referências do OpenAPI e `git diff --check` passaram. A aplicação pública e a API permaneceram saudáveis após o deploy. A inspeção independente do campo autenticado `periodization_shadow` ainda depende de uma requisição da própria sessão do navegador; isso não bloqueia a documentação nem transforma o shadow em prescrição.
 
+### Décima nona fatia de melhorias — seleção observacional de estímulos (validada localmente; aguardando publicação)
+
+- Cada novo rascunho passa a registrar `stimulus-selection-shadow-v1`, relacionando a necessidade inferida do contexto às famílias de estímulos selecionadas pelo `rules-v1`.
+- A auditoria observa proteção/recuperação, aderência, especificidade de evento, progressão de qualidade, estímulos esperados e estímulos selecionados. Incoerências ficam em `data_issues` e não geram troca automática de sessão.
+- O resultado permanece `mode: shadow`, com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. O `rules-v1` continua sendo a única fonte prescritiva.
+- O contrato foi atualizado no OpenAPI e no tipo compartilhado do frontend. Não há migração, mudança visual, atualização de `APP_VERSION` ou nota de versão.
+
+Validação local: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, `git diff --check` e referências do OpenAPI passaram. A fatia está pronta para eventual publicação, mas o deploy depende de autorização específica.
+
 ## Repositório e produção
 
 - Repositório: <https://github.com/Saulorangel87/App-de-treino>

@@ -410,21 +410,23 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 	}
 
 	periodizationShadow := assessPeriodizationShadow(workouts, start, now)
+	stimulusSelectionShadow := assessStimulusSelectionShadow(input, workouts, now, restricted)
 	plan := Plan{
 		StartsOn: start.Format("2006-01-02"),
 		EndsOn:   start.AddDate(0, 0, 27).Format("2006-01-02"),
 		Status:   "draft",
 		PrescriptionSnapshot: map[string]any{
-			"engine_version":       "rules-v1",
-			"event_taper":          eventTaper,
-			"rules_v2_shadow":      assessRulesV2Shadow(input, now),
-			"periodization_shadow": periodizationShadow,
-			"readiness_assessment": assessReadiness(input, now),
-			"training_history":     buildTrainingHistorySnapshot(input.TrainingHistory, now, input.TrainingHistoryPeriods),
-			"experience_level":     input.ExperienceLevel,
-			"primary_goal":         input.PrimaryGoal,
-			"restricted":           restricted,
-			"sessions_per_week":    len(slots),
+			"engine_version":            "rules-v1",
+			"event_taper":               eventTaper,
+			"rules_v2_shadow":           assessRulesV2Shadow(input, now),
+			"periodization_shadow":      periodizationShadow,
+			"stimulus_selection_shadow": stimulusSelectionShadow,
+			"readiness_assessment":      assessReadiness(input, now),
+			"training_history":          buildTrainingHistorySnapshot(input.TrainingHistory, now, input.TrainingHistoryPeriods),
+			"experience_level":          input.ExperienceLevel,
+			"primary_goal":              input.PrimaryGoal,
+			"restricted":                restricted,
+			"sessions_per_week":         len(slots),
 			"cycling_context": map[string]any{
 				"weekly_hours":              input.Cycling.WeeklyHours,
 				"longest_ride_minutes":      input.Cycling.LongestRideMinutes,

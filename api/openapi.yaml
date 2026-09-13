@@ -557,6 +557,8 @@ components:
               $ref: '#/components/schemas/RulesV2ShadowAssessment'
             periodization_shadow:
               $ref: '#/components/schemas/PeriodizationShadowAssessment'
+            stimulus_selection_shadow:
+              $ref: '#/components/schemas/StimulusSelectionShadowAssessment'
             readiness_assessment:
               $ref: '#/components/schemas/ReadinessAssessment'
             training_history:
@@ -686,6 +688,35 @@ components:
           oneOf:
             - { type: integer, minimum: 0 }
             - { type: 'null' }
+    StimulusSelectionShadowAssessment:
+      type: object
+      description: Auditoria observacional da compatibilidade entre a necessidade inferida e as famílias de estímulos selecionadas. Não substitui o rules-v1 nem altera os treinos gerados.
+      required: [version, mode, scope, assessed_at, status, candidate_response, candidate_need, expected_stimuli, selected_stimuli, rules_evaluated, reasons, missing_data, data_issues, not_evaluated, progression_eligible, applied, used_for_prescription]
+      properties:
+        version: { type: string, enum: [stimulus-selection-shadow-v1] }
+        mode: { type: string, enum: [shadow] }
+        scope: { type: string, enum: [plan_generation_only] }
+        assessed_at: { type: string, format: date-time }
+        status: { type: string, enum: [observed, observed_mismatch, not_evaluated] }
+        candidate_response: { type: string, enum: [maintain_observed, review_selection, defer_evaluation] }
+        candidate_need: { type: string }
+        expected_stimuli: { type: array, items: { type: string } }
+        selected_stimuli: { type: array, items: { type: string } }
+        rules_evaluated: { type: array, items: { type: string } }
+        reasons:
+          type: array
+          items:
+            type: object
+            required: [code, message]
+            properties:
+              code: { type: string }
+              message: { type: string }
+        missing_data: { type: array, items: { type: string } }
+        data_issues: { type: array, items: { type: string } }
+        not_evaluated: { type: array, items: { type: string } }
+        progression_eligible: { type: boolean, enum: [false] }
+        applied: { type: boolean, enum: [false] }
+        used_for_prescription: { type: boolean, enum: [false] }
     PostWorkoutContextAssessment:
       type: object
       description: Classificação observacional da cobertura dos sinais subjetivos pós-treino. Não interpreta fisiologia nem altera a prescrição.

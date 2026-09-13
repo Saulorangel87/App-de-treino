@@ -290,6 +290,26 @@ export type PeriodizationShadowAssessment = {
   used_for_prescription: false;
 };
 
+export type StimulusSelectionShadowAssessment = {
+  version: 'stimulus-selection-shadow-v1';
+  mode: 'shadow';
+  scope: 'plan_generation_only';
+  assessed_at: string;
+  status: 'observed' | 'observed_mismatch' | 'not_evaluated';
+  candidate_response: 'maintain_observed' | 'review_selection' | 'defer_evaluation';
+  candidate_need: string;
+  expected_stimuli: string[];
+  selected_stimuli: string[];
+  rules_evaluated: string[];
+  reasons: Array<{ code: string; message: string }>;
+  missing_data: string[];
+  data_issues: string[];
+  not_evaluated: string[];
+  progression_eligible: false;
+  applied: false;
+  used_for_prescription: false;
+};
+
 export type TrainingHistoryWindow = {
   window_days: 7 | 28 | 42;
   expected_sessions: number;
@@ -419,6 +439,7 @@ export type TrainingPlan = {
     event_taper?: EventTaperAssessment;
     rules_v2_shadow?: RulesV2ShadowAssessment;
     periodization_shadow?: PeriodizationShadowAssessment;
+    stimulus_selection_shadow?: StimulusSelectionShadowAssessment;
     readiness_assessment?: ReadinessAssessment;
     training_history?: TrainingHistorySnapshot;
     observed_training?: {

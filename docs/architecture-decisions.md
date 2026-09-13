@@ -270,6 +270,14 @@ Cada rascunho pode carregar uma auditoria `periodization-shadow-v1` da estrutura
 
 O bloco verifica incoerências estruturais e preserva lacunas sem escolher, substituir ou ajustar sessões. Ele permanece em `mode: shadow`, com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`; `rules-v1` continua sendo a única autoridade de prescrição. A decisão não cria migração, mudança visual ou nova nota de versão e exige revisão do contrato e validação antes de eventual publicação.
 
+## ADR-026 — Seleção de estímulos observada sem autoridade prescritiva
+
+**Status:** Implementada localmente; ainda não publicada.
+
+Cada rascunho pode carregar `stimulus-selection-shadow-v1`, que compara a necessidade inferida do contexto atual com as famílias de estímulos selecionadas pelo `rules-v1`. A leitura considera proteção/recuperação, aderência e base, especificidade de evento e progressão de qualidade, preservando as lacunas quando o contexto não permite uma avaliação segura.
+
+Um desencontro é registrado como observação e não dispara troca de treino, ajuste de duração, mudança de RPE ou progressão. O bloco permanece em `mode: shadow`, com `progression_eligible: false`, `applied: false` e `used_for_prescription: false`. Essa separação permite avaliar a futura seleção inteligente sem substituir o motor determinístico antes de haver calibração e efeito longitudinal demonstrados.
+
 ## Estado de produção
 
 Em 3 de setembro de 2026, o commit `57c241a` foi implantado na VPS Oracle. A imagem da API, do job de digest e do frontend foi reconstruída com Go 1.25; as migrações `000013` e `000014` foram aplicadas após backup preventivo. O serviço Ollama permanece isolado e parado após a medição de capacidade, e a API usa temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.

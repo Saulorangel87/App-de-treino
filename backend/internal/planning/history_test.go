@@ -304,8 +304,14 @@ func TestBuildPlanRecordsHistoryWithoutChangingPrescription(t *testing.T) {
 	if !ok || history.Version != trainingHistoryVersion || history.UsedForPrescription {
 		t.Fatalf("history snapshot missing or authoritative: %#v", withHistory.PrescriptionSnapshot["training_history"])
 	}
+	selection, ok := withHistory.PrescriptionSnapshot["stimulus_selection_shadow"].(StimulusSelectionShadowAssessment)
+	if !ok || selection.Version != stimulusSelectionShadowVersion || selection.Applied || selection.UsedForPrescription {
+		t.Fatalf("stimulus selection shadow missing or authoritative: %#v", withHistory.PrescriptionSnapshot["stimulus_selection_shadow"])
+	}
 	delete(withHistory.PrescriptionSnapshot, "training_history")
 	delete(withoutHistory.PrescriptionSnapshot, "training_history")
+	delete(withHistory.PrescriptionSnapshot, "stimulus_selection_shadow")
+	delete(withoutHistory.PrescriptionSnapshot, "stimulus_selection_shadow")
 	if !reflect.DeepEqual(withHistory, withoutHistory) {
 		t.Fatal("observational history changed the rules-v1 prescription")
 	}
