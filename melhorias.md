@@ -572,7 +572,7 @@ Atualizado em 13 de setembro de 2026. Este arquivo continua sendo um roadmap; os
 - O `rules-v1` determinístico continua prescritivo; as evoluções `rules-v2`, adaptação pós-treino, tolerância à carga, comparação planejado versus realizado, distribuição de estímulos e periodização permanecem auditáveis em `shadow`.
 - A base de evidências e o catálogo inicial de protocolos de ciclismo foram estruturados, com pilotos restritos e exclusão explícita de modalidades fora do escopo.
 - Feedback pós-treino, decisões auditáveis, filtros contra dados inconsistentes e cobertura automatizada dos principais gates já estão implementados.
-- A auditoria observacional da seleção de estímulos foi validada localmente e relaciona necessidade inferida, estímulos esperados e estímulos selecionados, sem autoridade sobre a prescrição.
+- A auditoria observacional da seleção de estímulos foi validada e publicada, relacionando necessidade inferida, estímulos esperados e estímulos selecionados, sem autoridade sobre a prescrição.
 
 ### Tópicos ainda parciais
 

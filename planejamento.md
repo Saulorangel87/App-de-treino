@@ -1505,8 +1505,8 @@ A auditoria observacional da periodização foi encerrada como entrega técnica 
 
 ### Continuidade — seleção observacional de estímulos — 13 de setembro de 2026
 
-A auditoria seguinte foi implementada localmente como `stimulus-selection-shadow-v1`. Ela classifica a necessidade disponível — proteção/recuperação, aderência e base, especificidade de endurance, especificidade de evento ou progressão de qualidade — e compara essa leitura com as famílias de estímulos realmente selecionadas pelo plano.
+A auditoria seguinte foi implementada como `stimulus-selection-shadow-v1` e publicada no commit `c5d8822`. Ela classifica a necessidade disponível — proteção/recuperação, aderência e base, especificidade de endurance, especificidade de evento ou progressão de qualidade — e compara essa leitura com as famílias de estímulos realmente selecionadas pelo plano.
 
 O resultado registra estímulos esperados, estímulos selecionados, regras avaliadas, lacunas e incoerências. Um desencontro gera apenas `observed_mismatch` e `review_selection`; não troca, reduz ou aumenta sessão alguma. `rules-v1` continua prescritivo e os campos `progression_eligible`, `applied` e `used_for_prescription` permanecem falsos.
 
-Foram adicionados testes para seleção alinhada, baixa aderência, necessidade de recuperação e presença não autoritativa no snapshot. `go test -count=1 ./...`, `go vet ./...`, `npm run build`, validação das referências do OpenAPI e `git diff --check` passaram. Esta fatia está validada localmente e aguarda decisão própria de publicação; não há migração, mudança visual ou atualização de versão.
+Foram adicionados testes para seleção alinhada, baixa aderência, necessidade de recuperação e presença não autoritativa no snapshot. `go test -count=1 ./...`, `go vet ./...`, `npm run build`, validação das referências do OpenAPI e `git diff --check` passaram. O deploy foi concluído após backup; API, frontend, PostgreSQL e Tunnel ficaram saudáveis. Não há migração, mudança visual ou atualização de versão.

@@ -25,7 +25,7 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 
 ## Estado documentado neste ciclo
 
-A produção oficial registrada está no commit `b32a3c9`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; as migrações até `000021`, o catálogo, os pilotos e as correções técnicas foram publicados após backup, validação e autorização explícita. A auditoria observacional da periodização também foi publicada sem alterar a versão visível `0.20.0`, registrada na release [v0.20.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.20.0). A tela autenticada `/plano` carregou após o deploy; a inspeção independente do JSON autenticado do shadow ainda depende de uma requisição da própria sessão do navegador. O estado e as lacunas de validação estão em [`project-status.md`](project-status.md).
+A produção oficial registrada está no commit `c5d8822`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; as migrações até `000021`, o catálogo, os pilotos e as correções técnicas foram publicados após backup, validação e autorização explícita. As auditorias observacionais de periodização e seleção de estímulos também foram publicadas sem alterar a versão visível `0.20.0`, registrada na release [v0.20.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.20.0). A tela autenticada `/plano` carregou após o deploy; a inspeção independente do JSON autenticado do shadow ainda depende de uma requisição da própria sessão do navegador. O estado e as lacunas de validação estão em [`project-status.md`](project-status.md).
 
 ## Organização avaliada
 

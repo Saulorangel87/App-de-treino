@@ -272,7 +272,7 @@ O bloco verifica incoerências estruturais e preserva lacunas sem escolher, subs
 
 ## ADR-026 — Seleção de estímulos observada sem autoridade prescritiva
 
-**Status:** Implementada localmente; ainda não publicada.
+**Status:** Publicada no commit `c5d8822`, sem mudança de versão.
 
 Cada rascunho pode carregar `stimulus-selection-shadow-v1`, que compara a necessidade inferida do contexto atual com as famílias de estímulos selecionadas pelo `rules-v1`. A leitura considera proteção/recuperação, aderência e base, especificidade de evento e progressão de qualidade, preservando as lacunas quando o contexto não permite uma avaliação segura.
 
