@@ -624,6 +624,33 @@ components:
         progression_eligible: { type: boolean, enum: [false] }
         applied: { type: boolean, enum: [false] }
         used_for_prescription: { type: boolean, enum: [false] }
+    PostWorkoutContextAssessment:
+      type: object
+      description: Classificação observacional da cobertura dos sinais subjetivos pós-treino. Não interpreta fisiologia nem altera a prescrição.
+      required: [version, mode, scope, assessed_at, status, candidate_response, observed_fields, reasons, missing_data, data_issues, not_evaluated, progression_eligible, used_for_prescription]
+      properties:
+        version: { type: string, enum: [post-workout-context-v1] }
+        mode: { type: string, enum: [observation] }
+        scope: { type: string, enum: [post_workout_feedback] }
+        assessed_at: { type: string, format: date-time }
+        status: { type: string, enum: [not_evaluated, observed] }
+        candidate_response: { type: string, enum: [not_evaluated, maintain_observed] }
+        recovery_after: { type: integer, minimum: 1, maximum: 5 }
+        repeat_confidence: { type: integer, minimum: 1, maximum: 5 }
+        observed_fields: { type: array, items: { type: string } }
+        reasons:
+          type: array
+          items:
+            type: object
+            required: [code, message]
+            properties:
+              code: { type: string }
+              message: { type: string }
+        missing_data: { type: array, items: { type: string } }
+        data_issues: { type: array, items: { type: string } }
+        not_evaluated: { type: array, items: { type: string } }
+        progression_eligible: { type: boolean, enum: [false] }
+        used_for_prescription: { type: boolean, enum: [false] }
     RulesV2AdaptationShadowAssessment:
       type: object
       description: Avaliação shadow do feedback pós-treino. É gravada no treino concluído apenas para observação; não altera a adaptação ativa do rules-v1.
@@ -652,6 +679,8 @@ components:
           $ref: '#/components/schemas/PlannedVsActualAssessment'
         load_tolerance:
           $ref: '#/components/schemas/LoadToleranceAssessment'
+        post_workout_context:
+          $ref: '#/components/schemas/PostWorkoutContextAssessment'
         progression_eligible: { type: boolean, enum: [false] }
         applied: { type: boolean, enum: [false] }
         used_for_prescription: { type: boolean, enum: [false] }

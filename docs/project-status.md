@@ -204,15 +204,24 @@ Arquivos desta fatia: `backend/internal/httpapi/workout_session_handlers.go`, `b
 
 Arquivos desta fatia: `backend/internal/httpapi/workout_session_handlers.go`, `backend/internal/planning/service.go`, `backend/internal/planning/data_integrity.go`, `backend/internal/planning/execution_comparison.go`, testes de `backend/internal/planning`, `backend/internal/repository/planning.go`, `backend/internal/repository/workout_sessions.go`, `database/migrations/000021_post_workout_context.*`, `database/tests/000021_post_workout_context.sql`, `frontend/components/workout-session-actions.tsx`, `frontend/app/atividades/page.tsx`, `frontend/lib/planning.ts`, `frontend/lib/release.ts`, `api/openapi.yaml`, `README.md`, `docs/training-adaptation-rules.md`, `docs/architecture-decisions.md`, `infrastructure/cadencia/README.md` e esta documentação. A implementação foi registrada no commit `34f17b3`; não houve deploy ou alteração de infraestrutura.
 
-### Histórico permanente de novidades — versão local `0.19.0` (aguardando validação visual)
+### Histórico permanente de novidades — versão local `0.19.0` (validado localmente; fora da produção)
 
 - O aviso inicial agora apresenta somente as notas da versão atual, evitando que o primeiro acesso fique excessivamente longo.
 - A nova rota autenticada `/novidades` apresenta o histórico completo agrupado por versão, com versões anteriores recolhidas para facilitar a leitura.
 - O acesso foi incluído no menu lateral, no menu móvel e no cabeçalho das telas internas. O histórico usa `frontend/lib/release.ts` como fonte única, sem duplicar as descrições.
-- O build do frontend passou e a rota `/novidades` foi reconhecida. O lint específico dos arquivos novos passou; o lint geral mantém pendências antigas de navegação por `<a>` no dashboard. A checagem automática de formatação via `npx` ficou indisponível nesta rodada por `EPERM` no cache global do npm.
-- Ainda falta a validação visual manual em desktop e celular. Produção permanece em `0.16.0`/`000019`, sem deploy ou alteração de infraestrutura.
+- O build do frontend passou e a rota `/novidades` foi reconhecida. O lint específico dos arquivos novos e a formatação dos arquivos da interface passaram; o lint geral mantém pendências antigas de navegação por `<a>` no dashboard.
+- A validação visual foi concluída pelo proprietário. Produção permanece em `0.16.0`/`000019`, sem deploy ou alteração de infraestrutura.
 
-Arquivos desta fatia: `frontend/app/novidades/page.tsx`, `frontend/app/globals.css`, `frontend/app/page.tsx`, `frontend/components/account-actions.tsx`, `frontend/components/update-notice.tsx`, `frontend/lib/release.ts`, `README.md`, `docs/architecture-decisions.md` e esta documentação. A alteração ainda aguarda commit.
+Arquivos desta fatia: `frontend/app/novidades/page.tsx`, `frontend/app/globals.css`, `frontend/app/page.tsx`, `frontend/components/account-actions.tsx`, `frontend/components/update-notice.tsx`, `frontend/lib/release.ts`, `README.md`, `docs/architecture-decisions.md` e esta documentação. A implementação foi registrada no commit `8798ea3`; ainda não foi publicada.
+
+### Contexto pós-treino integrado ao shadow — versão local (sem mudança visual)
+
+- `post-workout-context-v1` classifica a cobertura de `recovery_after` e `repeat_confidence` dentro de `workouts.explanation.adaptation_shadow`. O bloco distingue os dois sinais completos, contexto parcial, ausência de registro e valores fora da faixa, mantendo `observed_fields`, `missing_data`, `data_issues` e motivos explícitos.
+- O bloco é estritamente observacional: `progression_eligible` e `used_for_prescription` permanecem `false`, `rules-v1` continua sendo o único motor ativo e a resposta `maintain_observed` significa apenas que os dados foram registrados, não que uma prescrição foi validada.
+- Foram adicionados testes para contexto completo, parcial, inválido e para o isolamento da avaliação dentro do shadow. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram.
+- Não houve migração, mudança visual, atualização de versão, alteração de infraestrutura, commit ou deploy nesta fatia. Produção permanece em `0.16.0`/`000019`.
+
+Arquivos desta fatia: `backend/internal/planning/post_workout_context.go`, `backend/internal/planning/post_workout_context_test.go`, `backend/internal/planning/rules_v2_adaptation.go`, `frontend/lib/planning.ts`, `api/openapi.yaml` e esta documentação.
 
 ### Décima fatia de melhorias — piloto publicado de intervalos aeróbicos XCO
 

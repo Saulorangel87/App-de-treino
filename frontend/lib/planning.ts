@@ -60,6 +60,23 @@ export type Workout = {
       missing_data: string[];
       data_issues: string[];
       not_evaluated: string[];
+      post_workout_context?: {
+        version: 'post-workout-context-v1';
+        mode: 'observation';
+        scope: 'post_workout_feedback';
+        assessed_at: string;
+        status: 'not_evaluated' | 'observed';
+        candidate_response: 'not_evaluated' | 'maintain_observed';
+        recovery_after?: number;
+        repeat_confidence?: number;
+        observed_fields: string[];
+        reasons: { code: string; message: string }[];
+        missing_data: string[];
+        data_issues: string[];
+        not_evaluated: string[];
+        progression_eligible: false;
+        used_for_prescription: false;
+      };
       planned_vs_actual?: {
         version: 'planned-vs-actual-v1';
         mode: 'observation';

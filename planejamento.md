@@ -1341,4 +1341,12 @@ Os valores aparecem no resumo, no histórico e em `planned-vs-actual-v1` quando 
 
 A próxima melhoria de interface reduz o tamanho do aviso exibido após uma atualização e cria a rota autenticada `/novidades`. O aviso mostra somente as notas da versão atual e oferece acesso ao histórico completo; a nova página agrupa as notas por versão e mantém as versões anteriores recolhidas. O menu lateral, o menu móvel e os cabeçalhos das telas internas oferecem acesso permanente ao histórico.
 
-As notas continuam centralizadas em `frontend/lib/release.ts`, agora com a versão de cada item. A versão local passou para `0.19.0` para comunicar a nova funcionalidade na tela de primeiro acesso. O build e o lint específico dos arquivos novos passaram; a validação visual em desktop e celular ainda precisa ser feita. Produção permanece em `0.16.0`/`000019`, sem deploy, alteração de infraestrutura ou commit nesta etapa.
+As notas continuam centralizadas em `frontend/lib/release.ts`, agora com a versão de cada item. A versão local passou para `0.19.0` para comunicar a nova funcionalidade na tela de primeiro acesso. O build, o lint específico e a formatação dos arquivos da interface passaram; a validação visual foi concluída pelo proprietário. Produção permanece em `0.16.0`/`000019`, sem deploy ou alteração de infraestrutura. A implementação foi registrada no commit `8798ea3`.
+
+### Continuidade — contexto pós-treino no `adaptation_shadow` — 12 de setembro de 2026
+
+A próxima fatia técnica integra `recovery_after` e `repeat_confidence` à avaliação paralela `rules-v2-adaptation-v1` por meio do bloco `post-workout-context-v1`. A avaliação registra se os sinais estão completos, parciais, ausentes ou inválidos e explicita os campos observados, as lacunas, os problemas e o motivo da classificação. Ela não interpreta fisiologia, não define limiares de tolerância ou progressão e não substitui o check-in diário.
+
+Mesmo com os dois sinais válidos, o resultado permanece `candidate_response: maintain_observed`, `progression_eligible: false` e `used_for_prescription: false`. O `rules-v1`, o trigger, o banco e o comportamento das próximas sessões permanecem inalterados; não foi criada migração nem houve mudança visual ou de versão. A tipagem TypeScript e o contrato OpenAPI foram atualizados para leitura do novo bloco.
+
+Os testes cobrem contexto completo, parcial e inválido, além da anexação ao shadow sem torná-lo autoritativo. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. Esta fatia permanece local, sem commit, deploy ou alteração de infraestrutura. Próxima etapa: validar manualmente o retorno via API local após reiniciar o binário atual e, em seguida, oferecer o commit.

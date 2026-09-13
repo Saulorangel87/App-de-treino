@@ -242,6 +242,8 @@ O feedback pode registrar também `recovery_after` e `repeat_confidence`, ambos 
 
 Esses sinais são observacionais nesta versão: não são diagnóstico, não substituem o check-in diário, não autorizam progressão e não alteram o `rules-v1` ou o trigger pós-feedback. Quando presentes, aparecem no resumo da sessão, no histórico e em `planned-vs-actual-v1`; valores fora da faixa são rejeitados na API, no banco e na integridade observacional. A interpretação futura exige cobertura suficiente, comparação com a carga realizada e revisão específica antes de qualquer uso prescritivo.
 
+Na fatia técnica seguinte, esses mesmos sinais passaram a ser classificados também pelo bloco `post-workout-context-v1`, aninhado em `workouts.explanation.adaptation_shadow`. O bloco registra cobertura completa, parcial, ausente ou inválida por meio de `observed_fields`, `missing_data`, `data_issues` e motivos explicáveis. Mesmo quando os dois valores estão presentes, `candidate_response: maintain_observed`, `progression_eligible: false` e `used_for_prescription: false` deixam explícito que o resultado é somente registro; não há limiar fisiológico, tendência longitudinal ou efeito prescritivo sendo inferido.
+
 ### Rotação segura e recuperação ativa
 
 O catálogo geral possui o protocolo `active_recovery`, apresentado ao atleta como **Recuperação ativa**. O motor o seleciona somente para uma sessão de base na quarta semana do ciclo. A sessão mantém o multiplicador de recuperação já existente, usa alvo RPE 3,5 e uma instrução de pedal leve e contínuo; não representa uma prescrição universal de minutos ou intensidade.
