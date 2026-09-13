@@ -378,3 +378,9 @@ Os valores anteriores são anexados a `workouts.explanation.data_integrity_corre
 A satisfação da sessão, o terreno e as condições externas passaram a ser armazenados como contexto opcional do feedback. A satisfação usa escala de 1 a 5; terreno e condições externas usam valores controlados para manter a leitura comparável e evitar que texto livre seja tratado como classificação automática. Feedbacks anteriores continuam válidos quando esses campos estão nulos.
 
 A migração `000023_feedback_context` é aditiva. Os valores são retornados no plano e no histórico e entram na auditoria `post-workout-context-v2` apenas como observação. Nenhum deles muda duração, RPE, estímulo, adaptação ou prescrição: `rules-v1` permanece a fonte autoritativa enquanto calibração, efeito longitudinal e dados reais ainda não foram demonstrados.
+
+## Consistência observacional do contexto estruturado
+
+Para evitar que a mesma sessão tenha leituras diferentes dentro do shadow, satisfação, terreno e condições externas também são validados pelo `data-integrity-v1` e registrados no `planned-vs-actual-v2`. Campos opcionais ausentes aparecem como lacunas; valores fora das listas controladas tornam a observação inconsistente, sem apagar o registro original.
+
+O repositório encaminha esses campos tanto na conclusão quanto na reavaliação de uma correção de métricas. A extensão é somente observacional, não cria migração nem alteração visual e mantém `rules-v1` como fonte prescritiva. `progression_eligible`, `applied` e `used_for_prescription` continuam falsos.

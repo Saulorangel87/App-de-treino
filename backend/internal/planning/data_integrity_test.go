@@ -13,23 +13,27 @@ func validWorkoutDataIntegrityInput() WorkoutDataIntegrityInput {
 	fatigue := 3
 	recoveryAfter := 4
 	repeatConfidence := 5
+	satisfaction := 4
 	distance := 32.5
 	elevation := 420
 	power := 185
 	heartRate := 142
 	return WorkoutDataIntegrityInput{
-		DurationMinutes:  &duration,
-		ActualRPE:        &actualRPE,
-		DistanceKM:       &distance,
-		ElevationGainM:   &elevation,
-		AveragePowerW:    &power,
-		AverageHeartRate: &heartRate,
-		FeedbackPresent:  true,
-		Difficulty:       "moderate",
-		PainReported:     false,
-		FatigueAfter:     &fatigue,
-		RecoveryAfter:    &recoveryAfter,
-		RepeatConfidence: &repeatConfidence,
+		DurationMinutes:    &duration,
+		ActualRPE:          &actualRPE,
+		DistanceKM:         &distance,
+		ElevationGainM:     &elevation,
+		AveragePowerW:      &power,
+		AverageHeartRate:   &heartRate,
+		FeedbackPresent:    true,
+		Difficulty:         "moderate",
+		PainReported:       false,
+		FatigueAfter:       &fatigue,
+		RecoveryAfter:      &recoveryAfter,
+		RepeatConfidence:   &repeatConfidence,
+		Satisfaction:       &satisfaction,
+		Terrain:            "rolling",
+		ExternalConditions: "wind",
 	}
 }
 
@@ -120,6 +124,24 @@ func TestAssessWorkoutDataIntegrityRejectsNonFiniteRPE(t *testing.T) {
 
 	if assessment.Status != "inconsistent" || !slices.Contains(assessment.DataIssues, "invalid_actual_rpe") {
 		t.Fatalf("non-finite RPE was not rejected: %+v", assessment)
+	}
+}
+
+func TestAssessWorkoutDataIntegrityRejectsInvalidStructuredFeedback(t *testing.T) {
+	input := validWorkoutDataIntegrityInput()
+	invalidSatisfaction := 0
+	input.Satisfaction = &invalidSatisfaction
+	input.Terrain = "trail"
+	input.ExternalConditions = "storm"
+	assessment := AssessWorkoutDataIntegrity(input, time.Unix(0, 0))
+
+	if assessment.Status != "inconsistent" || assessment.EligibleForHistory {
+		t.Fatalf("invalid structured feedback was not rejected: %+v", assessment)
+	}
+	for _, issue := range []string{"invalid_satisfaction", "invalid_terrain", "invalid_external_conditions"} {
+		if !slices.Contains(assessment.DataIssues, issue) {
+			t.Fatalf("structured feedback issue %q was not reported: %+v", issue, assessment.DataIssues)
+		}
 	}
 }
 

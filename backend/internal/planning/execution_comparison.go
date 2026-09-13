@@ -3,7 +3,7 @@ package planning
 import "time"
 
 const (
-	plannedVsActualVersion = "planned-vs-actual-v1"
+	plannedVsActualVersion = "planned-vs-actual-v2"
 	plannedVsActualMode    = "observation"
 	plannedVsActualScope   = "completed_workout"
 )
@@ -24,6 +24,9 @@ type PlannedVsActualInput struct {
 	FatigueAfter           int
 	RecoveryAfter          *int
 	RepeatConfidence       *int
+	Satisfaction           *int
+	Terrain                string
+	ExternalConditions     string
 	DistanceKM             *float64
 	ElevationGainM         *int
 	AveragePowerW          *int
@@ -50,6 +53,9 @@ type PlannedVsActualAssessment struct {
 	RPEDelta                  *float64          `json:"rpe_delta,omitempty"`
 	RecoveryAfter             *int              `json:"recovery_after,omitempty"`
 	RepeatConfidence          *int              `json:"repeat_confidence,omitempty"`
+	Satisfaction              *int              `json:"satisfaction,omitempty"`
+	Terrain                   string            `json:"terrain,omitempty"`
+	ExternalConditions        string            `json:"external_conditions,omitempty"`
 	ObservedFields            []string          `json:"observed_fields"`
 	Reasons                   []ReadinessReason `json:"reasons"`
 	MissingData               []string          `json:"missing_data"`
@@ -156,6 +162,33 @@ func AssessPlannedVsActual(input PlannedVsActualInput, now time.Time) PlannedVsA
 				result.RepeatConfidence = input.RepeatConfidence
 				addObserved("repeat_confidence")
 			}
+		}
+		if input.Satisfaction != nil {
+			if *input.Satisfaction < 1 || *input.Satisfaction > 5 {
+				addIssue("invalid_satisfaction")
+			} else {
+				value := *input.Satisfaction
+				result.Satisfaction = &value
+				addObserved("satisfaction")
+			}
+		} else {
+			addMissing("satisfaction")
+		}
+		if input.Terrain == "" {
+			addMissing("terrain")
+		} else if !validFeedbackTerrain(input.Terrain) {
+			addIssue("invalid_terrain")
+		} else {
+			result.Terrain = input.Terrain
+			addObserved("terrain")
+		}
+		if input.ExternalConditions == "" {
+			addMissing("external_conditions")
+		} else if !validExternalConditions(input.ExternalConditions) {
+			addIssue("invalid_external_conditions")
+		} else {
+			result.ExternalConditions = input.ExternalConditions
+			addObserved("external_conditions")
 		}
 	}
 

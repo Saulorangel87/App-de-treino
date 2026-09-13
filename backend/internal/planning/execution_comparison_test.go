@@ -14,6 +14,7 @@ func TestAssessPlannedVsActualRecordsCoreDifferences(t *testing.T) {
 	heartRate := 148
 	recoveryAfter := 4
 	repeatConfidence := 5
+	satisfaction := 5
 	assessment := AssessPlannedVsActual(PlannedVsActualInput{
 		PlannedDurationMinutes: 60,
 		ActualDurationMinutes:  54,
@@ -25,6 +26,9 @@ func TestAssessPlannedVsActualRecordsCoreDifferences(t *testing.T) {
 		FatigueAfter:           3,
 		RecoveryAfter:          &recoveryAfter,
 		RepeatConfidence:       &repeatConfidence,
+		Satisfaction:           &satisfaction,
+		Terrain:                "rolling",
+		ExternalConditions:     "wind",
 		DistanceKM:             &distance,
 		ElevationGainM:         &elevation,
 		AveragePowerW:          &power,
@@ -46,11 +50,14 @@ func TestAssessPlannedVsActualRecordsCoreDifferences(t *testing.T) {
 	if !slices.Contains(assessment.ObservedFields, "average_power_watts") || !slices.Contains(assessment.NotEvaluated, "sleep") {
 		t.Fatalf("observed/not evaluated fields = %#v / %#v", assessment.ObservedFields, assessment.NotEvaluated)
 	}
-	if assessment.RecoveryAfter == nil || *assessment.RecoveryAfter != 4 || assessment.RepeatConfidence == nil || *assessment.RepeatConfidence != 5 {
-		t.Fatalf("post-workout context = recovery %v, confidence %v", assessment.RecoveryAfter, assessment.RepeatConfidence)
+	if assessment.RecoveryAfter == nil || *assessment.RecoveryAfter != 4 || assessment.RepeatConfidence == nil || *assessment.RepeatConfidence != 5 || assessment.Satisfaction == nil || *assessment.Satisfaction != 5 {
+		t.Fatalf("post-workout context = recovery %v, confidence %v, satisfaction %v", assessment.RecoveryAfter, assessment.RepeatConfidence, assessment.Satisfaction)
 	}
-	if !slices.Contains(assessment.ObservedFields, "recovery_after") || !slices.Contains(assessment.ObservedFields, "repeat_confidence") {
+	if !slices.Contains(assessment.ObservedFields, "recovery_after") || !slices.Contains(assessment.ObservedFields, "repeat_confidence") || !slices.Contains(assessment.ObservedFields, "satisfaction") || !slices.Contains(assessment.ObservedFields, "terrain") || !slices.Contains(assessment.ObservedFields, "external_conditions") {
 		t.Fatalf("post-workout context was not observed: %#v", assessment.ObservedFields)
+	}
+	if assessment.Version != "planned-vs-actual-v2" {
+		t.Fatalf("version = %q, want planned-vs-actual-v2", assessment.Version)
 	}
 	if assessment.ProgressionEligible || assessment.UsedForPrescription {
 		t.Fatal("comparison must remain non-prescriptive")
@@ -135,5 +142,30 @@ func TestAssessPlannedVsActualRejectsInvalidPostWorkoutContext(t *testing.T) {
 
 	if assessment.Status != "not_evaluated" || !slices.Contains(assessment.DataIssues, "invalid_recovery_after") {
 		t.Fatalf("invalid recovery context was not rejected: %+v", assessment)
+	}
+}
+
+func TestAssessPlannedVsActualRejectsInvalidStructuredContext(t *testing.T) {
+	satisfaction := 0
+	assessment := AssessPlannedVsActual(PlannedVsActualInput{
+		PlannedDurationMinutes: 45,
+		ActualDurationMinutes:  45,
+		TargetRPE:              5,
+		ActualRPE:              5,
+		FeedbackPresent:        true,
+		Difficulty:             "moderate",
+		FatigueAfter:           3,
+		Satisfaction:           &satisfaction,
+		Terrain:                "trail",
+		ExternalConditions:     "storm",
+	}, time.Now())
+
+	if assessment.Status != "not_evaluated" {
+		t.Fatalf("invalid structured context produced an observed comparison: %+v", assessment)
+	}
+	for _, issue := range []string{"invalid_satisfaction", "invalid_terrain", "invalid_external_conditions"} {
+		if !slices.Contains(assessment.DataIssues, issue) {
+			t.Fatalf("structured context issue %q was not reported: %+v", issue, assessment.DataIssues)
+		}
 	}
 }

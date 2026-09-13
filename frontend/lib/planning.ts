@@ -96,7 +96,7 @@ export type Workout = {
         used_for_prescription: false;
       };
       planned_vs_actual?: {
-        version: 'planned-vs-actual-v1';
+        version: 'planned-vs-actual-v2';
         mode: 'observation';
         scope: 'completed_workout';
         assessed_at: string;
@@ -117,6 +117,9 @@ export type Workout = {
         rpe_delta?: number;
       recovery_after?: number;
       repeat_confidence?: number;
+      satisfaction?: number;
+      terrain?: 'flat' | 'rolling' | 'hilly' | 'mixed' | 'technical' | 'indoor';
+      external_conditions?: 'normal' | 'heat' | 'cold' | 'wind' | 'rain' | 'poor_visibility' | 'other';
         observed_fields: string[];
         reasons: { code: string; message: string }[];
         missing_data: string[];

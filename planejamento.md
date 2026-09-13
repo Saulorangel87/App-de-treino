@@ -1550,3 +1550,9 @@ A versão local passou para `0.24.0` e a documentação de API foi atualizada. A
 A conclusão de uma sessão de ciclismo agora aceita satisfação de 1 a 5, terreno e condições externas em listas controladas. Os valores são opcionais no banco, aparecem no plano e no histórico e complementam as escalas já existentes de esforço, dificuldade, fadiga, recuperação e confiança para repetir. A migração `000023_feedback_context` é aditiva e preserva registros anteriores.
 
 Essa coleta permanece observacional: `post-workout-context-v2` registra a cobertura e a auditoria reconhece os campos presentes, mas `rules-v1` continua decidindo o plano. Não há progressão, redução ou seleção automática causada por esses novos sinais. A validação local confirmou o fluxo completo com satisfação `5/5`, terreno ondulado e vento, incluindo persistência em `/atividades`; a produção permanece em `0.20.0` até publicação própria.
+
+### Continuidade — consistência do contexto estruturado entre os gates — 13 de setembro de 2026
+
+A revisão da nova coleta encontrou uma lacuna de integração: satisfação, terreno e condições externas eram persistidos e auditados, mas o `data-integrity-v1` ainda não os verificava e o comparador `planned_vs_actual` não os carregava. A cadeia agora valida os mesmos valores controlados na integridade e registra a cobertura no `planned-vs-actual-v2`.
+
+Campos ausentes permanecem opcionais e são reportados como lacunas; valores inválidos tornam a leitura inconsistente sem apagar o feedback. A conclusão e a correção de métricas preservam o contexto durante a reavaliação. A mudança é somente observacional, sem migração, alteração visual, release, deploy ou autoridade adicional para o `rules-v2`; `rules-v1` continua prescritivo.

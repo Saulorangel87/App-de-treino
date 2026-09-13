@@ -873,7 +873,7 @@ components:
       description: Comparação observacional entre a sessão planejada e a execução concluída. Não interpreta tolerância fisiológica nem altera a próxima sessão.
       required: [version, mode, scope, assessed_at, status, planned_duration_minutes, actual_duration_minutes, completion_status, target_rpe, actual_rpe, observed_fields, reasons, missing_data, data_issues, not_evaluated, progression_eligible, used_for_prescription]
       properties:
-        version: { type: string, enum: [planned-vs-actual-v1] }
+        version: { type: string, enum: [planned-vs-actual-v2] }
         mode: { type: string, enum: [observation] }
         scope: { type: string, enum: [completed_workout] }
         assessed_at: { type: string, format: date-time }
@@ -889,6 +889,9 @@ components:
         rpe_delta: { type: number }
         recovery_after: { type: integer, minimum: 1, maximum: 5 }
         repeat_confidence: { type: integer, minimum: 1, maximum: 5 }
+        satisfaction: { type: integer, minimum: 1, maximum: 5 }
+        terrain: { type: string, enum: [flat, rolling, hilly, mixed, technical, indoor] }
+        external_conditions: { type: string, enum: [normal, heat, cold, wind, rain, poor_visibility, other] }
         observed_fields: { type: array, items: { type: string } }
         reasons:
           type: array

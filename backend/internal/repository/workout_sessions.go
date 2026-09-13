@@ -169,20 +169,23 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 	fatigueAfter := input.FatigueAfter
 	integrityAssessedAt := time.Now()
 	integrity := planning.AssessWorkoutDataIntegrity(planning.WorkoutDataIntegrityInput{
-		DurationMinutes:  &durationMinutes,
-		ActualRPE:        &actualRPE,
-		DistanceKM:       input.DistanceKM,
-		ElevationGainM:   input.ElevationGainM,
-		AveragePowerW:    input.AveragePowerW,
-		AverageHeartRate: input.AverageHeartRate,
-		FeedbackPresent:  true,
-		CompletionStatus: input.CompletionStatus,
-		PartialReason:    input.PartialReason,
-		Difficulty:       input.Difficulty,
-		PainReported:     input.PainReported,
-		FatigueAfter:     &fatigueAfter,
-		RecoveryAfter:    input.RecoveryAfter,
-		RepeatConfidence: input.RepeatConfidence,
+		DurationMinutes:    &durationMinutes,
+		ActualRPE:          &actualRPE,
+		DistanceKM:         input.DistanceKM,
+		ElevationGainM:     input.ElevationGainM,
+		AveragePowerW:      input.AveragePowerW,
+		AverageHeartRate:   input.AverageHeartRate,
+		FeedbackPresent:    true,
+		CompletionStatus:   input.CompletionStatus,
+		PartialReason:      input.PartialReason,
+		Difficulty:         input.Difficulty,
+		PainReported:       input.PainReported,
+		FatigueAfter:       &fatigueAfter,
+		RecoveryAfter:      input.RecoveryAfter,
+		RepeatConfidence:   input.RepeatConfidence,
+		Satisfaction:       input.Satisfaction,
+		Terrain:            input.Terrain,
+		ExternalConditions: input.ExternalConditions,
 	}, integrityAssessedAt)
 	if _, err := tx.Exec(ctx, `
 		INSERT INTO feedback (workout_session_id, completion_status, partial_reason, difficulty, pain_reported, fatigue_after, recovery_after, repeat_confidence, satisfaction, terrain, external_conditions, notes)
@@ -209,6 +212,9 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 		FatigueAfter:           input.FatigueAfter,
 		RecoveryAfter:          input.RecoveryAfter,
 		RepeatConfidence:       input.RepeatConfidence,
+		Satisfaction:           input.Satisfaction,
+		Terrain:                input.Terrain,
+		ExternalConditions:     input.ExternalConditions,
 		DistanceKM:             input.DistanceKM,
 		ElevationGainM:         input.ElevationGainM,
 		AveragePowerW:          input.AveragePowerW,
@@ -297,15 +303,15 @@ func (s *Store) CorrectWorkoutDataByUserID(ctx context.Context, userID, workoutI
 		return err
 	}
 
-	var completionStatus, partialReason, difficulty *string
+	var completionStatus, partialReason, difficulty, terrain, externalConditions *string
 	var painReported *bool
-	var fatigueAfter, recoveryAfter, repeatConfidence *int
+	var fatigueAfter, recoveryAfter, repeatConfidence, satisfaction *int
 	err = tx.QueryRow(ctx, `
 		SELECT completion_status, partial_reason, difficulty, pain_reported, fatigue_after,
-			recovery_after, repeat_confidence
+			recovery_after, repeat_confidence, satisfaction, terrain, external_conditions
 		FROM feedback WHERE workout_session_id = $1`, sessionID).Scan(
 		&completionStatus, &partialReason, &difficulty, &painReported, &fatigueAfter,
-		&recoveryAfter, &repeatConfidence,
+		&recoveryAfter, &repeatConfidence, &satisfaction, &terrain, &externalConditions,
 	)
 	feedbackPresent := err == nil
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -361,21 +367,31 @@ func (s *Store) CorrectWorkoutDataByUserID(ctx context.Context, userID, workoutI
 	if painReported != nil {
 		painValue = *painReported
 	}
+	terrainValue, externalConditionsValue := "", ""
+	if terrain != nil {
+		terrainValue = *terrain
+	}
+	if externalConditions != nil {
+		externalConditionsValue = *externalConditions
+	}
 	integrity := planning.AssessWorkoutDataIntegrity(planning.WorkoutDataIntegrityInput{
-		DurationMinutes:  durationMinutes,
-		ActualRPE:        actualRPE,
-		DistanceKM:       input.DistanceKM,
-		ElevationGainM:   input.ElevationGainM,
-		AveragePowerW:    input.AveragePowerW,
-		AverageHeartRate: input.AverageHeartRate,
-		FeedbackPresent:  feedbackPresent,
-		CompletionStatus: completionValue,
-		PartialReason:    partialReasonValue,
-		Difficulty:       difficultyValue,
-		PainReported:     painValue,
-		FatigueAfter:     fatigueAfter,
-		RecoveryAfter:    recoveryAfter,
-		RepeatConfidence: repeatConfidence,
+		DurationMinutes:    durationMinutes,
+		ActualRPE:          actualRPE,
+		DistanceKM:         input.DistanceKM,
+		ElevationGainM:     input.ElevationGainM,
+		AveragePowerW:      input.AveragePowerW,
+		AverageHeartRate:   input.AverageHeartRate,
+		FeedbackPresent:    feedbackPresent,
+		CompletionStatus:   completionValue,
+		PartialReason:      partialReasonValue,
+		Difficulty:         difficultyValue,
+		PainReported:       painValue,
+		FatigueAfter:       fatigueAfter,
+		RecoveryAfter:      recoveryAfter,
+		RepeatConfidence:   repeatConfidence,
+		Satisfaction:       satisfaction,
+		Terrain:            terrainValue,
+		ExternalConditions: externalConditionsValue,
 	}, correctedAt)
 
 	if _, err := tx.Exec(ctx, `

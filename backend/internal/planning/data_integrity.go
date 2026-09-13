@@ -14,20 +14,23 @@ const (
 // WorkoutDataIntegrityInput is the completed session and feedback as stored by
 // the repository. Pointers distinguish an absent value from a valid zero.
 type WorkoutDataIntegrityInput struct {
-	DurationMinutes  *int
-	ActualRPE        *float64
-	DistanceKM       *float64
-	ElevationGainM   *int
-	AveragePowerW    *int
-	AverageHeartRate *int
-	FeedbackPresent  bool
-	CompletionStatus string
-	PartialReason    string
-	Difficulty       string
-	PainReported     bool
-	FatigueAfter     *int
-	RecoveryAfter    *int
-	RepeatConfidence *int
+	DurationMinutes    *int
+	ActualRPE          *float64
+	DistanceKM         *float64
+	ElevationGainM     *int
+	AveragePowerW      *int
+	AverageHeartRate   *int
+	FeedbackPresent    bool
+	CompletionStatus   string
+	PartialReason      string
+	Difficulty         string
+	PainReported       bool
+	FatigueAfter       *int
+	RecoveryAfter      *int
+	RepeatConfidence   *int
+	Satisfaction       *int
+	Terrain            string
+	ExternalConditions string
 }
 
 // WorkoutDataIntegrityAssessment records whether a completed session has the
@@ -63,6 +66,7 @@ func AssessWorkoutDataIntegrity(input WorkoutDataIntegrityInput, now time.Time) 
 			"required_session_data_gate",
 			"required_feedback_gate",
 			"completion_context_gate",
+			"feedback_context_gate",
 			"metric_range_gate",
 			"measurement_consistency_gate",
 			"history_eligibility_gate",
@@ -133,6 +137,15 @@ func AssessWorkoutDataIntegrity(input WorkoutDataIntegrityInput, now time.Time) 
 		}
 		if input.RepeatConfidence != nil && (*input.RepeatConfidence < 1 || *input.RepeatConfidence > 5) {
 			addIssue("invalid_repeat_confidence")
+		}
+		if input.Satisfaction != nil && (*input.Satisfaction < 1 || *input.Satisfaction > 5) {
+			addIssue("invalid_satisfaction")
+		}
+		if input.Terrain != "" && !validFeedbackTerrain(input.Terrain) {
+			addIssue("invalid_terrain")
+		}
+		if input.ExternalConditions != "" && !validExternalConditions(input.ExternalConditions) {
+			addIssue("invalid_external_conditions")
 		}
 	}
 

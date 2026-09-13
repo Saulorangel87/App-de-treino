@@ -682,3 +682,9 @@ O formulário de conclusão de um pedal agora permite registrar, de forma opcion
 Os três sinais também aparecem no `post-workout-context-v2` e no `decision_audit.data_used` somente como observação. Eles não alteram o `rules-v1`, não liberam progressão e não entram como autorização de carga; a prescrição continua isolada até haver calibração e evidência longitudinal suficientes. A documentação OpenAPI e a nota `0.25.0` foram atualizadas.
 
 A validação local passou com `go test -count=1 ./...` usando cache local do Go, `go vet ./...`, `npm run build`, o teste SQL transacional da migração e `git diff --check`. No navegador, o formulário exibiu os três controles, uma sessão foi concluída com satisfação `5/5`, terreno ondulado e vento, o plano mostrou os dados e `/atividades` confirmou a persistência. A consulta PostgreSQL confirmou `post-workout-context-v2`, estado `observed` e os três campos em `decision_audit.data_used`. Não houve deploy; a produção permanece em `0.20.0` e `000021`.
+
+### Continuidade — consistência do contexto estruturado no shadow — versão local `planned-vs-actual-v2`
+
+A revisão após a `0.25.0` encontrou uma diferença de cobertura: satisfação, terreno e condições externas já eram armazenados, exibidos e considerados pelo `post-workout-context-v2` e pela auditoria, mas não eram validados pelo gate de integridade nem propagados para `planned_vs_actual`. A cadeia observacional agora usa os mesmos valores e as mesmas listas controladas nos três pontos.
+
+Campos opcionais ausentes ficam explícitos em `missing_data`; valores inválidos tornam a comparação e a integridade `not_evaluated`/`inconsistent`, conforme o componente, sem apagar o feedback. A conclusão e a correção de métricas preservam esse contexto durante a reavaliação. Não houve migração, mudança visual, atualização de release, deploy ou alteração do `rules-v1`; os campos de autoridade continuam falsos.
