@@ -25,6 +25,8 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 		JOIN workouts source_workout ON source_workout.id = ws.workout_id
 		LEFT JOIN feedback f ON f.workout_session_id = ws.id
 		WHERE ap.user_id = $1
+		  AND NOT (ws.status = 'completed' AND ws.completed_at > now())
+		  AND NOT (ws.status = 'cancelled' AND ws.cancelled_at > now())
 		  AND (
 			  source_workout.explanation->'data_integrity' IS NULL
 			  OR source_workout.explanation->'data_integrity'->>'eligible_for_history' = 'true'
@@ -50,8 +52,12 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 			SELECT ws.*
 			FROM workout_sessions ws
 			JOIN workouts source_workout ON source_workout.id = ws.workout_id
-			WHERE source_workout.explanation->'data_integrity' IS NULL
-			   OR source_workout.explanation->'data_integrity'->>'eligible_for_history' = 'true'
+			WHERE (
+				source_workout.explanation->'data_integrity' IS NULL
+				OR source_workout.explanation->'data_integrity'->>'eligible_for_history' = 'true'
+			)
+			  AND NOT (ws.status = 'completed' AND ws.completed_at > now())
+			  AND NOT (ws.status = 'cancelled' AND ws.cancelled_at > now())
 		)
 		SELECT w.week_start::text,
 			COUNT(ws.id) FILTER (WHERE ws.status = 'completed'),
@@ -99,6 +105,7 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 		JOIN workouts w ON w.id = ws.workout_id
 		LEFT JOIN feedback f ON f.workout_session_id = ws.id
 		WHERE ap.user_id = $1 AND ws.status = 'completed'
+		  AND ws.completed_at <= now()
 		  AND (
 			  w.explanation->'data_integrity' IS NULL
 			  OR w.explanation->'data_integrity'->>'eligible_for_history' = 'true'
@@ -153,6 +160,7 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 		FROM recovery_data rd
 		JOIN athlete_profiles ap ON ap.id = rd.athlete_profile_id
 		WHERE ap.user_id = $1
+		  AND rd.recorded_on <= CURRENT_DATE
 		ORDER BY rd.recorded_on DESC
 		LIMIT 14`, userID)
 	if err != nil {

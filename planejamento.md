@@ -1386,3 +1386,13 @@ O resumo agora usa a mesma referência temporal das demais consultas. Uma sessã
 O teste `scripts/test-readiness-queries.ps1` foi alinhado à consulta atual e passou em transação PostgreSQL somente leitura com cenários de sessão inelegível, futura, fora da janela, cancelada e conta sem registros. `go test -count=1 ./...`, `go vet ./...` e `git diff --check` também passaram. Não houve migração, alteração visual, atualização de release, deploy ou mudança de infraestrutura.
 
 Esta correção é somente local e aguarda o commit do proprietário. Próxima etapa: revisar os agregados observacionais restantes com a mesma consistência temporal antes de propor qualquer ampliação prescritiva do `rules-v2`.
+
+### Continuidade — consistência temporal da tela de Evolução — 13 de setembro de 2026
+
+A revisão dos agregados restantes encontrou a mesma classe de risco na tela de Evolução: o resumo total, a série semanal, as sessões recentes e os check-ins não tinham uma barreira uniforme contra eventos futuros. Uma correção de relógio ou dado inconsistente poderia aparecer como atividade já realizada.
+
+As quatro consultas agora aceitam somente sessões concluídas com `completed_at <= now()`, sessões canceladas com `cancelled_at <= now()` e check-ins com `recorded_on <= CURRENT_DATE`. A exclusão de sessões explicitamente inelegíveis por `data-integrity-v1` e o isolamento por atleta permanecem preservados. Nenhum registro é apagado e a Evolução continua somente observacional.
+
+O novo teste `scripts/test-evolution-queries.ps1` executa as consultas reais com CTEs sintéticas em transação somente leitura. Ele confirmou o resumo total, a semana atual, as sessões recentes e os pontos de recuperação sem sessões/check-ins futuros ou dados de outro atleta. Não houve migração, alteração visual, atualização de release, deploy ou mudança de infraestrutura.
+
+Esta fatia está validada localmente e aguarda o commit do proprietário. Próxima etapa: revisar os demais agregados observacionais e, só depois, continuar a avaliação shadow de adaptação/carga sem transferir autoridade ao `rules-v2`.

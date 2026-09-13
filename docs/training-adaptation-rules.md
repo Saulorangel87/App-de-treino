@@ -216,6 +216,8 @@ As consultas que montam o resumo observado, as janelas de histórico, os seis pe
 
 O resumo observado de 28 dias também usa o intervalo fechado entre `now() - interval '28 days'` e `now()`. Assim, uma sessão com `completed_at` futuro não influencia minutos, médias, dor, fadiga ou cobertura do contexto de prontidão. A mesma referência temporal já é usada nas janelas cumulativas e nos períodos não sobrepostos; o filtro não apaga nem reclassifica o registro original.
 
+Os agregados da tela de Evolução seguem a mesma proteção: sessões concluídas ou canceladas no futuro não entram no resumo total, na semana, nas sessões recentes ou nos pontos de recuperação. O filtro temporal também impede que um check-in com `recorded_on` futuro seja apresentado como observação atual. Esses filtros não removem registros e não transformam a Evolução em fonte prescritiva.
+
 Esta fatia não altera o trigger `feedback_adapts_future_workouts` nem a prescrição `rules-v1`. Portanto, a barreira ativa contra progressão de registros inconsistentes continua sendo uma decisão posterior, depois de validar a observação e sua integração com o histórico.
 
 ### Observação de tolerância à carga (`load-tolerance-v1`)

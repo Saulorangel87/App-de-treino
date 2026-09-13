@@ -198,6 +198,14 @@ O resumo observado de 28 dias usado na construção do contexto de prontidão de
 
 Essa consulta passa a seguir a mesma referência temporal já usada nas janelas cumulativas, nos seis períodos não sobrepostos e na qualidade temporal do histórico. O filtro não altera a aderência planejada, não apaga registros e não reclassifica sessões; apenas mantém a observação coerente. `rules-v1` continua como autoridade prescritiva, sem ativação de regra nova, migração ou mudança visual.
 
+## ADR-017 — Limite temporal dos agregados de Evolução
+
+**Status:** Implementada localmente; ainda não publicada.
+
+Os agregados observacionais da Evolução devem ignorar eventos futuros: sessões concluídas usam `completed_at <= now()`, sessões canceladas usam `cancelled_at <= now()` e check-ins usam `recorded_on <= CURRENT_DATE`. A barreira é aplicada ao resumo total, à série semanal, às sessões recentes e aos pontos de recuperação.
+
+Isso evita que correções de relógio, fixtures ou inconsistências operacionais apresentem atividade futura como histórico já realizado. A separação de atleta e a exclusão por `eligible_for_history: false` permanecem ativas. A decisão não apaga dados, não altera a aderência planejada e não autoriza qualquer prescrição nova; `rules-v1` continua como único motor ativo.
+
 ## Estado de produção
 
 Em 3 de setembro de 2026, o commit `57c241a` foi implantado na VPS Oracle. A imagem da API, do job de digest e do frontend foi reconstruída com Go 1.25; as migrações `000013` e `000014` foram aplicadas após backup preventivo. O serviço Ollama permanece isolado e parado após a medição de capacidade, e a API usa temporariamente o Worker remoto com `AI_ENABLED=true` e `AI_PROVIDER=worker`.

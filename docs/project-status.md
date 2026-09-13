@@ -52,6 +52,13 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - A regressão SQL sintética cobre sessão elegível, sessão inelegível, sessão futura, sessão fora da janela, sessão cancelada e conta sem registros. A validação passou em transação somente leitura; `go test -count=1 ./...`, `go vet ./...` e `git diff --check` também passaram.
 - Esta é uma correção somente de backend e teste: não muda interface, `rules-v1`, migração, release, infraestrutura ou produção. O próximo passo é revisar os agregados observacionais restantes com a mesma referência temporal, sem transferir autoridade ao `rules-v2`.
 
+### Consistência temporal da tela de Evolução — versão local (validado; sem publicação)
+
+- Os agregados da Evolução agora descartam sessões concluídas ou canceladas no futuro do relógio do banco, preservando somente eventos já ocorridos.
+- O resumo total, o agrupamento semanal, a lista de sessões recentes e os check-ins exibidos na Evolução usam a mesma barreira temporal. O filtro de integridade continua aplicado às sessões realizadas e a conta de outro atleta permanece isolada.
+- `scripts/test-evolution-queries.ps1` executa as quatro consultas reais com CTEs sintéticas em transação somente leitura e confirmou a exclusão de sessões futuras, cancelamento futuro, check-in futuro e dados de outro atleta.
+- Esta fatia é somente de backend e testes: não altera interface, `rules-v1`, migração, release, infraestrutura ou produção. O próximo passo é revisar os demais agregados observacionais e manter qualquer evolução prescritiva no shadow até haver evidência suficiente.
+
 ### Décima quarta fatia de melhorias — taper pré-prova orientado por evento (local)
 
 - O plano local passa a registrar `prescription_snapshot.event_taper` com `taper-v1`. A redução só é prescritiva para evento futuro entre 7 e 21 dias, atleta avançado, avaliação submáxima apta, pelo menos 8 semanas e 3 pedais semanais, sem limitação, dor ou necessidade recente de recuperação.
@@ -490,10 +497,11 @@ Nesta primeira etapa, os relatos continuam centralizados no banco e não geram u
 1. Observar os pilotos publicados — taper, VO₂max de estrada e intervalos curtos — dentro dos gates documentados, sem transformar um caso isolado em autorização de carga.
 2. Acompanhar o primeiro resumo semanal do Resend e os relatos reais, sem repetir como bloqueio os testes já concluídos de latência, limites e fallback do Worker.
 3. ~~Validar via API local o bloco `adaptation_shadow.load_tolerance` após concluir uma sessão, confirmando os estados observacionais e as barreiras de não aplicação.~~ Concluído localmente e registrado no commit `36cfabb`.
-4. ~~Alinhar o resumo observado de prontidão ao limite temporal das demais consultas.~~ Concluído localmente nesta fatia; falta apenas o commit do proprietário.
-5. Retomar a evolução em shadow de adaptação, carga/progressão e integridade dos dados, preservando `rules-v1` até que a nova versão esteja testada, comparável e auditável.
-6. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
-7. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
+4. ~~Alinhar o resumo observado de prontidão ao limite temporal das demais consultas.~~ Concluído e registrado no commit `96390aa`.
+5. ~~Alinhar os agregados observacionais da tela de Evolução ao relógio atual.~~ Concluído localmente nesta fatia; falta apenas o commit do proprietário.
+6. Retomar a evolução em shadow de adaptação, carga/progressão e integridade dos dados, preservando `rules-v1` até que a nova versão esteja testada, comparável e auditável.
+7. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
+8. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
 
 O feedback real e o primeiro envio automático do Resend seguem em paralelo, sem bloquear as melhorias. Os testes manuais de e-mail e de latência/limites/fallback já foram realizados e não precisam ser repetidos como condição para avançar. O catálogo ampliado foi publicado em `0.16.0`; a operação deve observar taper, VO₂max de estrada e intervalos curtos somente dentro dos critérios de elegibilidade documentados.
 
