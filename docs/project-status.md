@@ -641,6 +641,12 @@ O cliente HTTP agora preserva o status da resposta em `ApiError` e traduz falhas
 
 A mudança é somente frontend, não altera autenticação, banco, prescrição ou produção. A nota `0.22.0` foi adicionada à tela de novidades. `npm run build` e `git diff --check` passaram; o lint direcionado continua apontando regras antigas já existentes no `api.ts` e em páginas do frontend. A validação manual confirmou a permanência da rota com a API desligada e o redirecionamento quando a sessão realmente expira. O commit `77e57ec` foi registrado e está no remoto; produção permanece em `0.20.0` até publicação própria.
 
+### Continuidade — integridade do registro pós-treino mais clara — versão local `0.23.0`
+
+O gate `data-integrity-v1` agora identifica também uma combinação operacionalmente incompatível entre distância e duração, sem transformar o corte em limite fisiológico ou prescrição de velocidade. O registro original continua salvo, mas permanece fora da observação histórica quando há inconsistência.
+
+Após concluir um treino, a tela passa a informar quando o registro foi preservado para revisão e não será usado no histórico observado. A nota `0.23.0` foi adicionada à tela de novidades. A mudança não altera autenticação, banco, catálogo, `rules-v1` ou infraestrutura. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` ainda precisam ser executados nesta fatia; a validação manual do aviso é obrigatória antes do commit.
+
 ## Como iniciar localmente
 
 1. Inicie o Docker Desktop.

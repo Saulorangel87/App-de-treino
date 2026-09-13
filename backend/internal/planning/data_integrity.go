@@ -6,6 +6,9 @@ const (
 	workoutDataIntegrityVersion = "data-integrity-v1"
 	workoutDataIntegrityMode    = "observation"
 	workoutDataIntegrityScope   = "completed_workout"
+	// This is an operational guard for obviously incompatible manual entries,
+	// not a physiological performance ceiling or a cycling speed prescription.
+	maxObservedAverageSpeedKMH = 120.0
 )
 
 // WorkoutDataIntegrityInput is the completed session and feedback as stored by
@@ -159,6 +162,13 @@ func AssessWorkoutDataIntegrity(input WorkoutDataIntegrityInput, now time.Time) 
 			addIssue("elevation_without_duration")
 		} else {
 			addIssue("duration_zero_with_elevation")
+		}
+	}
+	if input.DurationMinutes != nil && *input.DurationMinutes > 0 && input.DistanceKM != nil &&
+		finiteInRange(*input.DistanceKM, 0, 2000) && *input.DistanceKM > 0 {
+		averageSpeedKMH := *input.DistanceKM / float64(*input.DurationMinutes) * 60
+		if averageSpeedKMH > maxObservedAverageSpeedKMH {
+			addIssue("distance_duration_incompatible")
 		}
 	}
 

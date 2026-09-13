@@ -1476,10 +1476,24 @@ button {
   line-height: 1.45;
 }
 .pain-warning svg,
-.session-error svg {
+.session-error svg,
+.session-data-warning svg {
   width: 14px;
   flex: 0 0 auto;
 }
+.session-data-warning {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  padding: 10px;
+  border: 1px solid #efc8bc;
+  border-radius: 9px;
+  background: #fff5f1;
+  color: #974a37;
+}
+.session-data-warning > svg { width: 16px; flex: 0 0 auto; }
+.session-data-warning strong { display: block; font-size: 10px; }
+.session-data-warning p { margin: 3px 0 0; font-size: 9px; line-height: 1.45; }
 .session-result {
   display: flex;
   gap: 9px;
@@ -1593,6 +1607,12 @@ button {
 .workout-detail .session-result p {
   color: #b5c8c0;
 }
+.workout-detail .session-data-warning {
+  border-color: rgba(255, 207, 190, 0.28);
+  background: rgba(171, 70, 43, 0.18);
+  color: #ffd2c4;
+}
+.workout-detail .session-data-warning p { color: #e8b9ad; }
 .checkin-question {
   padding: 13px 0;
   border-top: 1px solid #e0e7df;

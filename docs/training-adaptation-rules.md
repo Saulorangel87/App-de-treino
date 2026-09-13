@@ -347,6 +347,10 @@ Esses detalhes permanecem separados da prescrição. O contexto usado na geraç�
 
 A migração `000022_limitation_context` preserva registros anteriores usando valores vazios/nulos compatíveis. A versão local `0.21.0` comunica a mudança pela tela de novidades; a fatia foi validada no navegador e registrada no commit `9514a00`. Produção permanece em `0.20.0` até backup, aplicação ordenada da migração e autorização de publicação.
 
+### Integridade operacional entre distância e duração
+
+Além das faixas individuais, o `data-integrity-v1` marca como `distance_duration_incompatible` uma distância positiva cuja velocidade média calculada a partir da duração excede `120 km/h`. Esse valor é um corte operacional para identificar combinações evidentemente incompatíveis em um registro manual, não é limite fisiológico, zona de treino ou regra de prescrição. O registro é preservado, mas fica inelegível para a observação histórica; `rules-v1` e os shadows não recebem autoridade adicional.
+
 ### Estado operacional para a próxima revisão
 
 O histórico observado, o fluxo de feedback, o check-in de recuperação e o fallback da IA explicativa já estão disponíveis em produção. Os fluxos funcionais e a latência, os limites e o fallback do Worker já foram testados. Relatos reais e o primeiro resumo semanal do Resend serão avaliados quando disponíveis, em paralelo às melhorias; não são pré-requisitos para desenvolver e testar a evolução do motor. Alterações de prescrição continuam exigindo critérios próprios, testes e revisão dos limites.

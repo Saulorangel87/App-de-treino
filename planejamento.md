@@ -1530,3 +1530,9 @@ Esses dados melhoram o contexto de segurança e a auditabilidade, mas não são 
 Após a correção do carregamento do perfil, a mesma separação foi estendida ao painel, plano, atividades, avaliação, recuperação, evolução, feedback e novidades. O cliente HTTP preserva o status HTTP e traduz falhas de conexão; somente `401 Unauthorized` redireciona para a entrada. Erros de API, banco ou rede permanecem na rota solicitada com orientação e opção de tentar novamente.
 
 A mudança é somente frontend e não altera autenticação, banco, regras de prescrição, catálogo ou infraestrutura. A versão local continua em `0.22.0`, com a nota registrada na tela de novidades. `npm run build` e `git diff --check` passaram; o lint direcionado mantém pendências antigas. A validação manual confirmou a permanência da rota com a API desligada e o redirecionamento quando a sessão expira. A implementação foi registrada no commit `77e57ec`; produção permanece em `0.20.0`.
+
+### Continuidade — integridade explícita do registro pós-treino — 13 de setembro de 2026
+
+A próxima fatia amplia o `data-integrity-v1` com um guard operacional para distância incompatível com a duração observada. O objetivo é detectar entradas evidentemente incoerentes sem rejeitar nem apagar o registro, e sem interpretar a velocidade média como limite fisiológico. Registros inconsistentes continuam fora da observação histórica e não podem influenciar adaptação ou prescrição.
+
+A tela de acompanhamento passa a avisar o atleta quando o treino foi salvo para revisão por dados incompletos ou incompatíveis. A versão local passa para `0.23.0` e a novidade foi adicionada à tela de atualizações. A mudança não altera o `rules-v1`, o catálogo, o banco ou a infraestrutura. Falta executar a suíte completa, validar o aviso no navegador com um cenário incoerente e então oferecer o commit; produção permanece em `0.20.0`.

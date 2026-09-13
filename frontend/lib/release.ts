@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.22.0';
+export const APP_VERSION = '0.23.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.23.0',
+    title: 'Registros inconsistentes mais claros',
+    description:
+      'Quando o tempo e as métricas do pedal não combinam, o registro continua preservado, mas o app avisa que ele não será usado na observação do histórico.',
+  },
   {
     version: '0.22.0',
     title: 'Erros de acesso mais claros',

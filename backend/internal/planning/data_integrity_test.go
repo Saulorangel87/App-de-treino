@@ -77,6 +77,20 @@ func TestAssessWorkoutDataIntegrityRejectsDistanceWithoutElapsedTime(t *testing.
 	}
 }
 
+func TestAssessWorkoutDataIntegrityRejectsIncompatibleDistanceAndDuration(t *testing.T) {
+	input := validWorkoutDataIntegrityInput()
+	shortDuration := 3
+	input.DurationMinutes = &shortDuration
+	assessment := AssessWorkoutDataIntegrity(input, time.Unix(0, 0))
+
+	if assessment.Status != "inconsistent" || assessment.EligibleForHistory {
+		t.Fatalf("incompatible distance and duration were not rejected: %+v", assessment)
+	}
+	if !slices.Contains(assessment.DataIssues, "distance_duration_incompatible") {
+		t.Fatalf("incompatible distance and duration were not reported: %+v", assessment.DataIssues)
+	}
+}
+
 func TestAssessWorkoutDataIntegritySeparatesMissingFeedbackFromInvalidMetrics(t *testing.T) {
 	input := validWorkoutDataIntegrityInput()
 	input.FeedbackPresent = false

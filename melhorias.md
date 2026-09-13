@@ -605,4 +605,10 @@ O cliente HTTP passou a expor o status das respostas e as telas autenticadas dei
 
 A nota foi adicionada em `UPDATE_NOTES`. O build do frontend e `git diff --check` passaram. A validação manual confirmou que uma rota autenticada permanece acessível com a API temporariamente indisponível e que uma sessão realmente expirada continua redirecionando para a entrada. A fatia foi registrada no commit `77e57ec`; produção permanece fora desta etapa.
 
+### Continuidade — integridade do registro pós-treino mais clara — versão local `0.23.0`
+
+O gate de integridade agora identifica combinações obviamente incompatíveis entre distância e duração, como uma distância muito alta em poucos minutos. Esse corte é somente operacional para detectar erro de registro; não é limite fisiológico, zona de treino ou prescrição de velocidade. O treino original continua preservado, mas a observação histórica não usa o registro inconsistente.
+
+Após a conclusão, a interface informa que o registro foi salvo para revisão quando faltam dados mínimos ou existem dados incompatíveis. A nota foi adicionada em `UPDATE_NOTES`. Foram incluídos teste automatizado para distância/duração e `ApiErrorState` permanece separado da lógica do motor. Falta executar a suíte completa e validar manualmente um cenário incoerente antes do commit.
+
 Enquanto essas pendências existirem, não declarar o roadmap encerrado nem substituir o `rules-v1`. A ativação prescritiva exige uma revisão separada e autorização explícita.

@@ -469,6 +469,20 @@ export function WorkoutSessionActions({
         </div>
       )}
 
+      {workout.status === 'completed' && workout.explanation.data_integrity && workout.explanation.data_integrity.status !== 'valid' && (
+        <div className="session-data-warning" role="status">
+          <TriangleAlert />
+          <div>
+            <strong>Registro salvo para revisão</strong>
+            <p>
+              {workout.explanation.data_integrity.status === 'inconsistent'
+                ? 'Há dados incompatíveis no registro. Ele foi preservado, mas não entra na observação do histórico.'
+                : 'Faltam dados mínimos no registro. Ele foi preservado, mas não entra na observação do histórico.'}
+            </p>
+          </div>
+        </div>
+      )}
+
       {workout.status === 'skipped' && (
         <p className="session-guidance">
           Esta sessão não foi realizada e ficou registrada no histórico.
