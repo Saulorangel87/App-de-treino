@@ -20,7 +20,7 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - Código na VPS: `/home/ubuntu/apps/cadencia`.
 - Commit implantado: `84b653b test(shadow): fecha matriz de nao autoridade`; API e frontend foram reconstruídos, as migrações `000020` e `000021` foram aplicadas e PostgreSQL e túnel permaneceram ativos.
 - O backup preventivo `cadencia-20260913T161932Z.dump` foi criado e verificado antes da aplicação das migrações. `/health` e `/ready` internos, os quatro serviços e os dois domínios públicos retornaram estado saudável após o deploy.
-- A versão do produto publicada é `0.20.0`; a release correspondente ainda será registrada no GitHub após o commit documental deste deploy.
+- A versão do produto publicada é `0.20.0`, registrada na release [v0.20.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.20.0).
 - O Cloudflare Tunnel dedicado expõe somente frontend e API; o PostgreSQL não possui hostname, rota pública ou porta publicada.
 
 ## Estado do checkout local

@@ -84,16 +84,16 @@ O MVP de ciclismo está publicado em produção real:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Produção implantada na VPS Oracle no commit `6fdbe45`; as migrações `000017`–`000019` estão aplicadas e a versão do produto é `0.16.0`. A release correspondente é [v0.16.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.16.0).
+- Produção implantada na VPS Oracle no commit `84b653b`; as migrações `000017`–`000021` estão aplicadas e a versão do produto é `0.20.0`. A release correspondente é [v0.20.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.20.0).
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, confirmação de e-mail, recuperação de senha, onboarding, plano, treino, feedback, adaptação, atividades, evolução e logout foram validados.
 - Dependabot está com 0 alertas abertos; os testes Go, `go vet`, build Docker e a auditoria de dependências de produção passaram. `govulncheck` não está instalado no ambiente desta rodada.
-- A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`–`000019` foram aplicadas na produção.
+- A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`–`000021` foram aplicadas na produção.
 - O ajuste responsivo dos períodos nos gráficos da Evolução foi publicado e validado no domínio oficial; a rolagem horizontal interna agora preserva os rótulos no celular.
 - A produção está no commit `84b653b` e na versão `0.20.0`, com correções de segurança, catálogo ampliado, contexto de conclusão/feedback pós-treino e auditoria técnica observacional publicados conforme os critérios documentados. O deploy foi validado com API pronta, túnel ativo e HTTP 200 nos dois domínios.
 - Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts` (`APP_VERSION` e `UPDATE_NOTES`) para que a novidade seja exibida na tela de primeiro acesso após a atualização. O modal é mostrado uma vez por conta, versão e navegador.
 
-O checkout local e a produção agora contêm os pilotos `taper-v1`, `road_vo2_intervals` e `short_self_regulated_intervals`, selecionados somente quando os gates de elegibilidade e segurança são atendidos. A versão publicada está em `0.16.0`; a exclusão de sprint/pista/BMX e downhill/enduro também está registrada. A publicação e a release correspondente [v0.16.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.16.0) foram validadas.
+O checkout local e a produção agora contêm os pilotos `taper-v1`, `road_vo2_intervals` e `short_self_regulated_intervals`, selecionados somente quando os gates de elegibilidade e segurança são atendidos. A versão publicada está em `0.20.0`; a exclusão de sprint/pista/BMX e downhill/enduro também está registrada. A publicação e a release correspondente [v0.20.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.20.0) foram validadas.
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.
 

@@ -25,7 +25,7 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 
 ## Estado documentado neste ciclo
 
-A produção oficial registrada está no commit `84b653b`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; as migrações até `000021`, o catálogo, os pilotos e as correções técnicas foram publicados após backup, validação e autorização explícita. A versão comunicada ao usuário é `0.20.0`; a release correspondente ainda será registrada no GitHub. O deploy foi validado com API pronta, túnel ativo e HTTP 200 nos dois domínios. O estado e as lacunas de validação estão em [`project-status.md`](project-status.md).
+A produção oficial registrada está no commit `84b653b`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; as migrações até `000021`, o catálogo, os pilotos e as correções técnicas foram publicados após backup, validação e autorização explícita. A versão comunicada ao usuário é `0.20.0`, registrada na release [v0.20.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.20.0). O deploy foi validado com API pronta, túnel ativo e HTTP 200 nos dois domínios. O estado e as lacunas de validação estão em [`project-status.md`](project-status.md).
 
 ## Organização avaliada
 
