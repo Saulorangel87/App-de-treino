@@ -49,6 +49,10 @@ button {
   padding: 24px 18px 0;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(174, 194, 184, 0.45) transparent;
   background: #102d24;
   color: #e9f4ed;
 }
@@ -109,6 +113,8 @@ button {
   width: 100%;
   min-width: 0;
   margin-top: auto;
+  flex-shrink: 0;
+  padding-bottom: 12px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 10px;
@@ -1810,6 +1816,7 @@ button {
     height: 64px;
     padding: 8px 12px;
     flex-direction: row;
+    overflow: hidden;
   }
   .brand,
   .sidebar-bottom {

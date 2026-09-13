@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.19.0';
+export const APP_VERSION = '0.20.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.20.0',
+    title: 'Perfil sempre acessível no menu',
+    description:
+      'A navegação lateral agora se ajusta melhor a telas com pouco espaço e mantém o acesso ao seu perfil fora da área coberta pelo rodapé.',
+  },
   {
     version: '0.19.0',
     title: 'Histórico de novidades mais organizado',
