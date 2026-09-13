@@ -561,3 +561,30 @@ Ao final, entregue:
 11. próximos passos recomendados.
 
 Não faça commit, deploy ou publicação. Aguarde minha autorização explícita.
+
+## Estado de execução do roadmap
+
+Atualizado em 13 de setembro de 2026. Este arquivo continua sendo um roadmap; os 16 tópicos não estão todos encerrados.
+
+### Base implementada e publicada
+
+- A prontidão atual, o histórico de treino, a integridade temporal e os gates de segurança já são observados pelo sistema.
+- O `rules-v1` determinístico continua prescritivo; as evoluções `rules-v2`, adaptação pós-treino, tolerância à carga, comparação planejado versus realizado, distribuição de estímulos e periodização permanecem auditáveis em `shadow`.
+- A base de evidências e o catálogo inicial de protocolos de ciclismo foram estruturados, com pilotos restritos e exclusão explícita de modalidades fora do escopo.
+- Feedback pós-treino, decisões auditáveis, filtros contra dados inconsistentes e cobertura automatizada dos principais gates já estão implementados.
+
+### Tópicos ainda parciais
+
+- Os tópicos 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 e 15 possuem base implementada, mas ainda não atendem integralmente aos critérios finais deste documento.
+- A periodização atual audita quatro semanas e fases amplas; não representa ainda todas as fases completas do planejamento esportivo.
+- O catálogo ainda não contém todos os templates previstos e cada novo protocolo exige revisão própria de evidência, elegibilidade e segurança.
+
+### Pendências que não devem ser consideradas concluídas
+
+- Ativar uma adaptação realmente fechada e transferir autoridade ao `rules-v2`.
+- Calibrar confiança e validar o efeito longitudinal das prescrições com dados reais.
+- Selecionar estímulos plenamente pela necessidade atual do atleta, com comparação segura contra o comportamento vigente.
+- Completar o questionário de segurança, os fluxos de correção de inconsistências e a análise longitudinal do feedback.
+- Completar todos os cenários de aceitação e a validação operacional dos novos protocolos.
+
+Enquanto essas pendências existirem, não declarar o roadmap encerrado nem substituir o `rules-v1`. A próxima etapa técnica é continuar a integração observacional entre periodização, distribuição e seleção de estímulos; a ativação prescritiva exige uma revisão separada e autorização explícita.
