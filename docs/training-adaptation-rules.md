@@ -383,6 +383,6 @@ O maior slot de disponibilidade do ciclo agora usa o nome **Pedal longo** para d
 
 ### Retorno gradual após baixa regularidade (`return_after_break`)
 
-Quando o perfil informa de uma a três semanas treinando com regularidade, o catálogo usa **Retorno gradual** para iniciar o ciclo com esforço leve. Essa faixa é um sinal operacional de baixa regularidade informada, não uma confirmação de pausa, diagnóstico ou leitura substituta da prontidão atual.
+Quando o atleta seleciona no perfil **Estou retornando após uma pausa**, o catálogo usa **Retorno gradual** para iniciar o ciclo com esforço leve. A seleção é um contexto declarado pelo usuário, não um diagnóstico nem uma leitura substituta da prontidão atual; informar apenas semanas de treino regular não ativa a regra.
 
-O protocolo usa RPE-alvo 3,5, limita a sessão a 45 minutos e mantém uma estrutura contínua com aquecimento e desaquecimento. Ele impede que a preferência ou a elegibilidade anterior liberem uma sessão de qualidade durante a retomada. Limitação, dor, fadiga e recuperação insuficiente continuam prevalecendo e podem selecionar `Giro leve protegido`. O valor zero não ativa o protocolo porque pode representar apenas ausência de resposta.
+O protocolo usa RPE-alvo 3,5, limita a sessão a 45 minutos e mantém uma estrutura contínua com aquecimento e desaquecimento. Ele impede que a preferência ou a elegibilidade anterior liberem uma sessão de qualidade durante a retomada. Limitação, dor, fadiga e recuperação insuficiente continuam prevalecendo e podem selecionar `Giro leve protegido`.

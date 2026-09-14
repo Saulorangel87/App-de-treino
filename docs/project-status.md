@@ -442,7 +442,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 - Perfil em quatro etapas: dados básicos, limitações, objetivos e disponibilidade.
 - Até dois objetivos priorizados.
 - Disponibilidade individual dos sete dias, com opções de duração até 8 horas.
-- Contexto opcional de ciclismo: horas, pedais e distância semanal recente, semanas de regularidade, maior distância e pedal, preferências de sessão, equipamento, terreno, sensores, FTP e meta de prova.
+- Contexto opcional de ciclismo: horas, pedais e distância semanal recente, semanas de regularidade, situação atual do treino, maior distância e pedal, preferências de sessão, equipamento, terreno, sensores, FTP e meta de prova.
 - Resumo observado dos últimos 28 dias: sessões concluídas, minutos realizados, RPE e fadiga médios, dor relatada e check-ins de recuperação.
 - Motor `rules-v1` com ciclos de quatro semanas, progressão, recuperação e datas calculadas para a semana corrente.
 - Geração de rascunho, revisão, ativação e geração do próximo ciclo sem apagar o histórico.
@@ -701,8 +701,8 @@ O maior slot de disponibilidade do ciclo agora é apresentado como `Pedal longo`
 
 Os shadows de periodização e seleção de estímulos reconhecem a nova chave como endurance longo. A nota local `0.26.0` foi adicionada, sem migração, deploy ou alteração de infraestrutura. A validação automatizada e a conferência manual do novo nome passaram.
 
-### Continuidade — retorno gradual após baixa regularidade — versão local `0.27.0` em validação
+### Continuidade — situação de treino explícita — versão local `0.27.0` em validação
 
-Perfis que informam de uma a três semanas treinando com regularidade agora recebem o protocolo `return_after_break`, apresentado como **Retorno gradual**. A regra limita as sessões a 45 minutos e RPE 3,5, substitui qualidade e maior volume durante a retomada e não interpreta o valor zero como pausa.
+O perfil agora diferencia **Não informar**, **Estou treinando regularmente** e **Estou retornando após uma pausa**. Somente a última opção ativa o protocolo `return_after_break`, apresentado como **Retorno gradual**; a regra limita as sessões a 45 minutos e RPE 3,5 e substitui qualidade e maior volume durante a retomada. Semanas preenchidas, sozinhas, não reduzem o plano.
 
-As proteções de limitação, dor e recuperação continuam prioritárias; os shadows reconhecem a necessidade de retorno sem ganhar autoridade prescritiva. A nota `0.27.0` foi adicionada, sem migração, deploy ou alteração de infraestrutura. A validação automatizada passou; ainda falta conferir o nome e os limites no rascunho pelo navegador.
+As proteções de limitação, dor e recuperação continuam prioritárias; os shadows reconhecem a necessidade de retorno sem ganhar autoridade prescritiva. A nota `0.27.0` foi ajustada, sem migração, deploy ou alteração de infraestrutura. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram; ainda falta conferir o novo menu e os dois comportamentos no rascunho pelo navegador.

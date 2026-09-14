@@ -47,6 +47,7 @@ type CyclingContext struct {
 	WeeklyRides            int      `json:"weekly_rides"`
 	RecentWeeklyDistanceKM float64  `json:"recent_weekly_distance_km"`
 	RecentTrainingWeeks    int      `json:"recent_training_weeks"`
+	TrainingStatus         string   `json:"training_status"`
 	RecentBestDistanceKM   float64  `json:"recent_best_distance_km"`
 	PreferredSessionTypes  []string `json:"preferred_session_types"`
 	Discipline             string   `json:"discipline"`
@@ -73,11 +74,19 @@ func (s *OnboardingService) SaveCyclingContext(ctx context.Context, userID strin
 		value.PreferredSessionTypes = []string{}
 	}
 	value.Discipline = strings.TrimSpace(value.Discipline)
+	value.TrainingStatus = strings.TrimSpace(value.TrainingStatus)
+	if value.TrainingStatus == "" {
+		value.TrainingStatus = "not_informed"
+	}
 	if value.WeeklyHours < 0 || value.WeeklyHours > 80 || value.LongestRideMinutes < 0 || value.LongestRideMinutes > 1440 || value.WeeklyRides < 0 || value.WeeklyRides > 21 || value.RecentWeeklyDistanceKM < 0 || value.RecentWeeklyDistanceKM > 2000 || value.RecentTrainingWeeks < 0 || value.RecentTrainingWeeks > 52 || value.RecentBestDistanceKM < 0 || value.RecentBestDistanceKM > 2000 || len(value.PreferredSessionTypes) > 8 || (value.FTP != nil && (*value.FTP < 50 || *value.FTP > 600)) || (value.EventDistanceKM != nil && (*value.EventDistanceKM < 1 || *value.EventDistanceKM > 2000)) {
 		return CyclingContext{}, ErrInvalidOnboarding
 	}
 	allowedDisciplines := map[string]bool{"": true, "general": true, "road": true, "mtb_xco": true, "mtb_xcm": true, "gravel": true, "indoor": true}
 	if !allowedDisciplines[value.Discipline] {
+		return CyclingContext{}, ErrInvalidOnboarding
+	}
+	allowedTrainingStatuses := map[string]bool{"not_informed": true, "regular": true, "returning_after_break": true}
+	if !allowedTrainingStatuses[value.TrainingStatus] {
 		return CyclingContext{}, ErrInvalidOnboarding
 	}
 	allowedPreferences := map[string]bool{"base": true, "cadence": true, "hills": true, "intervals": true, "sweet_spot": true, "vo2max": true, "short_intervals": true, "recovery": true}

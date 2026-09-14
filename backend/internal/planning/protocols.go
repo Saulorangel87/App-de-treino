@@ -37,7 +37,7 @@ var sessionProtocols = map[string]sessionProtocol{
 	},
 	"Retorno gradual": {
 		Key: "return_after_break", EvidenceKeys: []string{"acsm-1998"},
-		EvidenceScope: "Retomada conservadora após baixa regularidade informada; a referência sustenta progressão gradual, não uma dose universal.",
+		EvidenceScope: "Retomada conservadora após pausa declarada; a referência sustenta progressão gradual, não uma dose universal.",
 	},
 	"Tempo controlado": {
 		Key: "controlled_tempo", EvidenceKeys: []string{"acsm-1998"},

@@ -71,7 +71,7 @@ func TestStimulusSelectionShadowFlagsLowAdherenceAndRecoveryMismatch(t *testing.
 func TestStimulusSelectionShadowRecognizesGradualReturn(t *testing.T) {
 	assessment := assessStimulusSelectionShadow(Context{
 		ExperienceLevel: "advanced",
-		Cycling:         CyclingContext{RecentTrainingWeeks: 2},
+		Cycling:         CyclingContext{RecentTrainingWeeks: 2, TrainingStatus: "returning_after_break"},
 		TrainingHistory: selectionHistory(4, 0),
 	}, []Workout{selectionWorkout("return_after_break", 3.5)}, time.Now(), false)
 	if assessment.Status != "observed" || assessment.CandidateNeed != "return_to_training" || assessment.CandidateResponse != "maintain_observed" {

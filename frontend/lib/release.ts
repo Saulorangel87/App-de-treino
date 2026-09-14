@@ -9,9 +9,9 @@ export type UpdateNote = Readonly<{
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
     version: '0.27.0',
-    title: 'Retorno gradual após baixa regularidade',
+    title: 'Situação de treino mais explícita',
     description:
-      'Quando o perfil informa de uma a três semanas treinando com regularidade, o plano começa com sessões leves e contínuas de até 45 minutos em RPE 3,5. Isso não confirma uma pausa e não aumenta carga automaticamente.',
+      'No perfil, você pode informar se está treinando regularmente ou retornando após uma pausa. Apenas a opção de retorno ativa sessões leves e contínuas de até 45 minutos em RPE 3,5; semanas informadas, sozinhas, não reduzem o plano.',
   },
   {
     version: '0.26.0',

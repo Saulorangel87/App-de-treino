@@ -503,6 +503,7 @@ export type TrainingPlan = {
     };
     cycling_context?: {
       discipline?: string;
+      training_status?: 'not_informed' | 'regular' | 'returning_after_break';
       uses_heart_rate?: boolean;
       uses_power?: boolean;
     };

@@ -42,6 +42,7 @@ type CyclingContext struct {
 	WeeklyRides            int      `json:"weekly_rides"`
 	RecentWeeklyDistanceKM float64  `json:"recent_weekly_distance_km"`
 	RecentTrainingWeeks    int      `json:"recent_training_weeks"`
+	TrainingStatus         string   `json:"training_status"`
 	RecentBestDistanceKM   float64  `json:"recent_best_distance_km"`
 	PreferredSessionTypes  []string `json:"preferred_session_types"`
 	Discipline             string   `json:"discipline"`
@@ -510,6 +511,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 				"weekly_rides":              input.Cycling.WeeklyRides,
 				"recent_weekly_distance_km": input.Cycling.RecentWeeklyDistanceKM,
 				"recent_training_weeks":     input.Cycling.RecentTrainingWeeks,
+				"training_status":           input.Cycling.TrainingStatus,
 				"recent_best_distance_km":   input.Cycling.RecentBestDistanceKM,
 				"preferred_session_types":   input.Cycling.PreferredSessionTypes,
 				"discipline":                input.Cycling.Discipline,
@@ -695,7 +697,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		if baseMinutes > 45 {
 			baseMinutes = 45
 		}
-		summary = "A baixa regularidade informada recomenda uma retomada gradual; isso não confirma uma pausa e não substitui a avaliação de recuperação atual."
+		summary = "O retorno após uma pausa informada recomenda uma retomada gradual; isso não substitui a avaliação de recuperação atual."
 	}
 	if restricted {
 		rotationApplied = false
@@ -776,7 +778,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		rules = append(rules, "Variação de recuperação ativa aplicada na quarta semana, sem aumentar a carga planejada.")
 	}
 	if returningAfterPause && name == "Retorno gradual" {
-		rules = append(rules, "Uma a três semanas de regularidade informadas mantêm a retomada leve, limitada a 45 minutos e RPE 3,5, sem sessão de qualidade.")
+		rules = append(rules, "O retorno após uma pausa informada mantém a retomada leve, limitada a 45 minutos e RPE 3,5, sem sessão de qualidade.")
 	}
 	if eventTaperApplied {
 		rules = append(rules, "Taper pré-prova aplicado nesta sessão: volume reduzido de forma conservadora, mantendo a frequência planejada.")
@@ -825,7 +827,7 @@ func sessionPreferenceLabel(preference string) string {
 }
 
 func isReturningAfterPause(cycling CyclingContext) bool {
-	return cycling.RecentTrainingWeeks >= 1 && cycling.RecentTrainingWeeks <= 3
+	return cycling.TrainingStatus == "returning_after_break"
 }
 
 func buildStructure(duration int, targetRPE float64, name, mainBlock string) map[string]any {

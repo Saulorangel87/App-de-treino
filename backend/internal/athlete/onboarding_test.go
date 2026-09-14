@@ -213,6 +213,24 @@ func TestSaveCyclingContextNormalizesMissingPreferences(t *testing.T) {
 	if result.PreferredSessionTypes == nil {
 		t.Fatal("expected missing preferences to be normalized to an empty list")
 	}
+	if result.TrainingStatus != "not_informed" {
+		t.Fatalf("expected missing training status to be normalized, got %q", result.TrainingStatus)
+	}
+}
+
+func TestSaveCyclingContextAcceptsTrainingStatuses(t *testing.T) {
+	for _, status := range []string{"not_informed", "regular", "returning_after_break"} {
+		result, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", CyclingContext{TrainingStatus: " " + status + " "})
+		if err != nil || result.TrainingStatus != status {
+			t.Fatalf("expected training status %q to be accepted and normalized, got %#v, %v", status, result, err)
+		}
+	}
+}
+
+func TestSaveCyclingContextRejectsUnknownTrainingStatus(t *testing.T) {
+	if _, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", CyclingContext{TrainingStatus: "paused"}); err != ErrInvalidOnboarding {
+		t.Fatalf("expected unknown training status to be rejected, got %v", err)
+	}
 }
 
 func errorsIs(err, target error) bool { return err == target }

@@ -513,7 +513,7 @@ func TestBuildPlanUsesGradualReturnForLowRecentRegularity(t *testing.T) {
 	plan, err := buildPlan(Context{
 		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
 		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
-		Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 2, Discipline: "road", PreferredSessionTypes: []string{"intervals"}},
+		Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 2, TrainingStatus: "returning_after_break", Discipline: "road", PreferredSessionTypes: []string{"intervals"}},
 	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -523,7 +523,7 @@ func TestBuildPlanUsesGradualReturnForLowRecentRegularity(t *testing.T) {
 	}
 	for _, workout := range plan.Workouts {
 		if workout.Name != "Retorno gradual" || workout.TargetRPE != 3.5 || workout.DurationMinutes > 45 {
-			t.Fatalf("low recent regularity must produce a conservative return workout: %#v", workout)
+			t.Fatalf("explicit return status must produce a conservative return workout: %#v", workout)
 		}
 		if workout.Structure["protocol_key"] != "return_after_break" || workout.Explanation["protocol_key"] != "return_after_break" {
 			t.Fatalf("expected return protocol metadata: %#v", workout)
@@ -531,6 +531,31 @@ func TestBuildPlanUsesGradualReturnForLowRecentRegularity(t *testing.T) {
 		if workout.TargetRPE >= qualityTargetRPEThreshold {
 			t.Fatalf("return plan must not contain a quality session: %#v", workout)
 		}
+	}
+}
+
+func TestBuildPlanDoesNotTreatRegularTrainingAsReturn(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "intermediate", PrimaryGoal: "endurance",
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 45}, {Weekday: 6, AvailableMinutes: 120}},
+		Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 2, TrainingStatus: "regular", Discipline: "road"},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name == "Retorno gradual" {
+			t.Fatalf("regular training status must not activate gradual return: %#v", workout)
+		}
+	}
+	longSessionFound := false
+	for _, workout := range plan.Workouts {
+		if workout.Name == "Pedal longo" && workout.DurationMinutes > 45 {
+			longSessionFound = true
+		}
+	}
+	if !longSessionFound {
+		t.Fatalf("regular training status should preserve the normal long-session progression: %#v", plan.Workouts)
 	}
 }
 

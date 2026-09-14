@@ -1569,8 +1569,8 @@ O slot de maior disponibilidade do ciclo foi separado do `Endurance contínuo` g
 
 A versão local foi preparada como `0.26.0`, com nota de novidade. A suíte automatizada, o build e a validação manual no navegador passaram: o maior treino do ciclo apareceu como **Pedal longo**, com carga conservadora. Não há migração, deploy ou publicação nesta etapa.
 
-### Continuidade — retorno gradual após baixa regularidade — 13 de setembro de 2026
+### Continuidade — situação de treino explícita — 14 de setembro de 2026
 
-O catálogo ganhou o protocolo `return_after_break`, apresentado como **Retorno gradual** quando o perfil informa de uma a três semanas treinando com regularidade. A retomada usa sessões contínuas em RPE 3,5, limita a duração a 45 minutos e impede que preferência, nível ou avaliação anterior liberem qualidade antes da reconstrução da consistência. O valor zero não ativa a regra porque pode ser apenas dado não informado; limitação, dor e recuperação insuficiente continuam prevalecendo.
+O perfil agora apresenta o menu **Situação atual do treino**, com as opções **Não informar**, **Estou treinando regularmente** e **Estou retornando após uma pausa**. Somente a última ativa o protocolo `return_after_break`, apresentado como **Retorno gradual**. A retomada usa sessões contínuas em RPE 3,5, limita a duração a 45 minutos e impede que preferência, nível ou avaliação anterior liberem qualidade; informar duas semanas como treino regular mantém o planejamento normal.
 
-A versão local foi preparada como `0.27.0`, com nota de novidade. A suíte Go, o `go vet`, o build e o diff passaram. Ainda falta a validação manual no navegador com um perfil de 1–3 semanas; não há migração, deploy ou publicação nesta etapa.
+A versão local permanece `0.27.0`, com a nota de novidade ajustada. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram; ainda falta a validação manual no navegador com as opções regular e retorno. Não há migração, deploy ou publicação nesta etapa.

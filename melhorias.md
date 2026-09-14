@@ -597,11 +597,11 @@ O slot de maior disponibilidade do ciclo agora usa o protocolo explícito `long_
 
 A versão local preparada é `0.26.0`. A validação automatizada e a conferência manual do rascunho passaram: o maior treino do ciclo apareceu como **Pedal longo**, sem aumento automático de carga. Produção continua fora desta etapa.
 
-### Continuidade — retorno gradual após baixa regularidade — em validação local
+### Continuidade — situação de treino explícita — em validação local
 
-O próximo template do tópico 4 é `return_after_break`, apresentado como **Retorno gradual**. Para uma a três semanas de regularidade informadas, ele substitui qualidade e maior volume por sessões contínuas de até 45 minutos em RPE 3,5. O valor zero não é interpretado como pausa; as proteções existentes continuam vencendo.
+O perfil agora diferencia **Não informar**, **Estou treinando regularmente** e **Estou retornando após uma pausa**. O template `return_after_break`, apresentado como **Retorno gradual**, só é ativado pela opção de retorno; ele substitui qualidade e maior volume por sessões contínuas de até 45 minutos em RPE 3,5. Duas semanas informadas como treino regular não reduzem o plano, e as proteções existentes continuam vencendo.
 
-A versão local preparada é `0.27.0`. A validação automatizada passou e falta confirmar o resultado no rascunho pelo navegador antes do commit. Produção continua fora desta etapa.
+A versão local preparada permanece `0.27.0`. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram; falta confirmar no rascunho pelo navegador os cenários regular e retorno antes do commit. Produção continua fora desta etapa.
 
 ### Continuidade — contexto de segurança detalhado do perfil — versão local `0.21.0`
 

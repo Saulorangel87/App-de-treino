@@ -66,7 +66,7 @@ São modalidades com exigências anaeróbicas, neuromusculares e de força muito
 | --- | --- | --- | --- |
 | Endurance de estrada | `road` | Base de endurance e distribuição de intensidade apoiadas por revisões | Todos os níveis, com progressão conservadora |
 | Pedal longo | `road`, `gravel`, `mtb_xcm`, `indoor` | Extensão de endurance com progressão gradual; não define uma dose universal | Todos os níveis, no maior slot disponível e respeitando disponibilidade e recuperação |
-| Retorno gradual | Geral, dentro do ciclismo | Retomada conservadora após baixa regularidade informada; não confirma uma pausa nem define uma dose universal | Perfis com 1–3 semanas de regularidade informadas, com duração limitada e sem qualidade |
+| Retorno gradual | Geral, dentro do ciclismo | Retomada conservadora após pausa declarada no perfil; não define uma dose universal | Perfis que selecionam retorno após uma pausa, com duração limitada e sem qualidade |
 | Intervalos moderados | `road` | Ensaios recentes em ciclistas bem treinados | Piloto local: intermediário/avançado, objetivo compatível, avaliação apta, 60 min disponíveis e sem sinais de recuperação insuficiente |
 | Intervalos intensos de estrada | `road` | Ensaio recente comparando blocos moderados e intensos em ciclistas bem treinados, com limite de transferência explícito | Piloto local: avançado, 8 semanas e 3 pedais/semana recentes, avaliação apta, objetivo compatível, pelo menos 75 min, ciclo alternado e sem sinais protetivos |
 | Intervalos VO₂max de estrada | `road` | Ensaios recentes em ciclistas bem treinados; transferência limitada | Piloto local: avançado, preferência explícita, histórico mínimo, avaliação apta, pelo menos 60 min e sem sinais protetivos |
@@ -110,9 +110,9 @@ O protocolo reutiliza a mesma base segura do endurance contínuo: duração deri
 
 ### Retorno gradual após baixa regularidade
 
-O protocolo `return_after_break`, apresentado como **Retorno gradual**, é uma retomada conservadora para perfis que informam de uma a três semanas treinando com regularidade. O dado não prova que houve uma pausa; ele apenas justifica começar com sessões leves enquanto a consistência é reconstruída.
+O protocolo `return_after_break`, apresentado como **Retorno gradual**, é uma retomada conservadora para perfis que selecionam no perfil a opção **Estou retornando após uma pausa**. As semanas de treino continuam sendo registradas como contexto, mas não ativam o protocolo sozinhas.
 
-O motor limita essas sessões a 45 minutos e RPE 3,5, com aquecimento, pedal contínuo e desaquecimento. A regra substitui sessões de qualidade e o volume mais longo durante a retomada, mas não substitui as proteções de limitação, dor ou recuperação insuficiente. O valor zero continua significando dado não informado e não dispara o protocolo.
+O motor limita essas sessões a 45 minutos e RPE 3,5, com aquecimento, pedal contínuo e desaquecimento. A regra substitui sessões de qualidade e o volume mais longo durante a retomada, mas não substitui as proteções de limitação, dor ou recuperação insuficiente. **Não informar** e **treinar regularmente** não disparam o protocolo, mesmo que o atleta informe duas semanas.
 
 ## Modelo e critérios de integração do catálogo
 
