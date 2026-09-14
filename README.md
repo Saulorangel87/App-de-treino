@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão publicada: `0.20.0` — catálogo ampliado, contexto de conclusão e feedback pós-treino, auditoria observacional e histórico dedicado de novidades. O checkout local contém a versão `0.25.0`: a correção de erros das telas autenticadas está no commit `77e57ec`, a integridade mais clara dos registros pós-treino foi validada no commit `74f9493`, a correção segura de métricas do pedal foi validada localmente e o feedback estruturado foi validado localmente com a migração `000023`. A produção permanece em `0.20.0` até uma publicação própria. A release mais recente é a [v0.20.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.20.0).
+Versão publicada: `0.27.0` — catálogo ampliado, contexto de conclusão e feedback pós-treino, auditoria observacional, histórico dedicado de novidades e situação de treino explícita. A produção foi atualizada no commit `61458ae`; não houve migração nova e a release do GitHub ainda não foi criada.
 
 O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro não fazem parte deste app e não são aceitos como modalidades de treino.
 
@@ -44,7 +44,7 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `PUT /v1/onboarding/limitations`: salva informações de segurança, incluindo opcionalmente localização, intensidade percebida, movimento agravante e data de início. Esses campos são contexto informado pelo atleta e não constituem diagnóstico.
 - `PUT /v1/onboarding/goals`: salva até dois objetivos priorizados.
 - `PUT /v1/onboarding/availability`: salva a disponibilidade semanal.
-- `PUT /v1/onboarding/cycling-context`: salva histórico resumido (horas, pedais, distância semanal recente, semanas de regularidade e maior distância), preferências de sessão, equipamento, terreno e meta opcional de prova com distância e data futura válidas.
+- `PUT /v1/onboarding/cycling-context`: salva histórico resumido (horas, pedais, distância semanal recente, semanas de regularidade, situação atual do treino e maior distância), preferências de sessão, equipamento, terreno e meta opcional de prova com distância e data futura válidas.
 - `GET /v1/assessments/current` e `POST /v1/assessments/submaximal`: consultam e registram o pedal de referência submáximo.
 - `GET /v1/recovery/today` e `PUT /v1/recovery/today`: consultam e salvam o check-in diário de sono, estresse e fadiga percebida.
 - `GET /v1/evolution/summary`: retorna totais observados, oito semanas de duração e métricas de pedal registradas, além de check-ins recentes para o atleta autenticado.
@@ -87,16 +87,16 @@ O MVP de ciclismo está publicado em produção real:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Produção implantada na VPS Oracle no commit `f0fec8b`, conforme deploy validado após backup; as migrações `000017`–`000021` continuam aplicadas e a versão visível do produto permanece `0.20.0`. A release correspondente é [v0.20.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.20.0).
+- Produção implantada na VPS Oracle no commit `61458ae`, conforme deploy validado após backup; as migrações `000017`–`000021` continuam aplicadas e a versão visível do produto é `0.27.0`. A release do GitHub correspondente ainda não foi criada.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, confirmação de e-mail, recuperação de senha, onboarding, plano, treino, feedback, adaptação, atividades, evolução e logout foram validados.
 - Dependabot está com 0 alertas abertos; os testes Go, `go vet`, build Docker e a auditoria de dependências de produção passaram. `govulncheck` não está instalado no ambiente desta rodada.
 - A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`–`000021` foram aplicadas na produção.
 - O ajuste responsivo dos períodos nos gráficos da Evolução foi publicado e validado no domínio oficial; a rolagem horizontal interna agora preserva os rótulos no celular.
-- A produção está no commit `f0fec8b` e na versão `0.20.0`, com correções de segurança, catálogo ampliado, contexto de conclusão/feedback pós-treino, gate observacional da distribuição dos estímulos, auditoria observacional da periodização, auditoria observacional da seleção de estímulos e coerência integrada dos shadows publicados conforme os critérios documentados. A tela `/plano` e os endpoints públicos foram validados após o deploy; o `rules-v1` continua prescritivo.
+- A produção está no commit `61458ae` e na versão `0.27.0`, com correções de segurança, catálogo ampliado, contexto de conclusão/feedback pós-treino, gate observacional da distribuição dos estímulos, auditoria observacional da periodização, auditoria observacional da seleção de estímulos, coerência integrada dos shadows e situação de treino explícita. A tela `/plano` e os endpoints públicos foram validados após o deploy; o `rules-v1` continua prescritivo.
 - Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts` (`APP_VERSION` e `UPDATE_NOTES`) para que a novidade seja exibida na tela de primeiro acesso após a atualização. O modal é mostrado uma vez por conta, versão e navegador.
 
-O checkout local e a produção agora contêm os pilotos `taper-v1`, `road_vo2_intervals` e `short_self_regulated_intervals`, selecionados somente quando os gates de elegibilidade e segurança são atendidos. A versão publicada está em `0.20.0`; a exclusão de sprint/pista/BMX e downhill/enduro também está registrada. A publicação e a release correspondente [v0.20.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.20.0) foram validadas.
+O checkout local e a produção agora contêm os pilotos `taper-v1`, `road_vo2_intervals` e `short_self_regulated_intervals`, selecionados somente quando os gates de elegibilidade e segurança são atendidos. A versão publicada está em `0.27.0`; a exclusão de sprint/pista/BMX e downhill/enduro também está registrada. A publicação foi validada; a release correspondente ainda não foi criada.
 
 A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.
 

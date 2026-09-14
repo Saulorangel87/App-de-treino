@@ -1569,8 +1569,12 @@ O slot de maior disponibilidade do ciclo foi separado do `Endurance contínuo` g
 
 A versão local foi preparada como `0.26.0`, com nota de novidade. A suíte automatizada, o build e a validação manual no navegador passaram: o maior treino do ciclo apareceu como **Pedal longo**, com carga conservadora. Não há migração, deploy ou publicação nesta etapa.
 
-### Continuidade — situação de treino explícita — 14 de setembro de 2026
+### Continuidade — situação de treino explícita — 14 de setembro de 2026 (antes do deploy)
 
 O perfil agora apresenta o menu **Situação atual do treino**, com as opções **Não informar**, **Estou treinando regularmente** e **Estou retornando após uma pausa**. Somente a última ativa o protocolo `return_after_break`, apresentado como **Retorno gradual**. A retomada usa sessões contínuas em RPE 3,5, limita a duração a 45 minutos e impede que preferência, nível ou avaliação anterior liberem qualidade; informar duas semanas como treino regular mantém o planejamento normal.
 
 A versão local permanece `0.27.0`, com a nota de novidade ajustada. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram; ainda falta a validação manual no navegador com as opções regular e retorno. Não há migração, deploy ou publicação nesta etapa.
+
+### Deploy da versão `0.27.0` — 14 de setembro de 2026
+
+Após a validação manual, o commit `61458ae` foi atualizado por fast-forward na VPS Oracle. O backup preventivo `cadencia-20260914T102918Z.dump` foi criado e verificado; não houve migração nova. As imagens da API e do frontend foram reconstruídas e os dois serviços foram recriados; PostgreSQL e Tunnel permaneceram ativos. `/ready` respondeu `{"status":"ready"}`, os dois domínios oficiais retornaram HTTP 200 e os quatro serviços ficaram saudáveis. A versão `0.27.0` foi confirmada no HTML público. A release do GitHub ainda não foi criada.
