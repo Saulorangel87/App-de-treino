@@ -1412,6 +1412,9 @@ button {
   display: grid;
   justify-content: stretch;
 }
+.completion-context .feedback-grid:has(> label:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
 .feedback-grid select,
 .feedback-grid input,
 .session-feedback textarea {

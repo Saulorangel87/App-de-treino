@@ -216,9 +216,9 @@ button:focus-visible {
 
   .main-nav .nav-item {
     padding-inline: 2px;
-    overflow: hidden;
-    font-size: 9px;
+    overflow: visible;
+    font-size: clamp(6.5px, 2.1vw, 9px);
     line-height: 1;
-    letter-spacing: -0.15px;
+    letter-spacing: -0.35px;
   }
 }
