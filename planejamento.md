@@ -1567,4 +1567,4 @@ O snapshot passa a `training-history-v5` e a comparação a `period-comparison-v
 
 O slot de maior disponibilidade do ciclo foi separado do `Endurance contínuo` genérico e passou a usar `Pedal longo`, com a chave `long_endurance`. A estrutura permanece contínua, com RPE 5, aquecimento e desaquecimento; duração, multiplicador e travas de segurança não foram ampliados. Periodização e seleção de estímulos reconhecem a chave nova como endurance longo.
 
-A versão local foi preparada como `0.26.0`, com nota de novidade. A suíte automatizada e o build ainda precisam ser executados antes da validação manual no navegador; não há migração, deploy ou publicação nesta etapa.
+A versão local foi preparada como `0.26.0`, com nota de novidade. A suíte automatizada, o build e a validação manual no navegador passaram: o maior treino do ciclo apareceu como **Pedal longo**, com carga conservadora. Não há migração, deploy ou publicação nesta etapa.
