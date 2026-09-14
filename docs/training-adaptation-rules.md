@@ -368,3 +368,9 @@ Os pilotos `taper-v1`, `road_vo2_intervals` e `short_self_regulated_intervals` f
 O feedback pode registrar também satisfação da sessão em escala de 1 a 5, terreno e condição externa por listas controladas. Esses sinais complementam o relato livre e permitem comparar sessões sem depender exclusivamente de texto aberto. Os campos são opcionais no banco para preservar registros antigos; o formulário atual envia uma satisfação neutra inicial e permite deixar terreno e condição externa sem informação.
 
 O backend valida os valores antes de persistir, e o histórico devolve os campos sem convertê-los em diagnóstico ou prescrição. `post-workout-context-v2` e `decision_audit.data_used` registram a cobertura observada, mas `rules-v1` continua sendo a única autoridade do plano; `progression_eligible`, `applied` e `used_for_prescription` permanecem falsos. A coleta deve ser usada futuramente para calibrar interpretação e efeito longitudinal, não para aumentar carga por um relato isolado.
+
+### Cobertura longitudinal do feedback estruturado (`training-history-v5`)
+
+As janelas de 7, 28 e 42 dias e os seis períodos semanais passam a registrar quantas sessões elegíveis possuem satisfação, terreno e condições externas válidos. A comparação usa somente sessões concluídas dentro do intervalo temporal e já filtradas pelo `data-integrity-v1`; valores ausentes não são inventados nem contam como cobertura.
+
+As lacunas aparecem como `satisfaction_coverage_*`, `terrain_coverage_*` e `external_conditions_coverage_*`. Essa medição descreve a qualidade e a disponibilidade da coleta, mas não calcula tendência, tolerância ou efeito longitudinal e não altera `rules-v1`, `rules-v2` ou qualquer sessão. `structured_feedback_longitudinal` permanece em `not_evaluated` até existir volume real suficiente e revisão específica.

@@ -688,3 +688,9 @@ A validação local passou com `go test -count=1 ./...` usando cache local do Go
 A revisão após a `0.25.0` encontrou uma diferença de cobertura: satisfação, terreno e condições externas já eram armazenados, exibidos e considerados pelo `post-workout-context-v2` e pela auditoria, mas não eram validados pelo gate de integridade nem propagados para `planned_vs_actual`. A cadeia observacional agora usa os mesmos valores e as mesmas listas controladas nos três pontos.
 
 Campos opcionais ausentes ficam explícitos em `missing_data`; valores inválidos tornam a comparação e a integridade `not_evaluated`/`inconsistent`, conforme o componente, sem apagar o feedback. A conclusão e a correção de métricas preservam esse contexto durante a reavaliação. Não houve migração, mudança visual, atualização de release, deploy ou alteração do `rules-v1`; os campos de autoridade continuam falsos.
+
+### Continuidade — cobertura longitudinal do feedback estruturado — versão local `training-history-v5`
+
+As consultas de histórico agora contam, nas janelas de 7/28/42 dias e nos seis períodos semanais, as sessões elegíveis com satisfação, terreno e condições externas válidos. A cobertura é separada por campo para distinguir uma sessão que informou apenas parte do contexto; ausências ficam explícitas no `missing_data` do snapshot e da comparação.
+
+O snapshot passou a `training-history-v5` e o comparador a `period-comparison-v3`. A mudança é somente observacional: não interpreta tendência, tolerância ou efeito longitudinal, não alimenta progressão e mantém `rules-v1` como autoridade. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram; não houve migração, mudança visual, release, deploy ou alteração de infraestrutura.

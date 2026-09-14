@@ -15,6 +15,9 @@ func validHistoryWindow(days int) TrainingHistoryWindow {
 		WindowDays: days, ExpectedSessions: 4, ScheduledCompletedSessions: 3,
 		CancelledSessions: 1, PerformedSessions: 3, PerformedMinutes: 120,
 		SessionsWithSessionRPELoad: 3, SessionRPELoad: 600,
+		FeedbackRecords: 3, SessionsWithCompleteFeedback: 3,
+		SessionsWithSatisfaction: 3, SessionsWithTerrain: 3,
+		SessionsWithExternalConditions: 3,
 	}
 }
 
@@ -28,7 +31,9 @@ func validHistoryPeriods() []TrainingHistoryPeriod {
 			CancelledSessions: 1, PerformedSessions: 1, PerformedMinutes: 30,
 			SessionsWithSessionRPELoad: 1, SessionRPELoad: 120,
 			FeedbackRecords: 1, SessionsWithCompleteFeedback: 1,
-			RecoveryCheckins: 1, CompleteRecoveryCheckins: 1,
+			SessionsWithSatisfaction: 1, SessionsWithTerrain: 1,
+			SessionsWithExternalConditions: 1,
+			RecoveryCheckins:               1, CompleteRecoveryCheckins: 1,
 		})
 	}
 	return periods
@@ -126,8 +131,35 @@ func TestBuildTrainingHistorySnapshotRecordsTemporalQualityAndProtectiveSignals(
 	if snapshot.Windows[0].PainReportedSessions != 1 || snapshot.Windows[0].RecoveryNeededCheckins != 1 {
 		t.Fatalf("protective signals not preserved: %+v", snapshot.Windows[0])
 	}
+	if snapshot.Windows[0].SessionsWithSatisfaction != 3 || snapshot.Windows[0].SessionsWithTerrain != 3 || snapshot.Windows[0].SessionsWithExternalConditions != 3 {
+		t.Fatalf("structured feedback coverage not preserved: %+v", snapshot.Windows[0])
+	}
 	if len(snapshot.MissingData) != 0 || len(snapshot.DataIssues) != 0 {
 		t.Fatalf("unexpected quality flags: missing=%v issues=%v", snapshot.MissingData, snapshot.DataIssues)
+	}
+}
+
+func TestBuildTrainingHistorySnapshotReportsStructuredFeedbackCoverage(t *testing.T) {
+	windows := []TrainingHistoryWindow{
+		{
+			WindowDays: 7, ExpectedSessions: 3, ScheduledCompletedSessions: 3,
+			PerformedSessions: 3, PerformedMinutes: 90,
+			SessionsWithSessionRPELoad: 3, SessionRPELoad: 450,
+			FeedbackRecords: 3, SessionsWithCompleteFeedback: 3,
+			SessionsWithSatisfaction: 3, SessionsWithTerrain: 2,
+			SessionsWithExternalConditions: 1,
+		},
+		{WindowDays: 28}, {WindowDays: 42},
+	}
+	snapshot := buildTrainingHistorySnapshot(windows, time.Unix(0, 0))
+
+	for _, missing := range []string{"terrain_coverage_7d", "external_conditions_coverage_7d"} {
+		if !slices.Contains(snapshot.MissingData, missing) {
+			t.Fatalf("missing structured coverage %q was not reported: %v", missing, snapshot.MissingData)
+		}
+	}
+	if slices.Contains(snapshot.MissingData, "satisfaction_coverage_7d") {
+		t.Fatalf("complete satisfaction coverage was reported as missing: %v", snapshot.MissingData)
 	}
 }
 

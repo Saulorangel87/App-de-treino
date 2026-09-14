@@ -384,3 +384,9 @@ A migração `000023_feedback_context` é aditiva. Os valores são retornados no
 Para evitar que a mesma sessão tenha leituras diferentes dentro do shadow, satisfação, terreno e condições externas também são validados pelo `data-integrity-v1` e registrados no `planned-vs-actual-v2`. Campos opcionais ausentes aparecem como lacunas; valores fora das listas controladas tornam a observação inconsistente, sem apagar o registro original.
 
 O repositório encaminha esses campos tanto na conclusão quanto na reavaliação de uma correção de métricas. A extensão é somente observacional, não cria migração nem alteração visual e mantém `rules-v1` como fonte prescritiva. `progression_eligible`, `applied` e `used_for_prescription` continuam falsos.
+
+## Cobertura longitudinal do feedback estruturado
+
+As janelas móveis e os períodos semanais registram a cobertura válida de satisfação, terreno e condições externas por sessão elegível. Cada campo possui um contador próprio para não confundir contexto completo com contexto parcialmente preenchido; ausência é lacuna de coleta, não sinal fisiológico.
+
+O histórico foi versionado como `training-history-v5` e `period-comparison-v3`. A leitura continua observacional, não calcula tendência ou tolerância e não é usada por `rules-v1` nem pelos gates prescritivos do `rules-v2`. Não há migração, alteração visual ou mudança de infraestrutura.

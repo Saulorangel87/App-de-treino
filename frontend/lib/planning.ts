@@ -366,6 +366,9 @@ export type TrainingHistoryWindow = {
   session_rpe_load: number;
   feedback_records?: number;
   sessions_with_complete_feedback?: number;
+  sessions_with_satisfaction?: number;
+  sessions_with_terrain?: number;
+  sessions_with_external_conditions?: number;
   pain_reported_sessions?: number;
   high_fatigue_sessions?: number;
   above_target_rpe_sessions?: number;
@@ -392,6 +395,9 @@ export type TrainingHistoryPeriod = {
   session_rpe_load: number;
   feedback_records: number;
   sessions_with_complete_feedback: number;
+  sessions_with_satisfaction: number;
+  sessions_with_terrain: number;
+  sessions_with_external_conditions: number;
   pain_reported_sessions: number;
   high_fatigue_sessions: number;
   above_target_rpe_sessions: number;
@@ -407,7 +413,7 @@ export type TrainingHistoryPeriod = {
 };
 
 export type TrainingHistoryPeriodComparison = {
-  version: 'period-comparison-v1' | 'period-comparison-v2';
+  version: 'period-comparison-v1' | 'period-comparison-v2' | 'period-comparison-v3';
   mode: 'observation';
   basis: 'six_non_overlapping_7_day_periods_by_database_clock';
   periods: TrainingHistoryPeriod[];
@@ -437,7 +443,7 @@ export type TrainingStimulusDistribution = {
 };
 
 export type TrainingHistorySnapshot = {
-  version: 'training-history-v1' | 'training-history-v2' | 'training-history-v3' | 'training-history-v4';
+  version: 'training-history-v1' | 'training-history-v2' | 'training-history-v3' | 'training-history-v4' | 'training-history-v5';
   mode: 'observation';
   captured_at: string;
   load_method: 'duration_minutes_x_actual_rpe';

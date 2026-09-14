@@ -1556,3 +1556,9 @@ Essa coleta permanece observacional: `post-workout-context-v2` registra a cobert
 A revisão da nova coleta encontrou uma lacuna de integração: satisfação, terreno e condições externas eram persistidos e auditados, mas o `data-integrity-v1` ainda não os verificava e o comparador `planned_vs_actual` não os carregava. A cadeia agora valida os mesmos valores controlados na integridade e registra a cobertura no `planned-vs-actual-v2`.
 
 Campos ausentes permanecem opcionais e são reportados como lacunas; valores inválidos tornam a leitura inconsistente sem apagar o feedback. A conclusão e a correção de métricas preservam o contexto durante a reavaliação. A mudança é somente observacional, sem migração, alteração visual, release, deploy ou autoridade adicional para o `rules-v2`; `rules-v1` continua prescritivo.
+
+### Continuidade — cobertura longitudinal do feedback estruturado — 13 de setembro de 2026
+
+As janelas de 7, 28 e 42 dias e os seis períodos semanais agora registram, separadamente, quantas sessões elegíveis possuem satisfação, terreno e condições externas válidos. A cobertura usa somente sessões concluídas dentro do intervalo e já protegidas pelo `data-integrity-v1`; valores ausentes ficam explícitos e não são preenchidos por inferência.
+
+O snapshot passa a `training-history-v5` e a comparação a `period-comparison-v3`. A medição ainda não calcula tendência, tolerância ou efeito longitudinal e não entra na prescrição; `rules-v1`, os shadows, as sessões e a interface permanecem inalterados. O fixture PostgreSQL somente leitura passou para as janelas e os seis períodos; o próximo passo é observar essa cobertura com dados reais suficientes, sem ativar interpretação prescritiva.

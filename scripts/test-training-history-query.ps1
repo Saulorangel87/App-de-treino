@@ -52,14 +52,14 @@ workout_sessions(id, workout_id, athlete_profile_id, status, completed_at, durat
         (8, 13, 'other-profile', 'completed', now() - interval '1 day', 120, 8),
         (9, 1, 'profile-test', 'cancelled', NULL, 120, 8)
 ),
-feedback(id, workout_session_id, pain_reported, fatigue_after, completion_status) AS (
+feedback(id, workout_session_id, pain_reported, fatigue_after, completion_status, satisfaction, terrain, external_conditions) AS (
     VALUES
-        (1, 1, false, 2, 'complete'),
-        (2, 2, true, 4, 'complete'),
-        (3, 3, false, 5, 'complete'),
-        (4, 4, false, 3, 'complete'),
-        (5, 7, true, 5, 'complete'),
-        (6, 5, true, NULL, 'complete')
+        (1, 1, false, 2, 'complete', 4, 'rolling', 'normal'),
+        (2, 2, true, 4, 'complete', 2, 'hilly', 'wind'),
+        (3, 3, false, 5, 'complete', 3, 'mixed', 'rain'),
+        (4, 4, false, 3, 'complete', 5, 'flat', 'cold'),
+        (5, 7, true, 5, 'complete', 5, 'flat', 'normal'),
+        (6, 5, true, NULL, 'complete', 3, 'rolling', 'rain')
 ),
 recovery_data(id, athlete_profile_id, recorded_on, sleep_minutes, sleep_quality, stress_level, fatigue_level) AS (
     VALUES
@@ -89,27 +89,27 @@ finally {
 
 $historyActual = @($historyOutput | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 $historyExpectedPrefix = @(
-    '7|7|2|2|2|1|2|105|2|0|600|2|2|1|1|1|4|3|2|1',
-    '28|9|4|2|2|1|4|195|3|1|1140|4|3|2|1|1|5|4|2|1',
-    '42|10|5|2|2|1|5|225|3|2|1140|4|3|2|1|1|6|5|3|2'
+    '7|7|2|2|2|1|2|105|2|0|600|2|2|2|2|2|1|1|1|4|3|2|1',
+    '28|9|4|2|2|1|4|195|3|1|1140|4|3|4|4|4|2|1|1|5|4|2|1',
+    '42|10|5|2|2|1|5|225|3|2|1140|4|3|4|4|4|2|1|1|6|5|3|2'
 )
 if ($historyActual.Count -ne $historyExpectedPrefix.Count) {
     throw "Quantidade inesperada de janelas: $($historyActual -join '; ')"
 }
 for ($historyIndex = 0; $historyIndex -lt $historyExpectedPrefix.Count; $historyIndex++) {
     $historyColumns = $historyActual[$historyIndex].Split('|')
-    $historyPrefix = ($historyColumns[0..19] -join '|')
+    $historyPrefix = ($historyColumns[0..22] -join '|')
     if ($historyPrefix -cne $historyExpectedPrefix[$historyIndex]) {
         throw "Janela divergente. Esperado prefixo '$($historyExpectedPrefix[$historyIndex])'; recebido '$($historyActual[$historyIndex])'."
     }
-    if ($historyColumns.Count -ne 28 -or $historyColumns[20] -notmatch 'Z|\+00$' -or
-        $historyColumns[21] -cne '1' -or $historyColumns[22] -notmatch 'Z|\+00$' -or
-        $historyColumns[23] -cne '1' -or $historyColumns[24] -notmatch '^\d{4}-\d{2}-\d{2}$' -or
-        $historyColumns[25] -cne '0' -or $historyColumns[26] -cne '1' -or $historyColumns[27] -cne '1') {
+    if ($historyColumns.Count -ne 31 -or $historyColumns[23] -notmatch 'Z|\+00$' -or
+        $historyColumns[24] -cne '1' -or $historyColumns[25] -notmatch 'Z|\+00$' -or
+        $historyColumns[26] -cne '1' -or $historyColumns[27] -notmatch '^\d{4}-\d{2}-\d{2}$' -or
+        $historyColumns[28] -cne '0' -or $historyColumns[29] -cne '1' -or $historyColumns[30] -cne '1') {
         throw "Metadados temporais divergentes: '$($historyActual[$historyIndex])'."
     }
 }
-Write-Output 'training history v3 fixtures 7d/28d/42d and temporal quality: OK'
+Write-Output 'training history v5 fixtures 7d/28d/42d and temporal quality: OK'
 
 $periodsSource = Get-Content -Raw -LiteralPath (Join-Path $historyRoot 'backend/internal/repository/planning.go')
 $periodsMatch = [regex]::Match($periodsSource, 'const planningTrainingHistoryPeriodsQuery = `(?<sql>[^`]+)`')
@@ -137,20 +137,12 @@ finally {
 
 $periodsActual = @($periodsOutput | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 $periodsExpected = @(
-    '0|last_7d|7|7|2|2|2|1|2|105|2|0|600|2|2|1|1|1|4|3|2|1',
-    '1|days_8_14|7|1|1|0|0|0|1|90|1|0|540|1|1|0|0|0|1|1|0|0',
-    '2|days_15_21|7|1|1|0|0|0|1|0|0|1|0|1|0|1|0|0|0|0|0|0',
-    '3|days_22_28|7|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0',
-    '4|days_29_35|7|0|0|0|0|0|1|30|0|1|0|0|0|0|0|0|1|1|1|1',
-    '5|days_36_42|7|1|1|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0'
-)
-$qualityExpected = @(
-    '0|0|0|0',
-    '1|1|90|0',
-    '0|0|0|0',
-    '0|0|0|0',
-    '0|0|0|0',
-    '0|0|0|0'
+    '0|last_7d|7|7|2|2|2|1|2|105|2|0|600|2|2|2|2|2|1|1|1|0|0|0|0|{}|4|3|2|1',
+    '1|days_8_14|7|1|1|0|0|0|1|90|1|0|540|1|1|1|1|1|0|0|0|1|1|90|0|{DATE}|1|1|0|0',
+    '2|days_15_21|7|1|1|0|0|0|1|0|0|1|0|1|0|1|1|1|1|0|0|0|0|0|0|{}|0|0|0|0',
+    '3|days_22_28|7|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|{}|0|0|0|0',
+    '4|days_29_35|7|0|0|0|0|0|1|30|0|1|0|0|0|0|0|0|0|0|0|0|0|0|0|{}|1|1|1|1',
+    '5|days_36_42|7|1|1|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|{}|0|0|0|0'
 )
 if ($periodsActual.Count -ne $periodsExpected.Count) {
     throw "Quantidade inesperada de períodos: $($periodsActual -join '; ')"
@@ -158,16 +150,16 @@ if ($periodsActual.Count -ne $periodsExpected.Count) {
 for ($periodIndex = 0; $periodIndex -lt $periodsExpected.Count; $periodIndex++) {
     $periodColumns = $periodsActual[$periodIndex].Split('|')
     $expectedColumns = $periodsExpected[$periodIndex].Split('|')
-    if ($periodColumns.Count -ne 27 -or ($periodColumns[0..17] -join '|') -cne ($expectedColumns[0..17] -join '|') -or ($periodColumns[18..21] -join '|') -cne $qualityExpected[$periodIndex] -or ($periodColumns[23..26] -join '|') -cne ($expectedColumns[18..21] -join '|')) {
+    if ($periodColumns.Count -ne 30 -or ($periodColumns[0..24] -join '|') -cne ($expectedColumns[0..24] -join '|') -or ($periodColumns[26..29] -join '|') -cne ($expectedColumns[26..29] -join '|')) {
         throw "Período divergente. Esperado os campos-base '$($periodsExpected[$periodIndex])'; recebido '$($periodsActual[$periodIndex])'."
     }
-    if ($periodIndex -eq 0 -and ($periodColumns[23..26] -join '|') -cne '4|3|2|1') {
+    if ($periodIndex -eq 0 -and ($periodColumns[26..29] -join '|') -cne '4|3|2|1') {
         throw "Sinais de recuperação divergentes no último período: '$($periodsActual[$periodIndex])'."
     }
-    if ($periodIndex -eq 1 -and $periodColumns[22] -notmatch '^\{\d{4}-\d{2}-\d{2}\}$') {
+    if ($periodIndex -eq 1 -and $periodColumns[25] -notmatch '^\{\d{4}-\d{2}-\d{2}\}$') {
         throw "Data do estímulo de qualidade divergente: '$($periodsActual[$periodIndex])'."
     }
-    if ($periodIndex -ne 1 -and $periodColumns[22] -cne '{}') {
+    if ($periodIndex -ne 1 -and $periodColumns[25] -cne '{}') {
         throw "Período sem estímulo deveria ter datas vazias: '$($periodsActual[$periodIndex])'."
     }
 }

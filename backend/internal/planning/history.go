@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	trainingHistoryVersion      = "training-history-v4"
-	periodComparisonVersion     = "period-comparison-v2"
+	trainingHistoryVersion      = "training-history-v5"
+	periodComparisonVersion     = "period-comparison-v3"
 	stimulusDistributionVersion = "stimulus-distribution-v1"
 	trainingHistoryMode         = "observation"
 	qualityTargetRPEThreshold   = 6.0
@@ -19,27 +19,30 @@ const (
 // TrainingHistoryWindow keeps adherence and performed load separate because
 // one is anchored to the workout's scheduled date and the other to completion.
 type TrainingHistoryWindow struct {
-	WindowDays                    int      `json:"window_days"`
-	ExpectedSessions              int      `json:"expected_sessions"`
-	ScheduledCompletedSessions    int      `json:"scheduled_completed_sessions"`
-	CancelledSessions             int      `json:"cancelled_sessions"`
-	MissedSessions                int      `json:"missed_sessions"`
-	OverdueInProgressSessions     int      `json:"overdue_in_progress_sessions"`
-	CompletionRatePercent         *float64 `json:"completion_rate_percent"`
-	PerformedSessions             int      `json:"performed_sessions"`
-	PerformedMinutes              int      `json:"performed_minutes"`
-	SessionsWithSessionRPELoad    int      `json:"sessions_with_session_rpe_load"`
-	SessionsWithoutSessionRPELoad int      `json:"sessions_without_session_rpe_load"`
-	SessionRPELoad                float64  `json:"session_rpe_load"`
-	FeedbackRecords               int      `json:"feedback_records"`
-	SessionsWithCompleteFeedback  int      `json:"sessions_with_complete_feedback"`
-	PainReportedSessions          int      `json:"pain_reported_sessions"`
-	HighFatigueSessions           int      `json:"high_fatigue_sessions"`
-	AboveTargetRPESessions        int      `json:"above_target_rpe_sessions"`
-	RecoveryCheckins              int      `json:"recovery_checkins"`
-	CompleteRecoveryCheckins      int      `json:"complete_recovery_checkins"`
-	CheckinsWithProtectiveSignal  int      `json:"checkins_with_protective_signal"`
-	RecoveryNeededCheckins        int      `json:"recovery_needed_checkins"`
+	WindowDays                     int      `json:"window_days"`
+	ExpectedSessions               int      `json:"expected_sessions"`
+	ScheduledCompletedSessions     int      `json:"scheduled_completed_sessions"`
+	CancelledSessions              int      `json:"cancelled_sessions"`
+	MissedSessions                 int      `json:"missed_sessions"`
+	OverdueInProgressSessions      int      `json:"overdue_in_progress_sessions"`
+	CompletionRatePercent          *float64 `json:"completion_rate_percent"`
+	PerformedSessions              int      `json:"performed_sessions"`
+	PerformedMinutes               int      `json:"performed_minutes"`
+	SessionsWithSessionRPELoad     int      `json:"sessions_with_session_rpe_load"`
+	SessionsWithoutSessionRPELoad  int      `json:"sessions_without_session_rpe_load"`
+	SessionRPELoad                 float64  `json:"session_rpe_load"`
+	FeedbackRecords                int      `json:"feedback_records"`
+	SessionsWithCompleteFeedback   int      `json:"sessions_with_complete_feedback"`
+	SessionsWithSatisfaction       int      `json:"sessions_with_satisfaction"`
+	SessionsWithTerrain            int      `json:"sessions_with_terrain"`
+	SessionsWithExternalConditions int      `json:"sessions_with_external_conditions"`
+	PainReportedSessions           int      `json:"pain_reported_sessions"`
+	HighFatigueSessions            int      `json:"high_fatigue_sessions"`
+	AboveTargetRPESessions         int      `json:"above_target_rpe_sessions"`
+	RecoveryCheckins               int      `json:"recovery_checkins"`
+	CompleteRecoveryCheckins       int      `json:"complete_recovery_checkins"`
+	CheckinsWithProtectiveSignal   int      `json:"checkins_with_protective_signal"`
+	RecoveryNeededCheckins         int      `json:"recovery_needed_checkins"`
 
 	// Temporal fields are repeated by the aggregate query and promoted to the
 	// snapshot. They are not part of each public window.
@@ -67,34 +70,37 @@ type TrainingHistoryTemporalQuality struct {
 }
 
 type TrainingHistoryPeriod struct {
-	PeriodIndex                   int      `json:"period_index"`
-	PeriodKey                     string   `json:"period_key"`
-	PeriodDays                    int      `json:"period_days"`
-	ExpectedSessions              int      `json:"expected_sessions"`
-	ScheduledCompletedSessions    int      `json:"scheduled_completed_sessions"`
-	CancelledSessions             int      `json:"cancelled_sessions"`
-	MissedSessions                int      `json:"missed_sessions"`
-	OverdueInProgressSessions     int      `json:"overdue_in_progress_sessions"`
-	CompletionRatePercent         *float64 `json:"completion_rate_percent"`
-	PerformedSessions             int      `json:"performed_sessions"`
-	PerformedMinutes              int      `json:"performed_minutes"`
-	SessionsWithSessionRPELoad    int      `json:"sessions_with_session_rpe_load"`
-	SessionsWithoutSessionRPELoad int      `json:"sessions_without_session_rpe_load"`
-	SessionRPELoad                float64  `json:"session_rpe_load"`
-	FeedbackRecords               int      `json:"feedback_records"`
-	SessionsWithCompleteFeedback  int      `json:"sessions_with_complete_feedback"`
-	PainReportedSessions          int      `json:"pain_reported_sessions"`
-	HighFatigueSessions           int      `json:"high_fatigue_sessions"`
-	AboveTargetRPESessions        int      `json:"above_target_rpe_sessions"`
-	QualitySessions               int      `json:"quality_sessions"`
-	QualitySessionsWithLoad       int      `json:"quality_sessions_with_load"`
-	QualityPerformedMinutes       int      `json:"quality_performed_minutes"`
-	QualityDensityPercent         *float64 `json:"quality_density_percent"`
-	HighIntensitySessions         int      `json:"high_intensity_sessions"`
-	RecoveryCheckins              int      `json:"recovery_checkins"`
-	CompleteRecoveryCheckins      int      `json:"complete_recovery_checkins"`
-	CheckinsWithProtectiveSignal  int      `json:"checkins_with_protective_signal"`
-	RecoveryNeededCheckins        int      `json:"recovery_needed_checkins"`
+	PeriodIndex                    int      `json:"period_index"`
+	PeriodKey                      string   `json:"period_key"`
+	PeriodDays                     int      `json:"period_days"`
+	ExpectedSessions               int      `json:"expected_sessions"`
+	ScheduledCompletedSessions     int      `json:"scheduled_completed_sessions"`
+	CancelledSessions              int      `json:"cancelled_sessions"`
+	MissedSessions                 int      `json:"missed_sessions"`
+	OverdueInProgressSessions      int      `json:"overdue_in_progress_sessions"`
+	CompletionRatePercent          *float64 `json:"completion_rate_percent"`
+	PerformedSessions              int      `json:"performed_sessions"`
+	PerformedMinutes               int      `json:"performed_minutes"`
+	SessionsWithSessionRPELoad     int      `json:"sessions_with_session_rpe_load"`
+	SessionsWithoutSessionRPELoad  int      `json:"sessions_without_session_rpe_load"`
+	SessionRPELoad                 float64  `json:"session_rpe_load"`
+	FeedbackRecords                int      `json:"feedback_records"`
+	SessionsWithCompleteFeedback   int      `json:"sessions_with_complete_feedback"`
+	SessionsWithSatisfaction       int      `json:"sessions_with_satisfaction"`
+	SessionsWithTerrain            int      `json:"sessions_with_terrain"`
+	SessionsWithExternalConditions int      `json:"sessions_with_external_conditions"`
+	PainReportedSessions           int      `json:"pain_reported_sessions"`
+	HighFatigueSessions            int      `json:"high_fatigue_sessions"`
+	AboveTargetRPESessions         int      `json:"above_target_rpe_sessions"`
+	QualitySessions                int      `json:"quality_sessions"`
+	QualitySessionsWithLoad        int      `json:"quality_sessions_with_load"`
+	QualityPerformedMinutes        int      `json:"quality_performed_minutes"`
+	QualityDensityPercent          *float64 `json:"quality_density_percent"`
+	HighIntensitySessions          int      `json:"high_intensity_sessions"`
+	RecoveryCheckins               int      `json:"recovery_checkins"`
+	CompleteRecoveryCheckins       int      `json:"complete_recovery_checkins"`
+	CheckinsWithProtectiveSignal   int      `json:"checkins_with_protective_signal"`
+	RecoveryNeededCheckins         int      `json:"recovery_needed_checkins"`
 
 	// QualitySessionDates is an internal UTC-day series used to observe the
 	// proximity between demanding stimuli. It is not exposed as raw activity
@@ -181,6 +187,7 @@ func buildTrainingHistorySnapshot(history []TrainingHistoryWindow, now time.Time
 		NotEvaluated: []string{
 			"load_tolerance", "detraining", "fitness_change", "activities_outside_cadencia",
 			"athlete_timezone", "progression_from_history", "period_trend_for_prescription",
+			"structured_feedback_longitudinal",
 		},
 	}
 	copy(result.Windows, history)
@@ -223,6 +230,15 @@ func buildTrainingHistorySnapshot(history []TrainingHistoryWindow, now time.Time
 		}
 		if window.SessionsWithCompleteFeedback < window.FeedbackRecords {
 			result.MissingData = append(result.MissingData, fmt.Sprintf("feedback_field_coverage_%dd", window.WindowDays))
+		}
+		if window.SessionsWithSatisfaction < window.PerformedSessions {
+			result.MissingData = append(result.MissingData, fmt.Sprintf("satisfaction_coverage_%dd", window.WindowDays))
+		}
+		if window.SessionsWithTerrain < window.PerformedSessions {
+			result.MissingData = append(result.MissingData, fmt.Sprintf("terrain_coverage_%dd", window.WindowDays))
+		}
+		if window.SessionsWithExternalConditions < window.PerformedSessions {
+			result.MissingData = append(result.MissingData, fmt.Sprintf("external_conditions_coverage_%dd", window.WindowDays))
 		}
 		if window.CompleteRecoveryCheckins < window.RecoveryCheckins {
 			result.MissingData = append(result.MissingData, fmt.Sprintf("recovery_checkin_coverage_%dd", window.WindowDays))
@@ -321,6 +337,7 @@ func validTrainingHistoryWindow(window TrainingHistoryWindow) bool {
 		window.CancelledSessions, window.MissedSessions, window.OverdueInProgressSessions,
 		window.PerformedSessions, window.PerformedMinutes, window.SessionsWithSessionRPELoad,
 		window.SessionsWithoutSessionRPELoad, window.FeedbackRecords, window.SessionsWithCompleteFeedback,
+		window.SessionsWithSatisfaction, window.SessionsWithTerrain, window.SessionsWithExternalConditions,
 		window.PainReportedSessions,
 		window.HighFatigueSessions, window.AboveTargetRPESessions, window.RecoveryCheckins,
 		window.CompleteRecoveryCheckins, window.CheckinsWithProtectiveSignal, window.RecoveryNeededCheckins,
@@ -336,6 +353,9 @@ func validTrainingHistoryWindow(window TrainingHistoryWindow) bool {
 		window.SessionsWithSessionRPELoad <= window.PerformedMinutes &&
 		window.FeedbackRecords <= window.PerformedSessions &&
 		window.SessionsWithCompleteFeedback <= window.FeedbackRecords &&
+		window.SessionsWithSatisfaction <= window.FeedbackRecords &&
+		window.SessionsWithTerrain <= window.FeedbackRecords &&
+		window.SessionsWithExternalConditions <= window.FeedbackRecords &&
 		window.PainReportedSessions <= window.FeedbackRecords &&
 		window.HighFatigueSessions <= window.SessionsWithCompleteFeedback &&
 		window.AboveTargetRPESessions <= window.PerformedSessions &&
@@ -390,6 +410,15 @@ func buildTrainingHistoryPeriodComparison(periods []TrainingHistoryPeriod) Train
 		} else {
 			period.QualityDensityPercent = nil
 		}
+		if period.SessionsWithSatisfaction < period.PerformedSessions {
+			result.MissingData = append(result.MissingData, fmt.Sprintf("satisfaction_coverage_%s", period.PeriodKey))
+		}
+		if period.SessionsWithTerrain < period.PerformedSessions {
+			result.MissingData = append(result.MissingData, fmt.Sprintf("terrain_coverage_%s", period.PeriodKey))
+		}
+		if period.SessionsWithExternalConditions < period.PerformedSessions {
+			result.MissingData = append(result.MissingData, fmt.Sprintf("external_conditions_coverage_%s", period.PeriodKey))
+		}
 		if !validTrainingHistoryPeriod(*period) {
 			result.DataIssues = append(result.DataIssues, fmt.Sprintf("inconsistent_period_%d", period.PeriodIndex))
 		}
@@ -408,6 +437,7 @@ func validTrainingHistoryPeriod(period TrainingHistoryPeriod) bool {
 		period.CancelledSessions, period.MissedSessions, period.OverdueInProgressSessions,
 		period.PerformedSessions, period.PerformedMinutes, period.SessionsWithSessionRPELoad,
 		period.SessionsWithoutSessionRPELoad, period.FeedbackRecords, period.SessionsWithCompleteFeedback,
+		period.SessionsWithSatisfaction, period.SessionsWithTerrain, period.SessionsWithExternalConditions,
 		period.PainReportedSessions, period.HighFatigueSessions, period.AboveTargetRPESessions,
 		period.QualitySessions, period.QualitySessionsWithLoad, period.QualityPerformedMinutes,
 		period.HighIntensitySessions,
@@ -424,6 +454,9 @@ func validTrainingHistoryPeriod(period TrainingHistoryPeriod) bool {
 		period.SessionsWithSessionRPELoad <= period.PerformedMinutes &&
 		period.FeedbackRecords <= period.PerformedSessions &&
 		period.SessionsWithCompleteFeedback <= period.FeedbackRecords &&
+		period.SessionsWithSatisfaction <= period.FeedbackRecords &&
+		period.SessionsWithTerrain <= period.FeedbackRecords &&
+		period.SessionsWithExternalConditions <= period.FeedbackRecords &&
 		period.PainReportedSessions <= period.FeedbackRecords &&
 		period.HighFatigueSessions <= period.SessionsWithCompleteFeedback &&
 		period.AboveTargetRPESessions <= period.PerformedSessions &&
