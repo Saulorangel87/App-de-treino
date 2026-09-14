@@ -603,6 +603,12 @@ O perfil agora diferencia **Não informar**, **Estou treinando regularmente** e 
 
 A versão `0.27.0` foi publicada no commit `61458ae` após validação manual dos cenários regular e retorno. O backup `cadencia-20260914T102918Z.dump` foi criado e verificado, não houve migração nova, os quatro serviços ficaram saudáveis, `/ready` respondeu corretamente e os dois domínios públicos retornaram HTTP 200. A release do GitHub ainda não foi criada.
 
+### Continuidade — piloto de limiar controlado — versão local `0.28.0`
+
+O catálogo ganhou a preferência explícita **Limiar** e o protocolo `controlled_threshold`, apresentado como **Limiar controlado**. Ele usa três blocos de 8 minutos em RPE 7,5, com 4 minutos leves entre os blocos, e só é elegível para estrada ou indoor, nível avançado, objetivo compatível, avaliação submáxima apta, histórico mínimo de oito semanas e três pedais semanais, além de 60 minutos disponíveis e fase compatível com o evento.
+
+A evidência em ciclistas treinados orienta a investigação do formato, mas não valida uma dose universal; por isso, a sessão permanece um piloto conservador, sem potência fixa, sem estimativa automática de limiar, sem progressão automática e sem autoridade adicional para os shadows. Não há migração. A validação automatizada e a conferência manual no navegador ainda estão pendentes; produção continua na `0.27.0`.
+
 ### Continuidade — contexto de segurança detalhado do perfil — versão local `0.21.0`
 
 A etapa de segurança do perfil foi ampliada com quatro campos opcionais para uma limitação: localização, intensidade percebida, movimento agravante e data de início. A API valida tamanho, faixa e data; a migração `000022_limitation_context` é aditiva e preserva dados anteriores. A tela informa que o contexto não é diagnóstico e continua recomendando avaliação profissional quando necessário.

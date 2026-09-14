@@ -1,0 +1,17 @@
+./adaptation.go
+./adaptation_audit.go
+./data_integrity.go
+./execution_comparison.go
+./history.go
+./load_tolerance.go
+./periodization_shadow.go
+./planning_coherence_shadow.go
+./post_workout_context.go
+./protocols.go
+./readiness.go
+./rules_v2.go
+./rules_v2_adaptation.go
+./service.go
+./stimulus_distribution_gate.go
+./stimulus_selection_shadow.go
+./taper.go

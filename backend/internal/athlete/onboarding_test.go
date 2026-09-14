@@ -153,7 +153,7 @@ func TestSaveCyclingContextRejectsExcludedDisciplines(t *testing.T) {
 }
 
 func TestSaveCyclingContextAcceptsAllSessionPreferences(t *testing.T) {
-	input := CyclingContext{PreferredSessionTypes: []string{"base", "cadence", "hills", "intervals", "sweet_spot", "vo2max", "short_intervals", "recovery"}}
+	input := CyclingContext{PreferredSessionTypes: []string{"base", "cadence", "hills", "intervals", "threshold", "sweet_spot", "vo2max", "short_intervals", "recovery"}}
 	if _, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", input); err != nil {
 		t.Fatalf("expected all available session preferences to be accepted, got %v", err)
 	}
@@ -170,6 +170,13 @@ func TestSaveCyclingContextAcceptsVO2MaxSessionPreference(t *testing.T) {
 	input := CyclingContext{PreferredSessionTypes: []string{"vo2max"}}
 	if _, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", input); err != nil {
 		t.Fatalf("expected VO₂max session preference to be accepted, got %v", err)
+	}
+}
+
+func TestSaveCyclingContextAcceptsThresholdSessionPreference(t *testing.T) {
+	input := CyclingContext{PreferredSessionTypes: []string{"threshold"}}
+	if _, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", input); err != nil {
+		t.Fatalf("expected threshold session preference to be accepted, got %v", err)
 	}
 }
 

@@ -114,6 +114,14 @@ O protocolo `return_after_break`, apresentado como **Retorno gradual**, é uma r
 
 O motor limita essas sessões a 45 minutos e RPE 3,5, com aquecimento, pedal contínuo e desaquecimento. A regra substitui sessões de qualidade e o volume mais longo durante a retomada, mas não substitui as proteções de limitação, dor ou recuperação insuficiente. **Não informar** e **treinar regularmente** não disparam o protocolo, mesmo que o atleta informe duas semanas.
 
+### Novo piloto local: limiar controlado
+
+O protocolo `controlled_threshold`, apresentado como **Limiar controlado**, foi adicionado como uma preferência explícita para testar um estímulo de qualidade separado do tempo controlado e dos intervalos já existentes. Ele usa três blocos de 8 minutos em RPE 7,5, com 4 minutos leves entre os blocos, aquecimento e desaquecimento. O RPE é uma orientação de esforço percebido; o protocolo não estima limiar, não fixa potência e não trata frequência cardíaca como equivalente universal.
+
+O motor só o seleciona para estrada ou indoor, nível avançado, objetivo de performance ou evento, avaliação submáxima apta, pelo menos oito semanas de treino recente, três pedais semanais informados, pelo menos 60 minutos disponíveis e fase compatível com o evento. Limitação, dor, recuperação insuficiente, semana de recuperação, retorno após pausa, evento fora da fase específica ou qualquer perfil menor impedem o piloto e mantêm o fallback do `rules-v1`.
+
+A escolha é uma adaptação conservadora da literatura em ciclistas treinados: o estudo de blocos moderados e intensos de 2025 mediu, entre outros desfechos, potência associada a 4 mmol/L de lactato e encontrou respostas dependentes da intensidade, mas não representa iniciantes nem valida a dose do Cadência. A revisão de distribuição de intensidade de 2024 também não sustenta superioridade universal de um modelo. Por isso, o protocolo permanece um piloto explícito, com preferência, histórico e avaliação mínimos, sem progressão automática e sem autoridade adicional para os shadows.
+
 ## Modelo e critérios de integração do catálogo
 
 O contexto agora guarda `bike_type`, `terrain` e uma disciplina explícita, opcional e validada. A disciplina não é inferida pelo tipo de bicicleta: XCO, XCM, gravel e os demais contextos permitidos só podem ser usados quando o atleta os informa diretamente. As migrações `000015` e `000016` registram as fontes do catálogo inicial e do piloto XCO na produção. Os identificadores legados `dh_enduro` e `track_sprint` não são modalidades válidas do app e são rejeitados ao salvar o perfil. Cada protocolo permitido continua dependendo de revisão de elegibilidade, segurança e transferência da evidência antes de ser publicado.

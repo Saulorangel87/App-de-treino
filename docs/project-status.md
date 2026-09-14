@@ -706,3 +706,9 @@ Os shadows de periodização e seleção de estímulos reconhecem a nova chave c
 O perfil agora diferencia **Não informar**, **Estou treinando regularmente** e **Estou retornando após uma pausa**. Somente a última opção ativa o protocolo `return_after_break`, apresentado como **Retorno gradual**; a regra limita as sessões a 45 minutos e RPE 3,5 e substitui qualidade e maior volume durante a retomada. Semanas preenchidas, sozinhas, não reduzem o plano.
 
 As proteções de limitação, dor e recuperação continuam prioritárias; os shadows reconhecem a necessidade de retorno sem ganhar autoridade prescritiva. A nota `0.27.0` foi ajustada e a versão foi publicada sem migração nova ou alteração de infraestrutura. O backup `cadencia-20260914T102918Z.dump` foi criado e verificado; API, frontend, PostgreSQL e Tunnel ficaram saudáveis, `/ready` respondeu corretamente, os dois domínios públicos retornaram HTTP 200 e o HTML público contém `0.27.0`. A validação manual do menu e dos dois comportamentos passou. A release do GitHub ainda não foi criada.
+
+### Vigésima segunda fatia — piloto local de limiar controlado — versão `0.28.0` em validação
+
+O perfil agora oferece a preferência opcional **Limiar**. O motor pode apresentar **Limiar controlado** somente para estrada ou indoor, nível avançado, objetivo de performance/prova, avaliação submáxima apta, oito semanas de treino recente, três pedais semanais, pelo menos 60 minutos disponíveis e fase compatível com o evento. A sessão usa três blocos de 8 minutos em RPE 7,5 com 4 minutos leves, sem potência universal ou estimativa automática de limiar.
+
+O protocolo permanece no `rules-v1` local como piloto explícito e não altera o `rules-v2`, os shadows, a carga por feedback ou as proteções de dor e recuperação. Não há migração. A suíte automatizada e o build ainda precisam ser executados, seguidos de validação manual no navegador; não há commit, deploy ou release desta fatia.

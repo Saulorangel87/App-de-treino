@@ -1,0 +1,4 @@
+./digest.go
+./service.go
+./digest_test.go
+./service_test.go

@@ -225,6 +225,88 @@ func TestBuildPlanUsesShortSelfRegulatedIntervalsForExplicitEligiblePreference(t
 	t.Fatalf("expected explicit eligible context to receive the short interval pilot, got %#v", plan.Workouts)
 }
 
+func TestBuildPlanUsesControlledThresholdForExplicitEligiblePreference(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 8, Discipline: "road", PreferredSessionTypes: []string{"threshold"}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name != "Limiar controlado" {
+			continue
+		}
+		if workout.Structure["protocol_key"] != "controlled_threshold" || workout.Explanation["protocol_key"] != "controlled_threshold" {
+			t.Fatalf("expected controlled threshold protocol metadata, got %#v", workout)
+		}
+		if workout.TargetRPE != 7.5 || workout.DurationMinutes > 90 {
+			t.Fatalf("unexpected controlled threshold load: %#v", workout)
+		}
+		if workout.Explanation["evidence_keys"].([]string)[0] != "road-block-comparison-2025" {
+			t.Fatalf("expected threshold evidence mapping, got %#v", workout.Explanation)
+		}
+		steps := workout.Structure["steps"].([]WorkoutStep)
+		if steps[1].Title != "Bloco de limiar 1 de 3" || steps[1].DurationMinutes != 8 || steps[2].Kind != "recovery" || steps[2].DurationMinutes != 4 {
+			t.Fatalf("expected controlled threshold interval structure, got %#v", steps)
+		}
+		return
+	}
+	t.Fatalf("expected explicit eligible context to receive the controlled threshold pilot, got %#v", plan.Workouts)
+}
+
+func TestBuildPlanDoesNotUseControlledThresholdOutsideEligibleContext(t *testing.T) {
+	cases := []Context{
+		{
+			ProfileID: "profile-1", ExperienceLevel: "intermediate", PrimaryGoal: "performance", BaselineEligible: true,
+			Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+			Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 8, Discipline: "road", PreferredSessionTypes: []string{"threshold"}},
+		},
+		{
+			ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+			Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+			Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 7, Discipline: "road", PreferredSessionTypes: []string{"threshold"}},
+		},
+		{
+			ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+			Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 45}, {Weekday: 6, AvailableMinutes: 180}},
+			Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 8, Discipline: "indoor", PreferredSessionTypes: []string{"threshold"}},
+		},
+	}
+	for index, input := range cases {
+		plan, err := buildPlan(input, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+		if err != nil {
+			t.Fatalf("case %d returned unexpected error: %v", index, err)
+		}
+		for _, workout := range plan.Workouts {
+			if workout.Name == "Limiar controlado" || workout.Structure["protocol_key"] == "controlled_threshold" {
+				t.Fatalf("case %d must not use controlled threshold protocol: %#v", index, workout)
+			}
+		}
+	}
+}
+
+func TestBuildPlanControlledThresholdYieldsToPainProtection(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 8, Discipline: "road", PreferredSessionTypes: []string{"threshold"}},
+		Observed:     ObservedTrainingSummary{WindowDays: 28, CompletedSessions: 2, PainReported: true},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name == "Limiar controlado" || workout.Structure["protocol_key"] == "controlled_threshold" {
+			t.Fatalf("pain must override the controlled threshold protocol: %#v", workout)
+		}
+		if workout.Name == "Giro leve protegido" && workout.Structure["protocol_key"] != "protected_recovery" {
+			t.Fatalf("expected protected fallback, got %#v", workout)
+		}
+	}
+}
+
 func TestBuildPlanDoesNotUseShortSelfRegulatedIntervalsOutsideEligibleContext(t *testing.T) {
 	cases := []Context{
 		{
@@ -497,7 +579,7 @@ func TestSessionProtocolsKeepEvidenceMapping(t *testing.T) {
 	for _, name := range []string{
 		"Giro de base", "Recuperação ativa", "Retorno gradual", "Endurance contínuo", "Pedal longo", "Giro leve protegido", "Tempo controlado",
 		"Ritmo de prova controlado", "Cadência técnica", "Subidas controladas",
-		"Sweet spot por potência", "Sweet spot progressivo", "Intervalos controlados", "Intervalos moderados de estrada", "Intervalos intensos de estrada", "Intervalos VO₂max de estrada", "Intervalos aeróbicos XCO",
+		"Sweet spot por potência", "Sweet spot progressivo", "Limiar controlado", "Intervalos controlados", "Intervalos moderados de estrada", "Intervalos intensos de estrada", "Intervalos VO₂max de estrada", "Intervalos aeróbicos XCO",
 	} {
 		protocol := protocolForWorkout(name)
 		if protocol.Key == "" || len(protocol.EvidenceKeys) == 0 || protocol.EvidenceScope == "" {

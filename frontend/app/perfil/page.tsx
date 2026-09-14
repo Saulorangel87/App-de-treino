@@ -32,7 +32,7 @@ const initialAvailability = (): Availability[] => DAYS.map((_, weekday) => ({ we
 const initialCyclingContext: CyclingContext = { weekly_hours: 0, longest_ride_minutes: 0, weekly_rides: 0, recent_weekly_distance_km: 0, recent_training_weeks: 0, training_status: 'not_informed', recent_best_distance_km: 0, preferred_session_types: [], discipline: '', bike_type: '', terrain: '', uses_heart_rate: false, uses_power: false, event_goal: false };
 const TRAINING_STATUSES = new Set<TrainingStatus>(['not_informed', 'regular', 'returning_after_break']);
 const EXCLUDED_DISCIPLINES = new Set(['dh_enduro', 'track_sprint']);
-const SESSION_PREFERENCES = [{ value: 'base', label: 'Giro/base' }, { value: 'cadence', label: 'Cadência' }, { value: 'hills', label: 'Subidas' }, { value: 'intervals', label: 'Intervalos' }, { value: 'sweet_spot', label: 'Sweet spot' }, { value: 'vo2max', label: 'VO₂max' }, { value: 'short_intervals', label: 'Intervalos curtos' }, { value: 'recovery', label: 'Recuperação' }];
+const SESSION_PREFERENCES = [{ value: 'base', label: 'Giro/base' }, { value: 'cadence', label: 'Cadência' }, { value: 'hills', label: 'Subidas' }, { value: 'intervals', label: 'Intervalos' }, { value: 'threshold', label: 'Limiar' }, { value: 'sweet_spot', label: 'Sweet spot' }, { value: 'vo2max', label: 'VO₂max' }, { value: 'short_intervals', label: 'Intervalos curtos' }, { value: 'recovery', label: 'Recuperação' }];
 
 const stepCopy = [
   { kicker: 'PERFIL DO ATLETA · ETAPA 1', title: 'Conte-nos onde você está agora.', description: 'Esses dados definem os limites iniciais. Você poderá atualizá-los quando quiser.', icon: ShieldAlert, asideTitle: 'Uma base segura', aside: 'Experiência e rotina ajudam o Cadência a começar com uma carga compatível com seu momento.' },

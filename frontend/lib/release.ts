@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.27.0';
+export const APP_VERSION = '0.28.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.28.0',
+    title: 'Piloto de limiar controlado',
+    description:
+      'Atletas avançados elegíveis podem indicar Limiar como preferência para uma sessão conservadora de três blocos. O Cadência exige contexto de estrada ou indoor, avaliação apta e histórico mínimo; a sessão usa RPE, não define potência universal e mantém todas as proteções de dor e recuperação.',
+  },
   {
     version: '0.27.0',
     title: 'Situação de treino mais explícita',
