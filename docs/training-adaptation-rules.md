@@ -31,7 +31,7 @@ Na geração do plano, o motor mantém a frequência, os limites de duração, a
 - **Preferência VO₂max em estrada avançada elegível:** contexto `road` explícito, preferência `vo2max`, pelo menos oito semanas e três pedais semanais recentes, objetivo de performance/prova, avaliação submáxima apta, pelo menos 60 minutos disponíveis e semana de construção liberam o piloto de intervalos VO₂max de estrada. Ele usa quatro blocos de 4 minutos com 4 minutos leves, RPE 8, sem sprint máximo, cadência obrigatória ou meta fixa de potência; a estrutura adapta estudos em ciclistas bem treinados e não transforma VO₂max em um valor inferido pelo aplicativo.
 - **Preferência de limiar em estrada ou indoor avançado elegível:** preferência explícita `threshold`, pelo menos oito semanas e três pedais semanais recentes, objetivo de performance/prova, avaliação submáxima apta, pelo menos 60 minutos disponíveis e fase compatível com o evento liberam o piloto de limiar controlado. Ele usa três blocos de 8 minutos com 4 minutos leves, RPE 7,5, sem meta universal de potência; a estrutura é uma adaptação conservadora de evidência em ciclistas treinados.
 
-Quando o ciclista informa preferências de sessão, elas orientam a escolha da sessão de qualidade dentro das mesmas proteções: cadência é elegível para intermediários e avançados; subidas exigem terreno com subidas; sweet spot exige nível avançado e, para potência, FTP informado; limiar exige estrada ou indoor, nível avançado, avaliação submáxima apta, objetivo compatível e histórico mínimo; intervalos continuam exigindo avaliação submáxima apta, objetivo compatível e semana de construção; VO₂max exige adicionalmente estrada, nível avançado e histórico mínimo. Se todas as opções forem marcadas, o motor interpreta isso como abertura a qualquer protocolo e mantém a seleção contextual padrão. Giro/base e recuperação permanecem preferências registradas, sem transformar todos os dias em sessões de qualidade.
+Quando o ciclista informa preferências de sessão, elas orientam a escolha da sessão de qualidade dentro das mesmas proteções: cadência é elegível para intermediários e avançados; subidas exigem terreno com subidas; sweet spot exige nível avançado e, para potência, FTP informado; limiar exige estrada ou indoor, nível avançado, avaliação submáxima apta e histórico mínimo; intervalos continuam exigindo avaliação submáxima apta, objetivo compatível e semana de construção; VO₂max exige adicionalmente estrada, nível avançado e histórico mínimo. Se houver baixa aderência observada no período de 28 dias, o `rules-v1` adia a sessão de qualidade e mantém sessões contínuas para reduzir complexidade e favorecer consistência. Se todas as opções forem marcadas, o motor interpreta isso como abertura a qualquer protocolo e mantém a seleção contextual padrão. Giro/base e recuperação permanecem preferências registradas, sem transformar todos os dias em sessões de qualidade.
 
 Se houver limitação ativa, a sessão específica é substituída pelo giro leve protegido. Iniciantes não recebem essas sessões de qualidade específicas ainda. Sprints máximos e estímulos de pista não fazem parte do Cadência; não devem ser adicionados como modalidade, preferência ou protocolo.
 
@@ -262,13 +262,13 @@ A aderência planejada também funciona como gate separado para a progressão sh
 
 O `rules-v1` continua sendo a única fonte prescritiva. A implementação não altera o trigger pós-feedback, não modifica sessões futuras, não cria migração e não muda a interface; por isso, não exige nova nota de versão nesta fatia. A evidência de session-RPE orienta o método de registro, mas os critérios de cobertura e os estados são barreiras prudentes do produto, não limiares fisiológicos universais.
 
-### Comparação observacional entre planejado e realizado (`planned-vs-actual-v2`)
+### Comparação observacional entre planejado e realizado (`planned-vs-actual-v3`)
 
 Esta fatia registra, dentro de `workouts.explanation.adaptation_shadow`, a diferença descritiva entre a sessão planejada e a sessão concluída. São comparados a duração planejada e realizada, o RPE-alvo e o RPE realizado, além da cobertura do feedback, do contexto de conclusão e das métricas opcionais disponíveis no encerramento.
 
-O resultado pode ficar `observed` quando os dados mínimos da comparação estão válidos ou `not_evaluated` quando há duração, RPE, feedback ou contexto de conclusão inválidos/ausentes. `completion_status` informa `complete` ou `partial`; neste último caso, `partial_reason` identifica um dos motivos controlados. Satisfação, terreno e condições externas também são copiados quando válidos; quando não foram informados, ficam explícitos em `missing_data`. Cadência, sono, estresse e recuperação continuam explícitos em `not_evaluated`; métricas opcionais ausentes não invalidam a comparação principal.
+O resultado pode ficar `observed` quando os dados mínimos da comparação estão válidos ou `not_evaluated` quando há duração, RPE, feedback ou contexto de conclusão inválidos/ausentes. `completion_status` informa `complete` ou `partial`; neste último caso, `partial_reason` identifica um dos motivos controlados. Satisfação, terreno e condições externas também são copiados quando válidos; quando não foram informados, ficam explícitos em `missing_data`. A cadência média opcional (`average_cadence_rpm`) é registrada como cobertura observada quando informada, ou fica explícita em `missing_data` quando ausente. Sono, estresse e recuperação ainda permanecem em `not_evaluated`; métricas opcionais ausentes não invalidam a comparação principal.
 
-As diferenças de duração e RPE, assim como o status de conclusão, seu motivo e o contexto estruturado, são apenas registros de execução. O bloco mantém `progression_eligible: false` e `used_for_prescription: false`, não interpreta tolerância fisiológica nem aplica limiares de progressão. A versão `planned-vs-actual-v2` mantém compatibilidade de leitura com os demais campos e acrescenta a cobertura explícita do contexto estruturado. A validação manual local confirmou uma sessão de 3 minutos realizados de 35 planejados como `observed`, sem alteração da próxima sessão; esta nova extensão é somente local e não altera a versão visível.
+As diferenças de duração e RPE, assim como o status de conclusão, seu motivo, o contexto estruturado e a cadência média, são apenas registros de execução. O bloco mantém `progression_eligible: false` e `used_for_prescription: false`, não interpreta tolerância fisiológica nem aplica limiares de progressão. A versão `planned-vs-actual-v3` mantém compatibilidade de leitura com os demais campos e acrescenta a cobertura explícita da cadência média opcional. A validação manual local confirmou uma sessão de 3 minutos realizados de 35 planejados como `observed`, sem alteração da próxima sessão; esta nova extensão é somente local e não altera a versão visível.
 
 ### Contexto de conclusão parcial (`completion_status`)
 
@@ -282,7 +282,7 @@ Na avaliação `rules-v2-adaptation-v1`, a conclusão parcial agora é um gate e
 
 O feedback pode registrar também `recovery_after` e `repeat_confidence`, ambos em escala de 1 a 5. O primeiro descreve a recuperação percebida após a sessão; o segundo registra a confiança do atleta para repetir aquele treino. Os campos são opcionais no armazenamento para preservar feedbacks antigos e são preenchidos pelo formulário atual com uma resposta neutra inicial.
 
-Esses sinais são observacionais nesta versão: não são diagnóstico, não substituem o check-in diário, não autorizam progressão e não alteram o `rules-v1` ou o trigger pós-feedback. Quando presentes, aparecem no resumo da sessão, no histórico, em `planned-vs-actual-v2` e na auditoria de integridade; valores fora da faixa são rejeitados na API, no banco e na integridade observacional. A interpretação futura exige cobertura suficiente, comparação com a carga realizada e revisão específica antes de qualquer uso prescritivo.
+Esses sinais são observacionais nesta versão: não são diagnóstico, não substituem o check-in diário, não autorizam progressão e não alteram o `rules-v1` ou o trigger pós-feedback. Quando presentes, aparecem no resumo da sessão, no histórico, em `planned-vs-actual-v3` e na auditoria de integridade; valores fora da faixa são rejeitados na API, no banco e na integridade observacional. A interpretação futura exige cobertura suficiente, comparação com a carga realizada e revisão específica antes de qualquer uso prescritivo.
 
 Na fatia técnica seguinte, esses mesmos sinais passaram a ser classificados também pelo bloco `post-workout-context-v1`, aninhado em `workouts.explanation.adaptation_shadow`. O bloco registra cobertura completa, parcial, ausente ou inválida por meio de `observed_fields`, `missing_data`, `data_issues` e motivos explicáveis. Mesmo quando os dois valores estão presentes, `candidate_response: maintain_observed`, `progression_eligible: false` e `used_for_prescription: false` deixam explícito que o resultado é somente registro; não há limiar fisiológico, tendência longitudinal ou efeito prescritivo sendo inferido.
 
@@ -375,7 +375,7 @@ O backend valida os valores antes de persistir, e o histórico devolve os campos
 
 O encerramento de uma sessão pode registrar, de forma opcional, o equipamento utilizado, por exemplo bicicleta de estrada, rolo ou sensor. O valor é texto limitado a 120 caracteres, é preservado no plano e em `/atividades` e entra na auditoria somente como dado observado. Ele não é interpretado como qualidade do equipamento, não altera duração, RPE, estímulo ou carga e não substitui métricas de potência, frequência cardíaca ou distância.
 
-A migração `000024_equipment_feedback` é aditiva e mantém os feedbacks antigos válidos. O `data-integrity-v1`, `post-workout-context-v2`, `planned-vs-actual-v2` e `adaptation-audit-v1` usam a mesma regra de tamanho; valor inválido permanece fora da observação e não pode autorizar progressão.
+A migração `000024_equipment_feedback` é aditiva e mantém os feedbacks antigos válidos. O `data-integrity-v1`, `post-workout-context-v2`, `planned-vs-actual-v3` e `adaptation-audit-v1` usam a mesma regra de tamanho; valor inválido permanece fora da observação e não pode autorizar progressão.
 
 ## Sinais de alerta e restrição médica (`000025`)
 
@@ -404,3 +404,21 @@ O maior slot de disponibilidade do ciclo agora usa o nome **Pedal longo** para d
 Quando o atleta seleciona no perfil **Estou retornando após uma pausa**, o catálogo usa **Retorno gradual** para iniciar o ciclo com esforço leve. A seleção é um contexto declarado pelo usuário, não um diagnóstico nem uma leitura substituta da prontidão atual; informar apenas semanas de treino regular não ativa a regra.
 
 O protocolo usa RPE-alvo 3,5, limita a sessão a 45 minutos e mantém uma estrutura contínua com aquecimento e desaquecimento. Ele impede que a preferência ou a elegibilidade anterior liberem uma sessão de qualidade durante a retomada. Limitação, dor, fadiga e recuperação insuficiente continuam prevalecendo e podem selecionar `Giro leve protegido`.
+
+### Estado de prontidão observado
+
+`readiness_assessment.state` separa a situação atual dos dados da experiência declarada: `insufficient_data`, `caution`, `recovery_needed`, `returning_after_break`, `low_consistency`, `event_specific_preparation` e `stable_observed`. O campo é explicativo e observacional; `stable_observed` não significa aptidão clínica nem libera progressão.
+
+### Auditoria da decisão de cada sessão (`workout-decision-audit-v1`)
+
+Além das regras legíveis e das evidências do protocolo, cada sessão do `rules-v1` guarda uma auditoria estruturada com os gates avaliados, regras aplicadas, dados usados e ausentes, proteções, alternativas descartadas e condições que fariam a sessão mudar. O campo descreve a prescrição que o `rules-v1` já realizou e, por isso, usa `used_for_prescription: true`; ele não dá autoridade aos shadows.
+
+`confidence: rule_based_not_calibrated` deixa claro que a decisão é determinística e protegida, mas ainda não foi calibrada com resultados longitudinais individuais. A tela do plano apresenta os dados em **Ver detalhes da decisão**, sem depender de explicação gerada por IA.
+
+### Gate de integridade da adaptação ativa (`000027`)
+
+O gatilho do `rules-v1` só altera sessões futuras quando a sessão é completa, possui duração positiva, RPE válido e fadiga válida. Feedback parcial, dados mínimos ausentes ou inválidos e qualquer sinal protetivo nos 14 dias anteriores são preservados para auditoria, mas não alteram o plano. Uma adaptação efetivamente aplicada muda o treino futuro para `status: adapted`, mantendo o ciclo de estados aceito pela API.
+
+### Recuperação pós-prova (`post_event_recovery`)
+
+Após um evento declarado encerrado há no máximo sete dias, o plano pode usar uma sessão contínua de até 45 minutos em RPE 3,5. A regra não afirma uma dose científica universal: ela traduz uma decisão conservadora de redução de carga, baseada nas fontes `post-competition-recovery-2019` e `recovery-umbrella-2024`. Dor, limitação, fadiga e retorno após pausa continuam com precedência.

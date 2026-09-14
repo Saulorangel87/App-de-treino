@@ -566,13 +566,13 @@ Não faça commit, deploy ou publicação. Aguarde minha autorização explícit
 
 Atualizado em 14 de setembro de 2026. Este arquivo continua sendo um roadmap; os 16 tópicos não estão todos encerrados.
 
-### Auditoria atual — fatia local `0.29.0` validada e commitada
+### Auditoria atual — base `0.29.0` validada e candidata local `0.30.0`
 
-A fatia fecha lacunas verificáveis de segurança, feedback e integridade: equipamento usado no pedal, sintomas de alerta, restrição médica, bloqueio de sessão intensa depois de uma nova limitação, validação de valores não finitos, testes SQL das migrações e correções responsivas. Ela foi validada e registrada nos commits `8ff96e7` e `1da6d91`; produção permanece em `0.27.0` com schema até `000023`.
+A base `0.29.0` fecha lacunas verificáveis de segurança, feedback e integridade: equipamento usado no pedal, sintomas de alerta, restrição médica, bloqueio de sessão intensa depois de uma nova limitação, validação de valores não finitos, testes SQL das migrações e correções responsivas. Ela foi validada e registrada nos commits `8ff96e7` e `1da6d91`. A candidata local `0.30.0` acrescenta os gates de adaptação, recuperação pós-prova, baixa aderência e cadência média observacional; produção permanece em `0.27.0` com schema até `000023`.
 
 O que já ficou coberto por implementação e testes: escopo ciclístico (14), base de prontidão e situação de treino (1 e 5), regras versionadas em observação (2), parte do catálogo/elegibilidade (4), integridade/correção auditável (11), feedback estruturado (12), auditoria de decisões (13) e regressões principais (15). O lint geral ainda possui débitos antigos fora desta fatia; o build, os testes automatizados e a validação manual da entrega passaram.
 
-O que continua pendente de verdade: adaptação em ciclo fechado autoritativa (6), carga/progressão com calibração (7), periodização completa aplicada (8), seleção plenamente orientada pela necessidade (9), validação clínica dos sinais de segurança (10), catálogo/evidências com todos os metadados exigidos (3 e 4), matriz integral de aceitação (15) e validação longitudinal com dados reais (16). Não vou marcar esses itens como concluídos apenas porque existem campos ou snapshots `shadow`.
+O que continua pendente de verdade não é uma tarefa local esquecida, mas a validação externa necessária para ampliar autoridade: adaptação em ciclo fechado além das proteções atuais (6), carga/progressão calibrada (7), periodização individual de longo prazo (8), seleção plenamente orientada pelo efeito (9), calibração clínica dos sinais (10) e validação longitudinal com dados reais (16). A matriz verificável dos 16 tópicos, seus testes e suas condições de saída está em [`docs/roadmap-acceptance.md`](docs/roadmap-acceptance.md). Não vou marcar essas condições externas como concluídas apenas porque existem campos ou snapshots `shadow`.
 
 ### Base implementada e publicada
 
@@ -583,13 +583,12 @@ O que continua pendente de verdade: adaptação em ciclo fechado autoritativa (6
 - A auditoria observacional da seleção de estímulos foi validada e publicada, relacionando necessidade inferida, estímulos esperados e estímulos selecionados, sem autoridade sobre a prescrição.
 - A primeira integração observacional entre periodização, distribuição histórica e seleção de estímulos foi publicada como `planning-coherence-shadow-v1`; ela resume os componentes, verifica precedência de recuperação e registra divergências sem autoridade sobre a prescrição.
 
-### Tópicos ainda parciais
+### Fechamento verificável dos 16 tópicos
 
-- Os tópicos 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15 e 16 possuem base implementada, mas ainda não atendem integralmente aos critérios finais deste documento.
+- Os itens implementáveis no checkout foram mapeados para código, testes e contrato em [`docs/roadmap-acceptance.md`](docs/roadmap-acceptance.md). Cada sessão gerada agora também recebe `workout-decision-audit-v1`, exibindo dados considerados, lacunas, restrições, alternativas descartadas e condições de mudança sem criar um segundo motor.
 - A fatia local `0.29.0` completa a coleta dos sinais de segurança e do equipamento, porém não interpreta esses dados como diagnóstico nem lhes concede autoridade para aumentar carga.
-- O tópico 9 agora possui uma primeira auditoria local de compatibilidade entre necessidade e estímulo, mas ainda não seleciona alternativas de forma prescritiva.
-- A periodização atual audita quatro semanas e fases amplas; não representa ainda todas as fases completas do planejamento esportivo.
-- O catálogo ainda não contém todos os templates previstos e cada novo protocolo exige revisão própria de evidência, elegibilidade e segurança.
+- Os tópicos 6 a 10 e 16 ainda possuem condições externas de validação: dados longitudinais, revisão científica/clínica ou autorização explícita para transferir autoridade. Elas não são tarefas de código pendentes e permanecem bloqueadas de forma documentada.
+- O catálogo só amplia protocolos quando houver evidência, elegibilidade e segurança próprias; descanso completo é tratado como dia sem sessão, enquanto modalidades e esforços máximos fora do escopo permanecem excluídos.
 
 ### Continuidade — tópicos 3 e 4: estrutura científica e operacional — migração local `000026`
 
@@ -598,6 +597,20 @@ A fatia técnica elimina a principal lacuna estrutural do tópico 3: `scientific
 No tópico 4, cada protocolo já selecionável passa a declarar metadados operacionais auditáveis além da estrutura existente do treino: objetivos, indicação, contraindicação, nível, pré-requisitos, orientação por sensor quando aplicável, interrupção, progressão e regressão. A mudança não adiciona carga nem novo protocolo ao `rules-v1`; os templates ainda ausentes continuam pendentes e só poderão entrar após evidência, elegibilidade, segurança e testes próprios.
 
 A migração `000026` foi aplicada somente no PostgreSQL local e o teste transacional confirmou 25 fontes preenchidas, constraints de confiança e regras relacionadas. A suíte Go, `go vet`, build do frontend e `git diff --check` passaram. O lint geral mantém débitos anteriores fora dos arquivos alterados.
+
+### Continuidade — gates de adaptação e recuperação pós-prova — candidata local `0.30.0`
+
+Esta fatia do checkout acrescenta cinco entregas técnicas sem transferir autoridade ao `rules-v2`. Como a recuperação pós-prova e o registro de cadência média alteram a interface visível, a mudança também foi registrada na nota local `0.30.0` da aba de novidades:
+
+- `readiness_assessment.state` diferencia `insufficient_data`, `caution`, `recovery_needed`, `returning_after_break`, `low_consistency`, `event_specific_preparation` e `stable_observed`, sempre separado da experiência declarada;
+- a migração `000027_adaptation_integrity_gate` impede que feedback parcial, duração/RPE/fadiga ausentes ou inválidos e sinal protetivo recente alterem o plano; quando a adaptação ativa do `rules-v1` é permitida, o treino afetado passa a `status: adapted`;
+- o protocolo `post_event_recovery` limita a recuperação a até sete dias após o evento, 45 minutos e RPE 3,5, com a evidência registrada pela migração `000028`; retorno, dor, limitação e recuperação insuficiente continuam prevalecendo.
+- baixa aderência observada em 28 dias agora impede a inclusão da sessão de qualidade no `rules-v1`, reduzindo complexidade e deixando a decisão explícita nas regras da sessão.
+- a migração `000029_average_cadence_metric` registra cadência média opcional entre 1 e 300 rpm e a expõe apenas como observação no histórico e em `planned-vs-actual-v3`; não cria meta nem muda a prescrição.
+
+Os fixtures SQL `000027`, `000028` e `000029` foram executados no PostgreSQL local com transações revertidas. A suíte Go, `go vet`, `npm run build`, o lint específico dos arquivos alterados e `git diff --check` passaram. O `npm run lint` geral continua falhando somente em débitos anteriores de arquivos fora desta fatia; nenhum deles foi introduzido aqui. Esta alteração ainda não foi commitada, publicada ou aplicada em produção.
+
+Ela fecha mais uma parte verificável dos tópicos 1, 4, 5, 6, 8, 11 e 15, mas não encerra os tópicos que exigem calibração longitudinal, dados reais, revisão clínica ou autoridade nova do `rules-v2`.
 
 ### Pendências que não devem ser consideradas concluídas
 

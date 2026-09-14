@@ -113,6 +113,28 @@ func TestGenerateBuildsFourWeeksAndRespectsAvailability(t *testing.T) {
 	}
 }
 
+func TestGenerateAttachesDecisionAuditToEveryWorkout(t *testing.T) {
+	store := &planStore{input: Context{
+		ProfileID: "profile-1", ExperienceLevel: "intermediate", PrimaryGoal: "endurance",
+		Availability: []AvailabilitySlot{{Weekday: 1, AvailableMinutes: 45}, {Weekday: 6, AvailableMinutes: 90}},
+	}}
+	service := NewService(store)
+	service.now = func() time.Time { return time.Date(2026, 8, 30, 12, 0, 0, 0, time.UTC) }
+	plan, err := service.Generate(context.Background(), "user-1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		audit, ok := workout.Explanation["decision_audit"].(WorkoutDecisionAudit)
+		if !ok {
+			t.Fatalf("workout %q has no typed decision audit: %#v", workout.Name, workout.Explanation)
+		}
+		if audit.Version != workoutDecisionAuditVersion || !audit.UsedForPrescription || len(audit.DataUsed) == 0 || len(audit.RulesApplied) == 0 {
+			t.Fatalf("workout %q decision audit is incomplete: %#v", workout.Name, audit)
+		}
+	}
+}
+
 func TestGenerateCapsIntensityWhenLimitationExists(t *testing.T) {
 	store := &planStore{input: Context{
 		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance",
@@ -508,6 +530,48 @@ func TestBuildPlanUsesHillyTerrainForIntermediateQualitySession(t *testing.T) {
 		}
 	}
 	t.Fatalf("expected a hilly-terrain quality session, got %#v", plan.Workouts)
+}
+
+func TestBuildPlanDoesNotAssignQualitySessionToBeginner(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "beginner", PrimaryGoal: "fitness",
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 75}, {Weekday: 6, AvailableMinutes: 150}},
+		Cycling:      CyclingContext{PreferredSessionTypes: []string{"intervals"}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.TargetRPE >= qualityTargetRPEThreshold {
+			t.Fatalf("beginner plan must keep quality stimulus out: %#v", workout)
+		}
+	}
+}
+
+func TestBuildPlanDoesNotAssignQualitySessionAfterLowAdherence(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 150}},
+		Cycling:      CyclingContext{Discipline: "road", WeeklyRides: 4, RecentTrainingWeeks: 10},
+		TrainingHistory: []TrainingHistoryWindow{{
+			WindowDays: 28, ExpectedSessions: 8, MissedSessions: 1,
+		}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.TargetRPE >= qualityTargetRPEThreshold {
+			t.Fatalf("low adherence must defer quality stimulus: %#v", workout)
+		}
+		foundReason := false
+		for _, rule := range workout.Explanation["rules"].([]string) {
+			foundReason = foundReason || rule == "Baixa aderência observada: a sessão de qualidade não foi incluída para reduzir complexidade e favorecer a retomada da consistência."
+		}
+		if !foundReason {
+			t.Fatalf("low-adherence decision must be explained: %#v", workout.Explanation)
+		}
+	}
 }
 
 func TestBuildPlanUsesSelectedCadencePreference(t *testing.T) {
@@ -1043,8 +1107,8 @@ func TestCorrectWorkoutValidatesAndDelegates(t *testing.T) {
 
 func TestCorrectWorkoutRejectsInvalidOptionalMetric(t *testing.T) {
 	store := &planStore{}
-	invalidDistance := 2001.0
-	_, err := NewService(store).CorrectWorkout(context.Background(), "user-1", "9a1eead7-6168-4d50-8c7c-451301e29d85", WorkoutCorrectionInput{DistanceKM: &invalidDistance})
+	invalidCadence := 301
+	_, err := NewService(store).CorrectWorkout(context.Background(), "user-1", "9a1eead7-6168-4d50-8c7c-451301e29d85", WorkoutCorrectionInput{AverageCadenceRPM: &invalidCadence})
 	if err != ErrInvalidCorrection || store.correctedID != "" {
 		t.Fatalf("invalid correction must be rejected: %#v, %v", store, err)
 	}
@@ -1089,9 +1153,9 @@ func TestCompleteWorkoutRejectsInvalidFeedback(t *testing.T) {
 
 func TestCompleteWorkoutRejectsInvalidOptionalMetrics(t *testing.T) {
 	store := &planStore{}
-	tooHighPower := 2001
+	tooHighCadence := 301
 	_, err := NewService(store).CompleteWorkout(context.Background(), "user-1", "9a1eead7-6168-4d50-8c7c-451301e29d85", CompletionInput{
-		ActualRPE: 5, Difficulty: "moderate", FatigueAfter: 3, AveragePowerW: &tooHighPower,
+		ActualRPE: 5, Difficulty: "moderate", FatigueAfter: 3, AverageCadenceRPM: &tooHighCadence,
 	})
 	if err != ErrInvalidFeedback || store.completedID != "" {
 		t.Fatalf("invalid optional metrics must be rejected before persistence: %#v, %v", store, err)

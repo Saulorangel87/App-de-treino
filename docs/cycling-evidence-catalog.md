@@ -162,6 +162,12 @@ Cada novo protocolo também deverá declarar, em código:
 - progressão e semana de recuperação;
 - travas por limitação, dor e recuperação insuficiente.
 
+### Protocolo implementado localmente — recuperação pós-prova (`post_event_recovery`)
+
+O protocolo é selecionado somente quando há evento declarado encerrado há até sete dias. Ele limita a sessão a 45 minutos e RPE 3,5, sem séries de qualidade; após a janela, o planejamento volta à lógica normal. Dor, limitação, fadiga ou retorno após pausa têm precedência. A regra não prescreve nutrição, medicamento ou estratégia clínica.
+
+A literatura usada é uma revisão específica sobre recuperação em competição de ciclismo e uma umbrella review de atletas de endurance. A segunda conclui que não há uma estratégia de recuperação consistentemente eficaz para todos os atletas; por isso, a implementação reduz carga como proteção operacional e não afirma eficácia universal da sessão. O protocolo está no checkout local, com as fontes registradas pela migração `000028`, e ainda não foi publicado.
+
 ## Registro inicial de fontes
 
 - **`road-intensity-2024`** — Oliveira, Boppre e Fonseca. *Comparison of Polarized Versus Other Types of Endurance Training Intensity Distribution on Athletes' Endurance Performance: A Systematic Review with Meta-analysis*. 2024. Revisão de 17 estudos; apoia comparação de distribuição de intensidade, sem superioridade universal para tempo de prova. https://pubmed.ncbi.nlm.nih.gov/38717713/
@@ -179,6 +185,8 @@ Cada novo protocolo também deverá declarar, em código:
 - **`road-vo2-intervention-2024`** — Hebisz e Hebisz. *Greater improvement in aerobic capacity after a polarized training program including cycling interval training at low cadence (50-70 RPM) than freely chosen cadence (above 80 RPM)*. 2024. Ensaio com ciclistas mulheres bem treinadas; informa blocos de 4 minutos em alta intensidade, mas não sustenta copiar carga, cadência ou potência para todos os perfis. https://pubmed.ncbi.nlm.nih.gov/39536034/
 - **`road-vo2-response-2024`** — Odden et al. *The higher the fraction of maximal oxygen uptake is during interval training, the greater is the cycling performance gain*. 2024. Intervenção observacional em ciclistas bem treinados; associa maior fração de VO₂max durante intervalos a ganhos de desempenho, sem definir dose universal. https://pubmed.ncbi.nlm.nih.gov/39385317/
 - **`road-onbike-strength-2025`** — Barranco-Gil et al. *Off- and On-Bike Resistance Training in Cyclists: A Randomized Controlled Trial*. 2025. Ensaio com 37 ciclistas bem treinados durante 10 semanas; o grupo na bicicleta usou esforços máximos contra resistência muito alta e cadência muito baixa, com carga calibrada por força máxima. Houve melhora de força, potência e estrutura muscular, mas não de VO₂max; o resultado não sustenta uma sessão baseada somente em RPE nem uma liberação para perfis gerais. https://pubmed.ncbi.nlm.nih.gov/39231694/
+- **`post-competition-recovery-2019`** — Richard e Koehle. *Optimizing recovery to support multi-evening cycling competition performance*. 2019. Revisão sobre recuperação em contexto competitivo de ciclismo; orienta priorizar recuperação e atividade leve, mas não valida uma janela ou dose universal. https://pubmed.ncbi.nlm.nih.gov/30589619/
+- **`recovery-umbrella-2024`** — Li, Kempe, Brink e Lemmink. *Effectiveness of Recovery Strategies After Training and Competition in Endurance Athletes: An Umbrella Review*. 2024. Umbrella review de 22 revisões e 1100 atletas; não encontrou estratégia consistentemente eficaz para todos os atletas de endurance, reforçando a necessidade de interpretação conservadora e individualizada. https://pubmed.ncbi.nlm.nih.gov/38753045/
 
 ## Critérios para os próximos protocolos
 

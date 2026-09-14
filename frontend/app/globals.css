@@ -3789,6 +3789,57 @@ a.footer-icon:hover {
   margin-top: 1px;
   color: var(--lime);
 }
+.workout-decision-audit {
+  margin-top: 16px;
+  padding: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.045);
+}
+.workout-decision-audit summary {
+  color: #eef6f2;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.workout-decision-audit > p {
+  margin: 9px 0 0;
+  color: #a9bfb6;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.workout-decision-audit-section {
+  margin-top: 11px;
+}
+.workout-decision-audit-section > strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #d8e5df;
+  font-size: 10px;
+}
+.workout-decision-audit-section ul {
+  margin-top: 0;
+  gap: 4px;
+}
+.workout-decision-audit-section li,
+.workout-decision-audit-section small {
+  display: block;
+  color: #a9bfb6;
+  font-size: 10px;
+  line-height: 1.5;
+}
+@media (min-width: 901px) {
+  .workout-decision-audit > p {
+    font-size: 11px;
+  }
+  .workout-decision-audit-section > strong {
+    font-size: 11px;
+  }
+  .workout-decision-audit-section li,
+  .workout-decision-audit-section small {
+    font-size: 11px;
+  }
+}
 .workout-detail .evidence-scope {
   margin: 7px 0 0;
   color: #9fb8ad;

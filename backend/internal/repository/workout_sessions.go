@@ -15,7 +15,7 @@ func (s *Store) ActivitiesByUserID(ctx context.Context, userID string) ([]planni
 		SELECT ws.id::text, w.id::text, w.name, w.objective, w.scheduled_on::text,
 			ws.status, ws.started_at, ws.completed_at, ws.cancelled_at,
 			ws.duration_minutes, ws.actual_rpe, ws.distance_km::double precision, ws.elevation_gain_m,
-			ws.average_power_watts, ws.average_heart_rate,
+			ws.average_power_watts, ws.average_heart_rate, ws.average_cadence_rpm,
 			f.completion_status, f.partial_reason, f.difficulty, f.pain_reported, f.fatigue_after,
 			f.recovery_after, f.repeat_confidence, f.satisfaction, f.terrain, f.external_conditions, f.equipment_used, f.notes
 		FROM workout_sessions ws
@@ -33,21 +33,21 @@ func (s *Store) ActivitiesByUserID(ctx context.Context, userID string) ([]planni
 	for rows.Next() {
 		var activity planning.Activity
 		var startedAt, completedAt, cancelledAt *time.Time
-		var duration, elevationGainM, averagePowerW, averageHeartRate *int
+		var duration, elevationGainM, averagePowerW, averageHeartRate, averageCadenceRPM *int
 		var rpe *float64
 		var distanceKM *float64
 		var completionStatus, partialReason, difficulty, terrain, externalConditions, equipmentUsed, notes *string
 		var pain *bool
 		var fatigue, recoveryAfter, repeatConfidence, satisfaction *int
 		if err := rows.Scan(&activity.ID, &activity.WorkoutID, &activity.Name, &activity.Objective, &activity.ScheduledOn,
-			&activity.Status, &startedAt, &completedAt, &cancelledAt, &duration, &rpe, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate,
+			&activity.Status, &startedAt, &completedAt, &cancelledAt, &duration, &rpe, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate, &averageCadenceRPM,
 			&completionStatus, &partialReason, &difficulty, &pain, &fatigue, &recoveryAfter, &repeatConfidence, &satisfaction, &terrain, &externalConditions, &equipmentUsed, &notes); err != nil {
 			return nil, err
 		}
 		activity.StartedAt, activity.CompletedAt, activity.CancelledAt = startedAt, completedAt, cancelledAt
 		activity.DurationMinutes, activity.ActualRPE = duration, rpe
 		activity.DistanceKM, activity.ElevationGainM = distanceKM, elevationGainM
-		activity.AveragePowerW, activity.AverageHeartRate = averagePowerW, averageHeartRate
+		activity.AveragePowerW, activity.AverageHeartRate, activity.AverageCadenceRPM = averagePowerW, averageHeartRate, averageCadenceRPM
 		if difficulty != nil {
 			activity.Feedback = &planning.Feedback{CompletionStatus: *completionStatus, Difficulty: *difficulty, PainReported: *pain, FatigueAfter: *fatigue, RecoveryAfter: recoveryAfter, RepeatConfidence: repeatConfidence, Satisfaction: satisfaction}
 			if partialReason != nil {
@@ -172,9 +172,10 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 			distance_km = $3,
 			elevation_gain_m = $4,
 			average_power_watts = $5,
-			average_heart_rate = $6
+			average_heart_rate = $6,
+			average_cadence_rpm = $7
 		WHERE id = $1
-		RETURNING duration_minutes`, sessionID, input.ActualRPE, input.DistanceKM, input.ElevationGainM, input.AveragePowerW, input.AverageHeartRate).Scan(&durationMinutes); err != nil {
+		RETURNING duration_minutes`, sessionID, input.ActualRPE, input.DistanceKM, input.ElevationGainM, input.AveragePowerW, input.AverageHeartRate, input.AverageCadenceRPM).Scan(&durationMinutes); err != nil {
 		return err
 	}
 	actualRPE := input.ActualRPE
@@ -187,6 +188,7 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 		ElevationGainM:     input.ElevationGainM,
 		AveragePowerW:      input.AveragePowerW,
 		AverageHeartRate:   input.AverageHeartRate,
+		AverageCadenceRPM:  input.AverageCadenceRPM,
 		FeedbackPresent:    true,
 		CompletionStatus:   input.CompletionStatus,
 		PartialReason:      input.PartialReason,
@@ -233,6 +235,7 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 		ElevationGainM:         input.ElevationGainM,
 		AveragePowerW:          input.AveragePowerW,
 		AverageHeartRate:       input.AverageHeartRate,
+		AverageCadenceRPM:      input.AverageCadenceRPM,
 	}, integrityAssessedAt)
 	shadow.PlannedVsActual = &plannedVsActual
 	if historyErr != nil {
@@ -300,16 +303,16 @@ func (s *Store) CorrectWorkoutDataByUserID(ctx context.Context, userID, workoutI
 	}
 
 	var sessionID string
-	var durationMinutes, elevationGainM, averagePowerW, averageHeartRate *int
+	var durationMinutes, elevationGainM, averagePowerW, averageHeartRate, averageCadenceRPM *int
 	var actualRPE, distanceKM *float64
 	err = tx.QueryRow(ctx, `
 		SELECT id::text, duration_minutes, actual_rpe::double precision,
-			distance_km::double precision, elevation_gain_m, average_power_watts, average_heart_rate
+			distance_km::double precision, elevation_gain_m, average_power_watts, average_heart_rate, average_cadence_rpm
 		FROM workout_sessions
 		WHERE workout_id = $1 AND status = 'completed'
 		ORDER BY created_at DESC
 		LIMIT 1
-		FOR UPDATE`, workoutID).Scan(&sessionID, &durationMinutes, &actualRPE, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate)
+		FOR UPDATE`, workoutID).Scan(&sessionID, &durationMinutes, &actualRPE, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate, &averageCadenceRPM)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return planning.ErrWorkoutCorrection
 	}
@@ -356,12 +359,14 @@ func (s *Store) CorrectWorkoutDataByUserID(ctx context.Context, userID, workoutI
 			"elevation_gain_m":    elevationGainM,
 			"average_power_watts": averagePowerW,
 			"average_heart_rate":  averageHeartRate,
+			"average_cadence_rpm": averageCadenceRPM,
 		},
 		"corrected": map[string]any{
 			"distance_km":         input.DistanceKM,
 			"elevation_gain_m":    input.ElevationGainM,
 			"average_power_watts": input.AveragePowerW,
 			"average_heart_rate":  input.AverageHeartRate,
+			"average_cadence_rpm": input.AverageCadenceRPM,
 		},
 	}
 	history, _ := explanation["data_integrity_corrections"].([]any)
@@ -399,6 +404,7 @@ func (s *Store) CorrectWorkoutDataByUserID(ctx context.Context, userID, workoutI
 		ElevationGainM:     input.ElevationGainM,
 		AveragePowerW:      input.AveragePowerW,
 		AverageHeartRate:   input.AverageHeartRate,
+		AverageCadenceRPM:  input.AverageCadenceRPM,
 		FeedbackPresent:    feedbackPresent,
 		CompletionStatus:   completionValue,
 		PartialReason:      partialReasonValue,
@@ -415,8 +421,8 @@ func (s *Store) CorrectWorkoutDataByUserID(ctx context.Context, userID, workoutI
 
 	if _, err := tx.Exec(ctx, `
 		UPDATE workout_sessions
-		SET distance_km = $2, elevation_gain_m = $3, average_power_watts = $4, average_heart_rate = $5
-		WHERE id = $1`, sessionID, input.DistanceKM, input.ElevationGainM, input.AveragePowerW, input.AverageHeartRate); err != nil {
+		SET distance_km = $2, elevation_gain_m = $3, average_power_watts = $4, average_heart_rate = $5, average_cadence_rpm = $6
+		WHERE id = $1`, sessionID, input.DistanceKM, input.ElevationGainM, input.AveragePowerW, input.AverageHeartRate, input.AverageCadenceRPM); err != nil {
 		return err
 	}
 	explanation["data_integrity"] = integrity

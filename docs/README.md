@@ -11,6 +11,7 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 - [`training-adaptation-rules.md`](training-adaptation-rules.md): comportamento atual do motor `rules-v1`, adaptação e evidências gerais.
 - [`training-cycle-lifecycle.md`](training-cycle-lifecycle.md): estados, transições e regras do ciclo de treino.
 - [`cycling-evidence-catalog.md`](cycling-evidence-catalog.md): catálogo de evidências e critérios de elegibilidade dos protocolos específicos de ciclismo.
+- [`roadmap-acceptance.md`](roadmap-acceptance.md): matriz verificável dos 16 tópicos de `melhorias.md`, com testes e condições externas de saída.
 - [`README.md`](../README.md): visão geral, instalação local, rotas e fluxo funcional.
 - [`infrastructure/README.md`](../infrastructure/README.md) e [`infrastructure/cadencia/README.md`](../infrastructure/cadencia/README.md): somente operação da produção na VPS Oracle.
 
@@ -25,7 +26,7 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 
 ## Estado documentado neste ciclo
 
-A produção oficial registrada está no commit `61458ae`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; as migrações até `000023` estão aplicadas após backup, validação e autorização explícita. A versão local `0.29.0`, com as migrações `000024` e `000025`, foi validada e commitada, mas ainda não recebeu deploy. A fatia técnica seguinte adiciona a migração `000026` e metadados auditáveis às fontes e aos protocolos, sem alterar a autoridade do `rules-v1`. O estado detalhado e as lacunas estão em [`project-status.md`](project-status.md).
+A produção oficial registrada está no commit `61458ae`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; as migrações até `000023` estão aplicadas após backup, validação e autorização explícita. A versão local `0.29.0`, com as migrações `000024` e `000025`, foi validada e commitada, mas ainda não recebeu deploy. O checkout contém a fatia técnica candidata à versão local `0.30.0`, com as migrações `000026`–`000029`, estados de prontidão, gates de adaptação, recuperação pós-prova, cadência média observacional e metadados científicos. O estado detalhado e as lacunas estão em [`project-status.md`](project-status.md).
 
 ## Organização avaliada
 

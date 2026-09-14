@@ -12,6 +12,7 @@ func TestAssessPlannedVsActualRecordsCoreDifferences(t *testing.T) {
 	elevation := 380
 	power := 210
 	heartRate := 148
+	cadence := 88
 	recoveryAfter := 4
 	repeatConfidence := 5
 	satisfaction := 5
@@ -34,6 +35,7 @@ func TestAssessPlannedVsActualRecordsCoreDifferences(t *testing.T) {
 		ElevationGainM:         &elevation,
 		AveragePowerW:          &power,
 		AverageHeartRate:       &heartRate,
+		AverageCadenceRPM:      &cadence,
 	}, time.Date(2026, time.September, 12, 20, 0, 0, 0, time.UTC))
 
 	if assessment.Status != "observed" {
@@ -48,7 +50,7 @@ func TestAssessPlannedVsActualRecordsCoreDifferences(t *testing.T) {
 	if assessment.RPEDelta == nil || math.Abs(*assessment.RPEDelta-1) > 0.001 {
 		t.Fatalf("RPE delta = %v, want 1", assessment.RPEDelta)
 	}
-	if !slices.Contains(assessment.ObservedFields, "average_power_watts") || !slices.Contains(assessment.NotEvaluated, "sleep") {
+	if !slices.Contains(assessment.ObservedFields, "average_power_watts") || !slices.Contains(assessment.ObservedFields, "average_cadence_rpm") || slices.Contains(assessment.NotEvaluated, "cadence") || !slices.Contains(assessment.NotEvaluated, "sleep") {
 		t.Fatalf("observed/not evaluated fields = %#v / %#v", assessment.ObservedFields, assessment.NotEvaluated)
 	}
 	if assessment.RecoveryAfter == nil || *assessment.RecoveryAfter != 4 || assessment.RepeatConfidence == nil || *assessment.RepeatConfidence != 5 || assessment.Satisfaction == nil || *assessment.Satisfaction != 5 {
@@ -57,8 +59,8 @@ func TestAssessPlannedVsActualRecordsCoreDifferences(t *testing.T) {
 	if assessment.EquipmentUsed != "bike de estrada" || !slices.Contains(assessment.ObservedFields, "recovery_after") || !slices.Contains(assessment.ObservedFields, "repeat_confidence") || !slices.Contains(assessment.ObservedFields, "satisfaction") || !slices.Contains(assessment.ObservedFields, "terrain") || !slices.Contains(assessment.ObservedFields, "external_conditions") || !slices.Contains(assessment.ObservedFields, "equipment_used") {
 		t.Fatalf("post-workout context was not observed: %#v", assessment.ObservedFields)
 	}
-	if assessment.Version != "planned-vs-actual-v2" {
-		t.Fatalf("version = %q, want planned-vs-actual-v2", assessment.Version)
+	if assessment.Version != "planned-vs-actual-v3" {
+		t.Fatalf("version = %q, want planned-vs-actual-v3", assessment.Version)
 	}
 	if assessment.ProgressionEligible || assessment.UsedForPrescription {
 		t.Fatal("comparison must remain non-prescriptive")
@@ -99,7 +101,7 @@ func TestAssessPlannedVsActualDoesNotTreatMissingOptionalMetricsAsError(t *testi
 	if assessment.Status != "observed" {
 		t.Fatalf("status = %q, want observed with optional coverage explicit", assessment.Status)
 	}
-	if !slices.Contains(assessment.MissingData, "distance_km") || !slices.Contains(assessment.MissingData, "average_heart_rate") {
+	if !slices.Contains(assessment.MissingData, "distance_km") || !slices.Contains(assessment.MissingData, "average_heart_rate") || !slices.Contains(assessment.MissingData, "average_cadence_rpm") {
 		t.Fatalf("missing optional data = %#v", assessment.MissingData)
 	}
 	if len(assessment.DataIssues) != 0 {

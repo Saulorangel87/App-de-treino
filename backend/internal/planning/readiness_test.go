@@ -110,6 +110,20 @@ func TestReadinessClassification(t *testing.T) {
 	}
 }
 
+func TestReadinessStateSeparatesCurrentContextFromExperience(t *testing.T) {
+	input := readinessContext()
+	input.TrainingHistory = []TrainingHistoryWindow{{WindowDays: 28, MissedSessions: 1}}
+	assessment := assessReadiness(input, time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC))
+	if assessment.State != "low_consistency" || assessment.Status != "stable" {
+		t.Fatalf("unexpected low-consistency state: %+v", assessment)
+	}
+	input.Cycling.TrainingStatus = "returning_after_break"
+	assessment = assessReadiness(input, time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC))
+	if assessment.State != "returning_after_break" {
+		t.Fatalf("return context did not take precedence: %+v", assessment)
+	}
+}
+
 func TestReadinessIndependentOfExperienceAndBaseline(t *testing.T) {
 	now := time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
 	input := readinessContext()

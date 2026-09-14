@@ -49,6 +49,12 @@ func metadataForProtocol(key string) ProtocolMetadata {
 		common.Indication = "Atleta que declarou retorno após pausa."
 		common.RecommendedLevel = "todos os níveis"
 		common.ProgressionCriteria = "Sair da retomada apenas após atualização explícita da situação de treino e boa tolerância."
+	case "post_event_recovery":
+		common.PhysiologicalObjective = "Reduzir temporariamente a carga após esforço competitivo."
+		common.PracticalObjective = "Retomar o movimento com até 45 minutos e esforço leve antes de voltar à progressão."
+		common.Indication = "Evento informado encerrado há no máximo sete dias, sem sinal protetivo mais prioritário."
+		common.RecommendedLevel = "todos os níveis"
+		common.ProgressionCriteria = "Retomar estímulos maiores somente após a janela pós-evento e nova leitura de recuperação."
 	case "base_endurance", "continuous_endurance", "continuous_base":
 		common.PhysiologicalObjective = "Desenvolver ou manter capacidade aeróbica em esforço sustentável."
 		common.PracticalObjective = "Acumular tempo de pedal com ritmo estável e controlado."

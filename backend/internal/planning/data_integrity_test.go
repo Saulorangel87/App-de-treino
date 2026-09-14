@@ -19,6 +19,7 @@ func validWorkoutDataIntegrityInput() WorkoutDataIntegrityInput {
 	elevation := 420
 	power := 185
 	heartRate := 142
+	cadence := 88
 	return WorkoutDataIntegrityInput{
 		DurationMinutes:    &duration,
 		ActualRPE:          &actualRPE,
@@ -26,6 +27,7 @@ func validWorkoutDataIntegrityInput() WorkoutDataIntegrityInput {
 		ElevationGainM:     &elevation,
 		AveragePowerW:      &power,
 		AverageHeartRate:   &heartRate,
+		AverageCadenceRPM:  &cadence,
 		FeedbackPresent:    true,
 		Difficulty:         "moderate",
 		PainReported:       false,
@@ -125,6 +127,17 @@ func TestAssessWorkoutDataIntegrityRejectsNonFiniteRPE(t *testing.T) {
 
 	if assessment.Status != "inconsistent" || !slices.Contains(assessment.DataIssues, "invalid_actual_rpe") {
 		t.Fatalf("non-finite RPE was not rejected: %+v", assessment)
+	}
+}
+
+func TestAssessWorkoutDataIntegrityRejectsInvalidAverageCadence(t *testing.T) {
+	input := validWorkoutDataIntegrityInput()
+	invalidCadence := 301
+	input.AverageCadenceRPM = &invalidCadence
+	assessment := AssessWorkoutDataIntegrity(input, time.Unix(0, 0))
+
+	if assessment.Status != "inconsistent" || !slices.Contains(assessment.DataIssues, "invalid_average_cadence_rpm") {
+		t.Fatalf("invalid average cadence was not rejected: %+v", assessment)
 	}
 }
 

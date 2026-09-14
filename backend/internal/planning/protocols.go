@@ -39,6 +39,10 @@ var sessionProtocols = map[string]sessionProtocol{
 		Key: "return_after_break", EvidenceKeys: []string{"acsm-1998"},
 		EvidenceScope: "Retomada conservadora após pausa declarada; a referência sustenta progressão gradual, não uma dose universal.",
 	},
+	"Recuperação pós-prova": {
+		Key: "post_event_recovery", EvidenceKeys: []string{"post-competition-recovery-2019", "recovery-umbrella-2024"},
+		EvidenceScope: "Revisões de recuperação em ciclismo e endurance apoiam priorizar descanso e atividade leve após esforço competitivo, mas a evidência é heterogênea e não define uma dose universal; o Cadência usa uma janela curta e conservadora.",
+	},
 	"Tempo controlado": {
 		Key: "controlled_tempo", EvidenceKeys: []string{"acsm-1998"},
 		EvidenceScope: "Progressão gradual e controle de carga; a referência não define minutos universais.",

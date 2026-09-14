@@ -121,18 +121,19 @@ type WorkoutStep struct {
 }
 
 type WorkoutSession struct {
-	ID               string     `json:"id"`
-	Status           string     `json:"status"`
-	StartedAt        *time.Time `json:"started_at,omitempty"`
-	CompletedAt      *time.Time `json:"completed_at,omitempty"`
-	CancelledAt      *time.Time `json:"cancelled_at,omitempty"`
-	DurationMinutes  *int       `json:"duration_minutes,omitempty"`
-	ActualRPE        *float64   `json:"actual_rpe,omitempty"`
-	DistanceKM       *float64   `json:"distance_km,omitempty"`
-	ElevationGainM   *int       `json:"elevation_gain_m,omitempty"`
-	AveragePowerW    *int       `json:"average_power_watts,omitempty"`
-	AverageHeartRate *int       `json:"average_heart_rate,omitempty"`
-	Feedback         *Feedback  `json:"feedback,omitempty"`
+	ID                string     `json:"id"`
+	Status            string     `json:"status"`
+	StartedAt         *time.Time `json:"started_at,omitempty"`
+	CompletedAt       *time.Time `json:"completed_at,omitempty"`
+	CancelledAt       *time.Time `json:"cancelled_at,omitempty"`
+	DurationMinutes   *int       `json:"duration_minutes,omitempty"`
+	ActualRPE         *float64   `json:"actual_rpe,omitempty"`
+	DistanceKM        *float64   `json:"distance_km,omitempty"`
+	ElevationGainM    *int       `json:"elevation_gain_m,omitempty"`
+	AveragePowerW     *int       `json:"average_power_watts,omitempty"`
+	AverageHeartRate  *int       `json:"average_heart_rate,omitempty"`
+	AverageCadenceRPM *int       `json:"average_cadence_rpm,omitempty"`
+	Feedback          *Feedback  `json:"feedback,omitempty"`
 }
 
 type Feedback struct {
@@ -168,34 +169,37 @@ type CompletionInput struct {
 	ElevationGainM     *int
 	AveragePowerW      *int
 	AverageHeartRate   *int
+	AverageCadenceRPM  *int
 }
 
 // WorkoutCorrectionInput replaces only optional pedal metrics on a completed
 // session. Nil values intentionally clear the corresponding metric.
 type WorkoutCorrectionInput struct {
-	DistanceKM       *float64
-	ElevationGainM   *int
-	AveragePowerW    *int
-	AverageHeartRate *int
+	DistanceKM        *float64
+	ElevationGainM    *int
+	AveragePowerW     *int
+	AverageHeartRate  *int
+	AverageCadenceRPM *int
 }
 
 type Activity struct {
-	ID               string     `json:"id"`
-	WorkoutID        string     `json:"workout_id"`
-	Name             string     `json:"name"`
-	Objective        string     `json:"objective"`
-	ScheduledOn      string     `json:"scheduled_on"`
-	Status           string     `json:"status"`
-	StartedAt        *time.Time `json:"started_at,omitempty"`
-	CompletedAt      *time.Time `json:"completed_at,omitempty"`
-	CancelledAt      *time.Time `json:"cancelled_at,omitempty"`
-	DurationMinutes  *int       `json:"duration_minutes,omitempty"`
-	ActualRPE        *float64   `json:"actual_rpe,omitempty"`
-	DistanceKM       *float64   `json:"distance_km,omitempty"`
-	ElevationGainM   *int       `json:"elevation_gain_m,omitempty"`
-	AveragePowerW    *int       `json:"average_power_watts,omitempty"`
-	AverageHeartRate *int       `json:"average_heart_rate,omitempty"`
-	Feedback         *Feedback  `json:"feedback,omitempty"`
+	ID                string     `json:"id"`
+	WorkoutID         string     `json:"workout_id"`
+	Name              string     `json:"name"`
+	Objective         string     `json:"objective"`
+	ScheduledOn       string     `json:"scheduled_on"`
+	Status            string     `json:"status"`
+	StartedAt         *time.Time `json:"started_at,omitempty"`
+	CompletedAt       *time.Time `json:"completed_at,omitempty"`
+	CancelledAt       *time.Time `json:"cancelled_at,omitempty"`
+	DurationMinutes   *int       `json:"duration_minutes,omitempty"`
+	ActualRPE         *float64   `json:"actual_rpe,omitempty"`
+	DistanceKM        *float64   `json:"distance_km,omitempty"`
+	ElevationGainM    *int       `json:"elevation_gain_m,omitempty"`
+	AveragePowerW     *int       `json:"average_power_watts,omitempty"`
+	AverageHeartRate  *int       `json:"average_heart_rate,omitempty"`
+	AverageCadenceRPM *int       `json:"average_cadence_rpm,omitempty"`
+	Feedback          *Feedback  `json:"feedback,omitempty"`
 }
 
 type ScientificSource struct {
@@ -379,6 +383,9 @@ func validCompletion(input CompletionInput) bool {
 	if input.AverageHeartRate != nil && (*input.AverageHeartRate < 30 || *input.AverageHeartRate > 250) {
 		return false
 	}
+	if input.AverageCadenceRPM != nil && (*input.AverageCadenceRPM < 1 || *input.AverageCadenceRPM > 300) {
+		return false
+	}
 	if input.RecoveryAfter != nil && (*input.RecoveryAfter < 1 || *input.RecoveryAfter > 5) {
 		return false
 	}
@@ -413,6 +420,9 @@ func validWorkoutCorrection(input WorkoutCorrectionInput) bool {
 		return false
 	}
 	if input.AverageHeartRate != nil && (*input.AverageHeartRate < 30 || *input.AverageHeartRate > 250) {
+		return false
+	}
+	if input.AverageCadenceRPM != nil && (*input.AverageCadenceRPM < 1 || *input.AverageCadenceRPM > 300) {
 		return false
 	}
 	return true
@@ -490,6 +500,8 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 	workouts := make([]Workout, 0, len(slots)*4)
 	multipliers := []float64{0.85, 0.95, 1.0, 0.75}
 	eventTaper := assessEventTaper(input, now, restricted)
+	postEventRecovery := assessPostEventRecovery(input, now)
+	lowObservedAdherence := hasLowObservedAdherence(input.TrainingHistory)
 	for week := 0; week < 4; week++ {
 		longIndex := longestSlot(slots)
 		intensityIndex := intensitySlot(slots, longIndex)
@@ -502,10 +514,10 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 			kind := "base"
 			if index == longIndex {
 				kind = "long"
-			} else if index == intensityIndex && !restricted && !recoveryWeek {
+			} else if index == intensityIndex && !restricted && !recoveryWeek && !lowObservedAdherence {
 				kind = "quality"
 			}
-			workouts = append(workouts, makeWorkout(input, slot, kind, restricted, multipliers[week], week, scheduledOn, eventTaper))
+			workouts = append(workouts, makeWorkout(input, slot, kind, restricted, multipliers[week], week, scheduledOn, eventTaper, postEventRecovery))
 		}
 	}
 
@@ -520,6 +532,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 		PrescriptionSnapshot: map[string]any{
 			"engine_version":            "rules-v1",
 			"event_taper":               eventTaper,
+			"post_event_recovery":       postEventRecovery,
 			"rules_v2_shadow":           assessRulesV2Shadow(input, now),
 			"periodization_shadow":      periodizationShadow,
 			"stimulus_selection_shadow": stimulusSelectionShadow,
@@ -572,7 +585,10 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 	return plan, nil
 }
 
-func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted bool, multiplier float64, weekIndex int, date time.Time, eventTaper EventTaperAssessment) Workout {
+func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted bool, multiplier float64, weekIndex int, date time.Time, eventTaper EventTaperAssessment, postEventRecovery PostEventRecoveryAssessment) Workout {
+	if kind == "quality" && input.ExperienceLevel == "beginner" {
+		kind = "base"
+	}
 	baseMinutes := map[string]int{"beginner": 45, "intermediate": 60, "advanced": 75}[input.ExperienceLevel]
 	name := "Giro de base"
 	targetRPE := 4.0
@@ -588,6 +604,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	rotationApplied := false
 	activeRecoveryApplied := false
 	eventTaperApplied := false
+	postEventRecoveryApplied := false
 	eventSpecificPhase := eventSpecificPhase(input.Cycling, date)
 	observedProtected := input.Observed.RequiresRecovery() && (input.Observed.PainReported || kind == "quality")
 	if kind == "base" && weekIndex == 3 {
@@ -718,8 +735,19 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 			}
 		}
 	}
+	if postEventRecoveryAppliesToWorkout(input.Cycling, postEventRecovery, date) {
+		postEventRecoveryApplied = true
+		name = "Recuperação pós-prova"
+		targetRPE = postEventRecoveryTargetRPE
+		mainBlock = "Pedale leve e contínuo, sem buscar intensidade após o evento"
+		if baseMinutes > postEventRecoveryMaxMinutes {
+			baseMinutes = postEventRecoveryMaxMinutes
+		}
+		summary = "A janela curta após o evento reduz duração e esforço para priorizar recuperação; a evidência disponível não define uma dose universal."
+	}
 	returningAfterPause := isReturningAfterPause(input.Cycling)
 	if returningAfterPause {
+		postEventRecoveryApplied = false
 		rotationApplied = false
 		activeRecoveryApplied = false
 		usesControlledIntervals = false
@@ -737,6 +765,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		summary = "O retorno após uma pausa informada recomenda uma retomada gradual; isso não substitui a avaliação de recuperação atual."
 	}
 	if restricted {
+		postEventRecoveryApplied = false
 		rotationApplied = false
 		activeRecoveryApplied = false
 		name = "Giro leve protegido"
@@ -748,6 +777,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		multiplier *= 0.8
 		summary = explanationFor(kind, true)
 	} else if observedProtected {
+		postEventRecoveryApplied = false
 		rotationApplied = false
 		activeRecoveryApplied = false
 		name = "Giro leve protegido"
@@ -787,6 +817,9 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	if input.Observed.HasData() {
 		rules = append(rules, fmt.Sprintf("Histórico observado dos últimos %d dias considerado (%d sessões concluídas).", input.Observed.WindowDays, input.Observed.CompletedSessions))
 	}
+	if hasLowObservedAdherence(input.TrainingHistory) {
+		rules = append(rules, "Baixa aderência observada: a sessão de qualidade não foi incluída para reduzir complexidade e favorecer a retomada da consistência.")
+	}
 	if preference := preferredQualityPreference(input.Cycling); kind == "quality" && preference != "" {
 		rules = append(rules, fmt.Sprintf("Preferência por %s considerada dentro dos limites de segurança.", sessionPreferenceLabel(preference)))
 	}
@@ -823,6 +856,9 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	if eventTaperApplied {
 		rules = append(rules, "Taper pré-prova aplicado nesta sessão: volume reduzido de forma conservadora, mantendo a frequência planejada.")
 	}
+	if postEventRecoveryApplied {
+		rules = append(rules, "Recuperação pós-prova aplicada por até sete dias após o evento: duração limitada a 45 minutos e RPE 3,5, sem estímulo de qualidade.")
+	}
 	if restricted {
 		rules = append(rules, "Intensidade limitada por uma condição de segurança ativa.")
 	}
@@ -838,6 +874,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		evidenceKeys = append(append([]string(nil), eventTaper.EvidenceKeys...), evidenceKeys...)
 		evidenceScope += " O taper pré-prova usa evidência de redução de volume em ciclistas/endurance, com transferência limitada a atletas elegíveis; não é dose universal."
 	}
+	decisionAudit := buildWorkoutDecisionAudit(input, kind, rules, restricted, observedProtected, returningAfterPause, weekIndex == 3, eventTaperApplied, postEventRecoveryApplied)
 	return Workout{
 		ScheduledOn:     date.Format("2006-01-02"),
 		Name:            name,
@@ -845,7 +882,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		DurationMinutes: duration,
 		TargetRPE:       targetRPE,
 		Structure:       buildStructure(duration, targetRPE, name, mainBlock),
-		Explanation:     map[string]any{"summary": summary, "rules": rules, "protocol_key": protocol.Key, "protocol_metadata": metadataForProtocol(protocol.Key), "evidence_keys": evidenceKeys, "evidence_scope": evidenceScope, "event_taper_applied": eventTaperApplied},
+		Explanation:     map[string]any{"summary": summary, "rules": rules, "decision_audit": decisionAudit, "protocol_key": protocol.Key, "protocol_metadata": metadataForProtocol(protocol.Key), "evidence_keys": evidenceKeys, "evidence_scope": evidenceScope, "event_taper_applied": eventTaperApplied},
 		Status:          "planned",
 	}
 }

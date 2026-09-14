@@ -96,8 +96,10 @@ func (s *httpTestPlanStore) ActivitiesByUserID(context.Context, string) ([]plann
 }
 
 func TestCurrentPlanSerializesShadowAuditAfterTransaction(t *testing.T) {
+	cadence := 88
 	plan := planning.Plan{
 		Workouts: []planning.Workout{{
+			Session: &planning.WorkoutSession{AverageCadenceRPM: &cadence},
 			Explanation: map[string]any{
 				"adaptation_shadow": map[string]any{
 					"planned_vs_actual": map[string]any{
@@ -161,5 +163,9 @@ func TestCurrentPlanSerializesShadowAuditAfterTransaction(t *testing.T) {
 	}
 	if shadow["planned_vs_actual"].(map[string]any)["status"] != "observed" {
 		t.Fatalf("planned-vs-actual was not serialized: %#v", shadow["planned_vs_actual"])
+	}
+	session, ok := workout["session"].(map[string]any)
+	if !ok || session["average_cadence_rpm"] != float64(cadence) {
+		t.Fatalf("average cadence was not serialized: %#v", workout["session"])
 	}
 }

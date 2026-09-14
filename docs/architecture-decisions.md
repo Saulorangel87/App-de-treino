@@ -68,7 +68,7 @@ A primeira implementação de IA usa Ollama local como provedor opcional. `AI_EN
 
 **Status:** Aplicada.
 
-As migrações `000001` a `000026` estão versionadas no checkout; a produção está aplicada até `000023`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` adiciona o contexto de conclusão parcial, a `000021` adiciona o contexto pós-treino, a `000022` adiciona contexto opcional de segurança às limitações, a `000023` adiciona feedback estruturado, as `000024`/`000025` adicionam equipamento e sinais de segurança e a `000026` amplia os metadados científicos auditáveis. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável, a migração deve ser executada pelo perfil `maintenance` e uma rota autenticada crítica deve ser validada.
+As migrações `000001` a `000029` estão versionadas no checkout; a produção está aplicada até `000023`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` adiciona o contexto de conclusão parcial, a `000021` adiciona o contexto pós-treino, a `000022` adiciona contexto opcional de segurança às limitações, a `000023` adiciona feedback estruturado, as `000024`/`000025` adicionam equipamento e sinais de segurança, a `000026` amplia os metadados científicos auditáveis, a `000027` protege a adaptação ativa contra dados incompletos e sinais protetivos recentes, a `000028` registra evidências para recuperação pós-prova e a `000029` adiciona cadência média como métrica observacional opcional. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável, a migração deve ser executada pelo perfil `maintenance` e uma rota autenticada crítica deve ser validada.
 
 ## ADR-006 — Feedback de produto
 
@@ -381,7 +381,7 @@ A migração `000023_feedback_context` é aditiva. Os valores são retornados no
 
 ## Consistência observacional do contexto estruturado
 
-Para evitar que a mesma sessão tenha leituras diferentes dentro do shadow, satisfação, terreno e condições externas também são validados pelo `data-integrity-v1` e registrados no `planned-vs-actual-v2`. Campos opcionais ausentes aparecem como lacunas; valores fora das listas controladas tornam a observação inconsistente, sem apagar o registro original.
+Para evitar que a mesma sessão tenha leituras diferentes dentro do shadow, satisfação, terreno e condições externas também são validados pelo `data-integrity-v1` e registrados no `planned-vs-actual-v3`. Campos opcionais ausentes aparecem como lacunas; valores fora das listas controladas tornam a observação inconsistente, sem apagar o registro original.
 
 O repositório encaminha esses campos tanto na conclusão quanto na reavaliação de uma correção de métricas. A extensão é somente observacional, não cria migração nem alteração visual e mantém `rules-v1` como fonte prescritiva. `progression_eligible`, `applied` e `used_for_prescription` continuam falsos.
 
@@ -405,7 +405,7 @@ Para reduzir o risco de retorno abrupto, a sessão é contínua, usa RPE 3,5 e f
 
 ## Segurança e contexto de equipamento — fatia local 0.29.0
 
-A coleta do encerramento passa a aceitar `equipment_used`, limitado a 120 caracteres e tratado somente como contexto observacional. O valor percorre a conclusão, o plano, as atividades, `post-workout-context-v2`, `planned-vs-actual-v2` e `adaptation-audit-v1`; nenhuma dessas camadas pode transformar o equipamento em aumento automático de carga.
+A coleta do encerramento passa a aceitar `equipment_used`, limitado a 120 caracteres e tratado somente como contexto observacional. O valor percorre a conclusão, o plano, as atividades, `post-workout-context-v2`, `planned-vs-actual-v3` e `adaptation-audit-v1`; nenhuma dessas camadas pode transformar o equipamento em aumento automático de carga.
 
 O perfil também aceita até cinco sintomas de alerta controlados e `medical_restriction`. A limitação ativa continua acionando a proteção já existente; a restrição médica é preservada no `safety_context` do rascunho e explicada no treino, sem diagnóstico ou liberação clínica. As migrações `000024_equipment_feedback` e `000025_limitation_safety_signals` são aditivas.
 
@@ -416,3 +416,17 @@ As fontes científicas passam a registrar explicitamente população, objetivo, 
 Os limites operacionais dos protocolos ficam centralizados em `protocol_metadata.go` e são anexados à explicação do treino. Essa decisão completa a estrutura exigida para auditar os templates existentes sem duplicar referências no código, sem alterar o `rules-v1` e sem apresentar incerteza como evidência concluída.
 
 Foram adicionadas validações para tamanho do equipamento, valores não finitos em RPE/distância e duplicidade/valores desconhecidos de sintomas. Fixtures SQL transacionais cobrem as duas migrações. Esta decisão fecha a cadeia de coleta e integridade da fatia, mas mantém `rules-v1` como autoridade e os shadows sem prescrição até existir calibração e efeito longitudinal demonstrados.
+
+## Gates de adaptação, recuperação pós-prova e cadência observacional — migrações 000027 a 000029
+
+A adaptação ativa do `rules-v1` só pode alterar sessões futuras quando o feedback representa uma sessão completa com duração positiva, RPE válido e fadiga válida. Feedback parcial, dados mínimos ausentes ou inválidos e sinais protetivos recentes ficam preservados para auditoria, mas não viram progressão. Quando uma alteração é aplicada, o treino futuro passa a `adapted`, tornando o estado visível para o ciclo de vida da API.
+
+O catálogo também possui o protocolo `post_event_recovery`: até sete dias após um evento declarado, duração máxima de 45 minutos e RPE 3,5. A escolha é uma proteção operacional baseada em revisões de recuperação, não uma dose universal; dor, limitação, recuperação insuficiente e retorno após pausa têm precedência. O `rules-v2` continua sem autoridade e as migrações aguardam deploy autorizado.
+
+A migração `000029` permite armazenar cadência média entre 1 e 300 rpm. O campo é opcional, validado na API, no banco e no gate de integridade, e aparece apenas como cobertura observada no comparativo planejado versus realizado. Ele não define cadência-alvo, não mede desempenho e não libera progressão ou mudança de prescrição.
+
+## Auditoria por sessão do motor ativo
+
+`workout-decision-audit-v1` é anexado à explicação de toda sessão gerada pelo `rules-v1`. Ele não substitui o motor nem observa uma hipótese concorrente: registra a decisão que já foi aplicada, incluindo gates avaliados, regras aplicadas, dados utilizados e ausentes, proteções, alternativas descartadas, condições de mudança e a confiança `rule_based_not_calibrated`.
+
+A interface mantém esse detalhamento recolhido por padrão para não competir com a estrutura do treino. Isso torna visível a proveniência sem depender da camada de IA explicativa. A confiança continua não calibrada porque o registro de decisão não demonstra efeito longitudinal ou validade clínica.

@@ -3,7 +3,7 @@ package planning
 import "time"
 
 const (
-	plannedVsActualVersion = "planned-vs-actual-v2"
+	plannedVsActualVersion = "planned-vs-actual-v3"
 	plannedVsActualMode    = "observation"
 	plannedVsActualScope   = "completed_workout"
 )
@@ -32,6 +32,7 @@ type PlannedVsActualInput struct {
 	ElevationGainM         *int
 	AveragePowerW          *int
 	AverageHeartRate       *int
+	AverageCadenceRPM      *int
 }
 
 // PlannedVsActualAssessment records the observable difference between one
@@ -91,7 +92,7 @@ func AssessPlannedVsActual(input PlannedVsActualInput, now time.Time) PlannedVsA
 		Reasons:             []ReadinessReason{},
 		MissingData:         []string{},
 		DataIssues:          []string{},
-		NotEvaluated:        []string{"cadence", "sleep", "stress", "recovery"},
+		NotEvaluated:        []string{"sleep", "stress", "recovery"},
 		ProgressionEligible: false,
 		UsedForPrescription: false,
 	}
@@ -210,6 +211,7 @@ func AssessPlannedVsActual(input PlannedVsActualInput, now time.Time) PlannedVsA
 		{name: "elevation_gain_m", present: input.ElevationGainM != nil},
 		{name: "average_power_watts", present: input.AveragePowerW != nil},
 		{name: "average_heart_rate", present: input.AverageHeartRate != nil},
+		{name: "average_cadence_rpm", present: input.AverageCadenceRPM != nil},
 	}
 	for _, field := range optionalFields {
 		if field.present {

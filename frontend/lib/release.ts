@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.29.0';
+export const APP_VERSION = '0.30.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.30.0',
+    title: 'Proteção após prova e adaptação mais íntegra',
+    description:
+      'Depois de um evento informado, o plano pode priorizar até sete dias de recuperação leve, com duração e RPE conservadores. O registro do pedal também aceita cadência média como dado opcional de observação. Agora cada sessão também mostra os dados, restrições e alternativas considerados pela regra. Feedback incompleto, dados inválidos e sinais protetivos recentes deixam de alterar a carga automaticamente; limitações e retorno após pausa continuam prioritários.',
+  },
   {
     version: '0.29.0',
     title: 'Contexto de segurança e equipamento',

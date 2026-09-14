@@ -874,12 +874,29 @@ components:
         confidence: { type: string, enum: [not_calibrated] }
         not_evaluated: { type: array, items: { type: string } }
         used_for_prescription: { type: boolean, enum: [false] }
+    WorkoutDecisionAudit:
+      type: object
+      description: Auditoria determinística de uma sessão gerada pelo rules-v1. Expõe contexto, restrições e alternativas sem criar um segundo motor de prescrição.
+      required: [version, mode, scope, rules_evaluated, rules_applied, alternatives_rejected, data_used, missing_data, constraints_applied, conditions_for_change, confidence, used_for_prescription]
+      properties:
+        version: { type: string, enum: [workout-decision-audit-v1] }
+        mode: { type: string, enum: [deterministic] }
+        scope: { type: string, enum: [plan_generation_workout] }
+        rules_evaluated: { type: array, items: { type: string } }
+        rules_applied: { type: array, items: { type: string } }
+        alternatives_rejected: { type: array, items: { type: string } }
+        data_used: { type: array, items: { type: string } }
+        missing_data: { type: array, items: { type: string } }
+        constraints_applied: { type: array, items: { type: string } }
+        conditions_for_change: { type: array, items: { type: string } }
+        confidence: { type: string, enum: [rule_based_not_calibrated] }
+        used_for_prescription: { type: boolean, enum: [true] }
     PlannedVsActualAssessment:
       type: object
       description: Comparação observacional entre a sessão planejada e a execução concluída. Não interpreta tolerância fisiológica nem altera a próxima sessão.
       required: [version, mode, scope, assessed_at, status, planned_duration_minutes, actual_duration_minutes, completion_status, target_rpe, actual_rpe, observed_fields, reasons, missing_data, data_issues, not_evaluated, progression_eligible, used_for_prescription]
       properties:
-        version: { type: string, enum: [planned-vs-actual-v2] }
+        version: { type: string, enum: [planned-vs-actual-v3] }
         mode: { type: string, enum: [observation] }
         scope: { type: string, enum: [completed_workout] }
         assessed_at: { type: string, format: date-time }
@@ -1181,6 +1198,8 @@ components:
           additionalProperties: true
           properties:
             event_taper_applied: { type: boolean }
+            decision_audit:
+              $ref: '#/components/schemas/WorkoutDecisionAudit'
             data_integrity:
               $ref: '#/components/schemas/WorkoutDataIntegrityAssessment'
             adaptation_shadow:
@@ -1252,6 +1271,7 @@ components:
         elevation_gain_m: { type: integer, minimum: 0 }
         average_heart_rate: { type: integer, minimum: 30, maximum: 250 }
         average_power_watts: { type: integer, minimum: 0, maximum: 2000 }
+        average_cadence_rpm: { type: integer, minimum: 1, maximum: 300 }
         feedback: { $ref: '#/components/schemas/WorkoutFeedback' }
     WorkoutFeedback:
       type: object
@@ -1289,6 +1309,7 @@ components:
         elevation_gain_m: { type: integer, minimum: 0, maximum: 20000 }
         average_heart_rate: { type: integer, minimum: 30, maximum: 250 }
         average_power_watts: { type: integer, minimum: 0, maximum: 2000 }
+        average_cadence_rpm: { type: integer, minimum: 1, maximum: 300 }
         equipment_used: { type: string, maxLength: 120 }
     WorkoutCorrectionRequest:
       type: object
@@ -1310,6 +1331,10 @@ components:
           oneOf:
             - { type: integer, minimum: 0, maximum: 2000 }
             - { type: 'null' }
+        average_cadence_rpm:
+          oneOf:
+            - { type: integer, minimum: 1, maximum: 300 }
+            - { type: 'null' }
     Activity:
       type: object
       required: [id, workout_id, name, objective, scheduled_on, status]
@@ -1329,4 +1354,5 @@ components:
         elevation_gain_m: { type: integer, minimum: 0 }
         average_heart_rate: { type: integer, minimum: 30, maximum: 250 }
         average_power_watts: { type: integer, minimum: 0, maximum: 2000 }
+        average_cadence_rpm: { type: integer, minimum: 1, maximum: 300 }
         feedback: { $ref: '#/components/schemas/WorkoutFeedback' }

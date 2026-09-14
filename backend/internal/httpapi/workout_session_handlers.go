@@ -26,13 +26,15 @@ type completeWorkoutInput struct {
 	ElevationGainM     *int     `json:"elevation_gain_m"`
 	AveragePowerW      *int     `json:"average_power_watts"`
 	AverageHeartRate   *int     `json:"average_heart_rate"`
+	AverageCadenceRPM  *int     `json:"average_cadence_rpm"`
 }
 
 type correctWorkoutInput struct {
-	DistanceKM       *float64 `json:"distance_km"`
-	ElevationGainM   *int     `json:"elevation_gain_m"`
-	AveragePowerW    *int     `json:"average_power_watts"`
-	AverageHeartRate *int     `json:"average_heart_rate"`
+	DistanceKM        *float64 `json:"distance_km"`
+	ElevationGainM    *int     `json:"elevation_gain_m"`
+	AveragePowerW     *int     `json:"average_power_watts"`
+	AverageHeartRate  *int     `json:"average_heart_rate"`
+	AverageCadenceRPM *int     `json:"average_cadence_rpm"`
 }
 
 func (s *Server) startWorkout(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +72,7 @@ func (s *Server) completeWorkout(w http.ResponseWriter, r *http.Request) {
 		EquipmentUsed:      strings.TrimSpace(input.EquipmentUsed),
 		Notes:              strings.TrimSpace(input.Notes),
 		DistanceKM:         input.DistanceKM, ElevationGainM: input.ElevationGainM,
-		AveragePowerW: input.AveragePowerW, AverageHeartRate: input.AverageHeartRate,
+		AveragePowerW: input.AveragePowerW, AverageHeartRate: input.AverageHeartRate, AverageCadenceRPM: input.AverageCadenceRPM,
 	})
 	if writeWorkoutError(w, err) {
 		return
@@ -89,7 +91,7 @@ func (s *Server) correctWorkout(w http.ResponseWriter, r *http.Request) {
 	}
 	plan, err := s.planning.CorrectWorkout(r.Context(), user.ID, r.PathValue("workoutID"), planning.WorkoutCorrectionInput{
 		DistanceKM: input.DistanceKM, ElevationGainM: input.ElevationGainM,
-		AveragePowerW: input.AveragePowerW, AverageHeartRate: input.AverageHeartRate,
+		AveragePowerW: input.AveragePowerW, AverageHeartRate: input.AverageHeartRate, AverageCadenceRPM: input.AverageCadenceRPM,
 	})
 	if writeWorkoutError(w, err) {
 		return

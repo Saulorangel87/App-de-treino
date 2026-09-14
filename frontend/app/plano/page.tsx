@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   ArrowLeft,
   Bike,
@@ -226,18 +227,18 @@ export default function PlanPage() {
   return (
     <main className="plan-shell">
       <header className="profile-topbar">
-        <a href="/" className="account-brand dark">
+        <Link href="/" className="account-brand dark">
           <span>
             <Bike size={19} />
           </span>
           cadência
-        </a>
+        </Link>
         <AccountActions label="ATLETA" name={user?.display_name} />
       </header>
       <section className="plan-content">
-        <a href="/" className="back-link">
+        <Link href="/" className="back-link">
           <ArrowLeft size={15} /> Voltar ao painel
-        </a>
+        </Link>
         {!plan ? (
           <section className="plan-empty">
             <span>
@@ -387,7 +388,7 @@ export default function PlanPage() {
               <output className="plan-message">
                 <Check size={14} />
                 {message}
-                <a href="/">Ver painel</a>
+                <Link href="/">Ver painel</Link>
               </output>
             )}
             <ObservedTrainingCard observed={plan.prescription_snapshot.observed_training} />
@@ -442,7 +443,7 @@ export default function PlanPage() {
                             )}
                           </time>
                           <span>
-                            <strong className="workout-name"><span>{workout.name}</span>{workout.status === 'completed' && <span className="workout-completion" role="img" aria-label="Treino concluído"><Check size={11} /></span>}</strong>
+                            <strong className="workout-name"><span>{workout.name}</span>{workout.status === 'completed' && <span className="workout-completion"><Check size={11} aria-label="Treino concluído" /></span>}</strong>
                             <small>{workout.objective}</small>
                             {workout.explanation.adaptation && (
                               <small>
@@ -560,6 +561,38 @@ export default function PlanPage() {
                       </li>
                     ))}
                   </ul>
+                  {selected.explanation.decision_audit && (
+                    <details className="workout-decision-audit">
+                      <summary>Ver detalhes da decisão</summary>
+                      <p>
+                        Esta sessão foi definida pelo motor de regras. A confiança
+                        ainda não é calibrada com dados longitudinais individuais.
+                      </p>
+                      <DecisionAuditList
+                        title="Dados considerados"
+                        values={selected.explanation.decision_audit.data_used}
+                      />
+                      <DecisionAuditList
+                        title="Restrições aplicadas"
+                        values={selected.explanation.decision_audit.constraints_applied}
+                        emptyLabel="Nenhuma restrição adicional foi aplicada."
+                      />
+                      <DecisionAuditList
+                        title="Alternativas descartadas"
+                        values={selected.explanation.decision_audit.alternatives_rejected}
+                        emptyLabel="Nenhuma alternativa adicional foi descartada."
+                      />
+                      <DecisionAuditList
+                        title="Informações ausentes"
+                        values={selected.explanation.decision_audit.missing_data}
+                        emptyLabel="Não há lacunas registradas para esta decisão."
+                      />
+                      <DecisionAuditList
+                        title="O que pode mudar este treino"
+                        values={selected.explanation.decision_audit.conditions_for_change}
+                      />
+                    </details>
+                  )}
                   {selected.explanation.evidence_keys?.length ? (
                     <>
                       <h3>Base científica</h3>
@@ -583,6 +616,67 @@ export default function PlanPage() {
       </section>
     </main>
   );
+}
+
+function DecisionAuditList({
+  title,
+  values,
+  emptyLabel,
+}: {
+  title: string;
+  values: string[];
+  emptyLabel?: string;
+}) {
+  return (
+    <section className="workout-decision-audit-section">
+      <strong>{title}</strong>
+      {values.length ? (
+        <ul>
+          {values.map((value) => (
+            <li key={value}>{formatDecisionAuditValue(value)}</li>
+          ))}
+        </ul>
+      ) : (
+        <small>{emptyLabel}</small>
+      )}
+    </section>
+  );
+}
+
+function formatDecisionAuditValue(value: string) {
+  const labels: Record<string, string> = {
+    availability_minutes: 'Tempo disponível',
+    experience_level: 'Experiência declarada',
+    primary_goal: 'Objetivo principal',
+    cycling_context: 'Contexto de ciclismo informado',
+    observed_training_28d: 'Histórico observado dos últimos 28 dias',
+    event_goal: 'Objetivo de prova',
+    event_date: 'Data do evento',
+    heart_rate_sensor: 'Sensor de frequência cardíaca',
+    power_meter: 'Medidor de potência',
+    ftp: 'FTP informado',
+    event_goal_or_date: 'Objetivo ou data de prova',
+    power_meter_or_ftp: 'Medidor de potência ou FTP',
+    eligible_submaximal_assessment: 'Avaliação submáxima apta',
+    active_safety_limitation: 'Limitação de segurança ativa',
+    recent_recovery_or_pain_signal: 'Sinal recente de recuperação ou dor',
+    return_after_break: 'Retorno após pausa',
+    recovery_week: 'Semana de recuperação',
+    low_observed_adherence: 'Baixa aderência observada',
+    event_taper: 'Taper pré-prova',
+    post_event_recovery: 'Recuperação pós-prova',
+    higher_intensity_protocols: 'Protocolos de maior intensidade',
+    quality_session: 'Sessão de qualidade',
+    long_session_above_45_minutes: 'Sessão longa acima de 45 minutos',
+    additional_quality_session: 'Sessão adicional de qualidade',
+    volume_progression: 'Progressão de volume',
+    long_session: 'Pedal longo',
+    novo_feedback_valido: 'Novo feedback válido do treino',
+    mudanca_de_disponibilidade: 'Mudança de disponibilidade',
+    novo_sinal_de_seguranca: 'Novo sinal de segurança',
+    mudanca_no_contexto_do_evento: 'Mudança no contexto do evento',
+  };
+  return labels[value] ?? value;
 }
 
 function ObservedTrainingCard({ observed }: { observed?: TrainingPlan['prescription_snapshot']['observed_training'] }) {

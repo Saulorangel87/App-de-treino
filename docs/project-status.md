@@ -336,7 +336,7 @@ Arquivos desta fatia: `backend/internal/planning/load_tolerance.go`, `backend/in
 ### Comparação planejado versus realizado — versão local `planned-vs-actual-v1` (validada)
 
 - A conclusão de uma sessão passa a registrar no shadow a duração planejada e realizada, o RPE-alvo e realizado, suas diferenças e os campos de execução observados.
-- Métricas opcionais presentes são identificadas em `observed_fields`; ausência de distância, elevação, potência ou frequência cardíaca fica em `missing_data`. Cadência, sono, estresse, recuperação, extensão da conclusão e motivo de não conclusão permanecem em `not_evaluated` porque ainda não fazem parte deste fluxo.
+- Métricas opcionais presentes são identificadas em `observed_fields`; ausência de distância, elevação, potência, frequência cardíaca ou cadência média fica em `missing_data`. Sono, estresse, recuperação, extensão da conclusão e motivo de não conclusão permanecem em `not_evaluated` porque ainda não fazem parte deste fluxo.
 - O estado `observed` descreve uma comparação mínima válida; `not_evaluated` fica reservado a dados essenciais ausentes ou inválidos. Em ambos os casos, `progression_eligible` e `used_for_prescription` permanecem `false`.
 - A implementação não altera duração, RPE, estímulo ou status de sessões e não cria migração, mudança visual ou atualização de `APP_VERSION`/`UPDATE_NOTES`. A validação manual ponta a ponta confirmou no `GET /v1/plans/current` uma sessão com 3 minutos realizados de 35 planejados, `status: "observed"`, `duration_completion_percent: 8.57`, `progression_eligible: false` e `used_for_prescription: false`. As métricas opcionais ausentes e os campos ainda não coletados permaneceram explicitamente classificados.
 
@@ -428,7 +428,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
 - `backend/`: API REST em Go.
-- `database/migrations/`: migrações PostgreSQL até `000026`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` registra o contexto de conclusão parcial, a `000021` registra o contexto adicional pós-treino, a `000022` registra o contexto de limitações, a `000023` registra o feedback estruturado, as `000024`/`000025` registram equipamento e sinais de segurança e a `000026` amplia os metadados científicos. Em produção, as migrações estão aplicadas até `000023`; `000024`–`000026` permanecem locais até o deploy autorizado.
+- `database/migrations/`: migrações PostgreSQL até `000029`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` registra o contexto de conclusão parcial, a `000021` registra o contexto adicional pós-treino, a `000022` registra o contexto de limitações, a `000023` registra o feedback estruturado, as `000024`/`000025` registram equipamento e sinais de segurança, a `000026` amplia os metadados científicos, a `000027` protege a adaptação contra dados inválidos e sinais protetivos recentes, a `000028` registra evidências de recuperação pós-prova e a `000029` registra cadência média observacional. Em produção, as migrações estão aplicadas até `000023`; `000024`–`000029` permanecem locais até o deploy autorizado.
 - `database/tests/`: verificações SQL.
 - `api/openapi.yaml`: contrato da API local e de produção.
 - `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.
@@ -715,7 +715,7 @@ O perfil agora diferencia **Não informar**, **Estou treinando regularmente** e 
 
 As proteções de limitação, dor e recuperação continuam prioritárias; os shadows reconhecem a necessidade de retorno sem ganhar autoridade prescritiva. A nota `0.27.0` foi ajustada e a versão foi publicada sem migração nova ou alteração de infraestrutura. O backup `cadencia-20260914T102918Z.dump` foi criado e verificado; API, frontend, PostgreSQL e Tunnel ficaram saudáveis, `/ready` respondeu corretamente, os dois domínios públicos retornaram HTTP 200 e o HTML público contém `0.27.0`. A validação manual do menu e dos dois comportamentos passou. A release do GitHub ainda não foi criada.
 
-### Estado atual do checkout — contexto de equipamento e sinais de segurança — versão local `0.29.0`
+### Estado atual do checkout — contexto de equipamento e sinais de segurança — base local `0.29.0`
 
 - O feedback pós-treino agora aceita `equipment_used` opcional, limitado a 120 caracteres. O valor é persistido, aparece no resultado e em `/atividades` e entra nas leituras observacionais sem alterar carga ou prescrição.
 - O perfil agora aceita sintomas de alerta durante/depois do treino e uma restrição médica atual. A API limita os sintomas a cinco opções controladas, rejeita duplicidades e mantém o contexto sem tratá-lo como diagnóstico.
@@ -732,11 +732,33 @@ Os protocolos já selecionáveis passam a anexar ao treino metadados operacionai
 
 A migração foi aplicada e registrada somente no PostgreSQL local. O teste SQL transacional confirmou os 25 registros com metadados e rejeitou confiança fora da lista controlada. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram. O lint geral continua com os débitos já registrados; nenhum erro aponta para os arquivos alterados nesta fatia.
 
-### Auditoria real do roadmap após a fatia `0.29.0`
+### Continuidade — gates de adaptação e recuperação pós-prova — candidata local `0.30.0`
+
+O campo `readiness_assessment.state` agora separa o contexto atual — dados insuficientes, cautela, recuperação, retorno, baixa consistência, preparação específica para evento ou estabilidade observada — da experiência declarada. A classificação permanece observacional e não autoriza progressão sozinha.
+
+A migração `000027_adaptation_integrity_gate` protege a adaptação ativa do `rules-v1`: feedback parcial, duração/RPE/fadiga ausentes ou inválidos e sinais protetivos nos 14 dias anteriores não alteram treinos futuros. Quando a adaptação é permitida, o treino alterado recebe `status: adapted`, preservando o ciclo de estados já suportado pela API.
+
+O protocolo `post_event_recovery` usa a janela de até sete dias após o evento, limita a sessão a 45 minutos e RPE 3,5 e registra as fontes `post-competition-recovery-2019` e `recovery-umbrella-2024` na migração `000028`. A evidência é heterogênea; o protocolo é uma proteção operacional, não tratamento nem dose universal. Retorno, dor, limitação e recuperação insuficiente prevalecem.
+
+A migração `000029_average_cadence_metric` registra `average_cadence_rpm` entre 1 e 300 como métrica opcional. O valor é exibido no resumo e no histórico, validado no banco, API e integridade, e entra somente como campo observado ou ausente em `planned-vs-actual-v3`; não cria meta de cadência, não interpreta desempenho e não altera o `rules-v1`.
+
+Quando o histórico de 28 dias registra treino perdido ou vencido, o `rules-v1` ativo adia a sessão de qualidade e explica a decisão em cada sessão; o shadow continua auditando a necessidade e não ganha autoridade adicional.
+
+Os fixtures SQL `000005`, `000020`, `000027`, `000028` e `000029` foram executados localmente em transações revertidas. `go test -count=1 ./...`, `go vet ./...`, `npm run build`, o lint específico dos arquivos alterados e `git diff --check` passaram. O lint geral mantém apenas débitos anteriores fora desta fatia. Esta fatia ainda não foi commitada, publicada ou aplicada na produção; a produção continua em `0.27.0` e schema `000023`.
+
+### Auditoria real do roadmap antes da candidata `0.30.0`
 
 Implementação agora fechada ou coberta por base testável: escopo exclusivo de ciclismo (tópico 14), parte do catálogo e elegibilidade (4), prontidão observacional (1), regras versionadas em shadow (2), diferenciação por situação de treino (5), integridade e correção auditável (11), coleta estruturada de feedback (12), auditabilidade (13) e regressões automatizadas principais (15).
 
-Ainda não é correto marcar como concluídos: adaptação em ciclo fechado com autoridade (6), calibração de carga/progressão e efeito da prescrição (7), periodização completa aplicada (8), seleção plenamente orientada pela necessidade (9), calibração de segurança clínica (10), catálogo completo com metadados científicos para todos os templates (3 e 4), matriz integral de aceitação (15) e critérios de aceitação que exigem dados reais (16). Esses itens dependem de revisão científica específica, volume longitudinal e decisão explícita para ativar qualquer autoridade nova.
+Ainda não é correto marcar como validados em campo: adaptação em ciclo fechado com autoridade (6), calibração de carga/progressão e efeito da prescrição (7), periodização individual de longo prazo (8), seleção plenamente orientada pelo efeito (9), calibração de segurança clínica (10), novos protocolos fora do catálogo elegível (3 e 4) e critérios que exigem dados reais (16). A matriz de aceitação automatizável do tópico 15 está fechada; as condições restantes dependem de revisão científica específica, volume longitudinal e decisão explícita para ativar qualquer autoridade nova.
+
+### Fechamento verificável do roadmap — candidata local `0.30.0`
+
+A matriz [`roadmap-acceptance.md`](roadmap-acceptance.md) passa a relacionar cada um dos 16 tópicos de `melhorias.md` ao código, contrato e testes que o cobrem. Ela diferencia o que está implementado no checkout das condições externas que nenhum código pode substituir: dados longitudinais, revisão científica/clínica e autorização para alterar a autoridade de prescrição.
+
+Cada sessão nova recebe `workout-decision-audit-v1` dentro de `explanation`: regras avaliadas e aplicadas, dados usados e ausentes, restrições, alternativas descartadas e condições de mudança. A tela do plano apresenta esse contexto de forma recolhível em **Ver detalhes da decisão**. O campo não é um shadow: descreve o `rules-v1` que efetivamente gerou a sessão, com confiança explicitamente `rule_based_not_calibrated`.
+
+O contrato OpenAPI e o tipo do frontend foram alinhados a `planned-vs-actual-v3`; a versão anterior de ambos ainda declarava `v2` mesmo depois de o backend passar a observar a cadência média. A entrega continua local, sem commit, deploy ou migração em produção.
 
 ### Vigésima segunda fatia — piloto local de limiar controlado — versão `0.28.0` validada localmente
 

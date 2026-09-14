@@ -11,6 +11,7 @@ DECLARE
     test_session_id UUID;
     adapted_duration INTEGER;
     adapted_rpe NUMERIC(3,1);
+    adapted_status TEXT;
     adapted_reason TEXT;
     untouched_duration INTEGER;
 BEGIN
@@ -64,16 +65,16 @@ BEGIN
         test_session_id, 'hard', false, 4, 'Teste transacional.'
     );
 
-    SELECT duration_minutes, target_rpe, explanation#>>'{adaptation,reason}'
-    INTO adapted_duration, adapted_rpe, adapted_reason
+    SELECT duration_minutes, target_rpe, status, explanation#>>'{adaptation,reason}'
+    INTO adapted_duration, adapted_rpe, adapted_status, adapted_reason
     FROM workouts WHERE id = next_workout_id;
 
     SELECT duration_minutes INTO untouched_duration
     FROM workouts WHERE id = untouched_workout_id;
 
-    IF adapted_duration <> 54 OR adapted_rpe <> 5 OR adapted_reason IS NULL THEN
-        RAISE EXCEPTION 'unexpected adapted workout: duration %, rpe %, reason %',
-            adapted_duration, adapted_rpe, adapted_reason;
+    IF adapted_duration <> 54 OR adapted_rpe <> 5 OR adapted_status <> 'adapted' OR adapted_reason IS NULL THEN
+        RAISE EXCEPTION 'unexpected adapted workout: duration %, rpe %, status %, reason %',
+            adapted_duration, adapted_rpe, adapted_status, adapted_reason;
     END IF;
     IF untouched_duration <> 70 THEN
         RAISE EXCEPTION 'only one workout should be adapted, got %', untouched_duration;

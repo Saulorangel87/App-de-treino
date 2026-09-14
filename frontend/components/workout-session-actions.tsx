@@ -100,11 +100,13 @@ export function WorkoutSessionActions({
   const [elevationGainM, setElevationGainM] = useState('');
   const [averageHeartRate, setAverageHeartRate] = useState('');
   const [averagePowerW, setAveragePowerW] = useState('');
+  const [averageCadenceRPM, setAverageCadenceRPM] = useState('');
   const [correctionOpen, setCorrectionOpen] = useState(false);
   const [correctionDistanceKM, setCorrectionDistanceKM] = useState('');
   const [correctionElevationGainM, setCorrectionElevationGainM] = useState('');
   const [correctionAverageHeartRate, setCorrectionAverageHeartRate] = useState('');
   const [correctionAveragePowerW, setCorrectionAveragePowerW] = useState('');
+  const [correctionAverageCadenceRPM, setCorrectionAverageCadenceRPM] = useState('');
   const [correctionNotice, setCorrectionNotice] = useState('');
   const [error, setError] = useState('');
 
@@ -155,6 +157,7 @@ export function WorkoutSessionActions({
       elevation_gain_m: optionalNumber(elevationGainM),
       average_heart_rate: usesHeartRate ? optionalNumber(averageHeartRate) : undefined,
       average_power_watts: usesPower ? optionalNumber(averagePowerW) : undefined,
+      average_cadence_rpm: optionalNumber(averageCadenceRPM),
     });
   }
 
@@ -163,6 +166,7 @@ export function WorkoutSessionActions({
     setCorrectionElevationGainM(workout.session?.elevation_gain_m?.toString() ?? '');
     setCorrectionAverageHeartRate(workout.session?.average_heart_rate?.toString() ?? '');
     setCorrectionAveragePowerW(workout.session?.average_power_watts?.toString() ?? '');
+    setCorrectionAverageCadenceRPM(workout.session?.average_cadence_rpm?.toString() ?? '');
     setCorrectionNotice('');
     setError('');
     setCorrectionOpen(true);
@@ -182,6 +186,7 @@ export function WorkoutSessionActions({
             elevation_gain_m: optionalNumber(correctionElevationGainM),
             average_heart_rate: correctionHeartRateVisible ? optionalNumber(correctionAverageHeartRate) : undefined,
             average_power_watts: correctionPowerVisible ? optionalNumber(correctionAveragePowerW) : undefined,
+            average_cadence_rpm: optionalNumber(correctionAverageCadenceRPM),
           }),
         },
       );
@@ -541,6 +546,10 @@ export function WorkoutSessionActions({
                 Potência média (W)
                 <input type="number" min="0" max="2000" step="1" inputMode="numeric" value={averagePowerW} onChange={(event) => setAveragePowerW(event.target.value)} placeholder="Ex.: 185" />
               </label>}
+              <label>
+                Cadência média (rpm)
+                <input type="number" min="1" max="300" step="1" inputMode="numeric" value={averageCadenceRPM} onChange={(event) => setAverageCadenceRPM(event.target.value)} placeholder="Ex.: 88" />
+              </label>
             </div>
           </fieldset>
 
@@ -602,13 +611,13 @@ export function WorkoutSessionActions({
               {feedback.pain_reported ? ' · dor relatada' : ' · sem dor'}
             </span>
             {feedback.notes && <p>{feedback.notes}</p>}
-            {(session?.distance_km !== undefined || session?.elevation_gain_m !== undefined || session?.average_heart_rate !== undefined || session?.average_power_watts !== undefined) && <p className="session-metric-result">{session?.distance_km !== undefined && `${session.distance_km} km`}{session?.elevation_gain_m !== undefined && ` · ${session.elevation_gain_m} m+`}{session?.average_heart_rate !== undefined && ` · FC ${session.average_heart_rate} bpm`}{session?.average_power_watts !== undefined && ` · ${session.average_power_watts} W`}</p>}
+            {(session?.distance_km !== undefined || session?.elevation_gain_m !== undefined || session?.average_heart_rate !== undefined || session?.average_power_watts !== undefined || session?.average_cadence_rpm !== undefined) && <p className="session-metric-result">{session?.distance_km !== undefined && `${session.distance_km} km`}{session?.elevation_gain_m !== undefined && ` · ${session.elevation_gain_m} m+`}{session?.average_heart_rate !== undefined && ` · FC ${session.average_heart_rate} bpm`}{session?.average_power_watts !== undefined && ` · ${session.average_power_watts} W`}{session?.average_cadence_rpm !== undefined && ` · ${session.average_cadence_rpm} rpm`}</p>}
           </div>
         </div>
       )}
 
       {workout.status === 'completed' && workout.explanation.data_integrity && workout.explanation.data_integrity.status !== 'valid' && (
-        <div className="session-data-warning" role="status">
+        <div className="session-data-warning" aria-live="polite">
           <TriangleAlert />
           <div>
             <strong>Registro salvo para revisão</strong>
@@ -622,7 +631,7 @@ export function WorkoutSessionActions({
       )}
 
       {correctionNotice && (
-        <p className="session-correction-success" role="status">
+        <p className="session-correction-success" aria-live="polite">
           {correctionNotice}
         </p>
       )}
@@ -667,6 +676,10 @@ export function WorkoutSessionActions({
               Potência média (W)
               <input type="number" min="0" max="2000" step="1" inputMode="numeric" value={correctionAveragePowerW} onChange={(event) => setCorrectionAveragePowerW(event.target.value)} />
             </label>}
+            <label>
+              Cadência média (rpm)
+              <input type="number" min="1" max="300" step="1" inputMode="numeric" value={correctionAverageCadenceRPM} onChange={(event) => setCorrectionAverageCadenceRPM(event.target.value)} />
+            </label>
           </div>
           <Button type="submit" className="session-primary" disabled={busy}>
             {action === 'correct' ? <LoaderCircle className="spin" /> : <CheckCircle2 />}

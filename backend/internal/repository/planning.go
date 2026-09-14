@@ -531,7 +531,7 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 			w.target_rpe::double precision, w.structure, w.explanation, w.status,
 			ws.id::text, ws.status, ws.started_at, ws.completed_at, ws.cancelled_at,
 			ws.duration_minutes, ws.actual_rpe::double precision, ws.distance_km::double precision, ws.elevation_gain_m,
-			ws.average_power_watts, ws.average_heart_rate,
+			ws.average_power_watts, ws.average_heart_rate, ws.average_cadence_rpm,
 			f.completion_status, f.partial_reason, f.difficulty, f.pain_reported, f.fatigue_after,
 			f.recovery_after, f.repeat_confidence, f.satisfaction, f.terrain, f.external_conditions, f.equipment_used, f.notes
 		FROM workouts w
@@ -554,14 +554,14 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 		var structure, explanation []byte
 		var sessionID, sessionStatus, completionStatus, partialReason, difficulty, terrain, externalConditions, equipmentUsed, notes *string
 		var startedAt, completedAt, cancelledAt *time.Time
-		var durationMinutes, fatigueAfter, recoveryAfter, repeatConfidence, satisfaction, elevationGainM, averagePowerW, averageHeartRate *int
+		var durationMinutes, fatigueAfter, recoveryAfter, repeatConfidence, satisfaction, elevationGainM, averagePowerW, averageHeartRate, averageCadenceRPM *int
 		var actualRPE, distanceKM *float64
 		var painReported *bool
 		if err := rows.Scan(
 			&workout.ID, &workout.ScheduledOn, &workout.Name, &workout.Objective,
 			&workout.DurationMinutes, &workout.TargetRPE, &structure, &explanation, &workout.Status,
 			&sessionID, &sessionStatus, &startedAt, &completedAt, &cancelledAt,
-			&durationMinutes, &actualRPE, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate,
+			&durationMinutes, &actualRPE, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate, &averageCadenceRPM,
 			&completionStatus, &partialReason, &difficulty, &painReported, &fatigueAfter, &recoveryAfter, &repeatConfidence, &satisfaction, &terrain, &externalConditions, &equipmentUsed, &notes,
 		); err != nil {
 			return planning.Plan{}, err
@@ -577,7 +577,7 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 				ID: *sessionID, Status: *sessionStatus, StartedAt: startedAt,
 				CompletedAt: completedAt, CancelledAt: cancelledAt,
 				DurationMinutes: durationMinutes, ActualRPE: actualRPE, DistanceKM: distanceKM,
-				ElevationGainM: elevationGainM, AveragePowerW: averagePowerW, AverageHeartRate: averageHeartRate,
+				ElevationGainM: elevationGainM, AveragePowerW: averagePowerW, AverageHeartRate: averageHeartRate, AverageCadenceRPM: averageCadenceRPM,
 			}
 			if difficulty != nil && painReported != nil && fatigueAfter != nil {
 				workout.Session.Feedback = &planning.Feedback{

@@ -28,6 +28,7 @@ type ReadinessAssessment struct {
 	Scope               string                `json:"scope"`
 	AssessedAt          string                `json:"assessed_at"`
 	Status              string                `json:"status"`
+	State               string                `json:"state"`
 	Reasons             []ReadinessReason     `json:"reasons"`
 	MissingData         []string              `json:"missing_data"`
 	NotEvaluated        []string              `json:"not_evaluated"`
@@ -44,6 +45,7 @@ func assessReadiness(input Context, now time.Time) ReadinessAssessment {
 		Scope:             "observed_history_28d",
 		AssessedAt:        now.UTC().Format(time.RFC3339Nano),
 		Status:            "insufficient_data",
+		State:             "insufficient_data",
 		Reasons:           []ReadinessReason{},
 		MissingData:       []string{},
 		NotEvaluated: []string{
@@ -104,22 +106,48 @@ func assessReadiness(input Context, now time.Time) ReadinessAssessment {
 		addReason("high_recovery_fatigue", "A fadiga média dos check-ins atingiu o limiar de proteção já utilizado pelo rules-v1.")
 	}
 	if len(result.Reasons) > 0 {
+		result.State = "recovery_needed"
 		result.Status = "recovery_needed"
 		return result
 	}
+	if isReturningAfterPause(input.Cycling) {
+		result.State = "returning_after_break"
+	} else if hasLowObservedAdherence(input.TrainingHistory) {
+		result.State = "low_consistency"
+	} else if input.Cycling.EventGoal && input.Cycling.EventDate != nil {
+		result.State = "event_specific_preparation"
+	}
 	if !valid || observed.WindowDays != 28 || coverage == nil ||
 		(coverage.CompleteSessions == 0 && coverage.RecoveryWithFatigue == 0) {
+		if result.State == "insufficient_data" {
+			result.State = "insufficient_data"
+		}
 		addReason("insufficient_observed_data", "Não há dados completos e consistentes suficientes para descrever o histórico disponível.")
 		return result
 	}
 	if len(result.MissingData) > 0 {
+		if result.State == "insufficient_data" {
+			result.State = "caution"
+		}
 		result.Status = "caution"
 		addReason("partial_observed_data", "O histórico contém registros utilizáveis, mas há lacunas; ausência de registro não significa falta de treino.")
 		return result
 	}
+	if result.State == "insufficient_data" {
+		result.State = "stable_observed"
+	}
 	result.Status = "stable"
 	addReason("no_aggregate_alerts", "Sem alertas nos agregados disponíveis; isso não comprova prontidão atual nem autoriza progressão.")
 	return result
+}
+
+func hasLowObservedAdherence(history []TrainingHistoryWindow) bool {
+	for _, window := range history {
+		if window.WindowDays == 28 {
+			return window.MissedSessions > 0 || window.OverdueInProgressSessions > 0
+		}
+	}
+	return false
 }
 
 func finiteInRange(value, minimum, maximum float64) bool {

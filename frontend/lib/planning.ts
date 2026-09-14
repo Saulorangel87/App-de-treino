@@ -18,6 +18,20 @@ export type Workout = {
     protocol_key?: string;
     evidence_scope?: string;
     evidence_keys?: string[];
+    decision_audit?: {
+      version: 'workout-decision-audit-v1';
+      mode: 'deterministic';
+      scope: 'plan_generation_workout';
+      rules_evaluated: string[];
+      rules_applied: string[];
+      alternatives_rejected: string[];
+      data_used: string[];
+      missing_data: string[];
+      constraints_applied: string[];
+      conditions_for_change: string[];
+      confidence: 'rule_based_not_calibrated';
+      used_for_prescription: true;
+    };
     protocol_metadata?: ProtocolMetadata;
     event_taper_applied?: boolean;
     data_integrity?: {
@@ -98,7 +112,7 @@ export type Workout = {
         used_for_prescription: false;
       };
       planned_vs_actual?: {
-        version: 'planned-vs-actual-v2';
+        version: 'planned-vs-actual-v3';
         mode: 'observation';
         scope: 'completed_workout';
         assessed_at: string;
@@ -205,6 +219,7 @@ export type WorkoutSession = {
   elevation_gain_m?: number;
   average_power_watts?: number;
   average_heart_rate?: number;
+  average_cadence_rpm?: number;
   feedback?: WorkoutFeedback;
 };
 
@@ -224,6 +239,7 @@ export type Activity = {
   elevation_gain_m?: number;
   average_power_watts?: number;
   average_heart_rate?: number;
+  average_cadence_rpm?: number;
   feedback?: WorkoutFeedback;
 };
 
@@ -233,6 +249,7 @@ export type ReadinessAssessment = {
   scope: 'observed_history_28d';
   assessed_at: string;
   status: 'insufficient_data' | 'caution' | 'recovery_needed' | 'stable';
+  state: 'insufficient_data' | 'caution' | 'recovery_needed' | 'returning_after_break' | 'low_consistency' | 'event_specific_preparation' | 'stable_observed';
   reasons: Array<{ code: string; message: string }>;
   missing_data: string[];
   not_evaluated: string[];

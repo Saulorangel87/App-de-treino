@@ -20,6 +20,7 @@ type WorkoutDataIntegrityInput struct {
 	ElevationGainM     *int
 	AveragePowerW      *int
 	AverageHeartRate   *int
+	AverageCadenceRPM  *int
 	FeedbackPresent    bool
 	CompletionStatus   string
 	PartialReason      string
@@ -164,6 +165,9 @@ func AssessWorkoutDataIntegrity(input WorkoutDataIntegrityInput, now time.Time) 
 	}
 	if input.AverageHeartRate != nil && (*input.AverageHeartRate < 30 || *input.AverageHeartRate > 250) {
 		addIssue("invalid_average_heart_rate")
+	}
+	if input.AverageCadenceRPM != nil && (*input.AverageCadenceRPM < 1 || *input.AverageCadenceRPM > 300) {
+		addIssue("invalid_average_cadence_rpm")
 	}
 
 	noElapsedTime := input.DurationMinutes == nil || *input.DurationMinutes <= 0
