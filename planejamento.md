@@ -1568,3 +1568,9 @@ O snapshot passa a `training-history-v5` e a comparação a `period-comparison-v
 O slot de maior disponibilidade do ciclo foi separado do `Endurance contínuo` genérico e passou a usar `Pedal longo`, com a chave `long_endurance`. A estrutura permanece contínua, com RPE 5, aquecimento e desaquecimento; duração, multiplicador e travas de segurança não foram ampliados. Periodização e seleção de estímulos reconhecem a chave nova como endurance longo.
 
 A versão local foi preparada como `0.26.0`, com nota de novidade. A suíte automatizada, o build e a validação manual no navegador passaram: o maior treino do ciclo apareceu como **Pedal longo**, com carga conservadora. Não há migração, deploy ou publicação nesta etapa.
+
+### Continuidade — retorno gradual após baixa regularidade — 13 de setembro de 2026
+
+O catálogo ganhou o protocolo `return_after_break`, apresentado como **Retorno gradual** quando o perfil informa de uma a três semanas treinando com regularidade. A retomada usa sessões contínuas em RPE 3,5, limita a duração a 45 minutos e impede que preferência, nível ou avaliação anterior liberem qualidade antes da reconstrução da consistência. O valor zero não ativa a regra porque pode ser apenas dado não informado; limitação, dor e recuperação insuficiente continuam prevalecendo.
+
+A versão local foi preparada como `0.27.0`, com nota de novidade. A suíte Go, o `go vet`, o build e o diff passaram. Ainda falta a validação manual no navegador com um perfil de 1–3 semanas; não há migração, deploy ou publicação nesta etapa.

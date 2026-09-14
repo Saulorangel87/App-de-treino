@@ -380,3 +380,9 @@ As lacunas aparecem como `satisfaction_coverage_*`, `terrain_coverage_*` e `exte
 O maior slot de disponibilidade do ciclo agora usa o nome **Pedal longo** para diferenciar o estímulo contínuo de maior volume do `Endurance contínuo` genérico. A mudança é de catálogo e explicação: mantém RPE-alvo 5, duração derivada do nível, disponibilidade e multiplicadores já existentes, além de aquecimento e desaquecimento.
 
 `Pedal longo` não cria meta universal de distância, velocidade ou duração. As proteções de limitação, dor, recuperação e disponibilidade continuam prioritárias; `periodization-shadow-v1` e `stimulus-selection-shadow-v1` reconhecem a chave `long_endurance` como endurance longo. `rules-v1` continua sendo a única autoridade prescritiva.
+
+### Retorno gradual após baixa regularidade (`return_after_break`)
+
+Quando o perfil informa de uma a três semanas treinando com regularidade, o catálogo usa **Retorno gradual** para iniciar o ciclo com esforço leve. Essa faixa é um sinal operacional de baixa regularidade informada, não uma confirmação de pausa, diagnóstico ou leitura substituta da prontidão atual.
+
+O protocolo usa RPE-alvo 3,5, limita a sessão a 45 minutos e mantém uma estrutura contínua com aquecimento e desaquecimento. Ele impede que a preferência ou a elegibilidade anterior liberem uma sessão de qualidade durante a retomada. Limitação, dor, fadiga e recuperação insuficiente continuam prevalecendo e podem selecionar `Giro leve protegido`. O valor zero não ativa o protocolo porque pode representar apenas ausência de resposta.

@@ -597,6 +597,12 @@ O slot de maior disponibilidade do ciclo agora usa o protocolo explícito `long_
 
 A versão local preparada é `0.26.0`. A validação automatizada e a conferência manual do rascunho passaram: o maior treino do ciclo apareceu como **Pedal longo**, sem aumento automático de carga. Produção continua fora desta etapa.
 
+### Continuidade — retorno gradual após baixa regularidade — em validação local
+
+O próximo template do tópico 4 é `return_after_break`, apresentado como **Retorno gradual**. Para uma a três semanas de regularidade informadas, ele substitui qualidade e maior volume por sessões contínuas de até 45 minutos em RPE 3,5. O valor zero não é interpretado como pausa; as proteções existentes continuam vencendo.
+
+A versão local preparada é `0.27.0`. A validação automatizada passou e falta confirmar o resultado no rascunho pelo navegador antes do commit. Produção continua fora desta etapa.
+
 ### Continuidade — contexto de segurança detalhado do perfil — versão local `0.21.0`
 
 A etapa de segurança do perfil foi ampliada com quatro campos opcionais para uma limitação: localização, intensidade percebida, movimento agravante e data de início. A API valida tamanho, faixa e data; a migração `000022_limitation_context` é aditiva e preserva dados anteriores. A tela informa que o contexto não é diagnóstico e continua recomendando avaliação profissional quando necessário.

@@ -495,7 +495,7 @@ func TestBuildPlanIncludesActionableStepsForSpecificSessions(t *testing.T) {
 
 func TestSessionProtocolsKeepEvidenceMapping(t *testing.T) {
 	for _, name := range []string{
-		"Giro de base", "Recuperação ativa", "Endurance contínuo", "Pedal longo", "Giro leve protegido", "Tempo controlado",
+		"Giro de base", "Recuperação ativa", "Retorno gradual", "Endurance contínuo", "Pedal longo", "Giro leve protegido", "Tempo controlado",
 		"Ritmo de prova controlado", "Cadência técnica", "Subidas controladas",
 		"Sweet spot por potência", "Sweet spot progressivo", "Intervalos controlados", "Intervalos moderados de estrada", "Intervalos intensos de estrada", "Intervalos VO₂max de estrada", "Intervalos aeróbicos XCO",
 	} {
@@ -506,6 +506,31 @@ func TestSessionProtocolsKeepEvidenceMapping(t *testing.T) {
 	}
 	if protocolForWorkout("unknown").Key != "continuous_base" {
 		t.Fatal("unknown sessions should use the safe continuous fallback protocol")
+	}
+}
+
+func TestBuildPlanUsesGradualReturnForLowRecentRegularity(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+		Cycling:      CyclingContext{WeeklyRides: 3, RecentTrainingWeeks: 2, Discipline: "road", PreferredSessionTypes: []string{"intervals"}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(plan.Workouts) == 0 {
+		t.Fatal("expected workouts")
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Name != "Retorno gradual" || workout.TargetRPE != 3.5 || workout.DurationMinutes > 45 {
+			t.Fatalf("low recent regularity must produce a conservative return workout: %#v", workout)
+		}
+		if workout.Structure["protocol_key"] != "return_after_break" || workout.Explanation["protocol_key"] != "return_after_break" {
+			t.Fatalf("expected return protocol metadata: %#v", workout)
+		}
+		if workout.TargetRPE >= qualityTargetRPEThreshold {
+			t.Fatalf("return plan must not contain a quality session: %#v", workout)
+		}
 	}
 }
 

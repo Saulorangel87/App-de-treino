@@ -700,3 +700,9 @@ O snapshot passou a `training-history-v5` e o comparador a `period-comparison-v3
 O maior slot de disponibilidade do ciclo agora é apresentado como `Pedal longo` e usa a chave estável `long_endurance`. A sessão mantém o mesmo RPE-alvo 5, duração limitada pelo nível, disponibilidade e multiplicador, estrutura contínua e todas as proteções existentes; a alteração diferencia o catálogo sem aumentar carga.
 
 Os shadows de periodização e seleção de estímulos reconhecem a nova chave como endurance longo. A nota local `0.26.0` foi adicionada, sem migração, deploy ou alteração de infraestrutura. A validação automatizada e a conferência manual do novo nome passaram.
+
+### Continuidade — retorno gradual após baixa regularidade — versão local `0.27.0` em validação
+
+Perfis que informam de uma a três semanas treinando com regularidade agora recebem o protocolo `return_after_break`, apresentado como **Retorno gradual**. A regra limita as sessões a 45 minutos e RPE 3,5, substitui qualidade e maior volume durante a retomada e não interpreta o valor zero como pausa.
+
+As proteções de limitação, dor e recuperação continuam prioritárias; os shadows reconhecem a necessidade de retorno sem ganhar autoridade prescritiva. A nota `0.27.0` foi adicionada, sem migração, deploy ou alteração de infraestrutura. A validação automatizada passou; ainda falta conferir o nome e os limites no rascunho pelo navegador.

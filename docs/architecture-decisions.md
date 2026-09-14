@@ -396,3 +396,9 @@ O histórico foi versionado como `training-history-v5` e `period-comparison-v3`.
 O slot de maior disponibilidade do ciclo passa a usar o protocolo explícito `long_endurance`, apresentado ao atleta como **Pedal longo**. A separação melhora a clareza do catálogo sem alterar os parâmetros anteriores: a duração continua limitada pelo nível, disponibilidade e multiplicador, o RPE-alvo permanece 5 e a estrutura segue contínua, com aquecimento e desaquecimento.
 
 A chave nova é reconhecida pelos shadows de periodização e seleção de estímulos, preservando a leitura de endurance longo. Não há nova modalidade, preferência, migração ou autoridade adicional para regras shadow; limitação, dor e recuperação continuam vencendo a escolha.
+
+## Catálogo: retorno gradual após baixa regularidade
+
+Perfis que informam de uma a três semanas treinando com regularidade recebem localmente o protocolo `return_after_break`, apresentado como **Retorno gradual**. A regra usa essa informação somente como sinal operacional de retomada: não afirma que houve uma pausa e não substitui a prontidão observada.
+
+Para reduzir o risco de retorno abrupto, a sessão é contínua, usa RPE 3,5 e fica limitada a 45 minutos. O protocolo substitui a sessão de qualidade e o maior volume durante a retomada; limitação, dor e recuperação insuficiente continuam vencendo a escolha. O valor zero não ativa a regra, pois pode ser apenas dado não informado. A seleção correspondente permanece refletida nos shadows, sem autoridade adicional e sem migração.

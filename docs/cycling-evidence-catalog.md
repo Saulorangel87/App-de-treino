@@ -1,6 +1,6 @@
 # Mapa de evidências do catálogo de ciclismo
 
-Última revisão: 12 de setembro de 2026.
+Última revisão: 13 de setembro de 2026.
 
 ## Objetivo
 
@@ -66,6 +66,7 @@ São modalidades com exigências anaeróbicas, neuromusculares e de força muito
 | --- | --- | --- | --- |
 | Endurance de estrada | `road` | Base de endurance e distribuição de intensidade apoiadas por revisões | Todos os níveis, com progressão conservadora |
 | Pedal longo | `road`, `gravel`, `mtb_xcm`, `indoor` | Extensão de endurance com progressão gradual; não define uma dose universal | Todos os níveis, no maior slot disponível e respeitando disponibilidade e recuperação |
+| Retorno gradual | Geral, dentro do ciclismo | Retomada conservadora após baixa regularidade informada; não confirma uma pausa nem define uma dose universal | Perfis com 1–3 semanas de regularidade informadas, com duração limitada e sem qualidade |
 | Intervalos moderados | `road` | Ensaios recentes em ciclistas bem treinados | Piloto local: intermediário/avançado, objetivo compatível, avaliação apta, 60 min disponíveis e sem sinais de recuperação insuficiente |
 | Intervalos intensos de estrada | `road` | Ensaio recente comparando blocos moderados e intensos em ciclistas bem treinados, com limite de transferência explícito | Piloto local: avançado, 8 semanas e 3 pedais/semana recentes, avaliação apta, objetivo compatível, pelo menos 75 min, ciclo alternado e sem sinais protetivos |
 | Intervalos VO₂max de estrada | `road` | Ensaios recentes em ciclistas bem treinados; transferência limitada | Piloto local: avançado, preferência explícita, histórico mínimo, avaliação apta, pelo menos 60 min e sem sinais protetivos |
@@ -106,6 +107,12 @@ O estudo randomizado de Inoue et al. encontrou melhora do desempenho de MTB apó
 O slot de maior disponibilidade do ciclo passa a ser apresentado como **Pedal longo**, com a chave `long_endurance`. Ele representa uma sessão contínua de endurance com volume relativamente maior dentro da rotina do próprio atleta; não é uma meta fixa de distância, velocidade ou duração universal.
 
 O protocolo reutiliza a mesma base segura do endurance contínuo: duração derivada do nível e do maior período disponível, RPE-alvo 5, aquecimento, parte principal contínua e desaquecimento. Limitação, dor, recuperação insuficiente, disponibilidade menor e os demais gates do `rules-v1` continuam prevalecendo. A referência `acsm-1998` sustenta somente progressão gradual e controle de carga; o nome não libera carga adicional.
+
+### Retorno gradual após baixa regularidade
+
+O protocolo `return_after_break`, apresentado como **Retorno gradual**, é uma retomada conservadora para perfis que informam de uma a três semanas treinando com regularidade. O dado não prova que houve uma pausa; ele apenas justifica começar com sessões leves enquanto a consistência é reconstruída.
+
+O motor limita essas sessões a 45 minutos e RPE 3,5, com aquecimento, pedal contínuo e desaquecimento. A regra substitui sessões de qualidade e o volume mais longo durante a retomada, mas não substitui as proteções de limitação, dor ou recuperação insuficiente. O valor zero continua significando dado não informado e não dispara o protocolo.
 
 ## Modelo e critérios de integração do catálogo
 

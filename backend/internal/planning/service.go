@@ -679,6 +679,24 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 			}
 		}
 	}
+	returningAfterPause := isReturningAfterPause(input.Cycling)
+	if returningAfterPause {
+		rotationApplied = false
+		activeRecoveryApplied = false
+		usesControlledIntervals = false
+		usesRoadModerateIntervals = false
+		usesRoadHighIntensityIntervals = false
+		usesRoadVO2Intervals = false
+		usesShortSelfRegulatedIntervals = false
+		usesXCOAerobicIntervals = false
+		name = "Retorno gradual"
+		targetRPE = 3.5
+		mainBlock = "Pedale leve e contínuo, retomando o ritmo com controle"
+		if baseMinutes > 45 {
+			baseMinutes = 45
+		}
+		summary = "A baixa regularidade informada recomenda uma retomada gradual; isso não confirma uma pausa e não substitui a avaliação de recuperação atual."
+	}
 	if restricted {
 		rotationApplied = false
 		activeRecoveryApplied = false
@@ -757,6 +775,9 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	if activeRecoveryApplied {
 		rules = append(rules, "Variação de recuperação ativa aplicada na quarta semana, sem aumentar a carga planejada.")
 	}
+	if returningAfterPause && name == "Retorno gradual" {
+		rules = append(rules, "Uma a três semanas de regularidade informadas mantêm a retomada leve, limitada a 45 minutos e RPE 3,5, sem sessão de qualidade.")
+	}
 	if eventTaperApplied {
 		rules = append(rules, "Taper pré-prova aplicado nesta sessão: volume reduzido de forma conservadora, mantendo a frequência planejada.")
 	}
@@ -801,6 +822,10 @@ func preferredQualityPreference(context CyclingContext) string {
 func sessionPreferenceLabel(preference string) string {
 	labels := map[string]string{"cadence": "cadência", "hills": "subidas", "intervals": "intervalos", "sweet_spot": "sweet spot", "vo2max": "VO₂max", "short_intervals": "intervalos curtos"}
 	return labels[preference]
+}
+
+func isReturningAfterPause(cycling CyclingContext) bool {
+	return cycling.RecentTrainingWeeks >= 1 && cycling.RecentTrainingWeeks <= 3
 }
 
 func buildStructure(duration int, targetRPE float64, name, mainBlock string) map[string]any {

@@ -35,6 +35,10 @@ var sessionProtocols = map[string]sessionProtocol{
 		Key: "active_recovery", EvidenceKeys: []string{"acsm-1998"},
 		EvidenceScope: "Semana de recuperação com esforço leve e volume reduzido; a referência não define minutos universais.",
 	},
+	"Retorno gradual": {
+		Key: "return_after_break", EvidenceKeys: []string{"acsm-1998"},
+		EvidenceScope: "Retomada conservadora após baixa regularidade informada; a referência sustenta progressão gradual, não uma dose universal.",
+	},
 	"Tempo controlado": {
 		Key: "controlled_tempo", EvidenceKeys: []string{"acsm-1998"},
 		EvidenceScope: "Progressão gradual e controle de carga; a referência não define minutos universais.",

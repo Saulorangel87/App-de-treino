@@ -68,6 +68,20 @@ func TestStimulusSelectionShadowFlagsLowAdherenceAndRecoveryMismatch(t *testing.
 	}
 }
 
+func TestStimulusSelectionShadowRecognizesGradualReturn(t *testing.T) {
+	assessment := assessStimulusSelectionShadow(Context{
+		ExperienceLevel: "advanced",
+		Cycling:         CyclingContext{RecentTrainingWeeks: 2},
+		TrainingHistory: selectionHistory(4, 0),
+	}, []Workout{selectionWorkout("return_after_break", 3.5)}, time.Now(), false)
+	if assessment.Status != "observed" || assessment.CandidateNeed != "return_to_training" || assessment.CandidateResponse != "maintain_observed" {
+		t.Fatalf("unexpected gradual-return assessment: %+v", assessment)
+	}
+	if !containsString(assessment.ExpectedStimuli, "return_after_break") || len(assessment.DataIssues) != 0 || len(assessment.MissingData) != 0 {
+		t.Fatalf("unexpected gradual-return evidence: %+v", assessment)
+	}
+}
+
 func TestBuildPlanAttachesNonAuthoritativeStimulusSelectionShadow(t *testing.T) {
 	plan, err := buildPlan(Context{
 		ProfileID:       "profile-1",

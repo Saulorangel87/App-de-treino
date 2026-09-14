@@ -128,6 +128,9 @@ func classifyStimulusNeed(input Context, restricted bool) (string, []string, []s
 	if restricted || input.Observed.RequiresRecovery() {
 		return "recovery_protection", []string{"active_recovery", "protected_recovery"}, nil
 	}
+	if isReturningAfterPause(input.Cycling) {
+		return "return_to_training", []string{"return_after_break", "active_recovery", "base_endurance"}, nil
+	}
 	if trainingHistorySuggestsLowAdherence(input.TrainingHistory) {
 		return "base_and_adherence", []string{"base_endurance", "continuous_endurance", "long_endurance", "active_recovery"}, nil
 	}
@@ -190,6 +193,13 @@ func stimulusSelectionMismatches(need string, workouts []Workout) []string {
 		}
 		if !recovery {
 			mismatches = append(mismatches, "missing_recovery_stimulus")
+		}
+	case "return_to_training":
+		if highIntensity {
+			mismatches = append(mismatches, "high_intensity_during_return")
+		}
+		if !recovery {
+			mismatches = append(mismatches, "missing_recovery_stimulus_during_return")
 		}
 	case "base_and_adherence":
 		if highIntensity {
