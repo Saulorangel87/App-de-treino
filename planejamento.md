@@ -1584,3 +1584,11 @@ Após a validação manual, o commit `61458ae` foi atualizado por fast-forward n
 O catálogo local passou a reconhecer a preferência explícita `threshold` e o protocolo `controlled_threshold`, apresentado como **Limiar controlado**. A seleção exige estrada ou indoor, nível avançado, objetivo de performance/prova, avaliação submáxima apta, oito semanas de treino recente, três pedais semanais, 60 minutos disponíveis e fase compatível com o evento. A estrutura usa três blocos de 8 minutos em RPE 7,5 e 4 minutos leves, sem potência universal ou estimativa automática de limiar.
 
 A evidência disponível em ciclistas treinados orienta o formato, mas não autoriza transferir a dose para todos os atletas. Limitação, dor, recuperação, retorno após pausa, semana de recuperação e demais gates continuam vencendo a preferência. Não há migração, alteração de infraestrutura, deploy ou autoridade adicional para os shadows nesta etapa. A validação automatizada e manual passaram. A funcionalidade está no commit `d6e36ec`, a limpeza do cache gerado está no `011b204` e a produção continua na `0.27.0`.
+
+### Correção operacional da produção — 14 de setembro de 2026
+
+Após o deploy da versão `0.27.0`, a tela de novidades continuou carregando, mas a conta autenticada recebeu `500` em `GET /v1/plans/current`. A API, o frontend, o PostgreSQL, o Cloudflare Tunnel, `/health` e `/ready` estavam saudáveis, portanto a falha não era uma indisponibilidade geral.
+
+A investigação confirmou que o checkout da aplicação consultava os campos `satisfaction`, `terrain` e `external_conditions` da tabela `feedback`, enquanto o PostgreSQL de produção estava registrado somente até a migração `000021`. Foi criado e validado o backup `cadencia-20260914T112526Z.dump`; o perfil `maintenance` aplicou em ordem `000022_limitation_context` e `000023_feedback_context`. As três colunas, os registros de migração e o carregamento do plano autenticado foram validados.
+
+Essa ocorrência encerra a lacuna operacional do deploy, não uma melhoria funcional do motor. A partir daqui, a sequência obrigatória é: backup verificável, conferência do estado de `cadencia_schema_migrations`, aplicação ordenada das migrações pendentes, validação do schema, healthchecks e leitura autenticada de uma rota crítica. `rules-v1` e os shadows não foram alterados.

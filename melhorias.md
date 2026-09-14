@@ -564,7 +564,7 @@ Não faça commit, deploy ou publicação. Aguarde minha autorização explícit
 
 ## Estado de execução do roadmap
 
-Atualizado em 13 de setembro de 2026. Este arquivo continua sendo um roadmap; os 16 tópicos não estão todos encerrados.
+Atualizado em 14 de setembro de 2026. Este arquivo continua sendo um roadmap; os 16 tópicos não estão todos encerrados.
 
 ### Base implementada e publicada
 
@@ -630,6 +630,14 @@ O gate de integridade agora identifica combinações obviamente incompatíveis e
 Após a conclusão, a interface informa que o registro foi salvo para revisão quando faltam dados mínimos ou existem dados incompatíveis. A nota foi adicionada em `UPDATE_NOTES`. Foram incluídos teste automatizado para distância/duração e `ApiErrorState` permanece separado da lógica do motor. A suíte completa, `go vet`, o build do frontend e `git diff --check` passaram. A validação manual confirmou `distance_duration_incompatible`, `eligible_for_history: false`, `progression_eligible: false` e `used_for_prescription: false` após concluir um treino com 3 minutos e 55 km. O commit `74f9493` foi registrado; produção permanece em `0.20.0` até deploy autorizado.
 
 Enquanto essas pendências existirem, não declarar o roadmap encerrado nem substituir o `rules-v1`. A ativação prescritiva exige uma revisão separada e autorização explícita.
+
+### Correção operacional da produção — 14 de setembro de 2026
+
+A produção apresentou `500` em `GET /v1/plans/current` depois do deploy da versão `0.27.0`, embora o frontend, a API, o PostgreSQL, o Tunnel, `/health` e `/ready` permanecessem saudáveis. A tela de novidades carregava normalmente; o problema estava na leitura autenticada do plano.
+
+A causa foi uma defasagem entre aplicação e schema: a API consultava `feedback.satisfaction`, `feedback.terrain` e `feedback.external_conditions`, mas `cadencia_schema_migrations` estava somente até `000021`. Foi criado e validado o backup `cadencia-20260914T112526Z.dump`; as migrações `000022_limitation_context` e `000023_feedback_context` foram aplicadas em ordem pelo perfil `maintenance`. O plano voltou a carregar na conta autenticada e não houve alteração de prescrição, geração de plano ou mudança de tópico do roadmap.
+
+Regra operacional incorporada: healthchecks não comprovam compatibilidade de schema. Todo deploy deve conferir `cadencia_schema_migrations`, aplicar os `.up.sql` pendentes em ordem e validar uma rota autenticada crítica, especialmente `GET /v1/plans/current`, antes de ser considerado concluído. A ocorrência foi registrada também na documentação de produção e na memória de continuidade.
 
 ### Continuidade — correção auditável de inconsistências do pedal — versão local `0.24.0`
 
