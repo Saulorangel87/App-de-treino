@@ -1,7 +1,0 @@
-./assessment.go
-./onboarding.go
-./recovery.go
-./service.go
-./onboarding_test.go
-./recovery_test.go
-./service_test.go
