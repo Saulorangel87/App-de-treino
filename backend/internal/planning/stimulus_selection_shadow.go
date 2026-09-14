@@ -129,24 +129,24 @@ func classifyStimulusNeed(input Context, restricted bool) (string, []string, []s
 		return "recovery_protection", []string{"active_recovery", "protected_recovery"}, nil
 	}
 	if trainingHistorySuggestsLowAdherence(input.TrainingHistory) {
-		return "base_and_adherence", []string{"base_endurance", "continuous_endurance", "active_recovery"}, nil
+		return "base_and_adherence", []string{"base_endurance", "continuous_endurance", "long_endurance", "active_recovery"}, nil
 	}
 	if input.Cycling.EventGoal {
 		if input.Cycling.EventDistanceKM == nil {
-			return "event_specificity", []string{"continuous_endurance", "controlled_event_pace"}, []string{"event_distance_km"}
+			return "event_specificity", []string{"continuous_endurance", "long_endurance", "controlled_event_pace"}, []string{"event_distance_km"}
 		}
 		if *input.Cycling.EventDistanceKM >= 150 {
-			return "endurance_specificity", []string{"continuous_endurance"}, nil
+			return "endurance_specificity", []string{"continuous_endurance", "long_endurance"}, nil
 		}
 		if *input.Cycling.EventDistanceKM <= 80 && input.ExperienceLevel == "advanced" && input.BaselineEligible {
 			return "quality_progression", []string{"controlled_tempo", "controlled_intervals", "road_moderate_intervals", "road_vo2_intervals"}, nil
 		}
-		return "event_specificity", []string{"continuous_endurance", "controlled_event_pace"}, nil
+		return "event_specificity", []string{"continuous_endurance", "long_endurance", "controlled_event_pace"}, nil
 	}
 	if input.PrimaryGoal == "performance" && input.ExperienceLevel == "advanced" && input.BaselineEligible {
-		return "quality_progression", []string{"controlled_tempo", "controlled_intervals", "road_moderate_intervals", "road_vo2_intervals"}, nil
+		return "quality_progression", []string{"controlled_tempo", "controlled_intervals", "road_moderate_intervals", "road_vo2_intervals", "long_endurance"}, nil
 	}
-	return "general_base", []string{"base_endurance", "continuous_endurance", "controlled_tempo"}, nil
+	return "general_base", []string{"base_endurance", "continuous_endurance", "long_endurance", "controlled_tempo"}, nil
 }
 
 func trainingHistorySuggestsLowAdherence(history []TrainingHistoryWindow) bool {
@@ -177,7 +177,7 @@ func stimulusSelectionMismatches(need string, workouts []Workout) []string {
 		if key == "active_recovery" || key == "protected_recovery" || workout.TargetRPE <= 3.5 {
 			recovery = true
 		}
-		if key == "continuous_endurance" {
+		if key == "continuous_endurance" || key == "long_endurance" {
 			longEndurance = true
 		}
 	}

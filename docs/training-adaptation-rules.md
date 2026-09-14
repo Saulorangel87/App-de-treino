@@ -374,3 +374,9 @@ O backend valida os valores antes de persistir, e o histórico devolve os campos
 As janelas de 7, 28 e 42 dias e os seis períodos semanais passam a registrar quantas sessões elegíveis possuem satisfação, terreno e condições externas válidos. A comparação usa somente sessões concluídas dentro do intervalo temporal e já filtradas pelo `data-integrity-v1`; valores ausentes não são inventados nem contam como cobertura.
 
 As lacunas aparecem como `satisfaction_coverage_*`, `terrain_coverage_*` e `external_conditions_coverage_*`. Essa medição descreve a qualidade e a disponibilidade da coleta, mas não calcula tendência, tolerância ou efeito longitudinal e não altera `rules-v1`, `rules-v2` ou qualquer sessão. `structured_feedback_longitudinal` permanece em `not_evaluated` até existir volume real suficiente e revisão específica.
+
+### Catálogo ampliado — pedal longo (`long_endurance`)
+
+O maior slot de disponibilidade do ciclo agora usa o nome **Pedal longo** para diferenciar o estímulo contínuo de maior volume do `Endurance contínuo` genérico. A mudança é de catálogo e explicação: mantém RPE-alvo 5, duração derivada do nível, disponibilidade e multiplicadores já existentes, além de aquecimento e desaquecimento.
+
+`Pedal longo` não cria meta universal de distância, velocidade ou duração. As proteções de limitação, dor, recuperação e disponibilidade continuam prioritárias; `periodization-shadow-v1` e `stimulus-selection-shadow-v1` reconhecem a chave `long_endurance` como endurance longo. `rules-v1` continua sendo a única autoridade prescritiva.

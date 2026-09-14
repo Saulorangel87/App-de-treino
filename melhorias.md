@@ -591,6 +591,12 @@ Atualizado em 13 de setembro de 2026. Este arquivo continua sendo um roadmap; os
 - Completar todos os cenários de aceitação e a validação operacional dos novos protocolos.
 - Observar a integração `planning-coherence-shadow-v1` com dados reais suficientes e manter sua autoridade desativada até a revisão do efeito longitudinal.
 
+### Continuidade — expansão do catálogo com pedal longo — em validação local
+
+O slot de maior disponibilidade do ciclo agora usa o protocolo explícito `long_endurance`, apresentado como **Pedal longo**. A mudança atende parte do tópico 4 sem criar modalidade ou preferência: preserva RPE 5, duração limitada pelo nível e disponibilidade, estrutura contínua e as proteções de segurança. Os shadows de periodização e seleção de estímulos reconhecem a nova chave como endurance longo.
+
+A versão local preparada é `0.26.0`. Ainda faltam a validação automatizada desta implementação e a conferência manual do rascunho no navegador; produção continua fora desta etapa.
+
 ### Continuidade — contexto de segurança detalhado do perfil — versão local `0.21.0`
 
 A etapa de segurança do perfil foi ampliada com quatro campos opcionais para uma limitação: localização, intensidade percebida, movimento agravante e data de início. A API valida tamanho, faixa e data; a migração `000022_limitation_context` é aditiva e preserva dados anteriores. A tela informa que o contexto não é diagnóstico e continua recomendando avaliação profissional quando necessário.

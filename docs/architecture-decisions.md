@@ -390,3 +390,9 @@ O repositório encaminha esses campos tanto na conclusão quanto na reavaliaçã
 As janelas móveis e os períodos semanais registram a cobertura válida de satisfação, terreno e condições externas por sessão elegível. Cada campo possui um contador próprio para não confundir contexto completo com contexto parcialmente preenchido; ausência é lacuna de coleta, não sinal fisiológico.
 
 O histórico foi versionado como `training-history-v5` e `period-comparison-v3`. A leitura continua observacional, não calcula tendência ou tolerância e não é usada por `rules-v1` nem pelos gates prescritivos do `rules-v2`. Não há migração, alteração visual ou mudança de infraestrutura.
+
+## Catálogo: separar pedal longo do endurance contínuo
+
+O slot de maior disponibilidade do ciclo passa a usar o protocolo explícito `long_endurance`, apresentado ao atleta como **Pedal longo**. A separação melhora a clareza do catálogo sem alterar os parâmetros anteriores: a duração continua limitada pelo nível, disponibilidade e multiplicador, o RPE-alvo permanece 5 e a estrutura segue contínua, com aquecimento e desaquecimento.
+
+A chave nova é reconhecida pelos shadows de periodização e seleção de estímulos, preservando a leitura de endurance longo. Não há nova modalidade, preferência, migração ou autoridade adicional para regras shadow; limitação, dor e recuperação continuam vencendo a escolha.

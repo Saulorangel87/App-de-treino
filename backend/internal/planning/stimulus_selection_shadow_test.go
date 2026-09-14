@@ -38,7 +38,7 @@ func TestStimulusSelectionShadowRecordsAlignedNeed(t *testing.T) {
 	}, []Workout{
 		selectionWorkout("base_endurance", 4),
 		selectionWorkout("controlled_tempo", 6),
-		selectionWorkout("continuous_endurance", 5),
+		selectionWorkout("long_endurance", 5),
 	}, time.Date(2026, time.September, 13, 12, 0, 0, 0, time.UTC), false)
 
 	if assessment.Status != "observed" || assessment.CandidateNeed != "quality_progression" || assessment.CandidateResponse != "maintain_observed" {

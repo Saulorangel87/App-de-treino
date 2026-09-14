@@ -23,6 +23,10 @@ var sessionProtocols = map[string]sessionProtocol{
 		Key: "continuous_endurance", EvidenceKeys: []string{"acsm-1998"},
 		EvidenceScope: "Progressão gradual e controle de carga; a referência não define minutos universais.",
 	},
+	"Pedal longo": {
+		Key: "long_endurance", EvidenceKeys: []string{"acsm-1998"},
+		EvidenceScope: "Extensão conservadora do endurance com progressão gradual e controle de carga; a referência não define minutos universais.",
+	},
 	"Giro leve protegido": {
 		Key: "protected_recovery", EvidenceKeys: []string{"acsm-1998"},
 		EvidenceScope: "Redução conservadora de carga por segurança; não substitui avaliação profissional.",

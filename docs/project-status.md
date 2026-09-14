@@ -694,3 +694,9 @@ Campos opcionais ausentes ficam explícitos em `missing_data`; valores inválido
 As consultas de histórico agora contam, nas janelas de 7/28/42 dias e nos seis períodos semanais, as sessões elegíveis com satisfação, terreno e condições externas válidos. A cobertura é separada por campo para distinguir uma sessão que informou apenas parte do contexto; ausências ficam explícitas no `missing_data` do snapshot e da comparação.
 
 O snapshot passou a `training-history-v5` e o comparador a `period-comparison-v3`. A mudança é somente observacional: não interpreta tendência, tolerância ou efeito longitudinal, não alimenta progressão e mantém `rules-v1` como autoridade. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram; não houve migração, mudança visual, release, deploy ou alteração de infraestrutura.
+
+### Continuidade — catálogo com pedal longo explícito — versão local `0.26.0` em validação
+
+O maior slot de disponibilidade do ciclo agora é apresentado como `Pedal longo` e usa a chave estável `long_endurance`. A sessão mantém o mesmo RPE-alvo 5, duração limitada pelo nível, disponibilidade e multiplicador, estrutura contínua e todas as proteções existentes; a alteração diferencia o catálogo sem aumentar carga.
+
+Os shadows de periodização e seleção de estímulos reconhecem a nova chave como endurance longo. A nota local `0.26.0` foi adicionada, sem migração, deploy ou alteração de infraestrutura. A validação automatizada e a conferência manual do novo nome ainda são a próxima etapa desta fatia.

@@ -566,9 +566,9 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	}
 	if kind == "long" {
 		baseMinutes = map[string]int{"beginner": 75, "intermediate": 90, "advanced": 120}[input.ExperienceLevel]
-		name = "Endurance contínuo"
+		name = "Pedal longo"
 		targetRPE = 5.0
-		mainBlock = "Volume aeróbico estável"
+		mainBlock = "Volume aeróbico estável e sustentável"
 	}
 	if kind == "quality" {
 		name = "Tempo controlado"

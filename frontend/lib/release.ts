@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.25.0';
+export const APP_VERSION = '0.26.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.26.0',
+    title: 'Catálogo com pedal longo explícito',
+    description:
+      'A sessão mais longa do ciclo agora aparece como Pedal longo, com estrutura de endurance e carga conservadora. O nome diferencia o objetivo sem aumentar duração, RPE ou frequência automaticamente.',
+  },
   {
     version: '0.25.0',
     title: 'Feedback pós-treino mais completo',

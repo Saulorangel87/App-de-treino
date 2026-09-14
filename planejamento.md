@@ -1562,3 +1562,9 @@ Campos ausentes permanecem opcionais e são reportados como lacunas; valores inv
 As janelas de 7, 28 e 42 dias e os seis períodos semanais agora registram, separadamente, quantas sessões elegíveis possuem satisfação, terreno e condições externas válidos. A cobertura usa somente sessões concluídas dentro do intervalo e já protegidas pelo `data-integrity-v1`; valores ausentes ficam explícitos e não são preenchidos por inferência.
 
 O snapshot passa a `training-history-v5` e a comparação a `period-comparison-v3`. A medição ainda não calcula tendência, tolerância ou efeito longitudinal e não entra na prescrição; `rules-v1`, os shadows, as sessões e a interface permanecem inalterados. O fixture PostgreSQL somente leitura passou para as janelas e os seis períodos; o próximo passo é observar essa cobertura com dados reais suficientes, sem ativar interpretação prescritiva.
+
+### Continuidade — expansão do catálogo com pedal longo — 13 de setembro de 2026
+
+O slot de maior disponibilidade do ciclo foi separado do `Endurance contínuo` genérico e passou a usar `Pedal longo`, com a chave `long_endurance`. A estrutura permanece contínua, com RPE 5, aquecimento e desaquecimento; duração, multiplicador e travas de segurança não foram ampliados. Periodização e seleção de estímulos reconhecem a chave nova como endurance longo.
+
+A versão local foi preparada como `0.26.0`, com nota de novidade. A suíte automatizada e o build ainda precisam ser executados antes da validação manual no navegador; não há migração, deploy ou publicação nesta etapa.

@@ -150,7 +150,7 @@ func assessPeriodizationShadow(workouts []Workout, start, now time.Time) Periodi
 		if protocolKey == "active_recovery" || protocolKey == "protected_recovery" || workout.TargetRPE <= 3.5 {
 			week.RecoverySessions++
 		}
-		if protocolKey == "continuous_endurance" {
+		if protocolKey == "continuous_endurance" || protocolKey == "long_endurance" {
 			week.LongSessions++
 		}
 		if explanationBool(workout.Explanation, "event_taper_applied") {

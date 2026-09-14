@@ -65,6 +65,7 @@ São modalidades com exigências anaeróbicas, neuromusculares e de força muito
 | Candidato | Modalidade | Situação da evidência | Liberação inicial |
 | --- | --- | --- | --- |
 | Endurance de estrada | `road` | Base de endurance e distribuição de intensidade apoiadas por revisões | Todos os níveis, com progressão conservadora |
+| Pedal longo | `road`, `gravel`, `mtb_xcm`, `indoor` | Extensão de endurance com progressão gradual; não define uma dose universal | Todos os níveis, no maior slot disponível e respeitando disponibilidade e recuperação |
 | Intervalos moderados | `road` | Ensaios recentes em ciclistas bem treinados | Piloto local: intermediário/avançado, objetivo compatível, avaliação apta, 60 min disponíveis e sem sinais de recuperação insuficiente |
 | Intervalos intensos de estrada | `road` | Ensaio recente comparando blocos moderados e intensos em ciclistas bem treinados, com limite de transferência explícito | Piloto local: avançado, 8 semanas e 3 pedais/semana recentes, avaliação apta, objetivo compatível, pelo menos 75 min, ciclo alternado e sem sinais protetivos |
 | Intervalos VO₂max de estrada | `road` | Ensaios recentes em ciclistas bem treinados; transferência limitada | Piloto local: avançado, preferência explícita, histórico mínimo, avaliação apta, pelo menos 60 min e sem sinais protetivos |
@@ -99,6 +100,12 @@ O segundo protocolo específico publicado como piloto é `xco_aerobic_intervals`
 O motor só o seleciona quando a disciplina é explicitamente `mtb_xco`, o atleta é avançado, a avaliação submáxima está apta, o objetivo é performance ou evento, há pelo menos 75 minutos disponíveis, a semana não é de recuperação e a preferência está vazia ou indica intervalos. Limitação, dor, recuperação insuficiente, dados ausentes ou inconsistentes e qualquer outro perfil substituem ou impedem o piloto. A sessão não prescreve descidas, saltos, técnica de trilha, força complementar ou metas rígidas de potência.
 
 O estudo randomizado de Inoue et al. encontrou melhora do desempenho de MTB após seis semanas de HIT ou SIT, com vantagem provável do HIT; a revisão sistemática contemporânea de XCO de 2026 confirma a combinação de alta demanda aeróbica e esforços intermitentes, mas ressalta que avaliações diretas de desempenho das intervenções ainda são escassas. Por isso, a implementação permanece um piloto restrito ao perfil elegível e não altera o protocolo ativo para perfis gerais.
+
+### Protocolo geral diferenciado: pedal longo
+
+O slot de maior disponibilidade do ciclo passa a ser apresentado como **Pedal longo**, com a chave `long_endurance`. Ele representa uma sessão contínua de endurance com volume relativamente maior dentro da rotina do próprio atleta; não é uma meta fixa de distância, velocidade ou duração universal.
+
+O protocolo reutiliza a mesma base segura do endurance contínuo: duração derivada do nível e do maior período disponível, RPE-alvo 5, aquecimento, parte principal contínua e desaquecimento. Limitação, dor, recuperação insuficiente, disponibilidade menor e os demais gates do `rules-v1` continuam prevalecendo. A referência `acsm-1998` sustenta somente progressão gradual e controle de carga; o nome não libera carga adicional.
 
 ## Modelo e critérios de integração do catálogo
 

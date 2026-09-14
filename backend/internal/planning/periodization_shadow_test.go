@@ -31,7 +31,7 @@ func coherentPeriodizationWorkouts() []Workout {
 		periodizationWorkout("2026-10-03", "Endurance contínuo", "continuous_endurance", 110, 5),
 		periodizationWorkout("2026-10-05", "Recuperação ativa", "active_recovery", 40, 3.5),
 		periodizationWorkout("2026-10-07", "Recuperação ativa", "active_recovery", 40, 3.5),
-		periodizationWorkout("2026-10-10", "Endurance contínuo", "continuous_endurance", 45, 5),
+		periodizationWorkout("2026-10-10", "Pedal longo", "long_endurance", 45, 5),
 	}
 }
 

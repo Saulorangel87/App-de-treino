@@ -495,7 +495,7 @@ func TestBuildPlanIncludesActionableStepsForSpecificSessions(t *testing.T) {
 
 func TestSessionProtocolsKeepEvidenceMapping(t *testing.T) {
 	for _, name := range []string{
-		"Giro de base", "Recuperação ativa", "Endurance contínuo", "Giro leve protegido", "Tempo controlado",
+		"Giro de base", "Recuperação ativa", "Endurance contínuo", "Pedal longo", "Giro leve protegido", "Tempo controlado",
 		"Ritmo de prova controlado", "Cadência técnica", "Subidas controladas",
 		"Sweet spot por potência", "Sweet spot progressivo", "Intervalos controlados", "Intervalos moderados de estrada", "Intervalos intensos de estrada", "Intervalos VO₂max de estrada", "Intervalos aeróbicos XCO",
 	} {
@@ -506,6 +506,37 @@ func TestSessionProtocolsKeepEvidenceMapping(t *testing.T) {
 	}
 	if protocolForWorkout("unknown").Key != "continuous_base" {
 		t.Fatal("unknown sessions should use the safe continuous fallback protocol")
+	}
+}
+
+func TestBuildPlanUsesPedalLongProtocolForLongestSlot(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "intermediate", PrimaryGoal: "endurance",
+		Availability: []AvailabilitySlot{{Weekday: 1, AvailableMinutes: 45}, {Weekday: 3, AvailableMinutes: 60}, {Weekday: 6, AvailableMinutes: 120}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	longSessions := 0
+	for _, workout := range plan.Workouts {
+		if workout.Name != "Pedal longo" {
+			continue
+		}
+		longSessions++
+		if workout.Structure["protocol_key"] != "long_endurance" || workout.Explanation["protocol_key"] != "long_endurance" {
+			t.Fatalf("expected explicit long protocol metadata, got %#v", workout)
+		}
+		if workout.TargetRPE != 5.0 || workout.DurationMinutes > 120 {
+			t.Fatalf("unexpected long protocol load: %#v", workout)
+		}
+		steps, ok := workout.Structure["steps"].([]WorkoutStep)
+		if !ok || len(steps) != 3 || steps[1].Kind != "main" || steps[1].Instruction != "Volume aeróbico estável e sustentável." {
+			t.Fatalf("expected continuous long structure, got %#v", workout.Structure)
+		}
+	}
+	if longSessions != 4 {
+		t.Fatalf("expected one long protocol in each cycle week, got %d: %#v", longSessions, plan.Workouts)
 	}
 }
 
@@ -576,7 +607,7 @@ func TestBuildPlanUsesActiveRecoveryInRecoveryWeek(t *testing.T) {
 				if workout.TargetRPE != 3.5 || workout.Structure["protocol_key"] != "active_recovery" {
 					t.Fatalf("unexpected active recovery workout: %#v", workout)
 				}
-			} else if workout.Name != "Endurance contínuo" {
+			} else if workout.Name != "Pedal longo" {
 				t.Fatalf("recovery week must not contain a quality workout: %#v", workout)
 			}
 		} else if workout.Name == "Recuperação ativa" {
