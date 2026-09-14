@@ -24,14 +24,19 @@ func (s *Store) OnboardingByUserID(ctx context.Context, userID string) (athlete.
 	}
 
 	limitationRows, err := s.pool.Query(ctx, `
-		SELECT kind, description, location, pain_intensity, aggravating_movement, started_on::text, is_active, professional_clearance_recommended
+		SELECT kind, description, location, pain_intensity, aggravating_movement, started_on::text, symptoms_during_after, medical_restriction, is_active, professional_clearance_recommended
 		FROM injuries_or_limitations WHERE athlete_profile_id = $1 AND is_active = true ORDER BY created_at`, profileID)
 	if err != nil {
 		return athlete.Onboarding{}, err
 	}
 	for limitationRows.Next() {
 		var item athlete.Limitation
-		if err := limitationRows.Scan(&item.Kind, &item.Description, &item.Location, &item.Intensity, &item.AggravatingMovement, &item.StartedOn, &item.IsActive, &item.ProfessionalClearanceRecommended); err != nil {
+		var symptomsJSON []byte
+		if err := limitationRows.Scan(&item.Kind, &item.Description, &item.Location, &item.Intensity, &item.AggravatingMovement, &item.StartedOn, &symptomsJSON, &item.MedicalRestriction, &item.IsActive, &item.ProfessionalClearanceRecommended); err != nil {
+			limitationRows.Close()
+			return athlete.Onboarding{}, err
+		}
+		if err := json.Unmarshal(symptomsJSON, &item.SymptomsDuringAfter); err != nil {
 			limitationRows.Close()
 			return athlete.Onboarding{}, err
 		}
@@ -107,9 +112,13 @@ func (s *Store) ReplaceLimitations(ctx context.Context, userID string, limitatio
 		return nil, err
 	}
 	for _, item := range limitations {
+		symptomsJSON, err := json.Marshal(item.SymptomsDuringAfter)
+		if err != nil {
+			return nil, err
+		}
 		if _, err := tx.Exec(ctx, `
-			INSERT INTO injuries_or_limitations (athlete_profile_id, kind, description, location, pain_intensity, aggravating_movement, started_on, is_active, professional_clearance_recommended)
-			VALUES ($1, $2, $3, $4, $5, $6, $7::date, $8, $9)`, profileID, item.Kind, item.Description, item.Location, item.Intensity, item.AggravatingMovement, item.StartedOn, item.IsActive, item.ProfessionalClearanceRecommended); err != nil {
+			INSERT INTO injuries_or_limitations (athlete_profile_id, kind, description, location, pain_intensity, aggravating_movement, started_on, symptoms_during_after, medical_restriction, is_active, professional_clearance_recommended)
+			VALUES ($1, $2, $3, $4, $5, $6, $7::date, $8::jsonb, $9, $10, $11)`, profileID, item.Kind, item.Description, item.Location, item.Intensity, item.AggravatingMovement, item.StartedOn, symptomsJSON, item.MedicalRestriction, item.IsActive, item.ProfessionalClearanceRecommended); err != nil {
 			return nil, err
 		}
 	}

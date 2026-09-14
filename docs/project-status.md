@@ -428,7 +428,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
 - `backend/`: API REST em Go.
-- `database/migrations/`: migrações PostgreSQL até `000021`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` registra o contexto de conclusão parcial e a `000021` registra o contexto adicional pós-treino. Em produção, todas até `000019` estão aplicadas; a `000020` e a `000021` permanecem locais.
+- `database/migrations/`: migrações PostgreSQL até `000025`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` registra o contexto de conclusão parcial, a `000021` registra o contexto adicional pós-treino, a `000022` registra o contexto de limitações, a `000023` registra o feedback estruturado e as `000024`/`000025` registram equipamento e sinais de segurança. Em produção, as migrações estão aplicadas até `000023`; `000024` e `000025` permanecem locais até o deploy autorizado.
 - `database/tests/`: verificações SQL.
 - `api/openapi.yaml`: contrato da API local e de produção.
 - `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.
@@ -714,6 +714,21 @@ Os shadows de periodização e seleção de estímulos reconhecem a nova chave c
 O perfil agora diferencia **Não informar**, **Estou treinando regularmente** e **Estou retornando após uma pausa**. Somente a última opção ativa o protocolo `return_after_break`, apresentado como **Retorno gradual**; a regra limita as sessões a 45 minutos e RPE 3,5 e substitui qualidade e maior volume durante a retomada. Semanas preenchidas, sozinhas, não reduzem o plano.
 
 As proteções de limitação, dor e recuperação continuam prioritárias; os shadows reconhecem a necessidade de retorno sem ganhar autoridade prescritiva. A nota `0.27.0` foi ajustada e a versão foi publicada sem migração nova ou alteração de infraestrutura. O backup `cadencia-20260914T102918Z.dump` foi criado e verificado; API, frontend, PostgreSQL e Tunnel ficaram saudáveis, `/ready` respondeu corretamente, os dois domínios públicos retornaram HTTP 200 e o HTML público contém `0.27.0`. A validação manual do menu e dos dois comportamentos passou. A release do GitHub ainda não foi criada.
+
+### Estado atual do checkout — contexto de equipamento e sinais de segurança — versão local `0.29.0`
+
+- O feedback pós-treino agora aceita `equipment_used` opcional, limitado a 120 caracteres. O valor é persistido, aparece no resultado e em `/atividades` e entra nas leituras observacionais sem alterar carga ou prescrição.
+- O perfil agora aceita sintomas de alerta durante/depois do treino e uma restrição médica atual. A API limita os sintomas a cinco opções controladas, rejeita duplicidades e mantém o contexto sem tratá-lo como diagnóstico.
+- O planejamento registra `safety_context` no snapshot e explica quando há restrição médica. A proteção de limitação existente continua vencendo qualidade, taper e progressão; além disso, o início revalida uma limitação criada depois do plano e bloqueia sessões acima de RPE 4, sem permitir bypass; `rules-v1` permanece prescritivo.
+- A validação de conclusão passou a rejeitar RPE/distância não finitos e contexto de equipamento acima do limite. As migrações `000024_equipment_feedback` e `000025_limitation_safety_signals` são aditivas.
+
+Validação concluída no checkout local: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, `git diff --check` e os testes SQL transacionais `database/tests/000024_feedback_equipment.sql` e `database/tests/000025_limitation_safety_signals.sql` passaram. O `npm run lint` geral continua falhando por débitos anteriores em componentes e páginas amplas, inclusive regras antigas de acessibilidade e navegação; isso não foi ampliado nem tratado como parte desta fatia. A versão local `0.29.0` ainda precisa de validação manual no navegador, commit e deploy; a produção continua em `0.27.0`/migração `000023`.
+
+### Auditoria real do roadmap após a fatia `0.29.0`
+
+Implementação agora fechada ou coberta por base testável: escopo exclusivo de ciclismo (tópico 14), parte do catálogo e elegibilidade (4), prontidão observacional (1), regras versionadas em shadow (2), diferenciação por situação de treino (5), integridade e correção auditável (11), coleta estruturada de feedback (12), auditabilidade (13) e regressões automatizadas principais (15).
+
+Ainda não é correto marcar como concluídos: adaptação em ciclo fechado com autoridade (6), calibração de carga/progressão e efeito da prescrição (7), periodização completa aplicada (8), seleção plenamente orientada pela necessidade (9), calibração de segurança clínica (10), catálogo completo com metadados científicos para todos os templates (3 e 4), matriz integral de aceitação (15) e critérios de aceitação que exigem dados reais (16). Esses itens dependem de revisão científica específica, volume longitudinal e decisão explícita para ativar qualquer autoridade nova.
 
 ### Vigésima segunda fatia — piloto local de limiar controlado — versão `0.28.0` validada localmente
 

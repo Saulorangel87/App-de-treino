@@ -29,6 +29,7 @@ func TestAssessPlannedVsActualRecordsCoreDifferences(t *testing.T) {
 		Satisfaction:           &satisfaction,
 		Terrain:                "rolling",
 		ExternalConditions:     "wind",
+		EquipmentUsed:          "bike de estrada",
 		DistanceKM:             &distance,
 		ElevationGainM:         &elevation,
 		AveragePowerW:          &power,
@@ -53,7 +54,7 @@ func TestAssessPlannedVsActualRecordsCoreDifferences(t *testing.T) {
 	if assessment.RecoveryAfter == nil || *assessment.RecoveryAfter != 4 || assessment.RepeatConfidence == nil || *assessment.RepeatConfidence != 5 || assessment.Satisfaction == nil || *assessment.Satisfaction != 5 {
 		t.Fatalf("post-workout context = recovery %v, confidence %v, satisfaction %v", assessment.RecoveryAfter, assessment.RepeatConfidence, assessment.Satisfaction)
 	}
-	if !slices.Contains(assessment.ObservedFields, "recovery_after") || !slices.Contains(assessment.ObservedFields, "repeat_confidence") || !slices.Contains(assessment.ObservedFields, "satisfaction") || !slices.Contains(assessment.ObservedFields, "terrain") || !slices.Contains(assessment.ObservedFields, "external_conditions") {
+	if assessment.EquipmentUsed != "bike de estrada" || !slices.Contains(assessment.ObservedFields, "recovery_after") || !slices.Contains(assessment.ObservedFields, "repeat_confidence") || !slices.Contains(assessment.ObservedFields, "satisfaction") || !slices.Contains(assessment.ObservedFields, "terrain") || !slices.Contains(assessment.ObservedFields, "external_conditions") || !slices.Contains(assessment.ObservedFields, "equipment_used") {
 		t.Fatalf("post-workout context was not observed: %#v", assessment.ObservedFields)
 	}
 	if assessment.Version != "planned-vs-actual-v2" {

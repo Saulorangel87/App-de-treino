@@ -73,6 +73,7 @@ export type Workout = {
         satisfaction?: number;
         terrain?: 'flat' | 'rolling' | 'hilly' | 'mixed' | 'technical' | 'indoor';
         external_conditions?: 'normal' | 'heat' | 'cold' | 'wind' | 'rain' | 'poor_visibility' | 'other';
+        equipment_used?: string;
         observed_fields: string[];
         reasons: { code: string; message: string }[];
         missing_data: string[];
@@ -120,6 +121,7 @@ export type Workout = {
       satisfaction?: number;
       terrain?: 'flat' | 'rolling' | 'hilly' | 'mixed' | 'technical' | 'indoor';
       external_conditions?: 'normal' | 'heat' | 'cold' | 'wind' | 'rain' | 'poor_visibility' | 'other';
+      equipment_used?: string;
         observed_fields: string[];
         reasons: { code: string; message: string }[];
         missing_data: string[];
@@ -186,6 +188,7 @@ export type WorkoutFeedback = {
   satisfaction?: number;
   terrain?: 'flat' | 'rolling' | 'hilly' | 'mixed' | 'technical' | 'indoor';
   external_conditions?: 'normal' | 'heat' | 'cold' | 'wind' | 'rain' | 'poor_visibility' | 'other';
+  equipment_used?: string;
   notes?: string;
 };
 

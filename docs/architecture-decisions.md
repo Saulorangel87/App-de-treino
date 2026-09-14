@@ -68,7 +68,7 @@ A primeira implementação de IA usa Ollama local como provedor opcional. `AI_EN
 
 **Status:** Aplicada.
 
-As migrações `000001` a `000022` estão versionadas no checkout; a produção está aplicada até `000021`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` adiciona o contexto de conclusão parcial, a `000021` adiciona o contexto pós-treino e a `000022` adiciona contexto opcional de segurança às limitações. As migrações `000017`, `000018` e `000019` foram aplicadas pelo perfil `maintenance` no deploy do commit `6fdbe45`, após backup verificável; `000020` e `000021` foram aplicadas no deploy da versão `0.20.0`. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável e a migração deve ser executada pelo perfil `maintenance`.
+As migrações `000001` a `000025` estão versionadas no checkout; a produção está aplicada até `000023`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` adiciona o contexto de conclusão parcial, a `000021` adiciona o contexto pós-treino, a `000022` adiciona contexto opcional de segurança às limitações, a `000023` adiciona feedback estruturado e as `000024`/`000025` adicionam equipamento e sinais de segurança. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável, a migração deve ser executada pelo perfil `maintenance` e uma rota autenticada crítica deve ser validada.
 
 ## ADR-006 — Feedback de produto
 
@@ -402,3 +402,11 @@ A chave nova é reconhecida pelos shadows de periodização e seleção de estí
 Perfis que selecionam **Estou retornando após uma pausa** recebem localmente o protocolo `return_after_break`, apresentado como **Retorno gradual**. A regra usa essa declaração somente como contexto operacional de retomada e não substitui a prontidão observada; selecionar treino regular ou não informar mantém o planejamento normal, ainda que haja semanas preenchidas.
 
 Para reduzir o risco de retorno abrupto, a sessão é contínua, usa RPE 3,5 e fica limitada a 45 minutos. O protocolo substitui a sessão de qualidade e o maior volume durante a retomada; limitação, dor e recuperação insuficiente continuam vencendo a escolha. O valor zero não ativa a regra, pois pode ser apenas dado não informado. A seleção correspondente permanece refletida nos shadows, sem autoridade adicional e sem migração.
+
+## Segurança e contexto de equipamento — fatia local 0.29.0
+
+A coleta do encerramento passa a aceitar `equipment_used`, limitado a 120 caracteres e tratado somente como contexto observacional. O valor percorre a conclusão, o plano, as atividades, `post-workout-context-v2`, `planned-vs-actual-v2` e `adaptation-audit-v1`; nenhuma dessas camadas pode transformar o equipamento em aumento automático de carga.
+
+O perfil também aceita até cinco sintomas de alerta controlados e `medical_restriction`. A limitação ativa continua acionando a proteção já existente; a restrição médica é preservada no `safety_context` do rascunho e explicada no treino, sem diagnóstico ou liberação clínica. As migrações `000024_equipment_feedback` e `000025_limitation_safety_signals` são aditivas.
+
+Foram adicionadas validações para tamanho do equipamento, valores não finitos em RPE/distância e duplicidade/valores desconhecidos de sintomas. Fixtures SQL transacionais cobrem as duas migrações. Esta decisão fecha a cadeia de coleta e integridade da fatia, mas mantém `rules-v1` como autoridade e os shadows sem prescrição até existir calibração e efeito longitudinal demonstrados.

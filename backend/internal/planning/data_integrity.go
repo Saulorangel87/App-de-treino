@@ -31,6 +31,7 @@ type WorkoutDataIntegrityInput struct {
 	Satisfaction       *int
 	Terrain            string
 	ExternalConditions string
+	EquipmentUsed      string
 }
 
 // WorkoutDataIntegrityAssessment records whether a completed session has the
@@ -146,6 +147,9 @@ func AssessWorkoutDataIntegrity(input WorkoutDataIntegrityInput, now time.Time) 
 		}
 		if input.ExternalConditions != "" && !validExternalConditions(input.ExternalConditions) {
 			addIssue("invalid_external_conditions")
+		}
+		if len(input.EquipmentUsed) > 120 {
+			addIssue("invalid_equipment_used")
 		}
 	}
 

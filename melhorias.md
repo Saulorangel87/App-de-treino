@@ -566,6 +566,14 @@ Não faça commit, deploy ou publicação. Aguarde minha autorização explícit
 
 Atualizado em 14 de setembro de 2026. Este arquivo continua sendo um roadmap; os 16 tópicos não estão todos encerrados.
 
+### Auditoria atual — fatia local `0.29.0` em validação
+
+A fatia em andamento fecha lacunas verificáveis de segurança, feedback e integridade: equipamento usado no pedal, sintomas de alerta, restrição médica, bloqueio de sessão intensa depois de uma nova limitação, validação de valores não finitos e testes SQL das migrações. Ela está somente no checkout local; produção permanece em `0.27.0` com schema até `000023`.
+
+O que já ficou coberto por implementação e testes: escopo ciclístico (14), base de prontidão e situação de treino (1 e 5), regras versionadas em observação (2), parte do catálogo/elegibilidade (4), integridade/correção auditável (11), feedback estruturado (12), auditoria de decisões (13) e regressões principais (15). O lint geral ainda possui débitos antigos fora desta fatia; o build e os testes automatizados desta entrega passaram.
+
+O que continua pendente de verdade: adaptação em ciclo fechado autoritativa (6), carga/progressão com calibração (7), periodização completa aplicada (8), seleção plenamente orientada pela necessidade (9), validação clínica dos sinais de segurança (10), catálogo/evidências com todos os metadados exigidos (3 e 4), matriz integral de aceitação (15) e validação longitudinal com dados reais (16). Não vou marcar esses itens como concluídos apenas porque existem campos ou snapshots `shadow`.
+
 ### Base implementada e publicada
 
 - A prontidão atual, o histórico de treino, a integridade temporal e os gates de segurança já são observados pelo sistema.
@@ -577,7 +585,8 @@ Atualizado em 14 de setembro de 2026. Este arquivo continua sendo um roadmap; os
 
 ### Tópicos ainda parciais
 
-- Os tópicos 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 e 15 possuem base implementada, mas ainda não atendem integralmente aos critérios finais deste documento.
+- Os tópicos 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15 e 16 possuem base implementada, mas ainda não atendem integralmente aos critérios finais deste documento.
+- A fatia local `0.29.0` completa a coleta dos sinais de segurança e do equipamento, porém não interpreta esses dados como diagnóstico nem lhes concede autoridade para aumentar carga.
 - O tópico 9 agora possui uma primeira auditoria local de compatibilidade entre necessidade e estímulo, mas ainda não seleciona alternativas de forma prescritiva.
 - A periodização atual audita quatro semanas e fases amplas; não representa ainda todas as fases completas do planejamento esportivo.
 - O catálogo ainda não contém todos os templates previstos e cada novo protocolo exige revisão própria de evidência, elegibilidade e segurança.

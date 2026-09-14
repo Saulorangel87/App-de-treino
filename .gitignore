@@ -39,6 +39,7 @@ yarn-error.log*
 .postgres-data/
 .gotmp/
 .gocache/
+**/.tmp-gocache/
 
 # deployment
 .vercel

@@ -2,9 +2,33 @@ package planning
 
 import (
 	"context"
+	"math"
+	"slices"
 	"testing"
 	"time"
 )
+
+func TestValidCompletionRejectsNonFiniteMetrics(t *testing.T) {
+	if validCompletion(CompletionInput{ActualRPE: math.NaN(), Difficulty: "moderate", FatigueAfter: 3}) {
+		t.Fatal("NaN actual RPE must not pass completion validation")
+	}
+	distance := math.NaN()
+	if validCompletion(CompletionInput{ActualRPE: 5, Difficulty: "moderate", FatigueAfter: 3, DistanceKM: &distance}) {
+		t.Fatal("NaN distance must not pass completion validation")
+	}
+}
+
+func TestWorkoutRequiresSafetyBlockOnlyForIntenseSessionWithLimitation(t *testing.T) {
+	if !WorkoutRequiresSafetyBlock(5, true) {
+		t.Fatal("an intense workout with an active limitation must be blocked")
+	}
+	if WorkoutRequiresSafetyBlock(4, true) {
+		t.Fatal("a protected workout at RPE 4 must remain startable")
+	}
+	if WorkoutRequiresSafetyBlock(8, false) {
+		t.Fatal("an intense workout without an active limitation must not be blocked by this gate")
+	}
+}
 
 type planStore struct {
 	input       Context
@@ -104,6 +128,33 @@ func TestGenerateCapsIntensityWhenLimitationExists(t *testing.T) {
 	for _, workout := range plan.Workouts {
 		if workout.TargetRPE > 4 || workout.DurationMinutes > 45 {
 			t.Fatalf("unsafe restricted workout: %#v", workout)
+		}
+	}
+}
+
+func TestGenerateRecordsMedicalRestrictionAndKeepsPrescriptionProtected(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID:       "profile-1",
+		ExperienceLevel: "advanced",
+		PrimaryGoal:     "performance",
+		Limitations:     []LimitationContext{{Kind: "medical_condition", MedicalRestriction: true}},
+		Availability:    []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}},
+	}, time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	safety, ok := plan.PrescriptionSnapshot["safety_context"].(map[string]any)
+	if !ok || safety["medical_restriction"] != true || safety["prescription_protected"] != true {
+		t.Fatalf("medical restriction was not preserved in safety context: %#v", plan.PrescriptionSnapshot["safety_context"])
+	}
+	for _, workout := range plan.Workouts {
+		if workout.TargetRPE > 4 || workout.DurationMinutes > 45 {
+			t.Fatalf("medical restriction did not protect workout: %#v", workout)
+		}
+		rules, ok := workout.Explanation["rules"].([]string)
+		if !ok || !slices.Contains(rules, "Restrição médica informada: a carga permanece protegida e não substitui orientação profissional.") {
+			t.Fatalf("medical restriction rule was not explained: %#v", workout.Explanation["rules"])
 		}
 	}
 }

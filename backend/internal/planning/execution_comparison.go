@@ -27,6 +27,7 @@ type PlannedVsActualInput struct {
 	Satisfaction           *int
 	Terrain                string
 	ExternalConditions     string
+	EquipmentUsed          string
 	DistanceKM             *float64
 	ElevationGainM         *int
 	AveragePowerW          *int
@@ -56,6 +57,7 @@ type PlannedVsActualAssessment struct {
 	Satisfaction              *int              `json:"satisfaction,omitempty"`
 	Terrain                   string            `json:"terrain,omitempty"`
 	ExternalConditions        string            `json:"external_conditions,omitempty"`
+	EquipmentUsed             string            `json:"equipment_used,omitempty"`
 	ObservedFields            []string          `json:"observed_fields"`
 	Reasons                   []ReadinessReason `json:"reasons"`
 	MissingData               []string          `json:"missing_data"`
@@ -189,6 +191,14 @@ func AssessPlannedVsActual(input PlannedVsActualInput, now time.Time) PlannedVsA
 		} else {
 			result.ExternalConditions = input.ExternalConditions
 			addObserved("external_conditions")
+		}
+		if input.EquipmentUsed == "" {
+			addMissing("equipment_used")
+		} else if len(input.EquipmentUsed) > 120 {
+			addIssue("invalid_equipment_used")
+		} else {
+			result.EquipmentUsed = input.EquipmentUsed
+			addObserved("equipment_used")
 		}
 	}
 

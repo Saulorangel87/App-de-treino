@@ -21,6 +21,7 @@ var (
 	ErrInvalidFeedback      = errors.New("invalid workout feedback")
 	ErrInvalidCorrection    = errors.New("invalid workout correction")
 	ErrWorkoutCorrection    = errors.New("workout correction not allowed")
+	ErrWorkoutSafetyBlocked = errors.New("workout blocked by active safety limitation")
 )
 
 var planIDPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
@@ -28,6 +29,7 @@ var planIDPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9
 type LimitationContext struct {
 	Kind                             string
 	ProfessionalClearanceRecommended bool
+	MedicalRestriction               bool
 }
 
 type AvailabilitySlot struct {
@@ -144,6 +146,7 @@ type Feedback struct {
 	Satisfaction       *int   `json:"satisfaction,omitempty"`
 	Terrain            string `json:"terrain,omitempty"`
 	ExternalConditions string `json:"external_conditions,omitempty"`
+	EquipmentUsed      string `json:"equipment_used,omitempty"`
 	Notes              string `json:"notes,omitempty"`
 }
 
@@ -159,6 +162,7 @@ type CompletionInput struct {
 	Satisfaction       *int
 	Terrain            string
 	ExternalConditions string
+	EquipmentUsed      string
 	Notes              string
 	DistanceKM         *float64
 	ElevationGainM     *int
@@ -340,7 +344,7 @@ func (s *Service) Activities(ctx context.Context, userID string) ([]Activity, er
 }
 
 func validCompletion(input CompletionInput) bool {
-	if input.ActualRPE < 1 || input.ActualRPE > 10 || input.FatigueAfter < 1 || input.FatigueAfter > 5 || len(input.Notes) > 1000 {
+	if !finiteInRange(input.ActualRPE, 1, 10) || input.FatigueAfter < 1 || input.FatigueAfter > 5 || len(input.Notes) > 1000 || len(input.EquipmentUsed) > 120 {
 		return false
 	}
 	completionStatus := normalizeCompletionStatus(input.CompletionStatus)
@@ -353,7 +357,7 @@ func validCompletion(input CompletionInput) bool {
 	if completionStatus == "complete" && strings.TrimSpace(input.PartialReason) != "" {
 		return false
 	}
-	if input.DistanceKM != nil && (*input.DistanceKM < 0 || *input.DistanceKM > 2000) {
+	if input.DistanceKM != nil && !finiteInRange(*input.DistanceKM, 0, 2000) {
 		return false
 	}
 	if input.ElevationGainM != nil && (*input.ElevationGainM < 0 || *input.ElevationGainM > 20000) {
@@ -420,6 +424,13 @@ func validPartialReason(value string) bool {
 	}
 }
 
+// WorkoutRequiresSafetyBlock keeps an already generated intense session from
+// starting after a new active limitation was recorded. Protected sessions at
+// RPE 4 or below remain startable.
+func WorkoutRequiresSafetyBlock(targetRPE float64, hasActiveLimitation bool) bool {
+	return hasActiveLimitation && targetRPE > 4 && finiteInRange(targetRPE, 1, 10)
+}
+
 func validFeedbackTerrain(value string) bool {
 	switch value {
 	case "flat", "rolling", "hilly", "mixed", "technical", "indoor":
@@ -457,9 +468,13 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 	start := nextMonday(now)
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	restricted := len(input.Limitations) > 0
+	medicalRestriction := false
 	for _, item := range input.Limitations {
 		if item.ProfessionalClearanceRecommended {
 			restricted = true
+		}
+		if item.MedicalRestriction {
+			medicalRestriction = true
 		}
 	}
 	workouts := make([]Workout, 0, len(slots)*4)
@@ -504,7 +519,12 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 			"experience_level":          input.ExperienceLevel,
 			"primary_goal":              input.PrimaryGoal,
 			"restricted":                restricted,
-			"sessions_per_week":         len(slots),
+			"safety_context": map[string]any{
+				"active_limitations":     len(input.Limitations),
+				"medical_restriction":    medicalRestriction,
+				"prescription_protected": restricted,
+			},
+			"sessions_per_week": len(slots),
 			"cycling_context": map[string]any{
 				"weekly_hours":              input.Cycling.WeeklyHours,
 				"longest_ride_minutes":      input.Cycling.LongestRideMinutes,
@@ -796,6 +816,9 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	if restricted {
 		rules = append(rules, "Intensidade limitada por uma condição de segurança ativa.")
 	}
+	if hasMedicalRestriction(input.Limitations) {
+		rules = append(rules, "Restrição médica informada: a carga permanece protegida e não substitui orientação profissional.")
+	}
 	if observedProtected {
 		rules = append(rules, "Sessão protegida por sinais recentes de recuperação insuficiente ou dor relatada.")
 	}
@@ -815,6 +838,15 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		Explanation:     map[string]any{"summary": summary, "rules": rules, "protocol_key": protocol.Key, "evidence_keys": evidenceKeys, "evidence_scope": evidenceScope, "event_taper_applied": eventTaperApplied},
 		Status:          "planned",
 	}
+}
+
+func hasMedicalRestriction(limitations []LimitationContext) bool {
+	for _, limitation := range limitations {
+		if limitation.MedicalRestriction {
+			return true
+		}
+	}
+	return false
 }
 
 func preferredQualityPreference(context CyclingContext) string {

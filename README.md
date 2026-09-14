@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão publicada: `0.27.0` — catálogo ampliado, contexto de conclusão e feedback pós-treino, auditoria observacional, histórico dedicado de novidades e situação de treino explícita. O aplicativo foi atualizado no commit `61458ae`; em 14 de setembro de 2026 o schema de produção foi sincronizado até as migrações `000023` após uma correção operacional. A release do GitHub ainda não foi criada.
+Versão publicada: `0.27.0`. Versão local em preparação: `0.29.0` — contexto de equipamento no feedback, sintomas de alerta e restrição médica no perfil, validação adicional de dados e auditoria de segurança. A versão local ainda aguarda validação manual, commit e deploy.
 
 O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro não fazem parte deste app e não são aceitos como modalidades de treino.
 
@@ -21,7 +21,7 @@ O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Spr
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui a migração `000015` (fontes do catálogo inicial), a `000016` (fonte do piloto XCO), a `000017` (fontes do taper pré-prova), a `000018` (fontes do piloto VO₂max de estrada), a `000019` (fonte do piloto de intervalos curtos), a `000020` (contexto de conclusão parcial), a `000021` (contexto adicional pós-treino), a `000022` (contexto opcional de segurança das limitações) e a `000023` (contexto estruturado do feedback); elas ainda precisam ser aplicadas nos ambientes que estiverem em uma versão anterior.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000015`–`000023` e as novas `000024` (equipamento usado no feedback) e `000025` (sintomas de alerta e restrição médica); elas ainda precisam ser aplicadas nos ambientes que estiverem em uma versão anterior.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -41,7 +41,7 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `GET /v1/profile`: consulta o perfil básico do ciclista.
 - `PUT /v1/profile`: cria ou atualiza o perfil básico.
 - `GET /v1/onboarding`: consulta limitações, objetivos, disponibilidade e contexto opcional de ciclismo.
-- `PUT /v1/onboarding/limitations`: salva informações de segurança, incluindo opcionalmente localização, intensidade percebida, movimento agravante e data de início. Esses campos são contexto informado pelo atleta e não constituem diagnóstico.
+- `PUT /v1/onboarding/limitations`: salva informações de segurança, incluindo opcionalmente localização, intensidade percebida, movimento agravante, data de início, sintomas de alerta e restrição médica. Esses campos são contexto informado pelo atleta e não constituem diagnóstico.
 - `PUT /v1/onboarding/goals`: salva até dois objetivos priorizados.
 - `PUT /v1/onboarding/availability`: salva a disponibilidade semanal.
 - `PUT /v1/onboarding/cycling-context`: salva histórico resumido (horas, pedais, distância semanal recente, semanas de regularidade, situação atual do treino e maior distância), preferências de sessão, equipamento, terreno e meta opcional de prova com distância e data futura válidas.
@@ -52,12 +52,14 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `GET /v1/plans/current`: consulta o plano ativo ou rascunho mais recente.
 - `POST /v1/plans/{planID}/activate`: aprova um rascunho e mantém somente um plano ativo por atleta.
 - `POST /v1/workouts/{workoutID}/start`: inicia uma sessão planejada ou adaptada do plano ativo.
-- `POST /v1/workouts/{workoutID}/complete`: conclui a sessão e registra RPE, dificuldade, fadiga, dor e, opcionalmente, distância, elevação, frequência cardíaca e potência; também registra `completion_status`, o `partial_reason` controlado quando necessário, recuperação percebida e confiança para repetir.
+- `POST /v1/workouts/{workoutID}/complete`: conclui a sessão e registra RPE, dificuldade, fadiga, dor e, opcionalmente, distância, elevação, frequência cardíaca, potência e equipamento utilizado; também registra `completion_status`, o `partial_reason` controlado quando necessário, recuperação percebida e confiança para repetir.
 - `POST /v1/workouts/{workoutID}/correct`: corrige somente métricas opcionais de pedal de uma sessão concluída marcada como inconsistente ou incompleta; duração, RPE, feedback, plano e prescrição não são alterados, e os valores originais ficam no histórico de auditoria.
 - `POST /v1/workouts/{workoutID}/explanation`: solicita uma explicação em linguagem simples; quando a IA está desligada ou indisponível, retorna o resumo validado pelo motor.
 - `POST /v1/workouts/{workoutID}/cancel`: cancela uma sessão em andamento e mantém esse histórico.
 - `GET /v1/activities`: lista, para o atleta autenticado, as sessões concluídas e canceladas.
 - `POST /v1/feedback`: registra, para o atleta autenticado, uma experiência, problema ou sugestão com nota e mensagem. Os relatos pendentes podem entrar no resumo semanal do proprietário.
+
+O início de uma sessão também revalida a segurança contra uma limitação cadastrada depois da geração do plano: sessões acima de RPE 4 são bloqueadas até que exista um novo plano protegido ou orientação profissional. Sessões protegidas em RPE 4 ou abaixo continuam iniciáveis.
 
 As sessões são opacas, armazenadas no PostgreSQL apenas como hash e enviadas ao navegador em cookie `HttpOnly`. Em produção, `APP_ENV=production` ativa também a exigência de HTTPS no cookie. Os links de confirmação e redefinição são aleatórios, expiram e só têm o hash armazenado; a redefinição de senha revoga todas as sessões existentes. A geração e a ativação de planos exigem e-mail confirmado.
 
@@ -87,11 +89,11 @@ O MVP de ciclismo está publicado em produção real:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Produção implantada na VPS Oracle no commit `61458ae`, conforme deploy validado após backup; as migrações `000017`–`000023` estão aplicadas e a versão visível do produto é `0.27.0`. A release do GitHub correspondente ainda não foi criada.
+- Produção implantada na VPS Oracle no commit `61458ae`; as migrações `000017`–`000023` estão aplicadas e a versão visível do produto é `0.27.0`. A fatia local `0.29.0` ainda não foi commitada nem publicada.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, confirmação de e-mail, recuperação de senha, onboarding, plano, treino, feedback, adaptação, atividades, evolução e logout foram validados.
 - Dependabot está com 0 alertas abertos; os testes Go, `go vet`, build Docker e a auditoria de dependências de produção passaram. `govulncheck` não está instalado no ambiente desta rodada.
-- A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`–`000023` foram aplicadas na produção.
+- A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`–`000023` foram aplicadas na produção. As migrações `000024` e `000025` foram validadas apenas no PostgreSQL local nesta fatia.
 - O ajuste responsivo dos períodos nos gráficos da Evolução foi publicado e validado no domínio oficial; a rolagem horizontal interna agora preserva os rótulos no celular.
 - A produção está no commit `61458ae` e na versão `0.27.0`, com correções de segurança, catálogo ampliado, contexto de conclusão/feedback pós-treino, gate observacional da distribuição dos estímulos, auditoria observacional da periodização, auditoria observacional da seleção de estímulos, coerência integrada dos shadows e situação de treino explícita. A tela `/plano` e os endpoints públicos foram validados após o deploy; o `rules-v1` continua prescritivo.
 - Em 14 de setembro de 2026, a rota autenticada `/v1/plans/current` apresentou `500` porque o deploy do aplicativo estava à frente do schema: a API consultava os campos da migração `000023`, enquanto a produção estava registrada apenas até `000021`. Após backup verificável, as migrações `000022` e `000023` foram aplicadas em ordem e o plano voltou a carregar na conta autenticada. Em todo deploy, healthchecks devem ser acompanhados da conferência de `cadencia_schema_migrations`.

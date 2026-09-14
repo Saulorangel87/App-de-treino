@@ -3,6 +3,7 @@ package planning
 import (
 	"math"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 )
@@ -124,6 +125,16 @@ func TestAssessWorkoutDataIntegrityRejectsNonFiniteRPE(t *testing.T) {
 
 	if assessment.Status != "inconsistent" || !slices.Contains(assessment.DataIssues, "invalid_actual_rpe") {
 		t.Fatalf("non-finite RPE was not rejected: %+v", assessment)
+	}
+}
+
+func TestAssessWorkoutDataIntegrityRejectsOversizedEquipmentContext(t *testing.T) {
+	input := validWorkoutDataIntegrityInput()
+	input.EquipmentUsed = strings.Repeat("x", 121)
+	assessment := AssessWorkoutDataIntegrity(input, time.Unix(0, 0))
+
+	if assessment.Status != "inconsistent" || !slices.Contains(assessment.DataIssues, "invalid_equipment_used") {
+		t.Fatalf("oversized equipment context was not rejected: %+v", assessment)
 	}
 }
 

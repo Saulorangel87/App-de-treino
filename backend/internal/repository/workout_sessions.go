@@ -17,7 +17,7 @@ func (s *Store) ActivitiesByUserID(ctx context.Context, userID string) ([]planni
 			ws.duration_minutes, ws.actual_rpe, ws.distance_km::double precision, ws.elevation_gain_m,
 			ws.average_power_watts, ws.average_heart_rate,
 			f.completion_status, f.partial_reason, f.difficulty, f.pain_reported, f.fatigue_after,
-			f.recovery_after, f.repeat_confidence, f.satisfaction, f.terrain, f.external_conditions, f.notes
+			f.recovery_after, f.repeat_confidence, f.satisfaction, f.terrain, f.external_conditions, f.equipment_used, f.notes
 		FROM workout_sessions ws
 		JOIN athlete_profiles ap ON ap.id = ws.athlete_profile_id
 		JOIN workouts w ON w.id = ws.workout_id
@@ -36,12 +36,12 @@ func (s *Store) ActivitiesByUserID(ctx context.Context, userID string) ([]planni
 		var duration, elevationGainM, averagePowerW, averageHeartRate *int
 		var rpe *float64
 		var distanceKM *float64
-		var completionStatus, partialReason, difficulty, terrain, externalConditions, notes *string
+		var completionStatus, partialReason, difficulty, terrain, externalConditions, equipmentUsed, notes *string
 		var pain *bool
 		var fatigue, recoveryAfter, repeatConfidence, satisfaction *int
 		if err := rows.Scan(&activity.ID, &activity.WorkoutID, &activity.Name, &activity.Objective, &activity.ScheduledOn,
 			&activity.Status, &startedAt, &completedAt, &cancelledAt, &duration, &rpe, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate,
-			&completionStatus, &partialReason, &difficulty, &pain, &fatigue, &recoveryAfter, &repeatConfidence, &satisfaction, &terrain, &externalConditions, &notes); err != nil {
+			&completionStatus, &partialReason, &difficulty, &pain, &fatigue, &recoveryAfter, &repeatConfidence, &satisfaction, &terrain, &externalConditions, &equipmentUsed, &notes); err != nil {
 			return nil, err
 		}
 		activity.StartedAt, activity.CompletedAt, activity.CancelledAt = startedAt, completedAt, cancelledAt
@@ -62,6 +62,9 @@ func (s *Store) ActivitiesByUserID(ctx context.Context, userID string) ([]planni
 			if externalConditions != nil {
 				activity.Feedback.ExternalConditions = *externalConditions
 			}
+			if equipmentUsed != nil {
+				activity.Feedback.EquipmentUsed = *equipmentUsed
+			}
 		}
 		activities = append(activities, activity)
 	}
@@ -76,14 +79,20 @@ func (s *Store) StartWorkoutByUserID(ctx context.Context, userID, workoutID stri
 	defer tx.Rollback(ctx)
 
 	var profileID, status string
+	var targetRPE float64
+	var hasActiveLimitation bool
 	err = tx.QueryRow(ctx, `
-		SELECT ap.id::text, w.status
+		SELECT ap.id::text, w.status, COALESCE(w.target_rpe, 0)::double precision,
+			EXISTS (
+				SELECT 1 FROM injuries_or_limitations il
+				WHERE il.athlete_profile_id = ap.id AND il.is_active = true
+			)
 		FROM workouts w
 		JOIN training_plans tp ON tp.id = w.training_plan_id
 		JOIN athlete_profiles ap ON ap.id = tp.athlete_profile_id
 		WHERE ap.user_id = $1 AND w.id = $2 AND tp.status = 'active'
 		FOR UPDATE OF w`, userID, workoutID,
-	).Scan(&profileID, &status)
+	).Scan(&profileID, &status, &targetRPE, &hasActiveLimitation)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return planning.ErrWorkoutMissing
 	}
@@ -92,6 +101,9 @@ func (s *Store) StartWorkoutByUserID(ctx context.Context, userID, workoutID stri
 	}
 	if !isStartableWorkoutStatus(status) {
 		return planning.ErrInvalidTransition
+	}
+	if planning.WorkoutRequiresSafetyBlock(targetRPE, hasActiveLimitation) {
+		return planning.ErrWorkoutSafetyBlocked
 	}
 
 	if _, err := tx.Exec(ctx, `
@@ -186,11 +198,12 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 		Satisfaction:       input.Satisfaction,
 		Terrain:            input.Terrain,
 		ExternalConditions: input.ExternalConditions,
+		EquipmentUsed:      input.EquipmentUsed,
 	}, integrityAssessedAt)
 	if _, err := tx.Exec(ctx, `
-		INSERT INTO feedback (workout_session_id, completion_status, partial_reason, difficulty, pain_reported, fatigue_after, recovery_after, repeat_confidence, satisfaction, terrain, external_conditions, notes)
-		VALUES ($1, $2, NULLIF($3, ''), $4, $5, $6, $7, $8, $9, NULLIF($10, ''), NULLIF($11, ''), NULLIF($12, ''))`,
-		sessionID, input.CompletionStatus, input.PartialReason, input.Difficulty, input.PainReported, input.FatigueAfter, input.RecoveryAfter, input.RepeatConfidence, input.Satisfaction, input.Terrain, input.ExternalConditions, input.Notes,
+		INSERT INTO feedback (workout_session_id, completion_status, partial_reason, difficulty, pain_reported, fatigue_after, recovery_after, repeat_confidence, satisfaction, terrain, external_conditions, equipment_used, notes)
+		VALUES ($1, $2, NULLIF($3, ''), $4, $5, $6, $7, $8, $9, NULLIF($10, ''), NULLIF($11, ''), NULLIF($12, ''), NULLIF($13, ''))`,
+		sessionID, input.CompletionStatus, input.PartialReason, input.Difficulty, input.PainReported, input.FatigueAfter, input.RecoveryAfter, input.RepeatConfidence, input.Satisfaction, input.Terrain, input.ExternalConditions, input.EquipmentUsed, input.Notes,
 	); err != nil {
 		return err
 	}
@@ -215,6 +228,7 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 		Satisfaction:           input.Satisfaction,
 		Terrain:                input.Terrain,
 		ExternalConditions:     input.ExternalConditions,
+		EquipmentUsed:          input.EquipmentUsed,
 		DistanceKM:             input.DistanceKM,
 		ElevationGainM:         input.ElevationGainM,
 		AveragePowerW:          input.AveragePowerW,
@@ -303,15 +317,15 @@ func (s *Store) CorrectWorkoutDataByUserID(ctx context.Context, userID, workoutI
 		return err
 	}
 
-	var completionStatus, partialReason, difficulty, terrain, externalConditions *string
+	var completionStatus, partialReason, difficulty, terrain, externalConditions, equipmentUsed *string
 	var painReported *bool
 	var fatigueAfter, recoveryAfter, repeatConfidence, satisfaction *int
 	err = tx.QueryRow(ctx, `
 		SELECT completion_status, partial_reason, difficulty, pain_reported, fatigue_after,
-			recovery_after, repeat_confidence, satisfaction, terrain, external_conditions
+			recovery_after, repeat_confidence, satisfaction, terrain, external_conditions, equipment_used
 		FROM feedback WHERE workout_session_id = $1`, sessionID).Scan(
 		&completionStatus, &partialReason, &difficulty, &painReported, &fatigueAfter,
-		&recoveryAfter, &repeatConfidence, &satisfaction, &terrain, &externalConditions,
+		&recoveryAfter, &repeatConfidence, &satisfaction, &terrain, &externalConditions, &equipmentUsed,
 	)
 	feedbackPresent := err == nil
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -374,6 +388,10 @@ func (s *Store) CorrectWorkoutDataByUserID(ctx context.Context, userID, workoutI
 	if externalConditions != nil {
 		externalConditionsValue = *externalConditions
 	}
+	equipmentUsedValue := ""
+	if equipmentUsed != nil {
+		equipmentUsedValue = *equipmentUsed
+	}
 	integrity := planning.AssessWorkoutDataIntegrity(planning.WorkoutDataIntegrityInput{
 		DurationMinutes:    durationMinutes,
 		ActualRPE:          actualRPE,
@@ -392,6 +410,7 @@ func (s *Store) CorrectWorkoutDataByUserID(ctx context.Context, userID, workoutI
 		Satisfaction:       satisfaction,
 		Terrain:            terrainValue,
 		ExternalConditions: externalConditionsValue,
+		EquipmentUsed:      equipmentUsedValue,
 	}, correctedAt)
 
 	if _, err := tx.Exec(ctx, `

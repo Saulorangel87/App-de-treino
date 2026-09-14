@@ -112,6 +112,9 @@ func buildAdaptationDecisionAudit(result RulesV2AdaptationShadowAssessment, targ
 	if validExternalConditions(input.ExternalConditions) {
 		addDataUsed("external_conditions")
 	}
+	if len(input.EquipmentUsed) > 0 && len(input.EquipmentUsed) <= 120 {
+		addDataUsed("equipment_used")
+	}
 	if input.CompletionStatus == "partial" && input.PartialReason != "" {
 		addDataUsed("partial_reason")
 		addConstraint("partial_completion")

@@ -14,6 +14,7 @@ func TestAdaptationDecisionAuditExplainsShadowLimits(t *testing.T) {
 		ActualRPE:        5,
 		Difficulty:       "moderate",
 		FatigueAfter:     3,
+		EquipmentUsed:    "bike de estrada",
 		RecoveryAfter:    &recoveryAfter,
 		RepeatConfidence: &repeatConfidence,
 	}, validHistoryPeriods(), time.Unix(0, 0))
@@ -25,7 +26,7 @@ func TestAdaptationDecisionAuditExplainsShadowLimits(t *testing.T) {
 	if audit.Version != "adaptation-audit-v1" || audit.Confidence != "not_calibrated" {
 		t.Fatalf("audit metadata = %+v", audit)
 	}
-	for _, field := range []string{"target_rpe", "actual_rpe", "recovery_after", "repeat_confidence", "training_history_periods"} {
+	for _, field := range []string{"target_rpe", "actual_rpe", "equipment_used", "recovery_after", "repeat_confidence", "training_history_periods"} {
 		if !slices.Contains(audit.DataUsed, field) {
 			t.Fatalf("audit data used did not include %q: %#v", field, audit.DataUsed)
 		}

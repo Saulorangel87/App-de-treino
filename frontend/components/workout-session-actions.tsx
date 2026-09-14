@@ -93,6 +93,7 @@ export function WorkoutSessionActions({
   const [satisfaction, setSatisfaction] = useState(3);
   const [terrain, setTerrain] = useState<keyof typeof terrainLabels | ''>('');
   const [externalConditions, setExternalConditions] = useState<keyof typeof externalConditionLabels | ''>('');
+  const [equipmentUsed, setEquipmentUsed] = useState('');
   const [painReported, setPainReported] = useState(false);
   const [notes, setNotes] = useState('');
   const [distanceKM, setDistanceKM] = useState('');
@@ -147,6 +148,7 @@ export function WorkoutSessionActions({
       satisfaction,
       terrain: terrain || undefined,
       external_conditions: externalConditions || undefined,
+      equipment_used: equipmentUsed.trim() || undefined,
       pain_reported: painReported,
       notes,
       distance_km: optionalNumber(distanceKM),
@@ -480,6 +482,17 @@ export function WorkoutSessionActions({
             </select>
           </label>
 
+          <label>
+            Equipamento utilizado <small>opcional</small>
+            <input
+              type="text"
+              maxLength={120}
+              value={equipmentUsed}
+              onChange={(event) => setEquipmentUsed(event.target.value)}
+              placeholder="Ex.: bike de estrada, rolo ou sensor"
+            />
+          </label>
+
           <div className="feedback-grid">
             <label>
               Recuperação percebida
@@ -585,6 +598,7 @@ export function WorkoutSessionActions({
               {feedback.satisfaction !== undefined && ` · satisfação ${feedback.satisfaction}/5`}
               {feedback.terrain && ` · ${terrainLabels[feedback.terrain]}`}
               {feedback.external_conditions && ` · ${externalConditionLabels[feedback.external_conditions]}`}
+              {feedback.equipment_used && ` · equipamento: ${feedback.equipment_used}`}
               {feedback.pain_reported ? ' · dor relatada' : ' · sem dor'}
             </span>
             {feedback.notes && <p>{feedback.notes}</p>}

@@ -321,14 +321,14 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 	}
 
 	limitationRows, err := s.pool.Query(ctx, `
-		SELECT kind, professional_clearance_recommended FROM injuries_or_limitations
+		SELECT kind, professional_clearance_recommended, medical_restriction FROM injuries_or_limitations
 		WHERE athlete_profile_id = $1 AND is_active = true`, input.ProfileID)
 	if err != nil {
 		return planning.Context{}, err
 	}
 	for limitationRows.Next() {
 		var item planning.LimitationContext
-		if err := limitationRows.Scan(&item.Kind, &item.ProfessionalClearanceRecommended); err != nil {
+		if err := limitationRows.Scan(&item.Kind, &item.ProfessionalClearanceRecommended, &item.MedicalRestriction); err != nil {
 			limitationRows.Close()
 			return planning.Context{}, err
 		}
@@ -533,7 +533,7 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 			ws.duration_minutes, ws.actual_rpe::double precision, ws.distance_km::double precision, ws.elevation_gain_m,
 			ws.average_power_watts, ws.average_heart_rate,
 			f.completion_status, f.partial_reason, f.difficulty, f.pain_reported, f.fatigue_after,
-			f.recovery_after, f.repeat_confidence, f.satisfaction, f.terrain, f.external_conditions, f.notes
+			f.recovery_after, f.repeat_confidence, f.satisfaction, f.terrain, f.external_conditions, f.equipment_used, f.notes
 		FROM workouts w
 		LEFT JOIN LATERAL (
 			SELECT latest.*
@@ -552,7 +552,7 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 	for rows.Next() {
 		var workout planning.Workout
 		var structure, explanation []byte
-		var sessionID, sessionStatus, completionStatus, partialReason, difficulty, terrain, externalConditions, notes *string
+		var sessionID, sessionStatus, completionStatus, partialReason, difficulty, terrain, externalConditions, equipmentUsed, notes *string
 		var startedAt, completedAt, cancelledAt *time.Time
 		var durationMinutes, fatigueAfter, recoveryAfter, repeatConfidence, satisfaction, elevationGainM, averagePowerW, averageHeartRate *int
 		var actualRPE, distanceKM *float64
@@ -562,7 +562,7 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 			&workout.DurationMinutes, &workout.TargetRPE, &structure, &explanation, &workout.Status,
 			&sessionID, &sessionStatus, &startedAt, &completedAt, &cancelledAt,
 			&durationMinutes, &actualRPE, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate,
-			&completionStatus, &partialReason, &difficulty, &painReported, &fatigueAfter, &recoveryAfter, &repeatConfidence, &satisfaction, &terrain, &externalConditions, &notes,
+			&completionStatus, &partialReason, &difficulty, &painReported, &fatigueAfter, &recoveryAfter, &repeatConfidence, &satisfaction, &terrain, &externalConditions, &equipmentUsed, &notes,
 		); err != nil {
 			return planning.Plan{}, err
 		}
@@ -595,6 +595,9 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 				}
 				if externalConditions != nil {
 					workout.Session.Feedback.ExternalConditions = *externalConditions
+				}
+				if equipmentUsed != nil {
+					workout.Session.Feedback.EquipmentUsed = *equipmentUsed
 				}
 			}
 		}

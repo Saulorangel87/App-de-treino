@@ -430,6 +430,12 @@ components:
         intensity: { type: [integer, 'null'], minimum: 1, maximum: 10, description: Escala percebida opcional; não é diagnóstico. }
         aggravating_movement: { type: string, maxLength: 200 }
         started_on: { type: [string, 'null'], format: date }
+        symptoms_during_after:
+          type: array
+          maxItems: 5
+          uniqueItems: true
+          items: { type: string, enum: [dizziness, unusual_shortness_of_breath, malaise, extreme_fatigue, other] }
+        medical_restriction: { type: boolean }
         is_active: { type: boolean }
         professional_clearance_recommended: { type: boolean }
     Goal:
@@ -1261,6 +1267,7 @@ components:
         satisfaction: { type: integer, minimum: 1, maximum: 5 }
         terrain: { type: string, enum: [flat, rolling, hilly, mixed, technical, indoor] }
         external_conditions: { type: string, enum: [normal, heat, cold, wind, rain, poor_visibility, other] }
+        equipment_used: { type: string, maxLength: 120 }
         notes: { type: string, maxLength: 1000 }
     CompleteWorkoutRequest:
       type: object
@@ -1274,11 +1281,15 @@ components:
         fatigue_after: { type: integer, minimum: 1, maximum: 5 }
         recovery_after: { type: integer, minimum: 1, maximum: 5 }
         repeat_confidence: { type: integer, minimum: 1, maximum: 5 }
+        satisfaction: { type: integer, minimum: 1, maximum: 5 }
+        terrain: { type: string, enum: [flat, rolling, hilly, mixed, technical, indoor] }
+        external_conditions: { type: string, enum: [normal, heat, cold, wind, rain, poor_visibility, other] }
         notes: { type: string, maxLength: 1000 }
         distance_km: { type: number, minimum: 0, maximum: 2000 }
         elevation_gain_m: { type: integer, minimum: 0, maximum: 20000 }
         average_heart_rate: { type: integer, minimum: 30, maximum: 250 }
         average_power_watts: { type: integer, minimum: 0, maximum: 2000 }
+        equipment_used: { type: string, maxLength: 120 }
     WorkoutCorrectionRequest:
       type: object
       description: Substituição completa das métricas opcionais do pedal; envie null para remover um valor. Não altera duração, RPE, feedback ou prescrição.

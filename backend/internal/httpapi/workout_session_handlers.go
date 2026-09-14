@@ -20,6 +20,7 @@ type completeWorkoutInput struct {
 	Satisfaction       *int     `json:"satisfaction"`
 	Terrain            string   `json:"terrain"`
 	ExternalConditions string   `json:"external_conditions"`
+	EquipmentUsed      string   `json:"equipment_used"`
 	Notes              string   `json:"notes"`
 	DistanceKM         *float64 `json:"distance_km"`
 	ElevationGainM     *int     `json:"elevation_gain_m"`
@@ -66,6 +67,7 @@ func (s *Server) completeWorkout(w http.ResponseWriter, r *http.Request) {
 		RecoveryAfter: input.RecoveryAfter, RepeatConfidence: input.RepeatConfidence,
 		Satisfaction: input.Satisfaction, Terrain: strings.TrimSpace(input.Terrain),
 		ExternalConditions: strings.TrimSpace(input.ExternalConditions),
+		EquipmentUsed:      strings.TrimSpace(input.EquipmentUsed),
 		Notes:              strings.TrimSpace(input.Notes),
 		DistanceKM:         input.DistanceKM, ElevationGainM: input.ElevationGainM,
 		AveragePowerW: input.AveragePowerW, AverageHeartRate: input.AverageHeartRate,
@@ -131,6 +133,8 @@ func writeWorkoutError(w http.ResponseWriter, err error) bool {
 		writeError(w, http.StatusBadRequest, "invalid_workout_correction", "Informe métricas do pedal válidas ou remova o valor que não deseja manter.")
 	case errors.Is(err, planning.ErrWorkoutCorrection):
 		writeError(w, http.StatusConflict, "workout_correction_not_allowed", "Somente uma sessão concluída com dados inelegíveis pode receber correção.")
+	case errors.Is(err, planning.ErrWorkoutSafetyBlocked):
+		writeError(w, http.StatusConflict, "workout_blocked_by_safety", "Este treino foi bloqueado porque existe uma limitação ativa. Gere um novo plano protegido ou procure orientação profissional antes de retomar a intensidade.")
 	case errors.Is(err, planning.ErrWorkoutMissing):
 		writeError(w, http.StatusNotFound, "workout_not_found", "O treino não pertence ao seu plano ativo.")
 	case errors.Is(err, planning.ErrInvalidTransition):

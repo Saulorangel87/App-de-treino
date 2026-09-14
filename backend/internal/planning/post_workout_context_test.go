@@ -79,6 +79,7 @@ func TestAssessPostWorkoutContextRecordsStructuredContext(t *testing.T) {
 		Satisfaction:       &satisfaction,
 		Terrain:            "rolling",
 		ExternalConditions: "wind",
+		EquipmentUsed:      "bike de estrada",
 	}, time.Unix(0, 0))
 
 	if assessment.Satisfaction == nil || *assessment.Satisfaction != 5 {
@@ -87,7 +88,10 @@ func TestAssessPostWorkoutContextRecordsStructuredContext(t *testing.T) {
 	if assessment.Terrain != "rolling" || assessment.ExternalConditions != "wind" {
 		t.Fatalf("structured context = terrain %q, conditions %q", assessment.Terrain, assessment.ExternalConditions)
 	}
-	for _, field := range []string{"satisfaction", "terrain", "external_conditions"} {
+	if assessment.EquipmentUsed != "bike de estrada" {
+		t.Fatalf("equipment = %q, want bike de estrada", assessment.EquipmentUsed)
+	}
+	for _, field := range []string{"satisfaction", "terrain", "external_conditions", "equipment_used"} {
 		if !slices.Contains(assessment.ObservedFields, field) {
 			t.Fatalf("observed fields did not include %q: %#v", field, assessment.ObservedFields)
 		}

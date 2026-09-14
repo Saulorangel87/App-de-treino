@@ -371,6 +371,22 @@ O feedback pode registrar também satisfação da sessão em escala de 1 a 5, te
 
 O backend valida os valores antes de persistir, e o histórico devolve os campos sem convertê-los em diagnóstico ou prescrição. `post-workout-context-v2` e `decision_audit.data_used` registram a cobertura observada, mas `rules-v1` continua sendo a única autoridade do plano; `progression_eligible`, `applied` e `used_for_prescription` permanecem falsos. A coleta deve ser usada futuramente para calibrar interpretação e efeito longitudinal, não para aumentar carga por um relato isolado.
 
+## Equipamento usado no feedback (`000024`)
+
+O encerramento de uma sessão pode registrar, de forma opcional, o equipamento utilizado, por exemplo bicicleta de estrada, rolo ou sensor. O valor é texto limitado a 120 caracteres, é preservado no plano e em `/atividades` e entra na auditoria somente como dado observado. Ele não é interpretado como qualidade do equipamento, não altera duração, RPE, estímulo ou carga e não substitui métricas de potência, frequência cardíaca ou distância.
+
+A migração `000024_equipment_feedback` é aditiva e mantém os feedbacks antigos válidos. O `data-integrity-v1`, `post-workout-context-v2`, `planned-vs-actual-v2` e `adaptation-audit-v1` usam a mesma regra de tamanho; valor inválido permanece fora da observação e não pode autorizar progressão.
+
+## Sinais de alerta e restrição médica (`000025`)
+
+O perfil pode registrar sintomas durante ou depois do treino — tontura, falta de ar incomum, mal-estar, fadiga extrema ou outro sinal de alerta — e uma restrição médica atual. A API aceita no máximo cinco opções controladas, rejeita duplicidades e preserva o contexto no PostgreSQL. O texto continua sendo um relato do atleta, não diagnóstico.
+
+Qualquer limitação ativa mantém a prescrição protegida; uma restrição médica também aparece explicitamente no `safety_context` e na explicação do treino. Esses dados não liberam nem aumentam carga, e o Cadência não decide liberação clínica. Diante de sintomas importantes, a orientação da interface é interromper o esforço e procurar avaliação profissional. A migração `000025_limitation_safety_signals` é aditiva e seus defaults preservam registros existentes.
+
+O endpoint de início também revalida a segurança contra alterações feitas depois da geração do plano: uma sessão já existente acima de RPE 4 não inicia enquanto houver limitação ativa. Sessões protegidas em RPE 4 ou abaixo continuam disponíveis. A API informa o bloqueio e orienta gerar um novo plano protegido ou procurar avaliação profissional; não existe confirmação que contorne essa trava.
+
+Esta fatia fecha a coleta e a persistência desses campos, mas não fecha a calibração clínica nem transforma sinais autorrelatados em algoritmo diagnóstico. A autoridade continua com `rules-v1`; os módulos `rules-v2` permanecem em `shadow`.
+
 ### Cobertura longitudinal do feedback estruturado (`training-history-v5`)
 
 As janelas de 7, 28 e 42 dias e os seis períodos semanais passam a registrar quantas sessões elegíveis possuem satisfação, terreno e condições externas válidos. A comparação usa somente sessões concluídas dentro do intervalo temporal e já filtradas pelo `data-integrity-v1`; valores ausentes não são inventados nem contam como cobertura.

@@ -37,8 +37,9 @@ func TestSaveLimitationsAcceptsOptionalSafetyContext(t *testing.T) {
 	result, err := NewOnboardingService(onboardingStore{}).SaveLimitations(context.Background(), "user-1", []Limitation{{
 		Kind: "pain", Description: "Joelho ao subir", Location: "joelho direito", Intensity: &intensity,
 		AggravatingMovement: "Subir em pé", StartedOn: &startedOn,
+		SymptomsDuringAfter: []string{"dizziness", "extreme_fatigue"}, MedicalRestriction: true,
 	}})
-	if err != nil || result[0].Location != "joelho direito" || result[0].Intensity == nil || *result[0].Intensity != intensity || result[0].StartedOn == nil || *result[0].StartedOn != startedOn {
+	if err != nil || result[0].Location != "joelho direito" || result[0].Intensity == nil || *result[0].Intensity != intensity || result[0].StartedOn == nil || *result[0].StartedOn != startedOn || len(result[0].SymptomsDuringAfter) != 2 || !result[0].MedicalRestriction {
 		t.Fatalf("expected optional safety context to be preserved, got %#v, %v", result, err)
 	}
 }
@@ -51,6 +52,12 @@ func TestSaveLimitationsRejectsInvalidOptionalSafetyContext(t *testing.T) {
 	future := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 	if _, err := NewOnboardingService(onboardingStore{}).SaveLimitations(context.Background(), "user-1", []Limitation{{Kind: "pain", Description: "Dor", StartedOn: &future}}); err != ErrInvalidOnboarding {
 		t.Fatalf("expected future start date to be rejected, got %v", err)
+	}
+	if _, err := NewOnboardingService(onboardingStore{}).SaveLimitations(context.Background(), "user-1", []Limitation{{Kind: "pain", Description: "Dor", SymptomsDuringAfter: []string{"dizziness", "dizziness"}}}); err != ErrInvalidOnboarding {
+		t.Fatalf("expected duplicate safety symptom to be rejected, got %v", err)
+	}
+	if _, err := NewOnboardingService(onboardingStore{}).SaveLimitations(context.Background(), "user-1", []Limitation{{Kind: "pain", Description: "Dor", SymptomsDuringAfter: []string{"chest_pain"}}}); err != ErrInvalidOnboarding {
+		t.Fatalf("expected unknown safety symptom to be rejected, got %v", err)
 	}
 }
 

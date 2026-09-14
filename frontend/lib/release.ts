@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.28.0';
+export const APP_VERSION = '0.29.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.29.0',
+    title: 'Contexto de segurança e equipamento',
+    description:
+      'O feedback pós-treino agora pode registrar o equipamento utilizado. O perfil também permite informar sintomas de alerta e restrição médica; esses dados reforçam os bloqueios de segurança e não substituem avaliação profissional.',
+  },
   {
     version: '0.28.0',
     title: 'Piloto de limiar controlado',
