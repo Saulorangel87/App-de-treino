@@ -10,6 +10,14 @@ O MVP de ciclismo está em produção real e foi validado no navegador e em um c
 
 O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e referências científicas. A camada opcional de IA explicativa foi preparada no backend, validada por uma rota remota protegida e preparada para uso local com Ollama. O padrão do código continua desligado; na produção, o Worker remoto está temporariamente selecionado como provedor para evitar consumo elevado da VPS.
 
+### Correção operacional da produção — 14 de setembro de 2026
+
+- A tela de novidades e os endpoints públicos permaneciam disponíveis, mas a conta autenticada recebia `500` em `GET /v1/plans/current`. API, frontend, PostgreSQL, Tunnel, `/health` e `/ready` continuavam saudáveis.
+- A causa foi uma defasagem de schema introduzida no último deploy: o código consultava `feedback.satisfaction`, `feedback.terrain` e `feedback.external_conditions`, campos da migração `000023_feedback_context`, enquanto `cadencia_schema_migrations` estava somente até `000021`.
+- Foi criado e validado o backup `/var/backups/cadencia/cadencia-20260914T112526Z.dump`. Em seguida, o perfil `maintenance` aplicou em ordem `000022_limitation_context` e `000023_feedback_context`.
+- A correção foi confirmada pela presença das três colunas, pelo registro das duas migrações, pelos serviços saudáveis e pelo carregamento do plano na sessão autenticada do navegador. Não houve alteração de prescrição nem geração de plano novo.
+- Regra operacional permanente: healthchecks não comprovam compatibilidade do schema. Antes de recriar a API, conferir `cadencia_schema_migrations`, aplicar todos os `.up.sql` pendentes em ordem, validar o registro aplicado e só então executar a checagem autenticada de `/v1/plans/current`.
+
 ### Décima sexta fatia de melhorias — distribuição observacional dos estímulos (local)
 
 - Novos rascunhos passam a usar `training-history-v4` e `period-comparison-v2`. Os seis períodos semanais preservam contagem de sessões de qualidade, cobertura de carga, minutos realizados de qualidade, densidade e alta intensidade.
@@ -78,7 +86,7 @@ Validação local: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, va
 
 ## Estado do checkout local
 
-- A produção está no commit `61458ae`, na versão `0.27.0`, com as migrações `000017` a `000021` aplicadas. O taper, os pilotos de VO₂max e intervalos curtos, o contexto de conclusão, o contexto pós-treino, a revisão técnica do shadow, o gate observacional de distribuição, a auditoria observacional da periodização, a auditoria observacional da seleção de estímulos, a coerência integrada dos shadows e a situação de treino explícita foram publicados conforme deploy validado.
+- A produção está no commit `61458ae`, na versão `0.27.0`, com as migrações `000017` a `000023` aplicadas. O taper, os pilotos de VO₂max e intervalos curtos, o contexto de conclusão, o contexto pós-treino, a revisão técnica do shadow, o gate observacional de distribuição, a auditoria observacional da periodização, a auditoria observacional da seleção de estímulos, a coerência integrada dos shadows e a situação de treino explícita foram publicados conforme deploy validado.
 - A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local), `9034287` (matriz comparativa), `61d7939` (pin do digest do Tunnel), `1358ac1` (status da versão `0.12.0`), `53cbadc` (acesso ao perfil no mobile), `66f70ed` (decisão do taper pré-prova), `0eb34d6` (implementação local do taper), `01875c9` (piloto local de VO₂max de estrada), `1eab2c8` (piloto local de intervalos curtos), `3b3639a` (exclusão de modalidades fora do produto), `9aff39f` (sincronização documental), `6fdbe45` (estado do catálogo) e o deploy autorizado da versão `0.16.0`.
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.

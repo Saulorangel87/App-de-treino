@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão publicada: `0.27.0` — catálogo ampliado, contexto de conclusão e feedback pós-treino, auditoria observacional, histórico dedicado de novidades e situação de treino explícita. A produção foi atualizada no commit `61458ae`; não houve migração nova e a release do GitHub ainda não foi criada.
+Versão publicada: `0.27.0` — catálogo ampliado, contexto de conclusão e feedback pós-treino, auditoria observacional, histórico dedicado de novidades e situação de treino explícita. O aplicativo foi atualizado no commit `61458ae`; em 14 de setembro de 2026 o schema de produção foi sincronizado até as migrações `000023` após uma correção operacional. A release do GitHub ainda não foi criada.
 
 O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro não fazem parte deste app e não são aceitos como modalidades de treino.
 
@@ -87,13 +87,14 @@ O MVP de ciclismo está publicado em produção real:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Produção implantada na VPS Oracle no commit `61458ae`, conforme deploy validado após backup; as migrações `000017`–`000021` continuam aplicadas e a versão visível do produto é `0.27.0`. A release do GitHub correspondente ainda não foi criada.
+- Produção implantada na VPS Oracle no commit `61458ae`, conforme deploy validado após backup; as migrações `000017`–`000023` estão aplicadas e a versão visível do produto é `0.27.0`. A release do GitHub correspondente ainda não foi criada.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, confirmação de e-mail, recuperação de senha, onboarding, plano, treino, feedback, adaptação, atividades, evolução e logout foram validados.
 - Dependabot está com 0 alertas abertos; os testes Go, `go vet`, build Docker e a auditoria de dependências de produção passaram. `govulncheck` não está instalado no ambiente desta rodada.
-- A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`–`000021` foram aplicadas na produção.
+- A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`–`000023` foram aplicadas na produção.
 - O ajuste responsivo dos períodos nos gráficos da Evolução foi publicado e validado no domínio oficial; a rolagem horizontal interna agora preserva os rótulos no celular.
 - A produção está no commit `61458ae` e na versão `0.27.0`, com correções de segurança, catálogo ampliado, contexto de conclusão/feedback pós-treino, gate observacional da distribuição dos estímulos, auditoria observacional da periodização, auditoria observacional da seleção de estímulos, coerência integrada dos shadows e situação de treino explícita. A tela `/plano` e os endpoints públicos foram validados após o deploy; o `rules-v1` continua prescritivo.
+- Em 14 de setembro de 2026, a rota autenticada `/v1/plans/current` apresentou `500` porque o deploy do aplicativo estava à frente do schema: a API consultava os campos da migração `000023`, enquanto a produção estava registrada apenas até `000021`. Após backup verificável, as migrações `000022` e `000023` foram aplicadas em ordem e o plano voltou a carregar na conta autenticada. Em todo deploy, healthchecks devem ser acompanhados da conferência de `cadencia_schema_migrations`.
 - Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts` (`APP_VERSION` e `UPDATE_NOTES`) para que a novidade seja exibida na tela de primeiro acesso após a atualização. O modal é mostrado uma vez por conta, versão e navegador.
 
 O checkout local e a produção agora contêm os pilotos `taper-v1`, `road_vo2_intervals` e `short_self_regulated_intervals`, selecionados somente quando os gates de elegibilidade e segurança são atendidos. A versão publicada está em `0.27.0`; a exclusão de sprint/pista/BMX e downhill/enduro também está registrada. A publicação foi validada; a release correspondente ainda não foi criada.

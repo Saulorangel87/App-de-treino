@@ -78,7 +78,7 @@ docker compose --env-file infrastructure/cadencia/.env.production \
 
 O primeiro deploy que incluir o recurso deve executar as migrações `000013_user_feedback` e `000014_feedback_digest` pelo perfil `maintenance` antes de habilitar o timer. Se `FEEDBACK_DIGEST_TO` estiver vazio, o comando encerra sem enviar e-mail.
 
-No checkout atual, as migrações `000015`, `000016`, `000017`, `000018`, `000019`, `000020` e `000021` registram as fontes científicas do catálogo e os contextos de conclusão e feedback pós-treino. A produção foi atualizada até `000021` no deploy do commit `61458ae`. O catálogo inicial, os pilotos de estrada/XCO, o taper pré-prova, o piloto VO₂max de estrada, o piloto de intervalos curtos autorregulados, os contextos de conclusão/feedback pós-treino, as auditorias observacionais de periodização, seleção e coerência integrada dos estímulos e a situação de treino explícita foram publicados após revisão, backup verificável, validação e autorização explícita. A versão comunicada ao usuário é `0.27.0`; a release correspondente ainda não foi criada.
+No checkout atual, as migrações `000015` a `000023` registram as fontes científicas do catálogo, os contextos de conclusão e feedback pós-treino e os campos estruturados de segurança e feedback. A produção foi sincronizada até `000023` em 14 de setembro de 2026, após a correção operacional descrita abaixo. O catálogo inicial, os pilotos de estrada/XCO, o taper pré-prova, o piloto VO₂max de estrada, o piloto de intervalos curtos autorregulados, os contextos de conclusão/feedback pós-treino, as auditorias observacionais de periodização, seleção e coerência integrada dos estímulos e a situação de treino explícita foram publicados após revisão, backup verificável, validação e autorização explícita. A versão comunicada ao usuário é `0.27.0`; a release correspondente ainda não foi criada.
 
 O Ollama é opcional e não é iniciado pelo comando acima. Ele foi instalado na VPS e permanece parado após o teste de capacidade; a produção usa temporariamente o Worker remoto para evitar sobrecarga. O padrão seguro continua sendo `AI_ENABLED=false`. Para preparar o serviço somente na rede interna do Cadência:
 
@@ -121,6 +121,8 @@ Em 13 de setembro de 2026, o commit `f0fec8b` foi atualizado por fast-forward. O
 
 Em 14 de setembro de 2026, o commit `61458ae` foi atualizado por fast-forward. O backup preventivo `cadencia-20260914T102918Z.dump` foi criado e verificado; não houve migração nova. As imagens da API e do frontend foram reconstruídas e os dois serviços foram recriados; PostgreSQL e Tunnel permaneceram ativos. `/ready` respondeu `{"status":"ready"}`, os dois domínios oficiais retornaram HTTP 200 e os quatro serviços ficaram saudáveis. A versão visível `0.27.0` foi confirmada no HTML público. A release do GitHub ainda não foi criada.
 
+Na mesma data, a validação autenticada revelou que `GET /v1/plans/current` retornava `500`, embora os healthchecks estivessem verdes. A API consultava `feedback.satisfaction`, `feedback.terrain` e `feedback.external_conditions`, mas o banco ainda estava somente até `000021`; a checagem SQL confirmou que `f.satisfaction` não existia. Foi criado e validado o backup `cadencia-20260914T112526Z.dump`, e o perfil `maintenance` aplicou em ordem as migrações `000022_limitation_context` e `000023_feedback_context`. A presença das colunas e dos registros de migração foi confirmada, e o plano voltou a carregar na sessão autenticada. Regra: healthchecks devem ser acompanhados da conferência de `cadencia_schema_migrations` e de uma leitura autenticada de uma rota crítica antes de encerrar o deploy.
+
 O deploy oficial deve sempre terminar em `https://cadencia.devsaulo.com.br` e `https://cadencia-api.devsaulo.com.br`, pela composição Docker desta pasta e pelo Cloudflare Tunnel dedicado. O ambiente Sites não faz parte da produção do Cadência e não deve ser usado como destino alternativo.
 
 ## Backup e restauração
@@ -134,7 +136,7 @@ sudo CADENCIA_BACKUP_DIR=/var/backups/cadencia \
   bash infrastructure/cadencia/scripts/backup-postgres.sh
 ```
 
-O diretório de produção é `/var/backups/cadencia`, com acesso do usuário `ubuntu`. O backup preventivo do deploy funcional mais recente é `cadencia-20260911T234851Z.dump` (UTC). A validação estrutural do arquivo ocorre automaticamente. O backup anterior `cadencia-20260902T104801Z.dump` também foi restaurado com sucesso em um PostgreSQL 17 temporário: foram confirmadas 15 tabelas públicas e `cadencia_schema_migrations`, e o ambiente temporário foi removido sem alterar a produção. A cópia externa dos dumps ainda está pendente.
+O diretório de produção é `/var/backups/cadencia`, com acesso do usuário `ubuntu`. O backup preventivo mais recente é `cadencia-20260914T112526Z.dump` (UTC), criado antes da aplicação das migrações `000022` e `000023`; a validação estrutural do arquivo ocorreu automaticamente. O backup anterior `cadencia-20260902T104801Z.dump` também foi restaurado com sucesso em um PostgreSQL 17 temporário: foram confirmadas 15 tabelas públicas e `cadencia_schema_migrations`, e o ambiente temporário foi removido sem alterar a produção. A cópia externa dos dumps ainda está pendente.
 
 ## Segurança operacional
 
