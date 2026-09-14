@@ -18,6 +18,7 @@ export type Workout = {
     protocol_key?: string;
     evidence_scope?: string;
     evidence_keys?: string[];
+    protocol_metadata?: ProtocolMetadata;
     event_taper_applied?: boolean;
     data_integrity?: {
       version: 'data-integrity-v1';
@@ -518,6 +519,25 @@ export type TrainingPlan = {
 export type ScientificSource = {
   source_key: string; title: string; authors: string; published_year: number;
   url: string; training_focus: string; evidence_level: string; summary: string;
+  population_studied: string; research_objective: string; stimulus_analyzed: string;
+  expected_benefits: string; limitations: string; risks: string; contraindications: string;
+  confidence_level: 'low' | 'moderate' | 'high' | 'not_calibrated';
+  last_reviewed_on: string; related_rules: string[];
+};
+
+export type ProtocolMetadata = {
+  physiological_objective: string;
+  practical_objective: string;
+  indication: string;
+  contraindication: string;
+  recommended_level: string;
+  prerequisites: string[];
+  heart_rate_guidance: string;
+  power_guidance: string;
+  cadence_guidance: string;
+  stop_criteria: string;
+  progression_criteria: string;
+  regression_criteria: string;
 };
 
 export type EventTaperAssessment = {

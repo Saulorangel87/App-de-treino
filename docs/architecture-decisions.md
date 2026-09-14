@@ -68,7 +68,7 @@ A primeira implementação de IA usa Ollama local como provedor opcional. `AI_EN
 
 **Status:** Aplicada.
 
-As migrações `000001` a `000025` estão versionadas no checkout; a produção está aplicada até `000023`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` adiciona o contexto de conclusão parcial, a `000021` adiciona o contexto pós-treino, a `000022` adiciona contexto opcional de segurança às limitações, a `000023` adiciona feedback estruturado e as `000024`/`000025` adicionam equipamento e sinais de segurança. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável, a migração deve ser executada pelo perfil `maintenance` e uma rota autenticada crítica deve ser validada.
+As migrações `000001` a `000026` estão versionadas no checkout; a produção está aplicada até `000023`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` adiciona o contexto de conclusão parcial, a `000021` adiciona o contexto pós-treino, a `000022` adiciona contexto opcional de segurança às limitações, a `000023` adiciona feedback estruturado, as `000024`/`000025` adicionam equipamento e sinais de segurança e a `000026` amplia os metadados científicos auditáveis. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável, a migração deve ser executada pelo perfil `maintenance` e uma rota autenticada crítica deve ser validada.
 
 ## ADR-006 — Feedback de produto
 
@@ -408,5 +408,11 @@ Para reduzir o risco de retorno abrupto, a sessão é contínua, usa RPE 3,5 e f
 A coleta do encerramento passa a aceitar `equipment_used`, limitado a 120 caracteres e tratado somente como contexto observacional. O valor percorre a conclusão, o plano, as atividades, `post-workout-context-v2`, `planned-vs-actual-v2` e `adaptation-audit-v1`; nenhuma dessas camadas pode transformar o equipamento em aumento automático de carga.
 
 O perfil também aceita até cinco sintomas de alerta controlados e `medical_restriction`. A limitação ativa continua acionando a proteção já existente; a restrição médica é preservada no `safety_context` do rascunho e explicada no treino, sem diagnóstico ou liberação clínica. As migrações `000024_equipment_feedback` e `000025_limitation_safety_signals` são aditivas.
+
+## Evidência e protocolo como dados auditáveis — migração 000026
+
+As fontes científicas passam a registrar explicitamente população, objetivo, estímulo, benefícios, limitações, riscos, contraindicações, confiança, data de revisão e regras relacionadas. Valores ainda não calibrados permanecem identificados como `not_calibrated`; o schema não permite omitir os campos obrigatórios em novas fontes.
+
+Os limites operacionais dos protocolos ficam centralizados em `protocol_metadata.go` e são anexados à explicação do treino. Essa decisão completa a estrutura exigida para auditar os templates existentes sem duplicar referências no código, sem alterar o `rules-v1` e sem apresentar incerteza como evidência concluída.
 
 Foram adicionadas validações para tamanho do equipamento, valores não finitos em RPE/distância e duplicidade/valores desconhecidos de sintomas. Fixtures SQL transacionais cobrem as duas migrações. Esta decisão fecha a cadeia de coleta e integridade da fatia, mas mantém `rules-v1` como autoridade e os shadows sem prescrição até existir calibração e efeito longitudinal demonstrados.

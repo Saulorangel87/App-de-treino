@@ -481,14 +481,14 @@ func (s *Store) SaveDraftPlan(ctx context.Context, profileID string, plan planni
 			return planning.Plan{}, err
 		}
 	}
-	evidenceRows, err := tx.Query(ctx, `SELECT source_key, title, authors, published_year, url, training_focus, evidence_level, summary FROM scientific_sources ORDER BY source_key`)
+	evidenceRows, err := tx.Query(ctx, `SELECT source_key, title, authors, published_year, url, training_focus, evidence_level, summary, population_studied, research_objective, stimulus_analyzed, expected_benefits, limitations, risks, contraindications, confidence_level, last_reviewed_on::text, related_rules FROM scientific_sources ORDER BY source_key`)
 	if err != nil {
 		return planning.Plan{}, err
 	}
 	defer evidenceRows.Close()
 	for evidenceRows.Next() {
 		var source planning.ScientificSource
-		if err := evidenceRows.Scan(&source.SourceKey, &source.Title, &source.Authors, &source.PublishedYear, &source.URL, &source.TrainingFocus, &source.EvidenceLevel, &source.Summary); err != nil {
+		if err := evidenceRows.Scan(&source.SourceKey, &source.Title, &source.Authors, &source.PublishedYear, &source.URL, &source.TrainingFocus, &source.EvidenceLevel, &source.Summary, &source.PopulationStudied, &source.ResearchObjective, &source.StimulusAnalyzed, &source.ExpectedBenefits, &source.Limitations, &source.Risks, &source.Contraindications, &source.ConfidenceLevel, &source.LastReviewedOn, &source.RelatedRules); err != nil {
 			return planning.Plan{}, err
 		}
 		plan.Evidence = append(plan.Evidence, source)
@@ -606,14 +606,14 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 	if err := rows.Err(); err != nil {
 		return planning.Plan{}, err
 	}
-	evidenceRows, err := s.pool.Query(ctx, `SELECT source_key, title, authors, published_year, url, training_focus, evidence_level, summary FROM scientific_sources ORDER BY source_key`)
+	evidenceRows, err := s.pool.Query(ctx, `SELECT source_key, title, authors, published_year, url, training_focus, evidence_level, summary, population_studied, research_objective, stimulus_analyzed, expected_benefits, limitations, risks, contraindications, confidence_level, last_reviewed_on::text, related_rules FROM scientific_sources ORDER BY source_key`)
 	if err != nil {
 		return planning.Plan{}, err
 	}
 	defer evidenceRows.Close()
 	for evidenceRows.Next() {
 		var source planning.ScientificSource
-		if err := evidenceRows.Scan(&source.SourceKey, &source.Title, &source.Authors, &source.PublishedYear, &source.URL, &source.TrainingFocus, &source.EvidenceLevel, &source.Summary); err != nil {
+		if err := evidenceRows.Scan(&source.SourceKey, &source.Title, &source.Authors, &source.PublishedYear, &source.URL, &source.TrainingFocus, &source.EvidenceLevel, &source.Summary, &source.PopulationStudied, &source.ResearchObjective, &source.StimulusAnalyzed, &source.ExpectedBenefits, &source.Limitations, &source.Risks, &source.Contraindications, &source.ConfidenceLevel, &source.LastReviewedOn, &source.RelatedRules); err != nil {
 			return planning.Plan{}, err
 		}
 		plan.Evidence = append(plan.Evidence, source)

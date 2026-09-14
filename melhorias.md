@@ -566,11 +566,11 @@ Não faça commit, deploy ou publicação. Aguarde minha autorização explícit
 
 Atualizado em 14 de setembro de 2026. Este arquivo continua sendo um roadmap; os 16 tópicos não estão todos encerrados.
 
-### Auditoria atual — fatia local `0.29.0` em validação
+### Auditoria atual — fatia local `0.29.0` validada e commitada
 
-A fatia em andamento fecha lacunas verificáveis de segurança, feedback e integridade: equipamento usado no pedal, sintomas de alerta, restrição médica, bloqueio de sessão intensa depois de uma nova limitação, validação de valores não finitos e testes SQL das migrações. Ela está somente no checkout local; produção permanece em `0.27.0` com schema até `000023`.
+A fatia fecha lacunas verificáveis de segurança, feedback e integridade: equipamento usado no pedal, sintomas de alerta, restrição médica, bloqueio de sessão intensa depois de uma nova limitação, validação de valores não finitos, testes SQL das migrações e correções responsivas. Ela foi validada e registrada nos commits `8ff96e7` e `1da6d91`; produção permanece em `0.27.0` com schema até `000023`.
 
-O que já ficou coberto por implementação e testes: escopo ciclístico (14), base de prontidão e situação de treino (1 e 5), regras versionadas em observação (2), parte do catálogo/elegibilidade (4), integridade/correção auditável (11), feedback estruturado (12), auditoria de decisões (13) e regressões principais (15). O lint geral ainda possui débitos antigos fora desta fatia; o build e os testes automatizados desta entrega passaram.
+O que já ficou coberto por implementação e testes: escopo ciclístico (14), base de prontidão e situação de treino (1 e 5), regras versionadas em observação (2), parte do catálogo/elegibilidade (4), integridade/correção auditável (11), feedback estruturado (12), auditoria de decisões (13) e regressões principais (15). O lint geral ainda possui débitos antigos fora desta fatia; o build, os testes automatizados e a validação manual da entrega passaram.
 
 O que continua pendente de verdade: adaptação em ciclo fechado autoritativa (6), carga/progressão com calibração (7), periodização completa aplicada (8), seleção plenamente orientada pela necessidade (9), validação clínica dos sinais de segurança (10), catálogo/evidências com todos os metadados exigidos (3 e 4), matriz integral de aceitação (15) e validação longitudinal com dados reais (16). Não vou marcar esses itens como concluídos apenas porque existem campos ou snapshots `shadow`.
 
@@ -590,6 +590,14 @@ O que continua pendente de verdade: adaptação em ciclo fechado autoritativa (6
 - O tópico 9 agora possui uma primeira auditoria local de compatibilidade entre necessidade e estímulo, mas ainda não seleciona alternativas de forma prescritiva.
 - A periodização atual audita quatro semanas e fases amplas; não representa ainda todas as fases completas do planejamento esportivo.
 - O catálogo ainda não contém todos os templates previstos e cada novo protocolo exige revisão própria de evidência, elegibilidade e segurança.
+
+### Continuidade — tópicos 3 e 4: estrutura científica e operacional — migração local `000026`
+
+A fatia técnica elimina a principal lacuna estrutural do tópico 3: `scientific_sources` passa a guardar população, objetivo, estímulo, benefícios esperados, limitações, riscos, contraindicações, confiança, última revisão e regras relacionadas. Fontes existentes são preservadas e recebem confiança `not_calibrated`; isso torna explícito o que ainda depende de revisão, sem inventar certeza científica.
+
+No tópico 4, cada protocolo já selecionável passa a declarar metadados operacionais auditáveis além da estrutura existente do treino: objetivos, indicação, contraindicação, nível, pré-requisitos, orientação por sensor quando aplicável, interrupção, progressão e regressão. A mudança não adiciona carga nem novo protocolo ao `rules-v1`; os templates ainda ausentes continuam pendentes e só poderão entrar após evidência, elegibilidade, segurança e testes próprios.
+
+A migração `000026` foi aplicada somente no PostgreSQL local e o teste transacional confirmou 25 fontes preenchidas, constraints de confiança e regras relacionadas. A suíte Go, `go vet`, build do frontend e `git diff --check` passaram. O lint geral mantém débitos anteriores fora dos arquivos alterados.
 
 ### Pendências que não devem ser consideradas concluídas
 

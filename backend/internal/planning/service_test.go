@@ -630,15 +630,22 @@ func TestSessionProtocolsKeepEvidenceMapping(t *testing.T) {
 	for _, name := range []string{
 		"Giro de base", "Recuperação ativa", "Retorno gradual", "Endurance contínuo", "Pedal longo", "Giro leve protegido", "Tempo controlado",
 		"Ritmo de prova controlado", "Cadência técnica", "Subidas controladas",
-		"Sweet spot por potência", "Sweet spot progressivo", "Limiar controlado", "Intervalos controlados", "Intervalos moderados de estrada", "Intervalos intensos de estrada", "Intervalos VO₂max de estrada", "Intervalos aeróbicos XCO",
+		"Sweet spot por potência", "Sweet spot progressivo", "Limiar controlado", "Intervalos controlados", "Intervalos moderados de estrada", "Intervalos intensos de estrada", "Intervalos VO₂max de estrada", "Intervalos curtos autorregulados", "Intervalos aeróbicos XCO",
 	} {
 		protocol := protocolForWorkout(name)
 		if protocol.Key == "" || len(protocol.EvidenceKeys) == 0 || protocol.EvidenceScope == "" {
 			t.Fatalf("protocol %q is missing evidence metadata: %#v", name, protocol)
 		}
+		metadata := metadataForProtocol(protocol.Key)
+		if metadata.PhysiologicalObjective == "" || metadata.PracticalObjective == "" || metadata.Indication == "" || metadata.Contraindication == "" || metadata.RecommendedLevel == "" || len(metadata.Prerequisites) == 0 || metadata.HeartRateGuidance == "" || metadata.PowerGuidance == "" || metadata.CadenceGuidance == "" || metadata.StopCriteria == "" || metadata.ProgressionCriteria == "" || metadata.RegressionCriteria == "" {
+			t.Fatalf("protocol %q is missing operational metadata: %#v", name, metadata)
+		}
 	}
 	if protocolForWorkout("unknown").Key != "continuous_base" {
 		t.Fatal("unknown sessions should use the safe continuous fallback protocol")
+	}
+	if metadataForProtocol("continuous_base").PhysiologicalObjective == "" {
+		t.Fatal("safe fallback protocol should keep operational metadata")
 	}
 }
 

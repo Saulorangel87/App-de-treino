@@ -25,7 +25,7 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 
 ## Estado documentado neste ciclo
 
-A produção oficial registrada está no commit `61458ae`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; as migrações até `000023` estão aplicadas após backup, validação e autorização explícita. O checkout local está preparando a versão `0.29.0`, com as migrações `000024` e `000025`, ainda sem commit ou deploy. A fatia local adiciona equipamento no feedback, sintomas de alerta e restrição médica no perfil, reforça a validação de dados e mantém os novos sinais fora da autoridade prescritiva. A tela autenticada `/plano` e os snapshots observacionais seguem sendo validados pela própria sessão autenticada; o estado detalhado e as lacunas estão em [`project-status.md`](project-status.md).
+A produção oficial registrada está no commit `61458ae`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; as migrações até `000023` estão aplicadas após backup, validação e autorização explícita. A versão local `0.29.0`, com as migrações `000024` e `000025`, foi validada e commitada, mas ainda não recebeu deploy. A fatia técnica seguinte adiciona a migração `000026` e metadados auditáveis às fontes e aos protocolos, sem alterar a autoridade do `rules-v1`. O estado detalhado e as lacunas estão em [`project-status.md`](project-status.md).
 
 ## Organização avaliada
 

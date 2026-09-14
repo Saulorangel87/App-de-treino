@@ -199,14 +199,24 @@ type Activity struct {
 }
 
 type ScientificSource struct {
-	SourceKey     string `json:"source_key"`
-	Title         string `json:"title"`
-	Authors       string `json:"authors"`
-	PublishedYear int    `json:"published_year"`
-	URL           string `json:"url"`
-	TrainingFocus string `json:"training_focus"`
-	EvidenceLevel string `json:"evidence_level"`
-	Summary       string `json:"summary"`
+	SourceKey         string   `json:"source_key"`
+	Title             string   `json:"title"`
+	Authors           string   `json:"authors"`
+	PublishedYear     int      `json:"published_year"`
+	URL               string   `json:"url"`
+	TrainingFocus     string   `json:"training_focus"`
+	EvidenceLevel     string   `json:"evidence_level"`
+	Summary           string   `json:"summary"`
+	PopulationStudied string   `json:"population_studied"`
+	ResearchObjective string   `json:"research_objective"`
+	StimulusAnalyzed  string   `json:"stimulus_analyzed"`
+	ExpectedBenefits  string   `json:"expected_benefits"`
+	Limitations       string   `json:"limitations"`
+	Risks             string   `json:"risks"`
+	Contraindications string   `json:"contraindications"`
+	ConfidenceLevel   string   `json:"confidence_level"`
+	LastReviewedOn    string   `json:"last_reviewed_on"`
+	RelatedRules      []string `json:"related_rules"`
 }
 
 type Plan struct {
@@ -835,7 +845,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		DurationMinutes: duration,
 		TargetRPE:       targetRPE,
 		Structure:       buildStructure(duration, targetRPE, name, mainBlock),
-		Explanation:     map[string]any{"summary": summary, "rules": rules, "protocol_key": protocol.Key, "evidence_keys": evidenceKeys, "evidence_scope": evidenceScope, "event_taper_applied": eventTaperApplied},
+		Explanation:     map[string]any{"summary": summary, "rules": rules, "protocol_key": protocol.Key, "protocol_metadata": metadataForProtocol(protocol.Key), "evidence_keys": evidenceKeys, "evidence_scope": evidenceScope, "event_taper_applied": eventTaperApplied},
 		Status:          "planned",
 	}
 }

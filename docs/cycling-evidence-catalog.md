@@ -126,6 +126,10 @@ A validação local passou pela suíte Go, `go vet`, build do frontend e confer�
 
 ## Modelo e critérios de integração do catálogo
 
+Desde a migração `000026`, cada fonte também possui população estudada, objetivo da pesquisa, estímulo analisado, benefícios esperados, limitações, riscos, contraindicações, confiança, data da última revisão e regras relacionadas. Registros ainda não calibrados usam `not_calibrated`; isso indica uma pendência de revisão e nunca autoriza aumentar carga.
+
+Cada protocolo selecionável anexa `protocol_metadata` à explicação do treino com objetivos fisiológico e prático, indicação, contraindicação, nível, pré-requisitos, orientação por frequência cardíaca, potência e cadência quando aplicável, critérios de interrupção, progressão e regressão. Duração, RPE e etapas permanecem em `duration_minutes`, `target_rpe` e `structure.steps`.
+
 O contexto agora guarda `bike_type`, `terrain` e uma disciplina explícita, opcional e validada. A disciplina não é inferida pelo tipo de bicicleta: XCO, XCM, gravel e os demais contextos permitidos só podem ser usados quando o atleta os informa diretamente. As migrações `000015` e `000016` registram as fontes do catálogo inicial e do piloto XCO na produção. Os identificadores legados `dh_enduro` e `track_sprint` não são modalidades válidas do app e são rejeitados ao salvar o perfil. Cada protocolo permitido continua dependendo de revisão de elegibilidade, segurança e transferência da evidência antes de ser publicado.
 
 Valores planejados para `cycling_context.discipline`:

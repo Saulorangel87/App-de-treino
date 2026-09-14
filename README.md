@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão publicada: `0.27.0`. Versão local em preparação: `0.29.0` — contexto de equipamento no feedback, sintomas de alerta e restrição médica no perfil, validação adicional de dados e auditoria de segurança. A versão local ainda aguarda validação manual, commit e deploy.
+Versão publicada: `0.27.0`. Versão local validada e commitada: `0.29.0` — contexto de equipamento no feedback, sintomas de alerta e restrição médica no perfil, validação adicional de dados, auditoria de segurança e correções responsivas. O deploy dessa versão permanece pendente.
 
 O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro não fazem parte deste app e não são aceitos como modalidades de treino.
 
@@ -21,7 +21,7 @@ O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Spr
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000015`–`000023` e as novas `000024` (equipamento usado no feedback) e `000025` (sintomas de alerta e restrição médica); elas ainda precisam ser aplicadas nos ambientes que estiverem em uma versão anterior.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000015`–`000025` e a fatia técnica `000026`, que amplia os metadados auditáveis das fontes científicas; elas ainda precisam ser aplicadas nos ambientes que estiverem em uma versão anterior.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -89,11 +89,11 @@ O MVP de ciclismo está publicado em produção real:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Produção implantada na VPS Oracle no commit `61458ae`; as migrações `000017`–`000023` estão aplicadas e a versão visível do produto é `0.27.0`. A fatia local `0.29.0` ainda não foi commitada nem publicada.
+- Produção implantada na VPS Oracle no commit `61458ae`; as migrações `000017`–`000023` estão aplicadas e a versão visível do produto é `0.27.0`. A fatia local `0.29.0` foi validada e registrada nos commits `8ff96e7` e `1da6d91`, mas ainda não foi publicada.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, confirmação de e-mail, recuperação de senha, onboarding, plano, treino, feedback, adaptação, atividades, evolução e logout foram validados.
 - Dependabot está com 0 alertas abertos; os testes Go, `go vet`, build Docker e a auditoria de dependências de produção passaram. `govulncheck` não está instalado no ambiente desta rodada.
-- A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`–`000023` foram aplicadas na produção. As migrações `000024` e `000025` foram validadas apenas no PostgreSQL local nesta fatia.
+- A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`–`000023` foram aplicadas na produção. As migrações `000024` e `000025` foram validadas apenas no PostgreSQL local; a `000026` pertence à próxima fatia técnica e deve passar pelo mesmo gate antes de qualquer deploy.
 - O ajuste responsivo dos períodos nos gráficos da Evolução foi publicado e validado no domínio oficial; a rolagem horizontal interna agora preserva os rótulos no celular.
 - A produção está no commit `61458ae` e na versão `0.27.0`, com correções de segurança, catálogo ampliado, contexto de conclusão/feedback pós-treino, gate observacional da distribuição dos estímulos, auditoria observacional da periodização, auditoria observacional da seleção de estímulos, coerência integrada dos shadows e situação de treino explícita. A tela `/plano` e os endpoints públicos foram validados após o deploy; o `rules-v1` continua prescritivo.
 - Em 14 de setembro de 2026, a rota autenticada `/v1/plans/current` apresentou `500` porque o deploy do aplicativo estava à frente do schema: a API consultava os campos da migração `000023`, enquanto a produção estava registrada apenas até `000021`. Após backup verificável, as migrações `000022` e `000023` foram aplicadas em ordem e o plano voltou a carregar na conta autenticada. Em todo deploy, healthchecks devem ser acompanhados da conferência de `cadencia_schema_migrations`.
