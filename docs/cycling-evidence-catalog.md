@@ -122,7 +122,7 @@ O motor só o seleciona para estrada ou indoor, nível avançado, objetivo de pe
 
 A escolha é uma adaptação conservadora da literatura em ciclistas treinados: o estudo de blocos moderados e intensos de 2025 mediu, entre outros desfechos, potência associada a 4 mmol/L de lactato e encontrou respostas dependentes da intensidade, mas não representa iniciantes nem valida a dose do Cadência. A revisão de distribuição de intensidade de 2024 também não sustenta superioridade universal de um modelo. Por isso, o protocolo permanece um piloto explícito, com preferência, histórico e avaliação mínimos, sem progressão automática e sem autoridade adicional para os shadows.
 
-A validação local passou pela suíte Go, `go vet`, build do frontend e conferência manual no navegador. O cenário elegível apresentou **Limiar controlado** com RPE 7,5 e três blocos; nível menor, histórico insuficiente, disponibilidade curta e dor impediram a seleção. A funcionalidade foi registrada no commit `d6e36ec`; produção permanece na `0.27.0` até autorização própria de publicação.
+A validação local passou pela suíte Go, `go vet`, build do frontend e conferência manual no navegador. O cenário elegível apresentou **Limiar controlado** com RPE 7,5 e três blocos; nível menor, histórico insuficiente, disponibilidade curta e dor impediram a seleção. O piloto foi posteriormente incorporado ao catálogo publicado na versão `0.30.0`; a evidência continua limitada e não autoriza ampliar carga automaticamente.
 
 ## Modelo e critérios de integração do catálogo
 

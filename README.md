@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão publicada: `0.27.0`. A base local `0.29.0` foi validada e commitada; o checkout contém a fatia local candidata à `0.30.0`, com estados de prontidão, gates de adaptação, recuperação pós-prova, cadência média observacional e metadados científicos adicionais. Essa fatia ainda não foi commitada, publicada ou aplicada em produção.
+Versão publicada: `0.30.0`. O código funcional está publicado em produção; o commit documental posterior `39d8d2e` removeu o antigo arquivo de melhorias sem alterar a aplicação.
 
 O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro não fazem parte deste app e não são aceitos como modalidades de treino.
 
@@ -15,13 +15,13 @@ O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Spr
 - `infrastructure/`: configuração versionada para a VPS Oracle.
 - `docs/`: decisões, regras, ciclo de vida e catálogo científico do produto.
 - `docs/README.md`: índice da documentação e regra de atualização.
-- `melhorias.md`: roadmap atual da próxima fase; `planejamento.md` preserva a visão e o histórico do projeto.
+- `planejamento.md`: documento único de visão, escopo, estado e próximos passos do projeto.
 
 ## Ambiente local
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000015`–`000029`; as `000026`–`000029` ampliam metadados científicos, gates de adaptação, recuperação pós-prova e a cadência média observacional. Elas ainda precisam ser aplicadas nos ambientes que estiverem em uma versão anterior.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000001`–`000029`; a produção está sincronizada até `000029`.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -85,27 +85,20 @@ Quando não existem mais sessões planejadas ou em andamento, o PostgreSQL marca
 
 ## Estado atual e próximas etapas
 
-O MVP de ciclismo está publicado em produção real:
+O MVP de ciclismo está publicado e validado em produção:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Produção implantada na VPS Oracle no commit `61458ae`; as migrações `000017`–`000023` estão aplicadas e a versão visível do produto é `0.27.0`. A fatia local `0.29.0` foi validada e registrada nos commits `8ff96e7` e `1da6d91`, mas ainda não foi publicada. As alterações posteriores deste checkout continuam locais.
+- Código funcional publicado no commit `f2f8192`; o commit documental `39d8d2e` removeu o arquivo obsoleto `melhorias.md`.
+- Versão visível: `0.30.0`; migrações de banco aplicadas até `000029`.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
-- Cadastro, confirmação de e-mail, recuperação de senha, onboarding, plano, treino, feedback, adaptação, atividades, evolução e logout foram validados.
-- Dependabot está com 0 alertas abertos; os testes Go, `go vet`, build Docker e a auditoria de dependências de produção passaram. `govulncheck` não está instalado no ambiente desta rodada.
-- A aba `/feedback`, o endpoint `POST /v1/feedback` e o job de resumo semanal estão implementados e publicados; as migrações `000013`–`000023` foram aplicadas na produção. As migrações `000024`–`000029` foram validadas apenas no PostgreSQL local e devem passar pelo mesmo gate antes de qualquer deploy.
-- O ajuste responsivo dos períodos nos gráficos da Evolução foi publicado e validado no domínio oficial; a rolagem horizontal interna agora preserva os rótulos no celular.
-- A produção está no commit `61458ae` e na versão `0.27.0`, com correções de segurança, catálogo ampliado, contexto de conclusão/feedback pós-treino, gate observacional da distribuição dos estímulos, auditoria observacional da periodização, auditoria observacional da seleção de estímulos, coerência integrada dos shadows e situação de treino explícita. A tela `/plano` e os endpoints públicos foram validados após o deploy; o `rules-v1` continua prescritivo.
-- Em 14 de setembro de 2026, a rota autenticada `/v1/plans/current` apresentou `500` porque o deploy do aplicativo estava à frente do schema: a API consultava os campos da migração `000023`, enquanto a produção estava registrada apenas até `000021`. Após backup verificável, as migrações `000022` e `000023` foram aplicadas em ordem e o plano voltou a carregar na conta autenticada. Em todo deploy, healthchecks devem ser acompanhados da conferência de `cadencia_schema_migrations`.
-- Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts` (`APP_VERSION` e `UPDATE_NOTES`) para que a novidade seja exibida na tela de primeiro acesso após a atualização. O modal é mostrado uma vez por conta, versão e navegador.
+- Cadastro, onboarding, plano, treino, feedback, adaptação, atividades, evolução, novidades e logout foram validados.
+- `rules-v1` continua sendo a única fonte prescritiva. Os shadows permanecem observacionais.
+- Dependabot está com 0 alertas abertos; `go test`, `go vet`, build e auditoria de dependências de produção passaram. `govulncheck` não está instalado.
 
-O checkout local e a produção agora contêm os pilotos `taper-v1`, `road_vo2_intervals` e `short_self_regulated_intervals`, selecionados somente quando os gates de elegibilidade e segurança são atendidos. A versão publicada está em `0.27.0`; a exclusão de sprint/pista/BMX e downhill/enduro também está registrada. A publicação foi validada; a release correspondente ainda não foi criada.
+O planejamento vigente está em [`planejamento.md`](planejamento.md). As atividades restantes são manutenção operacional, feedback real, cópia externa de backups, monitoramento, hardening da VPS, limpeza gradual do lint histórico e calibração científica antes de ampliar a autoridade do motor. Corrida e musculação estão fora deste projeto.
 
-A restauração completa do backup em ambiente isolado já foi concluída. Ainda falta definir a cópia externa dos backups, monitoramento e hardening das portas dos outros aplicativos hospedados na VPS. O ajuste visual da mensagem de privacidade e da altura da tela inicial desktop também está registrado.
-
-A publicação oficial do Cadência é feita somente pela composição Docker da VPS, com `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br` no Cloudflare Tunnel dedicado. Uma cópia privada criada acidentalmente no Sites durante uma tentativa de deploy foi excluída; o Sites não faz parte do fluxo de produção.
-
-Depois da publicação, a operação aguarda os primeiros relatos reais pela aba `/feedback` e a confirmação da entregabilidade do resumo semanal na segunda-feira. O fluxo de feedback, a adaptação de recuperação e a latência, os limites e o fallback da explicação pelo Worker já foram testados. A base observacional do roadmap de `melhorias.md` foi concluída e publicada, mas a adaptação em ciclo fechado, a calibração longitudinal, a seleção plenamente orientada por necessidade e a ampliação criteriosa do catálogo ainda permanecem pendentes. O escopo continua exclusivo de ciclismo nesta fase. O Ollama já está instalado e testado, mas permanece desligado por consumo elevado na VPS. Consulte `docs/README.md` e `docs/project-status.md` para o estado detalhado.
+A publicação oficial usa somente a composição Docker da VPS com os domínios oficiais e o Cloudflare Tunnel dedicado. O ambiente Sites não faz parte da produção do Cadência.
 
 ## Licença
 

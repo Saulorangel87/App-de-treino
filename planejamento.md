@@ -2,11 +2,11 @@
 
 ## 1. VISÃO GERAL DO PROJETO
 
-Quero desenvolver uma aplicação web de planejamento e acompanhamento de treinos personalizados, inicialmente voltada para três modalidades:
+Quero desenvolver uma aplicação web de planejamento e acompanhamento de treinos personalizados voltada exclusivamente para ciclismo nesta fase do produto.
 
 * 🚴 Ciclismo
-* 🏃 Corrida
-* 🏋️ Musculação
+
+Corrida e musculação não fazem parte do Cadência. Se forem desenvolvidas no futuro, serão produtos separados, com questionários, regras, evidências e modelos próprios.
 
 O objetivo principal do aplicativo é criar planos de treinamento individualizados com base em:
 
@@ -155,8 +155,6 @@ O usuário deverá informar:
 Possibilidades:
 
 * emagrecimento;
-* ganho de massa muscular;
-* ganho de força;
 * aumento de resistência;
 * melhora do condicionamento;
 * melhora de performance;
@@ -260,58 +258,19 @@ Qual protocolo foi utilizado?
 
 ---
 
-# 8. CORRIDA
+# 8. CORRIDA — FORA DO ESCOPO
 
-Para corredores, adaptar as perguntas.
+Corrida não será implementada no Cadência. Questionário, pace, marcas, distâncias e regras de corrida deverão pertencer a um aplicativo separado, caso esse produto seja criado no futuro.
 
-Coletar, quando aplicável:
-
-* tempo praticando corrida;
-* frequência semanal;
-* distância semanal;
-* distância média por treino;
-* maior distância;
-* pace médio;
-* melhores marcas;
-* 5 km;
-* 10 km;
-* meia maratona;
-* maratona;
-* objetivo de prova;
-* terreno;
-* esteira ou rua;
-* frequência cardíaca;
-* relógio esportivo.
-
-Se o usuário estiver treinando para uma prova, perguntar:
-
-* distância;
-* data da prova;
-* objetivo de tempo;
-* experiência anterior na distância.
+Não criar telas, campos, protocolos, regras ou migrações de corrida neste repositório.
 
 ---
 
-# 9. MUSCULAÇÃO
+# 9. MUSCULAÇÃO — FORA DO ESCOPO
 
-Para musculação, adaptar completamente o questionário.
+Musculação não será implementada no Cadência. Cargas, repetições, exercícios, séries e regras de força deverão pertencer a um aplicativo separado, caso esse produto seja criado no futuro.
 
-Coletar:
-
-* experiência;
-* frequência semanal;
-* objetivo;
-* local de treinamento;
-* equipamentos disponíveis;
-* exercícios realizados;
-* experiência com treinamento de força;
-* duração das sessões.
-
-Perguntar sobre cargas ou desempenho somente quando fizer sentido.
-
-Não exigir 1RM de usuários iniciantes.
-
-O sistema deverá reconhecer diferentes níveis de experiência.
+Não criar telas, campos, protocolos, regras ou migrações de musculação neste repositório.
 
 ---
 
@@ -764,9 +723,7 @@ O usuário deve conseguir entender seu estado atual rapidamente.
 
 O aplicativo deverá mostrar evolução ao longo do tempo.
 
-Dependendo da modalidade:
-
-### Ciclismo
+O Cadência acompanha exclusivamente métricas observáveis de ciclismo:
 
 * distância;
 * duração;
@@ -776,23 +733,7 @@ Dependendo da modalidade:
 * carga;
 * volume semanal.
 
-### Corrida
-
-* distância;
-* pace;
-* tempo;
-* frequência cardíaca;
-* volume semanal;
-* melhores marcas.
-
-### Musculação
-
-* carga;
-* repetições;
-* volume;
-* exercícios;
-* evolução de desempenho;
-* frequência.
+O aplicativo não estima performance fisiológica nem usa métricas de corrida ou musculação. Esses domínios ficam reservados para produtos separados.
 
 ---
 
@@ -806,8 +747,9 @@ Preferência:
 
 ```text
 React
-JavaScript
+TypeScript
 Vite
+Vinext
 ```
 
 ### Backend
@@ -992,15 +934,7 @@ Ciclismo.
 14. histórico de evolução;
 15. explicação do motivo do treino.
 
-Somente depois expandir para:
-
-```text
-Ciclismo
-      ↓
-Corrida
-      ↓
-Musculação
-```
+O MVP não será expandido para corrida ou musculação. Novas entregas deste repositório devem aprofundar somente o ciclismo; outras modalidades exigem aplicativos separados.
 
 ---
 
@@ -1043,7 +977,7 @@ O verdadeiro produto é o **motor inteligente de treinamento**.
 
 # 32. OBJETIVO FINAL
 
-Criar uma plataforma capaz de responder:
+Criar uma plataforma de ciclismo capaz de responder:
 
 > "Dado quem é essa pessoa, qual é seu objetivo, qual sua capacidade atual, quanto tempo ela possui, como está sua recuperação, o que ela realizou anteriormente e quais evidências científicas se aplicam ao caso, qual é o estímulo de treinamento mais adequado neste momento?"
 
@@ -1052,6 +986,8 @@ E não simplesmente:
 > "Qual treino a IA consegue inventar para essa pessoa?"
 
 Essa diferença deve orientar toda a arquitetura do projeto.
+
+O objetivo final desta aplicação não inclui corrida ou musculação. A separação de produtos evita misturar questionários, métricas, evidências e regras de modalidades diferentes.
 
 
 1. 🧠 Regras do sistema
@@ -1137,7 +1073,7 @@ A próxima etapa é a observação acompanhada: aguardar relatos reais pela aba 
 
 ## Direção atual da próxima fase — 4 de setembro de 2026
 
-Após a publicação do catálogo inicial e do piloto de intervalos moderados de estrada, o roadmap vigente da próxima fase está em [`melhorias.md`](melhorias.md). A primeira fatia deve tratar prontidão e qualidade dos dados; depois vêm a evolução versionada das regras, adaptação em ciclo fechado, progressão/carga, segurança, feedback e auditabilidade. O `rules-v1` deve ser preservado durante a validação, e o escopo permanece exclusivo de ciclismo.
+Após a publicação do catálogo inicial e do piloto de intervalos moderados de estrada, o roadmap vigente da próxima fase estava registrado no documento histórico de melhorias. A primeira fatia deveria tratar prontidão e qualidade dos dados; depois viriam a evolução versionada das regras, adaptação em ciclo fechado, progressão/carga, segurança, feedback e auditabilidade. O `rules-v1` deveria ser preservado durante a validação, e o escopo permanecia exclusivo de ciclismo.
 
 Toda atualização com funcionalidade visível deve atualizar `frontend/lib/release.ts`, incrementando `APP_VERSION` e registrando a novidade em `UPDATE_NOTES`, para que ela apareça na tela de novidades após a atualização. A produção oficial está no commit `53cbadc`, na versão `0.12.0`, com a release [v0.12.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.12.0) publicada no GitHub. O deploy de 11 de setembro foi validado após backup preventivo, build, manutenção e checagem dos domínios oficiais; a correção do acesso ao perfil no mobile foi somente frontend e não exigiu nova nota de versão. Não fazer commit, deploy ou mudança de infraestrutura sem autorização explícita.
 
@@ -1151,7 +1087,7 @@ Antes de editar o motor, a próxima tarefa é especificar elegibilidade, janela 
 
 A partir do checkout limpo `70103b0`, foi implementada localmente a primeira leitura de prontidão (`readiness-v1`), independente de experiência, em modo observacional no snapshot de novos planos. Ela registra motivos, lacunas e cobertura dos dados de 28 dias; não altera a prescrição `rules-v1`, a avaliação ou a adaptação do check-in. Não autoriza progressão nem infere baixa consistência a partir de poucos registros. Os testes Go sem cache e `go vet` passaram; depois que o proprietário ligou o Docker, as consultas PostgreSQL passaram em quatro cenários fictícios, sem ler ou alterar dados reais. Falta a conferência ponta a ponta do novo campo via API/navegador. Detalhes, limitações e próximo passo estão em `docs/project-status.md` e `docs/training-adaptation-rules.md`.
 
-Próxima fatia: consolidar janelas 7/28/42 dias, qualidade temporal dos dados e aderência/tolerância antes de usar prontidão em decisões de carga. Feedback real e confirmação do Resend seguem em paralelo, sem bloquear melhorias. Sem mudança visual nesta entrega, a versão do produto permanece `0.7.0`; atualizar a tela de novidades na próxima funcionalidade visível. Nenhum commit, deploy, migração ou mudança de infraestrutura foi realizado nesta etapa. Este planejamento raiz e `melhorias.md` foram preservados.
+Próxima fatia: consolidar janelas 7/28/42 dias, qualidade temporal dos dados e aderência/tolerância antes de usar prontidão em decisões de carga. Feedback real e confirmação do Resend seguem em paralelo, sem bloquear melhorias. Sem mudança visual nesta entrega, a versão do produto permanece `0.7.0`; atualizar a tela de novidades na próxima funcionalidade visível. Nenhum commit, deploy, migração ou mudança de infraestrutura foi realizado nesta etapa. A documentação de planejamento foi preservada.
 
 ### Continuidade — histórico 7/28/42 dias e aderência
 
@@ -1501,7 +1437,7 @@ Foram adicionados testes para ciclo coerente, semanas ausentes, qualidade na sem
 
 ### Fechamento documental da fatia de periodização — 13 de setembro de 2026
 
-A auditoria observacional da periodização foi encerrada como entrega técnica e publicada. Ela confirma a coerência estrutural dos ciclos gerados, mas não encerra o roadmap de `melhorias.md`: `rules-v1` continua sendo o único motor prescritivo e a adaptação em ciclo fechado ainda depende de calibração, efeito longitudinal e dados reais suficientes. A próxima evolução deve integrar periodização, distribuição de estímulos e seleção de estímulos ainda em shadow, antes de qualquer mudança de autoridade do motor.
+A auditoria observacional da periodização foi encerrada como entrega técnica e publicada. Ela confirma a coerência estrutural dos ciclos gerados, mas não encerra o roadmap técnico que estava em vigor naquele momento: `rules-v1` continua sendo o único motor prescritivo e a adaptação em ciclo fechado ainda depende de calibração, efeito longitudinal e dados reais suficientes. A próxima evolução deve integrar periodização, distribuição de estímulos e seleção de estímulos ainda em shadow, antes de qualquer mudança de autoridade do motor.
 
 ### Continuidade — seleção observacional de estímulos — 13 de setembro de 2026
 
@@ -1592,3 +1528,69 @@ Após o deploy da versão `0.27.0`, a tela de novidades continuou carregando, ma
 A investigação confirmou que o checkout da aplicação consultava os campos `satisfaction`, `terrain` e `external_conditions` da tabela `feedback`, enquanto o PostgreSQL de produção estava registrado somente até a migração `000021`. Foi criado e validado o backup `cadencia-20260914T112526Z.dump`; o perfil `maintenance` aplicou em ordem `000022_limitation_context` e `000023_feedback_context`. As três colunas, os registros de migração e o carregamento do plano autenticado foram validados.
 
 Essa ocorrência encerra a lacuna operacional do deploy, não uma melhoria funcional do motor. A partir daqui, a sequência obrigatória é: backup verificável, conferência do estado de `cadencia_schema_migrations`, aplicação ordenada das migrações pendentes, validação do schema, healthchecks e leitura autenticada de uma rota crítica. `rules-v1` e os shadows não foram alterados.
+
+---
+
+# Revisão de escopo e encerramento do ciclo atual — 14 de setembro de 2026
+
+Este é o registro vigente do planejamento. O arquivo `melhorias.md` foi removido; não existe um segundo roadmap ativo. O `planejamento.md` é o documento único para visão, escopo e próximos passos do Cadência.
+
+## Escopo definitivo
+
+O Cadência é um aplicativo de planejamento e acompanhamento de ciclismo. O catálogo atual aceita estrada, MTB XCO/XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro permanecem fora do produto. Corrida e musculação também estão fora deste repositório e poderão ser desenvolvidas em aplicativos independentes.
+
+## Comparação com o aplicativo atual
+
+### Concluído no MVP de ciclismo
+
+O fluxo principal está implementado, testado e publicado em produção na versão `0.30.0`:
+
+1. cadastro, login, confirmação de e-mail, recuperação de senha e logout;
+2. perfil básico com nível, rotina e dados opcionais;
+3. questionário de ciclismo em etapas, com objetivos principal/secundário, disponibilidade diária e contexto de equipamentos;
+4. histórico resumido de ciclismo, situação atual do treino e contexto opcional de prova;
+5. limitações, sintomas de alerta, restrição médica e bloqueios conservadores de segurança;
+6. recuperação diária com sono, estresse e fadiga percebida;
+7. avaliação inicial submáxima, sem teste máximo ou diagnóstico;
+8. motor determinístico `rules-v1`, catálogo de protocolos e geração de ciclos de quatro semanas;
+9. calendário, treino diário, estrutura, RPE, fontes científicas e explicação da escolha;
+10. início, conclusão completa/parcial, cancelamento, registro de treino perdido e correção auditável de métricas;
+11. feedback de esforço, dificuldade, fadiga, dor, recuperação, confiança, satisfação, terreno, condições, equipamento e métricas opcionais;
+12. adaptação básica e conservadora após feedback válido, preservando segurança e histórico;
+13. atividades, evolução observada, consistência, carga por session-RPE e check-ins de recuperação;
+14. auditoria da decisão, estados de prontidão, integridade, comparação planejado versus realizado e shadows sem autoridade prescritiva;
+15. IA explicativa opcional no backend, com fallback determinístico e sem chaves no frontend;
+16. PWA, responsividade, aba de novidades, feedback do produto e infraestrutura Docker/PostgreSQL/Cloudflare Tunnel.
+
+## O que não é pendência de implementação
+
+Os itens abaixo foram retirados do escopo do Cadência e não devem ser tratados como tarefas abertas:
+
+- questionário, plano ou métricas de corrida;
+- questionário, plano ou métricas de musculação;
+- sprint máximo, pista/BMX, downhill e enduro;
+- diagnóstico, liberação clínica ou prescrição médica;
+- estimativa fisiológica inventada a partir de RPE ou ausência de sensores.
+
+## Pendências reais após o MVP
+
+Estas são atividades contínuas ou operacionais, não bloqueios para considerar o MVP de ciclismo concluído:
+
+- coletar feedback de usuários reais e observar a entrega e a utilidade do resumo semanal;
+- configurar cópia externa dos backups, monitoramento de falhas e hardening das portas dos demais aplicativos da VPS;
+- corrigir gradualmente a dívida histórica do lint geral, sem misturá-la com as funcionalidades já validadas;
+- manter revisão científica e clínica para qualquer novo protocolo ou mudança de segurança;
+- acumular dados longitudinais antes de ampliar a autoridade de adaptação, calibrar progressão ou substituir o `rules-v1`;
+- avaliar integrações externas, como Strava, somente mediante consentimento, custos e desenho de segurança aprovados.
+
+Os shadows (`rules-v2`, tolerância, periodização, seleção de estímulo e coerência) permanecem deliberadamente observacionais. Eles não são uma funcionalidade quebrada: aguardam dados reais suficientes, calibração e revisão própria antes de qualquer mudança de autoridade.
+
+## Definição de conclusão
+
+Para este repositório, `100% concluído` significa: MVP de ciclismo implementado, validado e publicado, com escopo fechado e documentação coerente. Esse marco foi atingido na versão `0.30.0`.
+
+O produto continuará recebendo manutenção, feedback e evolução científica. Isso não reabre o MVP nem cria uma obrigação de adicionar corrida ou musculação ao Cadência.
+
+### Estado de publicação desta revisão
+
+O código funcional está publicado no commit `f2f8192`; o commit posterior `39d8d2e` removeu o documento obsoleto `melhorias.md`. A atualização deste planejamento e das referências documentais é somente documental e não exige novo deploy da aplicação.

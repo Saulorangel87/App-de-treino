@@ -10,6 +10,14 @@ O MVP de ciclismo está em produção real e foi validado no navegador e em um c
 
 O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e referências científicas. A camada opcional de IA explicativa foi preparada no backend, validada por uma rota remota protegida e preparada para uso local com Ollama. O padrão do código continua desligado; na produção, o Worker remoto está temporariamente selecionado como provedor para evitar consumo elevado da VPS.
 
+### Estado canônico após o fechamento do MVP — 14 de setembro de 2026
+
+- O escopo do Cadência está encerrado em ciclismo. Corrida e musculação serão produtos separados e não são pendências deste repositório.
+- A versão funcional publicada é `0.30.0`, no commit `f2f8192`. O commit `39d8d2e` removeu o documento obsoleto `melhorias.md`; essa alteração é somente documental e ainda não exige novo deploy.
+- As migrações `000001` a `000029` estão aplicadas na produção. O backup preventivo mais recente da sincronização de schema é `cadencia-20260914T224807Z.dump`.
+- A leitura autenticada de `GET /v1/plans/current` foi validada após as migrações, além de `/health`, `/ready`, frontend público, API pública e os quatro serviços da composição Docker.
+- O MVP de ciclismo está implementado e validado. O que permanece é operação e evolução controlada: feedback real e resumo semanal, cópia externa de backups, hardening da VPS, correção gradual do lint e coleta longitudinal antes de dar autoridade adicional aos shadows.
+
 ### Correção operacional da produção — 14 de setembro de 2026
 
 - A tela de novidades e os endpoints públicos permaneciam disponíveis, mas a conta autenticada recebia `500` em `GET /v1/plans/current`. API, frontend, PostgreSQL, Tunnel, `/health` e `/ready` continuavam saudáveis.
@@ -79,14 +87,15 @@ Validação local: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, va
 - API: <https://cadencia-api.devsaulo.com.br>
 - VPS: Oracle Cloud, Ubuntu, acesso administrativo por SSH na porta 22.
 - Código na VPS: `/home/ubuntu/apps/cadencia`.
-- Commit implantado: `61458ae feat(profile): explicita situacao de treino`; não houve migração nesta fatia.
-- O backup preventivo `cadencia-20260914T102918Z.dump` foi criado e verificado. `/ready` interno, os quatro serviços e os dois domínios públicos retornaram estado saudável após o deploy.
-- A versão do produto publicada é `0.27.0`; a release correspondente do GitHub ainda não foi criada.
+- Commit funcional implantado: `f2f8192`; a versão do produto publicada é `0.30.0`.
+- O backup preventivo mais recente é `cadencia-20260914T224807Z.dump`. Após a aplicação ordenada das migrações `000024` a `000029`, `/ready`, os quatro serviços e os dois domínios públicos retornaram estado saudável.
+- A leitura autenticada de `GET /v1/plans/current` foi executada com sucesso e a interface carregou o plano, a aba de novidades e o detalhamento da decisão.
+- O commit documental atual é `39d8d2e`, que removeu `melhorias.md`; não há mudança funcional pendente de publicação por causa dele.
 - O Cloudflare Tunnel dedicado expõe somente frontend e API; o PostgreSQL não possui hostname, rota pública ou porta publicada.
 
 ## Estado do checkout local
 
-- A produção está no commit `61458ae`, na versão `0.27.0`, com as migrações `000017` a `000023` aplicadas. O taper, os pilotos de VO₂max e intervalos curtos, o contexto de conclusão, o contexto pós-treino, a revisão técnica do shadow, o gate observacional de distribuição, a auditoria observacional da periodização, a auditoria observacional da seleção de estímulos, a coerência integrada dos shadows e a situação de treino explícita foram publicados conforme deploy validado.
+- O checkout local está no commit documental `39d8d2e`; a produção funcional está no commit `f2f8192`, na versão `0.30.0`, com as migrações `000001` a `000029` aplicadas. O taper, os pilotos de VO₂max e intervalos curtos, o contexto de conclusão, o contexto pós-treino, os gates observacionais, a coerência dos shadows, a cadência observacional e a situação de treino explícita foram publicados conforme deploy validado.
 - A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local), `9034287` (matriz comparativa), `61d7939` (pin do digest do Tunnel), `1358ac1` (status da versão `0.12.0`), `53cbadc` (acesso ao perfil no mobile), `66f70ed` (decisão do taper pré-prova), `0eb34d6` (implementação local do taper), `01875c9` (piloto local de VO₂max de estrada), `1eab2c8` (piloto local de intervalos curtos), `3b3639a` (exclusão de modalidades fora do produto), `9aff39f` (sincronização documental), `6fdbe45` (estado do catálogo) e o deploy autorizado da versão `0.16.0`.
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
@@ -428,7 +437,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
 - `backend/`: API REST em Go.
-- `database/migrations/`: migrações PostgreSQL até `000029`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` registra o contexto de conclusão parcial, a `000021` registra o contexto adicional pós-treino, a `000022` registra o contexto de limitações, a `000023` registra o feedback estruturado, as `000024`/`000025` registram equipamento e sinais de segurança, a `000026` amplia os metadados científicos, a `000027` protege a adaptação contra dados inválidos e sinais protetivos recentes, a `000028` registra evidências de recuperação pós-prova e a `000029` registra cadência média observacional. Em produção, as migrações estão aplicadas até `000023`; `000024`–`000029` permanecem locais até o deploy autorizado.
+- `database/migrations/`: migrações PostgreSQL até `000029`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` registra o contexto de conclusão parcial, a `000021` registra o contexto adicional pós-treino, a `000022` registra o contexto de limitações, a `000023` registra o feedback estruturado, as `000024`/`000025` registram equipamento e sinais de segurança, a `000026` amplia os metadados científicos, a `000027` protege a adaptação contra dados inválidos e sinais protetivos recentes, a `000028` registra evidências de recuperação pós-prova e a `000029` registra cadência média observacional. Em produção, todas estão aplicadas até `000029`.
 - `database/tests/`: verificações SQL.
 - `api/openapi.yaml`: contrato da API local e de produção.
 - `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.
@@ -500,8 +509,7 @@ As rotas estão descritas em `api/openapi.yaml`. Os grupos principais são:
 
 ## Banco e migrações
 
-- Migrações versionadas no checkout local: `000001` a `000020`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes científicas do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos e a `000020` adiciona o contexto de conclusão parcial.
-- Em produção, estão aplicadas `000001` a `000019`. As `000017`, `000018` e `000019` foram executadas em ordem pelo perfil `maintenance` após o backup verificável `cadencia-20260912T155746Z.dump`, revisão e autorização explícita.
+- Migrações versionadas no checkout local e aplicadas em produção: `000001` a `000029`. As migrações mais recentes foram executadas em ordem pelo perfil `maintenance` após o backup verificável `cadencia-20260914T224807Z.dump`, revisão e autorização explícita.
 - `000012` adiciona confirmação de e-mail e recuperação de senha.
 - Produção possui registro de migrações em `cadencia_schema_migrations`.
 - O usuário da API não é superusuário; o proprietário do banco é reservado para operações administrativas.
@@ -623,17 +631,15 @@ Nesta primeira etapa, os relatos continuam centralizados no banco e não geram u
 
 ## Próximas etapas do produto
 
-1. Observar os pilotos publicados — taper, VO₂max de estrada e intervalos curtos — dentro dos gates documentados, sem transformar um caso isolado em autorização de carga.
-2. Acompanhar o primeiro resumo semanal do Resend e os relatos reais, sem repetir como bloqueio os testes já concluídos de latência, limites e fallback do Worker.
-3. ~~Validar via API local o bloco `adaptation_shadow.load_tolerance` após concluir uma sessão, confirmando os estados observacionais e as barreiras de não aplicação.~~ Concluído localmente e registrado no commit `36cfabb`.
-4. ~~Alinhar o resumo observado de prontidão ao limite temporal das demais consultas.~~ Concluído e registrado no commit `96390aa`.
-5. ~~Alinhar os agregados observacionais da tela de Evolução ao relógio atual.~~ Concluído e registrado no commit `278697d`.
-6. ~~Fazer o gate de tolerância participar da decisão shadow de adaptação.~~ Concluído localmente nesta fatia; falta apenas o commit do proprietário.
-7. Retomar a evolução em shadow de adaptação, carga/progressão e integridade dos dados, preservando `rules-v1` até que a nova versão esteja testada, comparável e auditável.
-8. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
-9. Manter o escopo desta fase em ciclismo; corrida e força não entram no próximo ciclo sem nova decisão.
+O MVP de ciclismo está concluído. As próximas atividades são de operação e evolução controlada, não de implementação obrigatória para considerar esta versão pronta:
 
-O feedback real e o primeiro envio automático do Resend seguem em paralelo, sem bloquear as melhorias. Os testes manuais de e-mail e de latência/limites/fallback já foram realizados e não precisam ser repetidos como condição para avançar. O catálogo ampliado foi publicado em `0.16.0`; a operação deve observar taper, VO₂max de estrada e intervalos curtos somente dentro dos critérios de elegibilidade documentados.
+1. Observar feedback real e o resumo semanal do Resend, acompanhando entrega e utilidade sem transformar um caso isolado em autorização de carga.
+2. Manter cópias externas dos backups e concluir o hardening da VPS sem interromper Tailscale, Cloudflare ou os demais aplicativos.
+3. Reduzir gradualmente o débito do `npm run lint`; os testes Go, `go vet` e o build do frontend permanecem aprovados, mas o lint geral ainda possui pendências antigas.
+4. Continuar a revisão científica e a coleta longitudinal. `rules-v1` continua como única autoridade; os shadows não devem ganhar autoridade sem calibração, efeito longitudinal e revisão adequada.
+5. Avaliar integrações externas, como Strava, somente depois de definir escopo, consentimento, custos e segurança dos tokens.
+
+Corrida e musculação estão fora deste produto e não devem reaparecer como tarefas do Cadência. O histórico abaixo preserva as decisões e validações das fatias anteriores; ele não representa pendências atuais.
 
 ### Vigésima primeira fatia — contexto detalhado de segurança do perfil — 13 de setembro de 2026
 

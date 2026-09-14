@@ -4,14 +4,13 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 
 ## Fontes canônicas
 
-- [`planejamento.md`](../planejamento.md): visão original, escopo do MVP e histórico de decisões do produto. Este arquivo fica preservado na raiz.
-- [`melhorias.md`](../melhorias.md): roadmap atual da próxima fase de inteligência, mantido na raiz do projeto.
+- [`planejamento.md`](../planejamento.md): documento único de visão, escopo do MVP, estado atual e próximos passos do produto.
 - [`project-status.md`](project-status.md): inventário do que está implementado, validado, em produção e pendente.
 - [`architecture-decisions.md`](architecture-decisions.md): decisões de arquitetura aceitas e seus limites.
 - [`training-adaptation-rules.md`](training-adaptation-rules.md): comportamento atual do motor `rules-v1`, adaptação e evidências gerais.
 - [`training-cycle-lifecycle.md`](training-cycle-lifecycle.md): estados, transições e regras do ciclo de treino.
 - [`cycling-evidence-catalog.md`](cycling-evidence-catalog.md): catálogo de evidências e critérios de elegibilidade dos protocolos específicos de ciclismo.
-- [`roadmap-acceptance.md`](roadmap-acceptance.md): matriz verificável dos 16 tópicos de `melhorias.md`, com testes e condições externas de saída.
+- [`roadmap-acceptance.md`](roadmap-acceptance.md): matriz histórica de aceitação técnica; não é um segundo roadmap e não substitui o `planejamento.md`.
 - [`README.md`](../README.md): visão geral, instalação local, rotas e fluxo funcional.
 - [`infrastructure/README.md`](../infrastructure/README.md) e [`infrastructure/cadencia/README.md`](../infrastructure/cadencia/README.md): somente operação da produção na VPS Oracle.
 
@@ -26,7 +25,7 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 
 ## Estado documentado neste ciclo
 
-A produção oficial registrada está no commit `61458ae`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; as migrações até `000023` estão aplicadas após backup, validação e autorização explícita. A versão local `0.29.0`, com as migrações `000024` e `000025`, foi validada e commitada, mas ainda não recebeu deploy. O checkout contém a fatia técnica candidata à versão local `0.30.0`, com as migrações `000026`–`000029`, estados de prontidão, gates de adaptação, recuperação pós-prova, cadência média observacional e metadados científicos. O estado detalhado e as lacunas estão em [`project-status.md`](project-status.md).
+A produção oficial está no commit funcional `f2f8192`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; a versão visível é `0.30.0` e as migrações estão aplicadas até `000029`. O commit documental `39d8d2e` removeu o antigo arquivo de melhorias. O estado detalhado e as pendências operacionais estão em [`project-status.md`](project-status.md).
 
 ## Organização avaliada
 

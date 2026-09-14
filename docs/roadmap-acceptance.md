@@ -1,8 +1,8 @@
-# Matriz de aceitação do roadmap de melhorias
+# Matriz histórica de aceitação técnica
 
-Atualizada em 14 de setembro de 2026 para a candidata local `0.30.0`.
+Atualizada em 14 de setembro de 2026 para a versão publicada `0.30.0`.
 
-Este documento encerra a parte verificável do roadmap de [`melhorias.md`](../melhorias.md). Ele separa três situações que não podem ser confundidas:
+Este documento preserva a matriz verificável que orientou a fase técnica anterior. O documento único de planejamento vigente é [`planejamento.md`](../planejamento.md). Esta matriz separa três situações que não podem ser confundidas:
 
 - **implementado e verificado**: comportamento presente no checkout e coberto por código ou teste;
 - **protegido, ainda não calibrado**: o app aplica a proteção conservadora, mas não afirma validade longitudinal ou clínica;
@@ -122,10 +122,10 @@ Limite conhecido: o lint geral possui dívida histórica fora desta entrega; o l
 
 ## 16. Critérios operacionais de aceitação
 
-**Atendidos localmente.** O checkout preserva o PostgreSQL privado, não muda produção nem cria modalidades fora do escopo. O build e as suítes automatizadas passam, e o motor continua explicável e conservador.
+**Atendidos e verificados em produção.** O Cadência preserva o PostgreSQL privado, não cria modalidades fora do escopo, mantém o motor explicável e conservador e foi publicado na versão `0.30.0`.
 
-Condições externas antes de produção: revisar diff, aplicar migrações `000024`–`000029` após backup, confirmar `cadencia_schema_migrations`, executar leitura autenticada de `/v1/plans/current`, validar a interface da nova auditoria e só então publicar com autorização explícita. Healthcheck isolado não comprova compatibilidade de schema.
+O deploy foi concluído com backup verificável, aplicação ordenada das migrações `000024`–`000029`, confirmação de `cadencia_schema_migrations`, leitura autenticada de `/v1/plans/current`, validação da interface e healthchecks. A regra de compatibilidade de schema permanece obrigatória nos próximos deploys; healthcheck isolado não é suficiente.
 
 ## Fechamento técnico desta fase
 
-Não há tarefa de implementação local pendente que possa ser resolvida honestamente sem ampliar a autoridade de prescrição, inventar evidência ou fazer diagnóstico. As pendências restantes são as condições externas de saída acima: dados reais longitudinais, revisão científica/clínica e autorização de publicação. Elas são requisitos de validação, não itens de código esquecidos.
+Não há tarefa de implementação do MVP pendente. As atividades restantes são manutenção operacional, observação com dados reais e revisão científica/clínica contínua; elas não são itens de código esquecidos nem reabrem o escopo de corrida ou musculação.
