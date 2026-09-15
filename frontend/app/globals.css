@@ -4108,6 +4108,12 @@ a.footer-icon:hover {
   .profile-topbar .logout-wrap {
     order: 2;
   }
+  .profile-topbar .account-updates-link,
+  .profile-topbar .account-feedback-link,
+  .profile-topbar .account-settings-link {
+    gap: 0;
+    line-height: 0;
+  }
   .profile-topbar .account-updates-link {
     margin-left: auto;
   }
@@ -4163,9 +4169,13 @@ a.footer-icon:hover {
     overflow: hidden;
     white-space: nowrap;
     font-size: 0;
+    gap: 0;
+    line-height: 0;
   }
   .top-actions .feedback-quick-link,
   .top-actions .profile-quick-link {
+    display: inline-flex;
+    align-items: center;
     flex: 0 0 30px;
     width: 30px;
     height: 30px;
@@ -4176,6 +4186,8 @@ a.footer-icon:hover {
     overflow: hidden;
     white-space: nowrap;
     font-size: 0;
+    gap: 0;
+    line-height: 0;
   }
   .top-actions .feedback-quick-link svg,
   .top-actions .profile-quick-link svg,
