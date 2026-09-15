@@ -307,6 +307,7 @@ button {
 .account-feedback-link {
   display: inline-flex;
   align-items: center;
+  gap: 5px;
   height: 32px;
   padding: 0 10px;
   border: 1px solid #d6e1d9;
@@ -4085,10 +4086,30 @@ a.footer-icon:hover {
     bottom: var(--footer-height);
   }
   .profile-topbar {
+    height: auto;
+    min-height: 76px;
     padding-inline: 16px;
+    padding-block: 12px;
+    flex-wrap: wrap;
+    align-content: center;
+    row-gap: 6px;
   }
   .profile-topbar .account-actions {
-    gap: 8px;
+    display: contents;
+  }
+  .profile-topbar .account-brand {
+    order: 1;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .profile-topbar .account-updates-link,
+  .profile-topbar .account-feedback-link,
+  .profile-topbar .account-settings-link,
+  .profile-topbar .logout-wrap {
+    order: 2;
+  }
+  .profile-topbar .account-updates-link {
+    margin-left: auto;
   }
   .account-updates-link {
     width: 32px;
@@ -4111,7 +4132,17 @@ a.footer-icon:hover {
     justify-content: center;
   }
   .account-identity strong {
-    max-width: 90px;
+    max-width: none;
+  }
+  .profile-topbar .account-identity {
+    order: 3;
+    flex: 1 0 100%;
+    width: 100%;
+    max-width: none;
+    text-align: right;
+  }
+  .profile-topbar .account-identity strong {
+    max-width: 100%;
   }
   .logout-button:not(.compact) {
     width: 36px;
@@ -4122,13 +4153,38 @@ a.footer-icon:hover {
   }
   .top-actions .settings-quick-link {
     display: inline-flex;
+    flex: 0 0 30px;
     width: 30px;
     height: 30px;
+    padding: 0;
     justify-content: center;
     border: 1px solid #d6e1d9;
     border-radius: 8px;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 0;
   }
-  .top-actions .settings-quick-link span {
-    display: none;
+  .top-actions .feedback-quick-link,
+  .top-actions .profile-quick-link {
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    justify-content: center;
+    border: 1px solid #d6e1d9;
+    border-radius: 8px;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 0;
+  }
+  .top-actions .feedback-quick-link svg,
+  .top-actions .profile-quick-link svg,
+  .top-actions .settings-quick-link svg {
+    flex: 0 0 auto;
+  }
+  .top-actions .logout-button.compact {
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
   }
 }

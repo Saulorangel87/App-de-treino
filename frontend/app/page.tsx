@@ -355,15 +355,15 @@ export default function HomePage() {
               <HeartPulse size={15} />
               {recovery ? recovery.readiness === 'ready' ? 'Recuperação ok' : recovery.readiness === 'caution' ? 'Atenção à recuperação' : 'Priorize recuperação' : 'Fazer check-in'}
             </a>
-            <a className="feedback-quick-link" href="/feedback">
+            <a className="feedback-quick-link" href="/feedback" aria-label="Abrir feedback">
               <MessageSquareHeart size={15} />
               Feedback
             </a>
-            <Link className="profile-quick-link" href="/perfil">
+            <Link className="profile-quick-link" href="/perfil" aria-label="Abrir perfil">
               <UserRound size={15} />
               Perfil
             </Link>
-            <Link className="settings-quick-link" href="/configuracoes">
+            <Link className="settings-quick-link" href="/configuracoes" aria-label="Abrir configurações">
               <Settings size={15} />
               Configurações
             </Link>

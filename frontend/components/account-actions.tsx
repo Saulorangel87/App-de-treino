@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { LoaderCircle, LogOut, Settings, Sparkles } from 'lucide-react';
+import { LoaderCircle, LogOut, MessageSquareHeart, Settings, Sparkles } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 
 export function LogoutButton({ compact = false }: { compact?: boolean }) {
@@ -62,6 +62,7 @@ export function AccountActions({
         <span>Novidades</span>
       </Link>
       <Link className="account-feedback-link" href="/feedback">
+        <MessageSquareHeart size={14} />
         Feedback
       </Link>
       <Link className="account-settings-link" href="/configuracoes" aria-label="Abrir configurações">
