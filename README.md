@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão publicada: `0.30.0`. O código funcional está publicado em produção; o commit documental posterior `39d8d2e` removeu o antigo arquivo de melhorias sem alterar a aplicação.
+Versão publicada: `0.30.0`. A versão local em validação é `0.31.0`, com a área de configurações e o encerramento seguro da conta. O commit documental `39d8d2e` removeu o antigo arquivo de melhorias sem alterar a aplicação publicada.
 
 O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro não fazem parte deste app e não são aceitos como modalidades de treino.
 
@@ -35,6 +35,7 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `POST /v1/auth/register`: cria usuário, aplica hash seguro à senha, inicia sessão e envia a confirmação de e-mail.
 - `POST /v1/auth/login`: autentica e cria uma nova sessão.
 - `POST /v1/auth/logout`: revoga a sessão atual.
+- `DELETE /v1/auth/account`: exige a senha atual e a confirmação `ENCERRAR CONTA` para apagar a conta e todos os dados pessoais em cascata no PostgreSQL.
 - `POST /v1/auth/resend-verification` e `POST /v1/auth/verify-email`: reenviam e consomem um link de confirmação de uso único.
 - `POST /v1/auth/forgot-password` e `POST /v1/auth/reset-password`: iniciam e concluem a redefinição segura da senha.
 - `GET /v1/me`: retorna o usuário autenticado.
@@ -63,7 +64,7 @@ O início de uma sessão também revalida a segurança contra uma limitação ca
 
 As sessões são opacas, armazenadas no PostgreSQL apenas como hash e enviadas ao navegador em cookie `HttpOnly`. Em produção, `APP_ENV=production` ativa também a exigência de HTTPS no cookie. Os links de confirmação e redefinição são aleatórios, expiram e só têm o hash armazenado; a redefinição de senha revoga todas as sessões existentes. A geração e a ativação de planos exigem e-mail confirmado.
 
-As rotas atuais do frontend são `/`, `/entrar`, `/perfil`, `/plano`, `/atividades`, `/avaliacao`, `/recuperacao`, `/evolucao`, `/feedback` e `/novidades`. A tela de atividades apresenta sessões concluídas e canceladas com data, duração, RPE e feedback. A aba de feedback de produto permite que atletas autenticados registrem a experiência, um problema ou uma sugestão; o relato é salvo no PostgreSQL sem expor o e-mail na resposta. Um job separado pode consolidar os relatos ainda não enviados em um resumo semanal pelo Resend, destinado somente ao endereço administrativo configurado na VPS. O perfil possui quatro etapas e retoma dados já salvos. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
+As rotas atuais do frontend são `/`, `/entrar`, `/perfil`, `/configuracoes`, `/plano`, `/atividades`, `/avaliacao`, `/recuperacao`, `/evolucao`, `/feedback` e `/novidades`. A tela de atividades apresenta sessões concluídas e canceladas com data, duração, RPE e feedback. A aba de feedback de produto permite que atletas autenticados registrem a experiência, um problema ou uma sugestão; o relato é salvo no PostgreSQL sem expor o e-mail na resposta. Um job separado pode consolidar os relatos ainda não enviados em um resumo semanal pelo Resend, destinado somente ao endereço administrativo configurado na VPS. O perfil possui quatro etapas e retoma dados já salvos. A área de configurações mostra os dados da conta, encaminha para o perfil e permite o encerramento definitivo com confirmação dupla. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
 
 A tela `/plano` gera, apresenta e ativa ciclos de quatro semanas. O motor `rules-v1` é determinístico: considera experiência, objetivo, limitações, disponibilidade, o contexto opcional de ciclismo e um resumo observado dos últimos 28 dias de sessões e recuperação. Ele seleciona sessões específicas de forma gradual (cadência no indoor, subidas, sweet spot por potência/FTP, ritmo de prova e os pilotos de intervalos moderados de estrada, intensos de estrada, VO₂max de estrada, intervalos curtos autorregulados e aeróbicos XCO), limita cada sessão ao tempo informado e reduz a intensidade quando há uma condição de segurança ativa ou sinais recentes de recuperação insuficiente. Os pilotos VO₂max e de intervalos curtos exigem preferência explícita, elegibilidade restrita, avaliação apta e histórico mínimo; foram publicados na versão `0.20.0` com as migrações correspondentes. O dashboard usa o plano aprovado, explica a escala RPE e permite acompanhar a sessão do início ao feedback pós-treino. No desenvolvimento local e em produção, novos rascunhos também congelam no `prescription_snapshot` uma classificação observacional de prontidão e medições de 7/28/42 dias de aderência e carga por session-RPE; esses campos ainda não alteram a prescrição.
 
@@ -92,7 +93,7 @@ O MVP de ciclismo está publicado e validado em produção:
 - Código funcional publicado no commit `f2f8192`; o commit documental `39d8d2e` removeu o arquivo obsoleto `melhorias.md`.
 - Versão visível: `0.30.0`; migrações de banco aplicadas até `000029`.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
-- Cadastro, onboarding, plano, treino, feedback, adaptação, atividades, evolução, novidades e logout foram validados.
+- Cadastro, onboarding, plano, treino, feedback, adaptação, atividades, evolução, novidades e logout foram validados em produção. A nova área de configurações está implementada localmente e aguarda validação manual antes de qualquer deploy.
 - `rules-v1` continua sendo a única fonte prescritiva. Os shadows permanecem observacionais.
 - Dependabot está com 0 alertas abertos; `go test`, `go vet`, build e auditoria de dependências de produção passaram. `govulncheck` não está instalado.
 

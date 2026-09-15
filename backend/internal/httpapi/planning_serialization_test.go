@@ -39,6 +39,10 @@ func (s *httpTestAuthStore) DeleteSession(context.Context, []byte) error {
 	return errHTTPTestUnused
 }
 
+func (s *httpTestAuthStore) DeleteUser(context.Context, string) error {
+	return errHTTPTestUnused
+}
+
 func (s *httpTestAuthStore) CreateEmailToken(context.Context, string, string, []byte, time.Time) error {
 	return errHTTPTestUnused
 }

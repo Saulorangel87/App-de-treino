@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Cadência API
-  version: 0.12.0
+  version: 0.31.0
   description: API do MVP de planejamento adaptativo de ciclismo.
 servers:
   - url: http://localhost:8080
@@ -48,6 +48,30 @@ paths:
       summary: Encerra a sessão atual
       responses:
         '204': { description: Sessão encerrada }
+  /v1/auth/account:
+    delete:
+      summary: Apaga definitivamente a conta e todos os dados pessoais
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password, confirmation]
+              properties:
+                password:
+                  type: string
+                  format: password
+                  description: Senha atual da conta
+                confirmation:
+                  type: string
+                  enum: [ENCERRAR CONTA]
+                  description: Confirmação explícita exigida pela operação
+      responses:
+        '204': { description: Conta e dados pessoais apagados }
+        '400': { description: Confirmação ou dados inválidos }
+        '401': { description: Sessão ausente ou senha incorreta }
+        '500': { description: Falha sem alteração dos dados }
   /v1/auth/resend-verification:
     post:
       summary: Reenvia o link de confirmação para o usuário autenticado

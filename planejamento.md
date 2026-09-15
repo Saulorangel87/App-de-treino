@@ -1562,6 +1562,12 @@ O fluxo principal está implementado, testado e publicado em produção na vers�
 15. IA explicativa opcional no backend, com fallback determinístico e sem chaves no frontend;
 16. PWA, responsividade, aba de novidades, feedback do produto e infraestrutura Docker/PostgreSQL/Cloudflare Tunnel.
 
+### Nova etapa em validação — configurações da conta (`0.31.0`)
+
+A área `/configuracoes` foi implementada no checkout local. Ela apresenta os dados da conta, encaminha para a edição do perfil e permite o encerramento definitivo mediante senha atual e confirmação explícita. O endpoint `DELETE /v1/auth/account` apaga o usuário no PostgreSQL em uma operação atômica; as relações pessoais existentes usam `ON DELETE CASCADE`, e a cobertura está registrada em `database/tests/account_deletion.sql`. A sessão é invalidada e o cookie é removido após o sucesso. A tela foi adaptada para mobile e o acesso também aparece no cabeçalho compacto.
+
+O código está na versão local `0.31.0`; ainda falta a validação manual da tela em desktop/mobile e do fluxo de encerramento com uma conta descartável. A produção permanece na `0.30.0` até essa validação e um deploy autorizado. A mensagem informa que backups podem permanecer até o prazo de retenção operacional.
+
 ## O que não é pendência de implementação
 
 Os itens abaixo foram retirados do escopo do Cadência e não devem ser tratados como tarefas abertas:

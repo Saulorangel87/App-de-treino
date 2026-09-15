@@ -36,6 +36,7 @@ func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Ser
 	mux.HandleFunc("POST /v1/auth/register", authLimiter.limit("register", 5, time.Hour, server.register))
 	mux.HandleFunc("POST /v1/auth/login", authLimiter.limit("login", 10, 15*time.Minute, server.login))
 	mux.HandleFunc("POST /v1/auth/logout", server.logout)
+	mux.HandleFunc("DELETE /v1/auth/account", server.deleteAccount)
 	mux.HandleFunc("POST /v1/auth/resend-verification", authLimiter.limit("resend-verification", 5, time.Hour, server.resendVerification))
 	mux.HandleFunc("POST /v1/auth/verify-email", authLimiter.limit("verify-email", 20, 15*time.Minute, server.verifyEmail))
 	mux.HandleFunc("POST /v1/auth/forgot-password", authLimiter.limit("forgot-password", 5, time.Hour, server.forgotPassword))

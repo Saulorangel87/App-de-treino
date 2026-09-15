@@ -128,10 +128,10 @@ function Sidebar({ user, plan }: { user: User; plan: TrainingPlan | null }) {
             na decisão.
           </p>
         </div>
-        <button className="nav-item" disabled>
+        <Link className="nav-item" href="/configuracoes">
           <Settings size={18} />
           Configurações
-        </button>
+        </Link>
         <button
           className="profile-mini"
           onClick={() => {
@@ -362,6 +362,10 @@ export default function HomePage() {
             <Link className="profile-quick-link" href="/perfil">
               <UserRound size={15} />
               Perfil
+            </Link>
+            <Link className="settings-quick-link" href="/configuracoes">
+              <Settings size={15} />
+              Configurações
             </Link>
             <LogoutButton compact />
           </div>

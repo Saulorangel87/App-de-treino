@@ -13,6 +13,7 @@ type memoryStore struct {
 	tokenHash   []byte
 	expiresAt   time.Time
 	emailTokens map[string][]byte
+	deleted     bool
 }
 
 func (s *memoryStore) CreateUser(_ context.Context, email, passwordHash, displayName string) (User, error) {
@@ -40,6 +41,14 @@ func (s *memoryStore) DeleteSession(_ context.Context, tokenHash []byte) error {
 	if bytes.Equal(s.tokenHash, tokenHash) {
 		s.tokenHash = nil
 	}
+	return nil
+}
+func (s *memoryStore) DeleteUser(_ context.Context, userID string) error {
+	if s.user.ID != userID {
+		return errors.New("not found")
+	}
+	s.deleted = true
+	s.user = User{}
 	return nil
 }
 func (s *memoryStore) CreateEmailToken(_ context.Context, _ string, purpose string, tokenHash []byte, _ time.Time) error {
@@ -118,5 +127,26 @@ func TestVerifyEmailAndResetPasswordUseSingleUseTokens(t *testing.T) {
 	}
 	if _, _, err := service.Login(context.Background(), user.Email, "nova-senha-segura"); err != nil {
 		t.Fatalf("expected login with new password: %v", err)
+	}
+}
+
+func TestDeleteAccountRequiresCurrentPassword(t *testing.T) {
+	store := &memoryStore{}
+	service := NewService(store, time.Hour)
+	user, _, err := service.Register(context.Background(), "atleta@example.com", "uma-senha-segura", "Atleta")
+	if err != nil {
+		t.Fatalf("unexpected registration error: %v", err)
+	}
+	if err := service.DeleteAccount(context.Background(), user, "senha-incorreta"); err != ErrInvalidCredentials {
+		t.Fatalf("expected invalid credentials, got %v", err)
+	}
+	if store.deleted {
+		t.Fatal("account was deleted with an invalid password")
+	}
+	if err := service.DeleteAccount(context.Background(), user, "uma-senha-segura"); err != nil {
+		t.Fatalf("unexpected account deletion error: %v", err)
+	}
+	if !store.deleted {
+		t.Fatal("account was not deleted after password confirmation")
 	}
 }

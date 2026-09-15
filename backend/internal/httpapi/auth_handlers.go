@@ -52,6 +52,11 @@ type resetPasswordRequest struct {
 	Password string `json:"password"`
 }
 
+type deleteAccountRequest struct {
+	Password     string `json:"password"`
+	Confirmation string `json:"confirmation"`
+}
+
 type credentialsRequest struct {
 	Email       string `json:"email"`
 	Password    string `json:"password"`
@@ -106,6 +111,34 @@ func (s *Server) logout(w http.ResponseWriter, r *http.Request) {
 	token := sessionToken(r)
 	if err := s.auth.Logout(r.Context(), token); err != nil {
 		writeError(w, http.StatusInternalServerError, "internal_error", "Não foi possível encerrar a sessão.")
+		return
+	}
+	http.SetCookie(w, &http.Cookie{Name: sessionCookieName, Value: "", Path: "/", MaxAge: -1, HttpOnly: true, Secure: s.secureCookies, SameSite: http.SameSiteLaxMode})
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) deleteAccount(w http.ResponseWriter, r *http.Request) {
+	user, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	var input deleteAccountRequest
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+	if !strings.EqualFold(strings.TrimSpace(input.Confirmation), "ENCERRAR CONTA") {
+		writeError(w, http.StatusBadRequest, "account_confirmation_required", "Digite ENCERRAR CONTA para confirmar o encerramento.")
+		return
+	}
+	if err := s.auth.DeleteAccount(r.Context(), user, input.Password); err != nil {
+		switch {
+		case errors.Is(err, auth.ErrInvalidInput):
+			writeError(w, http.StatusBadRequest, "invalid_account_deletion", "Informe sua senha atual para continuar.")
+		case errors.Is(err, auth.ErrInvalidCredentials):
+			writeError(w, http.StatusUnauthorized, "invalid_password", "A senha atual está incorreta.")
+		default:
+			writeError(w, http.StatusInternalServerError, "internal_error", "Não foi possível encerrar sua conta. Nenhum dado foi alterado.")
+		}
 		return
 	}
 	http.SetCookie(w, &http.Cookie{Name: sessionCookieName, Value: "", Path: "/", MaxAge: -1, HttpOnly: true, Secure: s.secureCookies, SameSite: http.SameSiteLaxMode})

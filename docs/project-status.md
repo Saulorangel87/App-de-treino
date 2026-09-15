@@ -18,6 +18,13 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - A leitura autenticada de `GET /v1/plans/current` foi validada após as migrações, além de `/health`, `/ready`, frontend público, API pública e os quatro serviços da composição Docker.
 - O MVP de ciclismo está implementado e validado. O que permanece é operação e evolução controlada: feedback real e resumo semanal, cópia externa de backups, hardening da VPS, correção gradual do lint e coleta longitudinal antes de dar autoridade adicional aos shadows.
 
+### Configurações da conta — versão local `0.31.0`
+
+- A rota frontend `/configuracoes` foi implementada com acesso ao perfil, status do e-mail e encerramento definitivo da conta.
+- O `DELETE /v1/auth/account` exige a senha atual e a confirmação `ENCERRAR CONTA`, remove o usuário em uma operação atômica e invalida o cookie da sessão.
+- O teste transacional `database/tests/account_deletion.sql` confirmou a remoção em cascata de todos os dados pessoais existentes no schema. Não foi criada migração nova.
+- A interface possui layout responsivo e acesso compacto no cabeçalho mobile. A validação manual ainda é necessária antes de publicar a `0.31.0`; a produção permanece na `0.30.0`.
+
 ### Correção operacional da produção — 14 de setembro de 2026
 
 - A tela de novidades e os endpoints públicos permaneciam disponíveis, mas a conta autenticada recebia `500` em `GET /v1/plans/current`. API, frontend, PostgreSQL, Tunnel, `/health` e `/ready` continuavam saudáveis.

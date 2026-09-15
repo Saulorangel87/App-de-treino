@@ -25,7 +25,7 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 
 ## Estado documentado neste ciclo
 
-A produção oficial está no commit funcional `f2f8192`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; a versão visível é `0.30.0` e as migrações estão aplicadas até `000029`. O commit documental `39d8d2e` removeu o antigo arquivo de melhorias. O estado detalhado e as pendências operacionais estão em [`project-status.md`](project-status.md).
+A produção oficial está no commit funcional `f2f8192`, na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; a versão visível é `0.30.0` e as migrações estão aplicadas até `000029`. O checkout local contém a versão `0.31.0`, com configurações e encerramento seguro da conta, ainda pendente de validação manual e deploy. O commit documental `39d8d2e` removeu o antigo arquivo de melhorias. O estado detalhado e as pendências operacionais estão em [`project-status.md`](project-status.md).
 
 ## Organização avaliada
 

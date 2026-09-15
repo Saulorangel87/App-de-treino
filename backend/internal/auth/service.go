@@ -37,6 +37,7 @@ type Store interface {
 	CreateSession(context.Context, string, []byte, time.Time) error
 	UserBySessionHash(context.Context, []byte) (User, error)
 	DeleteSession(context.Context, []byte) error
+	DeleteUser(context.Context, string) error
 	CreateEmailToken(context.Context, string, string, []byte, time.Time) error
 	VerifyEmailToken(context.Context, []byte) (User, error)
 	ResetPasswordWithToken(context.Context, []byte, string) error
@@ -96,6 +97,16 @@ func (s *Service) Logout(ctx context.Context, token string) error {
 		return nil
 	}
 	return s.store.DeleteSession(ctx, hashToken(token))
+}
+
+func (s *Service) DeleteAccount(ctx context.Context, user User, password string) error {
+	if user.ID == "" || password == "" || len(password) > 72 {
+		return ErrInvalidInput
+	}
+	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)) != nil {
+		return ErrInvalidCredentials
+	}
+	return s.store.DeleteUser(ctx, user.ID)
 }
 
 func (s *Service) CreateEmailVerificationToken(ctx context.Context, userID string, ttl time.Duration) (string, error) {

@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.30.0';
+export const APP_VERSION = '0.31.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.31.0',
+    title: 'Configurações e encerramento seguro da conta',
+    description:
+      'A nova área de configurações reúne o acesso ao perfil e os dados da conta. Se você decidir encerrar sua conta, o Cadência exige sua senha e uma confirmação explícita antes de apagar permanentemente seus dados do banco de dados.',
+  },
   {
     version: '0.30.0',
     title: 'Proteção após prova e adaptação mais íntegra',
