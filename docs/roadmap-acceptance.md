@@ -1,6 +1,6 @@
 # Matriz histórica de aceitação técnica
 
-Atualizada em 15 de setembro de 2026. A versão publicada é `0.31.0`; a entrega local seguinte, ainda não publicada, introduz a migração `000030_profile_safety_context`.
+Atualizada em 15 de setembro de 2026. A versão publicada é `0.32.0`; a migração `000030_profile_safety_context` foi aplicada em produção.
 
 Este documento preserva a matriz verificável que orientou a fase técnica anterior. O documento único de planejamento vigente é [`planejamento.md`](../planejamento.md). Esta matriz separa três situações que não podem ser confundidas:
 
@@ -122,9 +122,9 @@ Limite conhecido: o lint geral possui dívida histórica, inclusive em páginas 
 
 ## 16. Critérios operacionais de aceitação
 
-**Atendidos e verificados em produção.** O Cadência preserva o PostgreSQL privado, não cria modalidades fora do escopo, mantém o motor explicável e conservador e foi publicado na versão `0.31.0`.
+**Atendidos e verificados em produção.** O Cadência preserva o PostgreSQL privado, não cria modalidades fora do escopo, mantém o motor explicável e conservador e foi publicado na versão `0.32.0`.
 
-O deploy foi concluído com backup verificável, aplicação ordenada das migrações `000024`–`000029`, confirmação de `cadencia_schema_migrations`, leitura autenticada de `/v1/plans/current`, validação da interface e healthchecks. A regra de compatibilidade de schema permanece obrigatória nos próximos deploys; healthcheck isolado não é suficiente.
+O deploy foi concluído com backup verificável, aplicação ordenada da migração `000030`, confirmação de `cadencia_schema_migrations`, healthchecks, validação dos dois domínios públicos e confirmação da versão visível `0.32.0`. A leitura autenticada de `/v1/plans/current` ainda precisa ser conferida manualmente no navegador deste deploy. A regra de compatibilidade de schema permanece obrigatória nos próximos deploys; healthcheck isolado não é suficiente.
 
 ## Fechamento técnico desta fase
 

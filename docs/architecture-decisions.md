@@ -68,7 +68,7 @@ A primeira implementação de IA usa Ollama local como provedor opcional. `AI_EN
 
 **Status:** Aplicada.
 
-As migrações `000001` a `000030` estão versionadas no checkout; a produção permanece aplicada até `000029`. A `000030_profile_safety_context` é aditiva: registra medidas opcionais de acompanhamento no perfil e os sinais de cirurgia recente, proibição de exercício e condição que afeta exercício. Ela não reclassifica registros antigos, não altera planos já salvos e não autoriza diagnóstico ou prescrição clínica. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável, a migração deve ser executada pelo perfil `maintenance`, sua presença deve ser conferida em `cadencia_schema_migrations` e uma rota autenticada crítica deve ser validada.
+As migrações `000001` a `000030` estão versionadas no checkout e aplicadas na produção. A `000030_profile_safety_context` é aditiva: registra medidas opcionais de acompanhamento no perfil e os sinais de cirurgia recente, proibição de exercício e condição que afeta exercício. Ela não reclassifica registros antigos, não altera planos já salvos e não autoriza diagnóstico ou prescrição clínica. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável, a migração deve ser executada pelo perfil `maintenance`, sua presença deve ser conferida em `cadencia_schema_migrations` e uma rota autenticada crítica deve ser validada.
 
 ## ADR-006 — Feedback de produto
 
@@ -439,7 +439,7 @@ A migração `000029` permite armazenar cadência média entre 1 e 300 rpm. O ca
 
 A interface mantém esse detalhamento recolhido por padrão para não competir com a estrutura do treino. Isso torna visível a proveniência sem depender da camada de IA explicativa. A confiança continua não calibrada porque o registro de decisão não demonstra efeito longitudinal ou validade clínica.
 
-## Questionário adaptativo e contexto seguro do perfil — entrega local com migração `000030`
+## Questionário adaptativo e contexto seguro do perfil — publicado na versão `0.32.0`
 
 O onboarding passa a expor um contrato versionado (`cycling-onboarding-v2`) com etapas, perguntas obrigatórias e condições explícitas. A interface mantém controles especializados para uma experiência simples, mas títulos e descrições vêm do mesmo contrato e os clientes podem consultar as perguntas visíveis sem duplicar gates. Perguntas de FTP, data, protocolo e potência só ficam visíveis quando o atleta declara medidor de potência.
 
@@ -448,3 +448,5 @@ O contexto adicional de perfil — cintura, composição corporal e tendência d
 O objetivo secundário só desempata famílias de estímulo já elegíveis; segurança, recuperação, objetivo principal, disponibilidade e elegibilidade de protocolo sempre vencem. Horário e local disponíveis são preservados na estrutura de cada sessão, sem promessa de execução automática. Cirurgia recente, proibição de exercício e condição que afeta exercício são sinais de proteção registrados, não diagnóstico ou autorização clínica.
 
 Na evolução, carga sessão-RPE, velocidade média e objetivos mostram apenas valores observados. A carga é `duração em minutos × RPE realizado`, e a velocidade é calculada somente a partir de distância e duração registradas. Objetivos não recebem porcentagem inventada quando não possuem critério de chegada mensurável. A IA e os shadows não têm permissão para transformar esses dados em prescrição autônoma.
+
+A migração aditiva `000030_profile_safety_context` foi aplicada em produção pelo perfil `maintenance` em 15 de setembro de 2026, após backup verificável. A versão `0.32.0` foi publicada no commit `95f2c27`; API, frontend, PostgreSQL e Tunnel ficaram saudáveis, `/health` e `/ready` responderam, e os dois domínios públicos retornaram HTTP 200. A leitura autenticada de `/v1/plans/current` permanece como conferência manual pós-deploy quando a sessão de navegador estiver disponível.

@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão publicada: `0.31.0`. O checkout contém uma melhoria local validada, ainda não publicada: questionário adaptativo versionado, contexto seguro ampliado do perfil/ciclismo e novos indicadores observacionais de evolução. A migração `000030_profile_safety_context` foi validada localmente e só será aplicada em produção após backup e autorização de deploy.
+Versão publicada: `0.32.0`. A entrega inclui questionário adaptativo versionado, contexto seguro ampliado do perfil/ciclismo e novos indicadores observacionais de evolução. A migração `000030_profile_safety_context` foi aplicada em produção após backup verificável.
 
 O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro não fazem parte deste app e não são aceitos como modalidades de treino.
 
@@ -21,7 +21,7 @@ O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Spr
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000001`–`000030`; a produção permanece sincronizada até `000029` enquanto a `000030` aguarda publicação autorizada.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000001`–`000030`; a produção está sincronizada até `000030`.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -91,8 +91,8 @@ O MVP de ciclismo está publicado e validado em produção:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Código publicado na linha de versão `0.31.0`, incluindo configurações da conta e correções responsivas posteriores.
-- Versão visível: `0.31.0`; migrações de banco aplicadas até `000029`. A `000030_profile_safety_context` está somente no checkout local.
+- Código publicado na linha de versão `0.32.0`, incluindo questionário adaptativo, contexto seguro ampliado e indicadores observacionais de evolução.
+- Versão visível: `0.32.0`; migrações de banco aplicadas até `000030`.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, onboarding, plano, treino, feedback, adaptação, atividades, evolução, novidades e logout foram validados em produção. A nova área de configurações está implementada localmente e aguarda validação manual antes de qualquer deploy.
 - `rules-v1` continua sendo a única fonte prescritiva. Os shadows permanecem observacionais.

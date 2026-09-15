@@ -1531,7 +1531,7 @@ Essa ocorrência encerra a lacuna operacional do deploy, não uma melhoria funci
 
 ---
 
-# Estado consolidado e próxima entrega local — 15 de setembro de 2026
+# Estado consolidado e entrega publicada — 15 de setembro de 2026
 
 Este é o registro vigente do planejamento. O arquivo `melhorias.md` foi removido; não existe um segundo roadmap ativo. O `planejamento.md` é o documento único para visão, escopo e próximos passos do Cadência.
 
@@ -1541,11 +1541,11 @@ O Cadência é um aplicativo de planejamento e acompanhamento de ciclismo. O cat
 
 ## MVP publicado
 
-O MVP de ciclismo foi validado e está em produção na versão `0.31.0`, com schema aplicado até `000029`. Ele inclui cadastro e sessão, confirmação de e-mail, configurações e encerramento seguro de conta, perfil em etapas, objetivos, disponibilidade, avaliação submáxima, recuperação, geração e ativação de planos, execução e feedback, correção auditável de métricas, histórico, evolução, novidades, feedback de produto e infraestrutura Docker/PostgreSQL/Cloudflare Tunnel.
+O MVP de ciclismo foi validado e está em produção na versão `0.32.0`, com schema aplicado até `000030`. Ele inclui cadastro e sessão, confirmação de e-mail, configurações e encerramento seguro de conta, perfil em etapas, questionário adaptativo, objetivos, disponibilidade, avaliação submáxima, recuperação, geração e ativação de planos, execução e feedback, correção auditável de métricas, histórico, evolução, novidades, feedback de produto e infraestrutura Docker/PostgreSQL/Cloudflare Tunnel.
 
 O motor ativo continua sendo o determinístico `rules-v1`. A IA é exclusivamente explicativa, com fallback determinístico. Os componentes `rules-v2`, tolerância, periodização, seleção de estímulos e coerência continuam em modo `shadow`: registram observações, mas não ganham autoridade para prescrever, diagnosticar ou aumentar carga.
 
-## Entrega local validada, aguardando publicação
+## Entrega publicada na versão `0.32.0`
 
 Esta entrega completa as lacunas de produto que ainda estavam parciais, sem ampliar o escopo além de ciclismo:
 
@@ -1555,9 +1555,9 @@ Esta entrega completa as lacunas de produto que ainda estavam parciais, sem ampl
 4. o histórico de ciclismo registra tempo de prática, duração média, GPS, relógio, rolo inteligente, FTP, data/protocolo do teste e potência média, sempre opcionais e validados;
 5. segurança ganha os sinais explícitos de cirurgia recente, proibição de exercício e condição que afeta exercício. Eles preservam o plano protegido e não substituem liberação profissional;
 6. evolução passa a mostrar acompanhamento factual dos objetivos nos últimos 28 dias, carga sessão-RPE e velocidade média calculada somente quando duração e distância foram registradas. Não há percentual inventado de conclusão nem estimativa de desempenho;
-7. a migração aditiva `000030_profile_safety_context` persiste os novos campos de perfil e segurança. Ela foi aplicada e validada no PostgreSQL local; antes de qualquer deploy deve ser aplicada pelo perfil `maintenance` em produção e validada por uma leitura autenticada de rota crítica.
+7. a migração aditiva `000030_profile_safety_context` persiste os novos campos de perfil e segurança. Ela foi aplicada pelo perfil `maintenance` em produção após backup verificável e conferida em `cadencia_schema_migrations`.
 
-Validação local concluída nesta entrega: `go test ./...`, `go vet ./...`, `npm run build`, OpenAPI, `git diff --check`, fixture transacional da migração `000030`, consulta real ao schema local, teste integrado das consultas de evolução, chamada autenticada de `GET /v1/onboarding/questionnaire` e `scripts/test-local-visual.ps1`. O smoke test visual abriu `/perfil` em mobile/desktop, `/plano` em mobile com a auditoria expandida e `/evolucao` em mobile; as capturas foram inspecionadas. A conta temporária foi encerrada pela própria API, sua remoção foi confirmada no banco e os artefatos temporários foram removidos. O pacote foi registrado no commit desta entrega. O lint geral mantém dívida histórica fora desta entrega e não é apresentado como aprovação de publicação.
+Validação local concluída nesta entrega: `go test ./...`, `go vet ./...`, `npm run build`, OpenAPI, `git diff --check`, fixture transacional da migração `000030`, consulta real ao schema local, teste integrado das consultas de evolução, chamada autenticada de `GET /v1/onboarding/questionnaire` e `scripts/test-local-visual.ps1`. O smoke test visual abriu `/perfil` em mobile/desktop, `/plano` em mobile com a auditoria expandida e `/evolucao` em mobile; as capturas foram inspecionadas. A conta temporária foi encerrada pela própria API, sua remoção foi confirmada no banco e os artefatos temporários foram removidos. O deploy de `0.32.0` foi concluído no commit `95f2c27`, com backup verificável, migração `000030`, serviços saudáveis e domínios públicos respondendo HTTP 200. A leitura autenticada pós-deploy de `/v1/plans/current` ainda precisa ser conferida manualmente no navegador; o lint geral mantém dívida histórica e não é apresentado como aprovação de publicação.
 
 ## O que não é pendência de implementação
 
@@ -1578,4 +1578,4 @@ Validação local concluída nesta entrega: `go test ./...`, `go vet ./...`, `np
 
 ## Definição de conclusão
 
-Para este repositório, `100% concluído` significa: MVP de ciclismo implementado, validado e publicado, com escopo fechado e documentação coerente. Esse marco foi atingido; a entrega local acima também foi validada e registrada no commit desta etapa. A publicação ainda exige autorização, backup, aplicação ordenada da migração `000030` em produção e leitura autenticada pós-deploy.
+Para este repositório, `100% concluído` significa: MVP de ciclismo implementado, validado e publicado, com escopo fechado e documentação coerente. Esse marco foi atingido com a publicação da versão `0.32.0`. Permanece apenas a conferência manual autenticada de `/v1/plans/current` no navegador para fechar o registro operacional deste deploy; isso não representa uma lacuna de implementação.

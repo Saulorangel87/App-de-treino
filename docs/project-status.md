@@ -13,9 +13,9 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 ### Estado canônico publicado — 15 de setembro de 2026
 
 - O escopo do Cadência está encerrado em ciclismo. Corrida e musculação serão produtos separados e não são pendências deste repositório.
-- A versão funcional publicada é `0.31.0`, incluindo configurações, encerramento seguro de conta e correções responsivas posteriores.
-- As migrações `000001` a `000029` estão aplicadas na produção. O backup preventivo mais recente da sincronização de schema é `cadencia-20260914T224807Z.dump`.
-- A leitura autenticada de `GET /v1/plans/current` foi validada após as migrações, além de `/health`, `/ready`, frontend público, API pública e os quatro serviços da composição Docker.
+- A versão funcional publicada é `0.32.0`, incluindo questionário adaptativo, contexto seguro ampliado do perfil/ciclismo e indicadores observacionais de evolução.
+- As migrações `000001` a `000030` estão aplicadas na produção. O backup preventivo deste deploy é `cadencia-20260915T113044Z.dump`.
+- `/health`, `/ready`, frontend público, API pública e os quatro serviços da composição Docker foram validados após o deploy. A leitura autenticada de `GET /v1/plans/current` foi validada em deploys anteriores e ainda precisa de conferência manual nesta publicação.
 - O MVP de ciclismo está implementado e validado. O que permanece é operação e evolução controlada: feedback real e resumo semanal, cópia externa de backups, hardening da VPS, correção gradual do lint e coleta longitudinal antes de dar autoridade adicional aos shadows.
 
 ### Configurações da conta — publicada na versão `0.31.0`
@@ -25,12 +25,22 @@ O motor atual é determinístico (`rules-v1`), baseado em regras explícitas e r
 - O teste transacional `database/tests/account_deletion.sql` confirmou a remoção em cascata de todos os dados pessoais existentes no schema. Não foi criada migração nova.
 - A interface possui layout responsivo e acesso compacto no cabeçalho mobile. A validação manual de desktop/mobile e de encerramento com conta descartável foi concluída antes da publicação.
 
-### Entrega local validada — questionário e contexto seguro
+### Entrega publicada na versão `0.32.0` — questionário e contexto seguro
 
 - O checkout adiciona o contrato `cycling-onboarding-v2`, consultável em `GET /v1/onboarding/questionnaire`; a tela usa seus gates condicionais para exibir segurança, potência e evento, sem criar modalidades fora do escopo de ciclismo.
 - Perfil, segurança e contexto de ciclismo receberam campos opcionais validados; medidas corporais são somente contexto e não alteram automaticamente a prescrição. Rotina sedentária ou ocasional bloqueia qualidade, e objetivo secundário apenas desempata opções já elegíveis.
 - A evolução passa a expor objetivos observados em 28 dias, carga sessão-RPE e velocidade média calculada quando há duração e distância reais. Não há porcentagem inventada, diagnóstico ou estimativa de desempenho.
-- A migração aditiva `000030_profile_safety_context` ainda não está aplicada na produção, mas foi aplicada e validada no PostgreSQL local. `go test ./...`, `go vet ./...`, `npm run build`, a fixture SQL transacional, a conferência do schema, o teste autenticado do questionário e `scripts/test-local-visual.ps1` passaram no ambiente local. O smoke test visual cobriu `/perfil` em mobile/desktop, `/plano` em mobile com a auditoria expandida e `/evolucao` em mobile; as capturas foram inspecionadas. A conta temporária foi removida pela API, conferida no banco e os artefatos temporários foram limpos. O pacote foi registrado no commit desta etapa; restam backup, publicação autorizada, migração `000030` em produção e leitura autenticada pós-deploy.
+- A migração aditiva `000030_profile_safety_context` foi aplicada na produção pelo perfil `maintenance` após backup verificável. `go test ./...`, `go vet ./...`, `npm run build`, a fixture SQL transacional, a conferência do schema, o teste autenticado do questionário e `scripts/test-local-visual.ps1` passaram no ambiente local. O smoke test visual cobriu `/perfil` em mobile/desktop, `/plano` em mobile com a auditoria expandida e `/evolucao` em mobile; as capturas foram inspecionadas. A conta temporária foi removida pela API, conferida no banco e os artefatos temporários foram limpos. O pacote foi publicado no commit `95f2c27`; a leitura autenticada de `/v1/plans/current` desta publicação ainda precisa de conferência manual.
+
+### Deploy da versão `0.32.0` — 15 de setembro de 2026
+
+- O checkout da VPS `/home/ubuntu/apps/cadencia` foi atualizado por fast-forward de `52fef2a` para `95f2c27`, sem alterações locais.
+- O backup preventivo foi criado e verificado com `pg_restore --list`: `cadencia-20260915T113044Z.dump`.
+- A migração `000030_profile_safety_context` foi aplicada pelo perfil Docker `maintenance`; `cadencia_schema_migrations` registra `000030` como a mais recente.
+- As imagens `api` e `frontend` foram reconstruídas. API, frontend e Tunnel foram recriados; PostgreSQL permaneceu ativo e saudável.
+- Os serviços ficaram saudáveis; a API interna respondeu `{"service":"cadencia-api","status":"ok"}` em `/health` e `{"status":"ready"}` em `/ready`.
+- `https://cadencia.devsaulo.com.br` e `https://cadencia-api.devsaulo.com.br/health` retornaram HTTP 200. A versão pública `0.32.0` foi encontrada no HTML do frontend.
+- A conferência autenticada de `GET /v1/plans/current` deve ser feita manualmente no navegador autenticado; o controlador de navegador não ficou disponível nesta execução.
 
 ### Correção operacional da produção — 14 de setembro de 2026
 
@@ -101,15 +111,15 @@ Validação local: `go test -count=1 ./...`, `go vet ./...`, `npm run build`, va
 - API: <https://cadencia-api.devsaulo.com.br>
 - VPS: Oracle Cloud, Ubuntu, acesso administrativo por SSH na porta 22.
 - Código na VPS: `/home/ubuntu/apps/cadencia`.
-- Linha funcional implantada: versão `0.31.0`, incluindo configurações, encerramento seguro de conta e correções responsivas posteriores.
-- O backup preventivo mais recente é `cadencia-20260914T224807Z.dump`. Após a aplicação ordenada das migrações `000024` a `000029`, `/ready`, os quatro serviços e os dois domínios públicos retornaram estado saudável.
-- A leitura autenticada de `GET /v1/plans/current` foi executada com sucesso e a interface carregou o plano, a aba de novidades e o detalhamento da decisão.
+- Linha funcional implantada: versão `0.32.0`, incluindo questionário adaptativo, contexto seguro ampliado e indicadores observacionais de evolução.
+- O backup preventivo mais recente é `cadencia-20260915T113044Z.dump`. Após a aplicação da migração `000030`, `/health`, `/ready`, os quatro serviços e os dois domínios públicos retornaram estado saudável.
+- A leitura autenticada de `GET /v1/plans/current` foi executada com sucesso em deploys anteriores; a conferência autenticada desta publicação permanece manual.
 - O arquivo `melhorias.md` foi removido; `planejamento.md` é a única fonte de roadmap ativa.
 - O Cloudflare Tunnel dedicado expõe somente frontend e API; o PostgreSQL não possui hostname, rota pública ou porta publicada.
 
 ## Estado do checkout local
 
-- A produção está na versão `0.31.0`, com as migrações `000001` a `000029` aplicadas. O checkout local adiciona o questionário adaptativo, contexto seguro e indicadores observacionais; a migração `000030` foi validada no PostgreSQL local e permanece pendente somente de publicação autorizada.
+- A produção está na versão `0.32.0`, com as migrações `000001` a `000030` aplicadas. O questionário adaptativo, o contexto seguro e os indicadores observacionais estão publicados; a conferência autenticada pós-deploy de `/v1/plans/current` permanece como validação manual operacional.
 - A sequência recente inclui `49f1dbd` (catálogo de evidências), `4683999` (piloto de estrada), `5fbc668` (adaptação de recuperação), `c768ef7` (nota de atualização), `810183c` (comparação observacional por períodos), `64e554d` (avaliação shadow do `rules-v2`), `2359c3f` (matriz de validação ampliada), `de23add` (avaliação shadow pós-treino), `b6ea8bd` (observação transacional e inicialização local), `9034287` (matriz comparativa), `61d7939` (pin do digest do Tunnel), `1358ac1` (status da versão `0.12.0`), `53cbadc` (acesso ao perfil no mobile), `66f70ed` (decisão do taper pré-prova), `0eb34d6` (implementação local do taper), `01875c9` (piloto local de VO₂max de estrada), `1eab2c8` (piloto local de intervalos curtos), `3b3639a` (exclusão de modalidades fora do produto), `9aff39f` (sincronização documental), `6fdbe45` (estado do catálogo) e o deploy autorizado da versão `0.16.0`.
 - As migrações `000015` e `000016`, o catálogo inicial, o protocolo `road_moderate_intervals` e o piloto `xco_aerobic_intervals` foram aplicados e publicados na produção após revisão, backup, validação e autorização explícita.
 - Protocolos adicionais continuam exigindo revisão própria de elegibilidade, segurança, evidência e atualização das notas de versão do produto.
@@ -451,7 +461,7 @@ PostgreSQL (cadencia_data, sem porta no host)
 
 - `frontend/`: React/TypeScript com Vinext, PWA e interface responsiva.
 - `backend/`: API REST em Go.
-- `database/migrations/`: migrações PostgreSQL até `000029`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` registra o contexto de conclusão parcial, a `000021` registra o contexto adicional pós-treino, a `000022` registra o contexto de limitações, a `000023` registra o feedback estruturado, as `000024`/`000025` registram equipamento e sinais de segurança, a `000026` amplia os metadados científicos, a `000027` protege a adaptação contra dados inválidos e sinais protetivos recentes, a `000028` registra evidências de recuperação pós-prova e a `000029` registra cadência média observacional. Em produção, todas estão aplicadas até `000029`.
+- `database/migrations/`: migrações PostgreSQL até `000030`; as `000013` e `000014` sustentam feedback e resumo semanal, a `000015` registra as fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` registra o contexto de conclusão parcial, a `000021` registra o contexto adicional pós-treino, a `000022` registra o contexto de limitações, a `000023` registra o feedback estruturado, as `000024`/`000025` registram equipamento e sinais de segurança, a `000026` amplia os metadados científicos, a `000027` protege a adaptação contra dados inválidos e sinais protetivos recentes, a `000028` registra evidências de recuperação pós-prova, a `000029` registra cadência média observacional e a `000030` registra o contexto adicional de perfil e segurança. Em produção, todas estão aplicadas até `000030`.
 - `database/tests/`: verificações SQL.
 - `api/openapi.yaml`: contrato da API local e de produção.
 - `infrastructure/cadencia/`: composição Docker, Dockerfile, migrações, backup e unidades systemd de produção.
@@ -523,7 +533,7 @@ As rotas estão descritas em `api/openapi.yaml`. Os grupos principais são:
 
 ## Banco e migrações
 
-- Migrações versionadas no checkout local e aplicadas em produção: `000001` a `000029`. As migrações mais recentes foram executadas em ordem pelo perfil `maintenance` após o backup verificável `cadencia-20260914T224807Z.dump`, revisão e autorização explícita.
+- Migrações versionadas no checkout local e aplicadas em produção: `000001` a `000030`. A migração mais recente foi executada pelo perfil `maintenance` após o backup verificável `cadencia-20260915T113044Z.dump`, revisão e autorização explícita.
 - `000012` adiciona confirmação de e-mail e recuperação de senha.
 - Produção possui registro de migrações em `cadencia_schema_migrations`.
 - O usuário da API não é superusuário; o proprietário do banco é reservado para operações administrativas.
