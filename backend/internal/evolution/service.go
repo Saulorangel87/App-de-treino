@@ -12,6 +12,8 @@ type Week struct {
 	TotalElevationM   int     `json:"total_elevation_m"`
 	AveragePowerW     float64 `json:"average_power_watts"`
 	AverageHeartRate  float64 `json:"average_heart_rate"`
+	SessionRPELoad    float64 `json:"session_rpe_load"`
+	AverageSpeedKPH   float64 `json:"average_speed_kph"`
 }
 
 type RecoveryPoint struct {
@@ -53,9 +55,27 @@ type Summary struct {
 	TotalElevationM   int                 `json:"total_elevation_m"`
 	AveragePowerW     float64             `json:"average_power_watts"`
 	AverageHeartRate  float64             `json:"average_heart_rate"`
+	SessionRPELoad    float64             `json:"session_rpe_load"`
+	AverageSpeedKPH   float64             `json:"average_speed_kph"`
+	GoalProgress      []GoalProgress      `json:"goal_progress"`
 	Weeks             []Week              `json:"weeks"`
 	RecentSessions    []SessionComparison `json:"recent_sessions"`
 	Recovery          []RecoveryPoint     `json:"recovery"`
+}
+
+// GoalProgress deliberately exposes observed volume instead of inventing a
+// percentage of completion for goals that do not have a measurable finish.
+type GoalProgress struct {
+	GoalType          string  `json:"goal_type"`
+	Priority          int     `json:"priority"`
+	TargetDate        *string `json:"target_date,omitempty"`
+	Details           string  `json:"details"`
+	WindowDays        int     `json:"window_days"`
+	CompletedSessions int     `json:"completed_sessions"`
+	TotalMinutes      int     `json:"total_minutes"`
+	TotalDistanceKM   float64 `json:"total_distance_km"`
+	SessionRPELoad    float64 `json:"session_rpe_load"`
+	AverageSpeedKPH   float64 `json:"average_speed_kph"`
 }
 
 type Store interface {

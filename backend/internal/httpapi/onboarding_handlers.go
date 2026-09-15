@@ -39,6 +39,13 @@ func (s *Server) getOnboarding(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"onboarding": result})
 }
 
+func (s *Server) getQuestionnaire(w http.ResponseWriter, r *http.Request) {
+	if _, ok := s.requireUser(w, r); !ok {
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"questionnaire": athlete.CyclingQuestionnaire()})
+}
+
 func (s *Server) putLimitations(w http.ResponseWriter, r *http.Request) {
 	user, ok := s.requireUser(w, r)
 	if !ok {

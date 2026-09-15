@@ -142,6 +142,20 @@ paths:
         '200': { description: Dados do onboarding }
         '401': { description: Sessão ausente ou expirada }
         '409': { description: Perfil básico ainda não preenchido }
+  /v1/onboarding/questionnaire:
+    get:
+      summary: Retorna o contrato versionado de etapas e perguntas condicionais do onboarding de ciclismo
+      responses:
+        '200':
+          description: Questionário autenticado disponível
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [questionnaire]
+                properties:
+                  questionnaire: { $ref: '#/components/schemas/Questionnaire' }
+        '401': { description: Sessão ausente ou expirada }
   /v1/onboarding/limitations:
     put:
       summary: Substitui as limitações ativas informadas pelo atleta
@@ -442,6 +456,9 @@ components:
           enum: [female, male, other, prefer_not_to_say, null]
         height_cm: { type: [number, 'null'], minimum: 100, maximum: 250 }
         weight_kg: { type: [number, 'null'], minimum: 30, maximum: 350 }
+        waist_cm: { type: [number, 'null'], minimum: 30, maximum: 250 }
+        body_fat_percent: { type: [number, 'null'], minimum: 2, maximum: 70 }
+        weight_trend: { type: string, enum: [not_informed, stable, increasing, decreasing] }
         experience_level: { type: string, enum: [beginner, intermediate, advanced] }
         activity_level: { type: [string, 'null'] }
     Limitation:
@@ -460,6 +477,9 @@ components:
           uniqueItems: true
           items: { type: string, enum: [dizziness, unusual_shortness_of_breath, malaise, extreme_fatigue, other] }
         medical_restriction: { type: boolean }
+        recent_surgery: { type: boolean }
+        exercise_prohibited: { type: boolean }
+        condition_affecting_exercise: { type: boolean }
         is_active: { type: boolean }
         professional_clearance_recommended: { type: boolean }
     Goal:
@@ -478,11 +498,53 @@ components:
         available_minutes: { type: integer, minimum: 0, maximum: 480 }
         preferred_time: { type: [string, 'null'], pattern: '^([01]\\d|2[0-3]):[0-5]\\d$' }
         location: { type: [string, 'null'], maxLength: 80 }
+    Questionnaire:
+      type: object
+      required: [version, scope, steps, questions]
+      properties:
+        version: { type: string, example: cycling-onboarding-v2 }
+        scope: { type: string, example: cycling_profile_and_plan_generation }
+        steps:
+          type: array
+          minItems: 4
+          items: { $ref: '#/components/schemas/QuestionnaireStep' }
+        questions:
+          type: array
+          items: { $ref: '#/components/schemas/QuestionDefinition' }
+    QuestionnaireStep:
+      type: object
+      required: [id, title, description, question_ids]
+      properties:
+        id: { type: string, enum: [profile, safety, objective, routine] }
+        title: { type: string }
+        description: { type: string }
+        question_ids:
+          type: array
+          items: { type: string }
+    QuestionDefinition:
+      type: object
+      required: [id, step, prompt, kind, required]
+      properties:
+        id: { type: string }
+        step: { type: integer, minimum: 1, maximum: 4 }
+        prompt: { type: string }
+        kind: { type: string, enum: [boolean, choice, date, number, text, time, availability] }
+        required: { type: boolean }
+        condition:
+          $ref: '#/components/schemas/QuestionCondition'
+    QuestionCondition:
+      type: object
+      required: [question_id, equals]
+      properties:
+        question_id: { type: string }
+        equals: {}
     CyclingContext:
       type: object
-      required: [weekly_hours, longest_ride_minutes, bike_type, terrain, uses_heart_rate, uses_power, event_goal]
+      required: [weekly_hours, practice_duration_months, average_ride_minutes, longest_ride_minutes, bike_type, terrain, uses_heart_rate, uses_power, uses_gps, uses_sports_watch, uses_smart_trainer, event_goal]
       properties:
         weekly_hours: { type: number, minimum: 0, maximum: 80 }
+        practice_duration_months: { type: integer, minimum: 0, maximum: 1200 }
+        average_ride_minutes: { type: integer, minimum: 0, maximum: 1440 }
         longest_ride_minutes: { type: integer, minimum: 0, maximum: 1440 }
         weekly_rides: { type: integer, minimum: 0, maximum: 21 }
         recent_weekly_distance_km: { type: number, minimum: 0, maximum: 2000 }
@@ -490,14 +552,21 @@ components:
         recent_best_distance_km: { type: number, minimum: 0, maximum: 2000 }
         preferred_session_types:
           type: array
-          maxItems: 6
+          maxItems: 9
           uniqueItems: true
-          items: { type: string, enum: [base, cadence, hills, intervals, sweet_spot, recovery] }
+          items: { type: string, enum: [base, cadence, hills, intervals, threshold, sweet_spot, vo2max, short_intervals, recovery] }
+        discipline: { type: string, enum: ['', general, road, mtb_xco, mtb_xcm, gravel, indoor] }
         bike_type: { type: string, enum: ['', road, mtb, gravel, indoor] }
         terrain: { type: string, enum: ['', flat, rolling, hilly] }
         uses_heart_rate: { type: boolean }
         uses_power: { type: boolean }
+        uses_gps: { type: boolean }
+        uses_sports_watch: { type: boolean }
+        uses_smart_trainer: { type: boolean }
         ftp: { type: [integer, 'null'], minimum: 50, maximum: 600 }
+        ftp_test_date: { type: [string, 'null'], format: date }
+        ftp_protocol: { type: [string, 'null'], enum: [20_minute, ramp, other, null] }
+        average_power_watts: { type: [integer, 'null'], minimum: 0, maximum: 2000 }
         event_goal: { type: boolean }
         event_distance_km: { type: [integer, 'null'], minimum: 1, maximum: 2000 }
         event_date: { type: [string, 'null'], format: date }
@@ -521,7 +590,7 @@ components:
         notes: { type: string, maxLength: 1000 }
     EvolutionSummary:
       type: object
-      required: [completed_sessions, cancelled_sessions, total_minutes, average_rpe, average_fatigue, completion_rate, total_distance_km, total_elevation_m, average_power_watts, average_heart_rate, weeks, recent_sessions, recovery]
+      required: [completed_sessions, cancelled_sessions, total_minutes, average_rpe, average_fatigue, completion_rate, total_distance_km, total_elevation_m, average_power_watts, average_heart_rate, session_rpe_load, average_speed_kph, goal_progress, weeks, recent_sessions, recovery]
       properties:
         completed_sessions: { type: integer, minimum: 0 }
         cancelled_sessions: { type: integer, minimum: 0 }
@@ -533,6 +602,12 @@ components:
         total_elevation_m: { type: integer, minimum: 0 }
         average_power_watts: { type: number, minimum: 0 }
         average_heart_rate: { type: number, minimum: 0 }
+        session_rpe_load: { type: number, minimum: 0, description: Duração em minutos multiplicada pelo RPE realizado, somente quando ambos foram registrados. }
+        average_speed_kph: { type: number, minimum: 0, description: Distância total dividida pelo tempo total registrado; não é estimativa de desempenho. }
+        goal_progress:
+          type: array
+          maxItems: 2
+          items: { $ref: '#/components/schemas/GoalProgress' }
         weeks:
           type: array
           items: { $ref: '#/components/schemas/EvolutionWeek' }
@@ -545,7 +620,7 @@ components:
           items: { $ref: '#/components/schemas/RecoveryPoint' }
     EvolutionWeek:
       type: object
-      required: [week_start, completed_sessions, cancelled_sessions, total_minutes, average_rpe, total_distance_km, total_elevation_m, average_power_watts, average_heart_rate]
+      required: [week_start, completed_sessions, cancelled_sessions, total_minutes, average_rpe, total_distance_km, total_elevation_m, average_power_watts, average_heart_rate, session_rpe_load, average_speed_kph]
       properties:
         week_start: { type: string, format: date }
         completed_sessions: { type: integer, minimum: 0 }
@@ -556,6 +631,22 @@ components:
         total_elevation_m: { type: integer, minimum: 0 }
         average_power_watts: { type: number, minimum: 0 }
         average_heart_rate: { type: number, minimum: 0 }
+        session_rpe_load: { type: number, minimum: 0 }
+        average_speed_kph: { type: number, minimum: 0 }
+    GoalProgress:
+      type: object
+      required: [goal_type, priority, details, window_days, completed_sessions, total_minutes, total_distance_km, session_rpe_load, average_speed_kph]
+      properties:
+        goal_type: { type: string, enum: [health, fitness, endurance, performance, event, weight_management] }
+        priority: { type: integer, minimum: 1, maximum: 2 }
+        target_date: { type: [string, 'null'], format: date }
+        details: { type: string, maxLength: 500 }
+        window_days: { type: integer, enum: [28] }
+        completed_sessions: { type: integer, minimum: 0 }
+        total_minutes: { type: integer, minimum: 0 }
+        total_distance_km: { type: number, minimum: 0 }
+        session_rpe_load: { type: number, minimum: 0 }
+        average_speed_kph: { type: number, minimum: 0 }
     SessionComparison:
       type: object
       required: [completed_on, name, planned_minutes, planned_rpe, pain_reported]

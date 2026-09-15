@@ -38,8 +38,9 @@ func TestSaveLimitationsAcceptsOptionalSafetyContext(t *testing.T) {
 		Kind: "pain", Description: "Joelho ao subir", Location: "joelho direito", Intensity: &intensity,
 		AggravatingMovement: "Subir em pé", StartedOn: &startedOn,
 		SymptomsDuringAfter: []string{"dizziness", "extreme_fatigue"}, MedicalRestriction: true,
+		RecentSurgery: true, ExerciseProhibited: true, ConditionAffectingExercise: true,
 	}})
-	if err != nil || result[0].Location != "joelho direito" || result[0].Intensity == nil || *result[0].Intensity != intensity || result[0].StartedOn == nil || *result[0].StartedOn != startedOn || len(result[0].SymptomsDuringAfter) != 2 || !result[0].MedicalRestriction {
+	if err != nil || result[0].Location != "joelho direito" || result[0].Intensity == nil || *result[0].Intensity != intensity || result[0].StartedOn == nil || *result[0].StartedOn != startedOn || len(result[0].SymptomsDuringAfter) != 2 || !result[0].MedicalRestriction || !result[0].RecentSurgery || !result[0].ExerciseProhibited || !result[0].ConditionAffectingExercise {
 		t.Fatalf("expected optional safety context to be preserved, got %#v, %v", result, err)
 	}
 }
@@ -96,9 +97,9 @@ func TestSaveAvailabilityAllowsUpToEightHoursPerDay(t *testing.T) {
 
 func TestSaveCyclingContextRequiresPowerMeterForFTP(t *testing.T) {
 	ftp := 220
-	_, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", CyclingContext{FTP: &ftp})
-	if !errorsIs(err, ErrInvalidOnboarding) {
-		t.Fatalf("expected FTP without power meter to be rejected, got %v", err)
+	result, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", CyclingContext{FTP: &ftp})
+	if err != nil || result.FTP != nil {
+		t.Fatalf("expected FTP without power meter to be cleared, got %#v, %v", result, err)
 	}
 }
 
@@ -111,12 +112,35 @@ func TestSaveCyclingContextRequiresCompleteEventGoal(t *testing.T) {
 
 func TestSaveCyclingContextAcceptsOptionalContext(t *testing.T) {
 	ftp := 220
+	averagePower := 185
 	distance := 100
 	date := "2026-11-15"
-	input := CyclingContext{WeeklyHours: 6.5, LongestRideMinutes: 180, WeeklyRides: 4, RecentWeeklyDistanceKM: 160, RecentTrainingWeeks: 12, RecentBestDistanceKM: 95, PreferredSessionTypes: []string{"cadence", "hills"}, Discipline: "road", BikeType: "road", Terrain: "hilly", UsesHeartRate: true, UsesPower: true, FTP: &ftp, EventGoal: true, EventDistanceKM: &distance, EventDate: &date}
-	result, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", input)
-	if err != nil || result.Discipline != "road" || result.FTP == nil || *result.FTP != ftp || result.EventDate == nil || *result.EventDate != date {
+	ftpTestDate := "2026-09-10"
+	input := CyclingContext{WeeklyHours: 6.5, PracticeDurationMonths: 24, AverageRideMinutes: 75, LongestRideMinutes: 180, WeeklyRides: 4, RecentWeeklyDistanceKM: 160, RecentTrainingWeeks: 12, RecentBestDistanceKM: 95, PreferredSessionTypes: []string{"cadence", "hills"}, Discipline: "road", BikeType: "road", Terrain: "hilly", UsesHeartRate: true, UsesPower: true, UsesGPS: true, UsesSportsWatch: true, UsesSmartTrainer: true, FTP: &ftp, FTPTestDate: &ftpTestDate, FTPProtocol: "20_minute", AveragePowerWatts: &averagePower, EventGoal: true, EventDistanceKM: &distance, EventDate: &date}
+	service := NewOnboardingService(onboardingStore{})
+	service.now = func() time.Time { return time.Date(2026, time.September, 11, 12, 0, 0, 0, time.Local) }
+	result, err := service.SaveCyclingContext(context.Background(), "user-1", input)
+	if err != nil || result.Discipline != "road" || result.FTP == nil || *result.FTP != ftp || result.FTPTestDate == nil || *result.FTPTestDate != ftpTestDate || result.AveragePowerWatts == nil || *result.AveragePowerWatts != averagePower || !result.UsesGPS || !result.UsesSportsWatch || !result.UsesSmartTrainer || result.EventDate == nil || *result.EventDate != date {
 		t.Fatalf("expected valid cycling context, got %#v, %v", result, err)
+	}
+}
+
+func TestSaveCyclingContextRejectsFutureFTPTestDate(t *testing.T) {
+	ftpTestDate := "2026-09-12"
+	service := NewOnboardingService(onboardingStore{})
+	service.now = func() time.Time { return time.Date(2026, time.September, 11, 12, 0, 0, 0, time.Local) }
+	if _, err := service.SaveCyclingContext(context.Background(), "user-1", CyclingContext{UsesPower: true, FTPTestDate: &ftpTestDate}); err != ErrInvalidOnboarding {
+		t.Fatalf("expected future FTP test date to be rejected, got %v", err)
+	}
+}
+
+func TestSaveCyclingContextClearsPowerDetailsWithoutMeter(t *testing.T) {
+	ftp := 220
+	ftpTestDate := "2026-09-10"
+	averagePower := 185
+	result, err := NewOnboardingService(onboardingStore{}).SaveCyclingContext(context.Background(), "user-1", CyclingContext{FTP: &ftp, FTPTestDate: &ftpTestDate, FTPProtocol: "20_minute", AveragePowerWatts: &averagePower})
+	if err != nil || result.FTP != nil || result.FTPTestDate != nil || result.AveragePowerWatts != nil || result.FTPProtocol != "" {
+		t.Fatalf("expected power details without meter to be cleared, got %#v, %v", result, err)
 	}
 }
 

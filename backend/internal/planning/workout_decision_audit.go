@@ -48,6 +48,20 @@ func buildWorkoutDecisionAudit(input Context, kind string, rules []string, restr
 	} else {
 		audit.MissingData = append(audit.MissingData, "observed_training_28d")
 	}
+	if input.SecondaryGoal != "" {
+		audit.DataUsed = append(audit.DataUsed, "secondary_goal")
+	}
+	if input.Profile.ActivityLevel != nil {
+		audit.DataUsed = append(audit.DataUsed, "current_activity_level")
+	}
+	for _, slot := range input.Availability {
+		if slot.PreferredTime != nil {
+			audit.DataUsed = append(audit.DataUsed, "availability_preferred_time")
+		}
+		if slot.Location != nil {
+			audit.DataUsed = append(audit.DataUsed, "availability_location")
+		}
+	}
 	if input.Cycling.EventGoal && input.Cycling.EventDate != nil {
 		audit.DataUsed = append(audit.DataUsed, "event_goal", "event_date")
 	} else {
@@ -85,6 +99,10 @@ func buildWorkoutDecisionAudit(input Context, kind string, rules []string, restr
 	}
 	if hasLowObservedAdherence(input.TrainingHistory) {
 		audit.ConstraintsApplied = append(audit.ConstraintsApplied, "low_observed_adherence")
+		audit.AlternativesRejected = append(audit.AlternativesRejected, "quality_session")
+	}
+	if isLowCurrentActivity(input.Profile.ActivityLevel) {
+		audit.ConstraintsApplied = append(audit.ConstraintsApplied, "low_current_activity")
 		audit.AlternativesRejected = append(audit.AlternativesRejected, "quality_session")
 	}
 	if eventTaperApplied {

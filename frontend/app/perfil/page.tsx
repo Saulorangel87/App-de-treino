@@ -1,7 +1,19 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Bike, CalendarDays, Check, CircleAlert, Flag, HeartPulse, LoaderCircle, MailCheck, ShieldAlert } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bike,
+  CalendarDays,
+  Check,
+  CircleAlert,
+  Flag,
+  HeartPulse,
+  LoaderCircle,
+  MailCheck,
+  ShieldAlert,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,37 +21,225 @@ import { apiErrorMessage, isUnauthorized, apiRequest } from '@/lib/api';
 import { AccountActions } from '@/components/account-actions';
 
 type User = { display_name: string; email: string; email_verified: boolean };
-type Profile = { birth_date?: string | null; sex?: string | null; height_cm?: number | null; weight_kg?: number | null; experience_level: string; activity_level?: string | null };
-type Limitation = { kind: string; description: string; location?: string; intensity?: number | null; aggravating_movement?: string; started_on?: string | null; symptoms_during_after?: string[]; medical_restriction: boolean; is_active: boolean; professional_clearance_recommended: boolean };
-type Goal = { goal_type: string; priority: number; target_date?: string | null; details: string };
-type Availability = { weekday: number; available_minutes: number; preferred_time?: string | null; location?: string | null };
+type Profile = {
+  birth_date?: string | null;
+  sex?: string | null;
+  height_cm?: number | null;
+  weight_kg?: number | null;
+  waist_cm?: number | null;
+  body_fat_percent?: number | null;
+  weight_trend?: string | null;
+  experience_level: string;
+  activity_level?: string | null;
+};
+type Limitation = {
+  kind: string;
+  description: string;
+  location?: string;
+  intensity?: number | null;
+  aggravating_movement?: string;
+  started_on?: string | null;
+  symptoms_during_after?: string[];
+  medical_restriction: boolean;
+  recent_surgery: boolean;
+  exercise_prohibited: boolean;
+  condition_affecting_exercise: boolean;
+  is_active: boolean;
+  professional_clearance_recommended: boolean;
+};
+type Goal = {
+  goal_type: string;
+  priority: number;
+  target_date?: string | null;
+  details: string;
+};
+type Availability = {
+  weekday: number;
+  available_minutes: number;
+  preferred_time?: string | null;
+  location?: string | null;
+};
 type TrainingStatus = 'not_informed' | 'regular' | 'returning_after_break';
-type CyclingContext = { weekly_hours: number; longest_ride_minutes: number; weekly_rides: number; recent_weekly_distance_km: number; recent_training_weeks: number; training_status: TrainingStatus; recent_best_distance_km: number; preferred_session_types: string[]; discipline: string; bike_type: string; terrain: string; uses_heart_rate: boolean; uses_power: boolean; ftp?: number; event_goal: boolean; event_distance_km?: number; event_date?: string };
-type Onboarding = { limitations: Limitation[]; goals: Goal[]; availability: Availability[]; cycling_context: CyclingContext };
+type CyclingContext = {
+  weekly_hours: number;
+  practice_duration_months: number;
+  average_ride_minutes: number;
+  longest_ride_minutes: number;
+  weekly_rides: number;
+  recent_weekly_distance_km: number;
+  recent_training_weeks: number;
+  training_status: TrainingStatus;
+  recent_best_distance_km: number;
+  preferred_session_types: string[];
+  discipline: string;
+  bike_type: string;
+  terrain: string;
+  uses_heart_rate: boolean;
+  uses_power: boolean;
+  uses_gps: boolean;
+  uses_sports_watch: boolean;
+  uses_smart_trainer: boolean;
+  ftp?: number;
+  ftp_test_date?: string;
+  ftp_protocol?: string;
+  average_power_watts?: number;
+  event_goal: boolean;
+  event_distance_km?: number;
+  event_date?: string;
+};
+type Onboarding = {
+  limitations: Limitation[];
+  goals: Goal[];
+  availability: Availability[];
+  cycling_context: CyclingContext;
+};
+type QuestionnaireStep = {
+  id: string;
+  title: string;
+  description: string;
+  question_ids: string[];
+};
+type QuestionnaireQuestion = {
+  id: string;
+  condition?: { question_id: string; equals: unknown };
+};
+type Questionnaire = {
+  version: string;
+  scope: string;
+  steps: QuestionnaireStep[];
+  questions: QuestionnaireQuestion[];
+};
+
+function questionIsVisible(
+  questionnaire: Questionnaire | null,
+  questionID: string,
+  answers: Record<string, unknown>,
+) {
+  const question = questionnaire?.questions.find(
+    (item) => item.id === questionID,
+  );
+  if (!question?.condition) return true;
+  return answers[question.condition.question_id] === question.condition.equals;
+}
 
 type ProfileForm = {
   birth_date: string;
   sex: string;
   height_cm: string;
   weight_kg: string;
+  waist_cm: string;
+  body_fat_percent: string;
+  weight_trend: string;
   experience_level: string;
   activity_level: string;
 };
 
 const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-const initialProfile: ProfileForm = { birth_date: '', sex: '', height_cm: '', weight_kg: '', experience_level: 'beginner', activity_level: '' };
-const initialAvailability = (): Availability[] => DAYS.map((_, weekday) => ({ weekday, available_minutes: 0, preferred_time: null, location: null }));
-const initialCyclingContext: CyclingContext = { weekly_hours: 0, longest_ride_minutes: 0, weekly_rides: 0, recent_weekly_distance_km: 0, recent_training_weeks: 0, training_status: 'not_informed', recent_best_distance_km: 0, preferred_session_types: [], discipline: '', bike_type: '', terrain: '', uses_heart_rate: false, uses_power: false, event_goal: false };
-const TRAINING_STATUSES = new Set<TrainingStatus>(['not_informed', 'regular', 'returning_after_break']);
+const initialProfile: ProfileForm = {
+  birth_date: '',
+  sex: '',
+  height_cm: '',
+  weight_kg: '',
+  waist_cm: '',
+  body_fat_percent: '',
+  weight_trend: 'not_informed',
+  experience_level: 'beginner',
+  activity_level: '',
+};
+const initialAvailability = (): Availability[] =>
+  DAYS.map((_, weekday) => ({
+    weekday,
+    available_minutes: 0,
+    preferred_time: null,
+    location: null,
+  }));
+const initialCyclingContext: CyclingContext = {
+  weekly_hours: 0,
+  practice_duration_months: 0,
+  average_ride_minutes: 0,
+  longest_ride_minutes: 0,
+  weekly_rides: 0,
+  recent_weekly_distance_km: 0,
+  recent_training_weeks: 0,
+  training_status: 'not_informed',
+  recent_best_distance_km: 0,
+  preferred_session_types: [],
+  discipline: '',
+  bike_type: '',
+  terrain: '',
+  uses_heart_rate: false,
+  uses_power: false,
+  uses_gps: false,
+  uses_sports_watch: false,
+  uses_smart_trainer: false,
+  event_goal: false,
+};
+const TRAINING_STATUSES = new Set<TrainingStatus>([
+  'not_informed',
+  'regular',
+  'returning_after_break',
+]);
 const EXCLUDED_DISCIPLINES = new Set(['dh_enduro', 'track_sprint']);
-const SESSION_PREFERENCES = [{ value: 'base', label: 'Giro/base' }, { value: 'cadence', label: 'Cadência' }, { value: 'hills', label: 'Subidas' }, { value: 'intervals', label: 'Intervalos' }, { value: 'threshold', label: 'Limiar' }, { value: 'sweet_spot', label: 'Sweet spot' }, { value: 'vo2max', label: 'VO₂max' }, { value: 'short_intervals', label: 'Intervalos curtos' }, { value: 'recovery', label: 'Recuperação' }];
-const SAFETY_SYMPTOMS = [{ value: 'dizziness', label: 'Tontura' }, { value: 'unusual_shortness_of_breath', label: 'Falta de ar incomum' }, { value: 'malaise', label: 'Mal-estar' }, { value: 'extreme_fatigue', label: 'Fadiga extrema' }, { value: 'other', label: 'Outro sintoma' }];
+const SESSION_PREFERENCES = [
+  { value: 'base', label: 'Giro/base' },
+  { value: 'cadence', label: 'Cadência' },
+  { value: 'hills', label: 'Subidas' },
+  { value: 'intervals', label: 'Intervalos' },
+  { value: 'threshold', label: 'Limiar' },
+  { value: 'sweet_spot', label: 'Sweet spot' },
+  { value: 'vo2max', label: 'VO₂max' },
+  { value: 'short_intervals', label: 'Intervalos curtos' },
+  { value: 'recovery', label: 'Recuperação' },
+];
+const SAFETY_SYMPTOMS = [
+  { value: 'dizziness', label: 'Tontura' },
+  { value: 'unusual_shortness_of_breath', label: 'Falta de ar incomum' },
+  { value: 'malaise', label: 'Mal-estar' },
+  { value: 'extreme_fatigue', label: 'Fadiga extrema' },
+  { value: 'other', label: 'Outro sintoma' },
+];
 
 const stepCopy = [
-  { kicker: 'PERFIL DO ATLETA · ETAPA 1', title: 'Conte-nos onde você está agora.', description: 'Esses dados definem os limites iniciais. Você poderá atualizá-los quando quiser.', icon: ShieldAlert, asideTitle: 'Uma base segura', aside: 'Experiência e rotina ajudam o Cadência a começar com uma carga compatível com seu momento.' },
-  { kicker: 'SEGURANÇA · ETAPA 2', title: 'Existe algo que o treino deve respeitar?', description: 'Dor, lesões e limitações sempre têm prioridade sobre desempenho.', icon: HeartPulse, asideTitle: 'Segurança em primeiro lugar', aside: 'Uma limitação ativa restringe o que o motor poderá prescrever. O Cadência não realiza diagnóstico médico.' },
-  { kicker: 'DIREÇÃO · ETAPA 3', title: 'Onde você quer chegar?', description: 'Defina um objetivo principal e, se desejar, uma prioridade secundária.', icon: Flag, asideTitle: 'Objetivos realistas', aside: 'O plano combinará sua meta com experiência, segurança e tempo disponível — nunca apenas com ambição.' },
-  { kicker: 'ROTINA · ETAPA 4', title: 'Quanto tempo cabe na sua semana?', description: 'Marque os dias possíveis. Descanso também faz parte do plano.', icon: CalendarDays, asideTitle: 'Consistência vence excesso', aside: 'Usaremos somente os períodos que você informou e reservaremos espaço suficiente para recuperação.' },
+  {
+    kicker: 'PERFIL DO ATLETA · ETAPA 1',
+    title: 'Conte-nos onde você está agora.',
+    description:
+      'Esses dados definem os limites iniciais. Você poderá atualizá-los quando quiser.',
+    icon: ShieldAlert,
+    asideTitle: 'Uma base segura',
+    aside:
+      'Experiência e rotina ajudam o Cadência a começar com uma carga compatível com seu momento.',
+  },
+  {
+    kicker: 'SEGURANÇA · ETAPA 2',
+    title: 'Existe algo que o treino deve respeitar?',
+    description:
+      'Dor, lesões e limitações sempre têm prioridade sobre desempenho.',
+    icon: HeartPulse,
+    asideTitle: 'Segurança em primeiro lugar',
+    aside:
+      'Uma limitação ativa restringe o que o motor poderá prescrever. O Cadência não realiza diagnóstico médico.',
+  },
+  {
+    kicker: 'DIREÇÃO · ETAPA 3',
+    title: 'Onde você quer chegar?',
+    description:
+      'Defina um objetivo principal e, se desejar, uma prioridade secundária.',
+    icon: Flag,
+    asideTitle: 'Objetivos realistas',
+    aside:
+      'O plano combinará sua meta com experiência, segurança e tempo disponível — nunca apenas com ambição.',
+  },
+  {
+    kicker: 'ROTINA · ETAPA 4',
+    title: 'Quanto tempo cabe na sua semana?',
+    description:
+      'Marque os dias possíveis. Descanso também faz parte do plano.',
+    icon: CalendarDays,
+    asideTitle: 'Consistência vence excesso',
+    aside:
+      'Usaremos somente os períodos que você informou e reservaremos espaço suficiente para recuperação.',
+  },
 ];
 
 export default function ProfilePage() {
@@ -51,23 +251,48 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [hasLimitation, setHasLimitation] = useState(false);
-  const [limitation, setLimitation] = useState({ kind: 'pain', description: '', location: '', intensity: '', aggravating_movement: '', started_on: '', symptoms_during_after: [] as string[], medical_restriction: false, professional_clearance_recommended: false });
-  const [primaryGoal, setPrimaryGoal] = useState({ goal_type: 'health', target_date: '', details: '' });
+  const [limitation, setLimitation] = useState({
+    kind: 'pain',
+    description: '',
+    location: '',
+    intensity: '',
+    aggravating_movement: '',
+    started_on: '',
+    symptoms_during_after: [] as string[],
+    medical_restriction: false,
+    recent_surgery: false,
+    exercise_prohibited: false,
+    condition_affecting_exercise: false,
+    professional_clearance_recommended: false,
+  });
+  const [primaryGoal, setPrimaryGoal] = useState({
+    goal_type: 'health',
+    target_date: '',
+    details: '',
+  });
   const [secondaryGoal, setSecondaryGoal] = useState('');
-  const [availability, setAvailability] = useState<Availability[]>(initialAvailability);
-  const [cyclingContext, setCyclingContext] = useState<CyclingContext>(initialCyclingContext);
+  const [availability, setAvailability] =
+    useState<Availability[]>(initialAvailability);
+  const [cyclingContext, setCyclingContext] = useState<CyclingContext>(
+    initialCyclingContext,
+  );
   const [completed, setCompleted] = useState(false);
   const [verificationMessage, setVerificationMessage] = useState('');
   const [sendingVerification, setSendingVerification] = useState(false);
+  const [questionnaire, setQuestionnaire] = useState<Questionnaire | null>(
+    null,
+  );
 
   useEffect(() => {
     async function load() {
       try {
-        const [account, profileResult] = await Promise.all([
+        const [account, profileResult, questionnaireResult] = await Promise.all([
           apiRequest<{ user: User }>('/v1/me'),
           apiRequest<{ profile: Profile | null }>('/v1/profile'),
+          apiRequest<{ questionnaire: Questionnaire }>('/v1/onboarding/questionnaire'),
         ]);
         setUser(account.user);
+        setQuestionnaire(questionnaireResult.questionnaire);
         if (!profileResult.profile) return;
 
         const savedProfile = profileResult.profile;
@@ -76,43 +301,90 @@ export default function ProfilePage() {
           sex: savedProfile.sex || '',
           height_cm: savedProfile.height_cm?.toString() || '',
           weight_kg: savedProfile.weight_kg?.toString() || '',
+          waist_cm: savedProfile.waist_cm?.toString() || '',
+          body_fat_percent: savedProfile.body_fat_percent?.toString() || '',
+          weight_trend: savedProfile.weight_trend || 'not_informed',
           experience_level: savedProfile.experience_level,
           activity_level: savedProfile.activity_level || '',
         });
         setStep(2);
 
-        const { onboarding } = await apiRequest<{ onboarding: Onboarding }>('/v1/onboarding');
+        const { onboarding } = await apiRequest<{ onboarding: Onboarding }>(
+          '/v1/onboarding',
+        );
         const savedCyclingContext = onboarding.cycling_context || {};
         setCyclingContext({
           ...initialCyclingContext,
           ...savedCyclingContext,
-          discipline: EXCLUDED_DISCIPLINES.has(savedCyclingContext.discipline) ? '' : savedCyclingContext.discipline || '',
-          training_status: TRAINING_STATUSES.has(savedCyclingContext.training_status) ? savedCyclingContext.training_status : 'not_informed',
-          preferred_session_types: Array.isArray(savedCyclingContext.preferred_session_types) ? savedCyclingContext.preferred_session_types : [],
+          discipline: EXCLUDED_DISCIPLINES.has(savedCyclingContext.discipline)
+            ? ''
+            : savedCyclingContext.discipline || '',
+          training_status: TRAINING_STATUSES.has(
+            savedCyclingContext.training_status,
+          )
+            ? savedCyclingContext.training_status
+            : 'not_informed',
+          preferred_session_types: Array.isArray(
+            savedCyclingContext.preferred_session_types,
+          )
+            ? savedCyclingContext.preferred_session_types
+            : [],
         });
         if (onboarding.limitations.length) {
           const saved = onboarding.limitations[0];
           setHasLimitation(true);
-          setLimitation({ kind: saved.kind, description: saved.description, location: saved.location || '', intensity: saved.intensity?.toString() || '', aggravating_movement: saved.aggravating_movement || '', started_on: saved.started_on || '', symptoms_during_after: Array.isArray(saved.symptoms_during_after) ? saved.symptoms_during_after : [], medical_restriction: saved.medical_restriction ?? false, professional_clearance_recommended: saved.professional_clearance_recommended });
+          setLimitation({
+            kind: saved.kind,
+            description: saved.description,
+            location: saved.location || '',
+            intensity: saved.intensity?.toString() || '',
+            aggravating_movement: saved.aggravating_movement || '',
+            started_on: saved.started_on || '',
+            symptoms_during_after: Array.isArray(saved.symptoms_during_after)
+              ? saved.symptoms_during_after
+              : [],
+            medical_restriction: saved.medical_restriction ?? false,
+            recent_surgery: saved.recent_surgery ?? false,
+            exercise_prohibited: saved.exercise_prohibited ?? false,
+            condition_affecting_exercise:
+              saved.condition_affecting_exercise ?? false,
+            professional_clearance_recommended:
+              saved.professional_clearance_recommended,
+          });
         }
         if (onboarding.goals.length) {
-          const primary = onboarding.goals.find((goal) => goal.priority === 1) || onboarding.goals[0];
-          const secondary = onboarding.goals.find((goal) => goal.priority === 2);
-          setPrimaryGoal({ goal_type: primary.goal_type, target_date: primary.target_date || '', details: primary.details || '' });
+          const primary =
+            onboarding.goals.find((goal) => goal.priority === 1) ||
+            onboarding.goals[0];
+          const secondary = onboarding.goals.find(
+            (goal) => goal.priority === 2,
+          );
+          setPrimaryGoal({
+            goal_type: primary.goal_type,
+            target_date: primary.target_date || '',
+            details: primary.details || '',
+          });
           setSecondaryGoal(secondary?.goal_type || '');
           setStep(4);
         }
         if (onboarding.availability.length === 7) {
           setAvailability(onboarding.availability);
           setStep(4);
-          setCompleted(onboarding.availability.some((day) => day.available_minutes > 0));
+          setCompleted(
+            onboarding.availability.some((day) => day.available_minutes > 0),
+          );
         }
       } catch (caught) {
         if (isUnauthorized(caught)) {
           window.location.href = '/entrar';
           return;
         }
-        setError(apiErrorMessage(caught, 'Não foi possível carregar seu perfil. Verifique se a API está em execução e tente novamente.'));
+        setError(
+          apiErrorMessage(
+            caught,
+            'Não foi possível carregar seu perfil. Verifique se a API está em execução e tente novamente.',
+          ),
+        );
       } finally {
         setLoading(false);
       }
@@ -126,9 +398,21 @@ export default function ProfilePage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
 
-  const totalMinutes = useMemo(() => availability.reduce((sum, day) => sum + day.available_minutes, 0), [availability]);
-  const trainingDays = useMemo(() => availability.filter((day) => day.available_minutes > 0).length, [availability]);
-  const copy = stepCopy[step - 1];
+  const totalMinutes = useMemo(
+    () => availability.reduce((sum, day) => sum + day.available_minutes, 0),
+    [availability],
+  );
+  const trainingDays = useMemo(
+    () => availability.filter((day) => day.available_minutes > 0).length,
+    [availability],
+  );
+  const staticCopy = stepCopy[step - 1];
+  const contractStep = questionnaire?.steps[step - 1];
+  const copy = {
+    ...staticCopy,
+    title: contractStep?.title || staticCopy.title,
+    description: contractStep?.description || staticCopy.description,
+  };
   const AsideIcon = copy.icon;
 
   function updateProfile(field: keyof ProfileForm, value: string) {
@@ -136,14 +420,22 @@ export default function ProfilePage() {
   }
 
   function updateDay(weekday: number, patch: Partial<Availability>) {
-    setAvailability((current) => current.map((day) => day.weekday === weekday ? { ...day, ...patch } : day));
+    setAvailability((current) =>
+      current.map((day) =>
+        day.weekday === weekday ? { ...day, ...patch } : day,
+      ),
+    );
   }
 
   function toggleSessionPreference(value: string) {
     setCyclingContext((current) => ({
       ...current,
-      preferred_session_types: (current.preferred_session_types || []).includes(value)
-        ? (current.preferred_session_types || []).filter((item) => item !== value)
+      preferred_session_types: (current.preferred_session_types || []).includes(
+        value,
+      )
+        ? (current.preferred_session_types || []).filter(
+            (item) => item !== value,
+          )
         : [...(current.preferred_session_types || []), value],
     }));
   }
@@ -167,11 +459,19 @@ export default function ProfilePage() {
           sex: profile.sex || null,
           height_cm: profile.height_cm ? Number(profile.height_cm) : null,
           weight_kg: profile.weight_kg ? Number(profile.weight_kg) : null,
+          waist_cm: profile.waist_cm ? Number(profile.waist_cm) : null,
+          body_fat_percent: profile.body_fat_percent
+            ? Number(profile.body_fat_percent)
+            : null,
+          weight_trend: profile.weight_trend || 'not_informed',
           experience_level: profile.experience_level,
           activity_level: profile.activity_level || null,
         }),
       });
-      setProfile((current) => ({ ...current, experience_level: result.profile.experience_level }));
+      setProfile((current) => ({
+        ...current,
+        experience_level: result.profile.experience_level,
+      }));
       setStep(2);
     });
   }
@@ -179,8 +479,22 @@ export default function ProfilePage() {
   async function saveLimitations(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await runSave(async () => {
-      const limitations: Limitation[] = hasLimitation ? [{ ...limitation, intensity: limitation.intensity ? Number(limitation.intensity) : null, started_on: limitation.started_on || null, is_active: true }] : [];
-      await apiRequest('/v1/onboarding/limitations', { method: 'PUT', body: JSON.stringify({ limitations }) });
+      const limitations: Limitation[] = hasLimitation
+        ? [
+            {
+              ...limitation,
+              intensity: limitation.intensity
+                ? Number(limitation.intensity)
+                : null,
+              started_on: limitation.started_on || null,
+              is_active: true,
+            },
+          ]
+        : [];
+      await apiRequest('/v1/onboarding/limitations', {
+        method: 'PUT',
+        body: JSON.stringify({ limitations }),
+      });
       setStep(3);
     });
   }
@@ -188,9 +502,25 @@ export default function ProfilePage() {
   async function saveGoals(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await runSave(async () => {
-      const goals: Goal[] = [{ goal_type: primaryGoal.goal_type, priority: 1, target_date: primaryGoal.target_date || null, details: primaryGoal.details }];
-      if (secondaryGoal) goals.push({ goal_type: secondaryGoal, priority: 2, target_date: null, details: '' });
-      await apiRequest('/v1/onboarding/goals', { method: 'PUT', body: JSON.stringify({ goals }) });
+      const goals: Goal[] = [
+        {
+          goal_type: primaryGoal.goal_type,
+          priority: 1,
+          target_date: primaryGoal.target_date || null,
+          details: primaryGoal.details,
+        },
+      ];
+      if (secondaryGoal)
+        goals.push({
+          goal_type: secondaryGoal,
+          priority: 2,
+          target_date: null,
+          details: '',
+        });
+      await apiRequest('/v1/onboarding/goals', {
+        method: 'PUT',
+        body: JSON.stringify({ goals }),
+      });
       setStep(4);
     });
   }
@@ -199,8 +529,14 @@ export default function ProfilePage() {
     event.preventDefault();
     const updatingCompletedProfile = completed;
     await runSave(async () => {
-      await apiRequest('/v1/onboarding/cycling-context', { method: 'PUT', body: JSON.stringify({ cycling_context: cyclingContext }) });
-      await apiRequest('/v1/onboarding/availability', { method: 'PUT', body: JSON.stringify({ availability }) });
+      await apiRequest('/v1/onboarding/cycling-context', {
+        method: 'PUT',
+        body: JSON.stringify({ cycling_context: cyclingContext }),
+      });
+      await apiRequest('/v1/onboarding/availability', {
+        method: 'PUT',
+        body: JSON.stringify({ availability }),
+      });
       setCompleted(true);
       setMessage(
         updatingCompletedProfile
@@ -217,7 +553,11 @@ export default function ProfilePage() {
     try {
       await action();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Não foi possível salvar esta etapa.');
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : 'Não foi possível salvar esta etapa.',
+      );
     } finally {
       setSaving(false);
     }
@@ -227,60 +567,1338 @@ export default function ProfilePage() {
     setSendingVerification(true);
     setVerificationMessage('');
     try {
-      const result = await apiRequest<{ message: string; development_verification_url?: string }>('/v1/auth/resend-verification', { method: 'POST' });
-      setVerificationMessage(result.development_verification_url ? `${result.message} Abra o link local abaixo.` : result.message);
-      if (result.development_verification_url) window.open(result.development_verification_url, '_blank', 'noopener,noreferrer');
+      const result = await apiRequest<{
+        message: string;
+        development_verification_url?: string;
+      }>('/v1/auth/resend-verification', { method: 'POST' });
+      setVerificationMessage(
+        result.development_verification_url
+          ? `${result.message} Abra o link local abaixo.`
+          : result.message,
+      );
+      if (result.development_verification_url)
+        window.open(
+          result.development_verification_url,
+          '_blank',
+          'noopener,noreferrer',
+        );
     } catch (caught) {
-      setVerificationMessage(caught instanceof Error ? caught.message : 'Não foi possível reenviar a confirmação.');
+      setVerificationMessage(
+        caught instanceof Error
+          ? caught.message
+          : 'Não foi possível reenviar a confirmação.',
+      );
     } finally {
       setSendingVerification(false);
     }
   }
 
-  if (loading) return <main className="profile-loading"><LoaderCircle className="spin" />Carregando seu perfil…</main>;
+  if (loading)
+    return (
+      <main className="profile-loading">
+        <LoaderCircle className="spin" />
+        Carregando seu perfil…
+      </main>
+    );
 
   return (
     <main className="profile-shell">
-      <header className="profile-topbar"><a href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</a><AccountActions label="CONTA" name={user?.display_name} /></header>
+      <header className="profile-topbar">
+        <a href="/" className="account-brand dark">
+          <span>
+            <Bike size={19} />
+          </span>
+          cadência
+        </a>
+        <AccountActions label="CONTA" name={user?.display_name} />
+      </header>
       <section className="profile-content">
-        <a href="/" className="back-link"><ArrowLeft size={15} /> Voltar ao painel</a>
-        {user && !user.email_verified && <section className="email-verification-banner"><MailCheck size={19} /><div><strong>Confirme seu e-mail antes de gerar ou ativar um plano.</strong><p>{verificationMessage || `Enviamos um link para ${user.email}.`}</p></div><Button type="button" variant="outline" disabled={sendingVerification} onClick={resendVerification}>{sendingVerification ? 'Enviando…' : 'Reenviar link'}</Button></section>}
+        <a href="/" className="back-link">
+          <ArrowLeft size={15} /> Voltar ao painel
+        </a>
+        {user && !user.email_verified && (
+          <section className="email-verification-banner">
+            <MailCheck size={19} />
+            <div>
+              <strong>
+                Confirme seu e-mail antes de gerar ou ativar um plano.
+              </strong>
+              <p>
+                {verificationMessage || `Enviamos um link para ${user.email}.`}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={sendingVerification}
+              onClick={resendVerification}
+            >
+              {sendingVerification ? 'Enviando…' : 'Reenviar link'}
+            </Button>
+          </section>
+        )}
         <nav className="onboarding-progress" aria-label="Progresso do perfil">
-          {stepCopy.map((_, index) => <span key={index} className={index + 1 <= step ? 'active' : ''}><i>{index + 1 < step || completed ? <Check size={11} /> : index + 1}</i></span>)}
+          {stepCopy.map((_, index) => (
+            <span key={index} className={index + 1 <= step ? 'active' : ''}>
+              <i>
+                {index + 1 < step || completed ? (
+                  <Check size={11} />
+                ) : (
+                  index + 1
+                )}
+              </i>
+            </span>
+          ))}
         </nav>
-        <div className="profile-heading"><div><p>{copy.kicker}</p><h1>{copy.title}</h1><span>{copy.description}</span></div><div className="step-indicator"><strong>0{step}</strong><span>de 04</span></div></div>
+        <div className="profile-heading">
+          <div>
+            <p>{copy.kicker}</p>
+            <h1>{copy.title}</h1>
+            <span>{copy.description}</span>
+          </div>
+          <div className="step-indicator">
+            <strong>0{step}</strong>
+            <span>de 04</span>
+          </div>
+        </div>
         <div className="profile-layout">
-          {step === 1 && <form onSubmit={saveProfile} className="profile-form">
-            <fieldset><legend>Informações básicas</legend><div className="form-grid"><div><Label htmlFor="birth_date">Data de nascimento</Label><Input id="birth_date" type="date" value={profile.birth_date} onChange={(event) => updateProfile('birth_date', event.target.value)} /></div><div><Label htmlFor="sex">Sexo</Label><select id="sex" value={profile.sex} onChange={(event) => updateProfile('sex', event.target.value)}><option value="">Prefiro não informar agora</option><option value="female">Feminino</option><option value="male">Masculino</option><option value="other">Outro</option><option value="prefer_not_to_say">Prefiro não dizer</option></select></div><div><Label htmlFor="height_cm">Altura</Label><div className="unit-input"><Input id="height_cm" type="number" min="100" max="250" step="0.1" value={profile.height_cm} onChange={(event) => updateProfile('height_cm', event.target.value)} /><span>cm</span></div></div><div><Label htmlFor="weight_kg">Peso atual</Label><div className="unit-input"><Input id="weight_kg" type="number" min="30" max="350" step="0.1" value={profile.weight_kg} onChange={(event) => updateProfile('weight_kg', event.target.value)} /><span>kg</span></div></div></div></fieldset>
-            <fieldset><legend>Experiência no ciclismo</legend><div className="choice-cards">{[['beginner','Iniciante','Estou começando ou retomando'],['intermediate','Intermediário','Pedalo com regularidade'],['advanced','Avançado','Treino estruturado há anos']].map(([value,title,description]) => <label key={value}><input type="radio" name="experience_level" value={value} checked={profile.experience_level === value} onChange={(event) => updateProfile('experience_level', event.target.value)} /><span><strong>{title}</strong><small>{description}</small></span></label>)}</div><div className="activity-field"><Label htmlFor="activity_level">Como está sua rotina de atividade hoje?</Label><select id="activity_level" value={profile.activity_level} onChange={(event) => updateProfile('activity_level', event.target.value)}><option value="">Selecione</option><option value="sedentary">Quase não pratico atividade</option><option value="occasional">1–2 vezes por semana</option><option value="regular">3–4 vezes por semana</option><option value="frequent">5 ou mais vezes por semana</option></select></div></fieldset>
-            <FormFeedback error={error} message={message} />
-            <Button type="submit" disabled={saving} className="profile-submit">{saving ? 'Salvando…' : 'Salvar e continuar'}<ArrowRight size={16} /></Button>
-          </form>}
+          {step === 1 && (
+            <form onSubmit={saveProfile} className="profile-form">
+              <fieldset>
+                <legend>Informações básicas</legend>
+                <div className="form-grid">
+                  <div>
+                    <Label htmlFor="birth_date">Data de nascimento</Label>
+                    <Input
+                      id="birth_date"
+                      type="date"
+                      value={profile.birth_date}
+                      onChange={(event) =>
+                        updateProfile('birth_date', event.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="sex">Sexo</Label>
+                    <select
+                      id="sex"
+                      value={profile.sex}
+                      onChange={(event) =>
+                        updateProfile('sex', event.target.value)
+                      }
+                    >
+                      <option value="">Prefiro não informar agora</option>
+                      <option value="female">Feminino</option>
+                      <option value="male">Masculino</option>
+                      <option value="other">Outro</option>
+                      <option value="prefer_not_to_say">
+                        Prefiro não dizer
+                      </option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label htmlFor="height_cm">Altura</Label>
+                    <div className="unit-input">
+                      <Input
+                        id="height_cm"
+                        type="number"
+                        min="100"
+                        max="250"
+                        step="0.1"
+                        value={profile.height_cm}
+                        onChange={(event) =>
+                          updateProfile('height_cm', event.target.value)
+                        }
+                      />
+                      <span>cm</span>
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="weight_kg">Peso atual</Label>
+                    <div className="unit-input">
+                      <Input
+                        id="weight_kg"
+                        type="number"
+                        min="30"
+                        max="350"
+                        step="0.1"
+                        value={profile.weight_kg}
+                        onChange={(event) =>
+                          updateProfile('weight_kg', event.target.value)
+                        }
+                      />
+                      <span>kg</span>
+                    </div>
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend>Contexto opcional</legend>
+                <p className="fieldset-intro">
+                  Estas medidas são apenas um registro de acompanhamento. Elas
+                  não geram diagnóstico nem alteram automaticamente a carga.
+                </p>
+                <div className="form-grid">
+                  <div>
+                    <Label htmlFor="waist_cm">Circunferência da cintura</Label>
+                    <div className="unit-input">
+                      <Input
+                        id="waist_cm"
+                        type="number"
+                        min="30"
+                        max="250"
+                        step="0.1"
+                        value={profile.waist_cm}
+                        onChange={(event) =>
+                          updateProfile('waist_cm', event.target.value)
+                        }
+                      />
+                      <span>cm</span>
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="body_fat_percent">
+                      Percentual de gordura corporal
+                    </Label>
+                    <div className="unit-input">
+                      <Input
+                        id="body_fat_percent"
+                        type="number"
+                        min="2"
+                        max="70"
+                        step="0.1"
+                        value={profile.body_fat_percent}
+                        onChange={(event) =>
+                          updateProfile('body_fat_percent', event.target.value)
+                        }
+                      />
+                      <span>%</span>
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="weight_trend">
+                      Tendência recente do peso
+                    </Label>
+                    <select
+                      id="weight_trend"
+                      value={profile.weight_trend}
+                      onChange={(event) =>
+                        updateProfile('weight_trend', event.target.value)
+                      }
+                    >
+                      <option value="not_informed">Não informar</option>
+                      <option value="stable">Estável</option>
+                      <option value="increasing">Aumentando</option>
+                      <option value="decreasing">Diminuindo</option>
+                    </select>
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend>Experiência no ciclismo</legend>
+                <div className="choice-cards">
+                  {[
+                    ['beginner', 'Iniciante', 'Estou começando ou retomando'],
+                    [
+                      'intermediate',
+                      'Intermediário',
+                      'Pedalo com regularidade',
+                    ],
+                    ['advanced', 'Avançado', 'Treino estruturado há anos'],
+                  ].map(([value, title, description]) => (
+                    <label key={value}>
+                      <input
+                        type="radio"
+                        name="experience_level"
+                        value={value}
+                        checked={profile.experience_level === value}
+                        onChange={(event) =>
+                          updateProfile('experience_level', event.target.value)
+                        }
+                      />
+                      <span>
+                        <strong>{title}</strong>
+                        <small>{description}</small>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <div className="activity-field">
+                  <Label htmlFor="activity_level">
+                    Como está sua rotina de atividade hoje?
+                  </Label>
+                  <select
+                    id="activity_level"
+                    value={profile.activity_level}
+                    onChange={(event) =>
+                      updateProfile('activity_level', event.target.value)
+                    }
+                  >
+                    <option value="">Selecione</option>
+                    <option value="sedentary">
+                      Quase não pratico atividade
+                    </option>
+                    <option value="occasional">1–2 vezes por semana</option>
+                    <option value="regular">3–4 vezes por semana</option>
+                    <option value="frequent">5 ou mais vezes por semana</option>
+                  </select>
+                </div>
+              </fieldset>
+              <FormFeedback error={error} message={message} />
+              <Button
+                type="submit"
+                disabled={saving}
+                className="profile-submit"
+              >
+                {saving ? 'Salvando…' : 'Salvar e continuar'}
+                <ArrowRight size={16} />
+              </Button>
+            </form>
+          )}
 
-          {step === 2 && <form onSubmit={saveLimitations} className="profile-form">
-            <fieldset><legend>Condição atual</legend><div className="binary-choice"><label><input type="radio" name="has_limitation" checked={!hasLimitation} onChange={() => setHasLimitation(false)} /><span><strong>Nenhuma limitação atual</strong><small>Posso pedalar sem dor ou restrição conhecida</small></span></label><label><input type="radio" name="has_limitation" checked={hasLimitation} onChange={() => setHasLimitation(true)} /><span><strong>Tenho algo a considerar</strong><small>Dor, lesão, condição ou restrição de movimento</small></span></label></div></fieldset>
-            {hasLimitation && <fieldset><legend>O que devemos respeitar?</legend><p className="fieldset-intro">Esses detalhes são opcionais e ajudam a registrar o contexto com mais precisão. Não são um diagnóstico.</p><div className="form-grid"><div><Label htmlFor="limitation_kind">Tipo</Label><select id="limitation_kind" value={limitation.kind} onChange={(event) => setLimitation((current) => ({ ...current, kind: event.target.value }))}><option value="pain">Dor ou desconforto</option><option value="injury">Lesão</option><option value="medical_condition">Condição de saúde</option><option value="mobility">Limitação de movimento</option><option value="other">Outro</option></select></div><div><Label htmlFor="limitation_location">Localização</Label><Input id="limitation_location" maxLength={120} value={limitation.location} onChange={(event) => setLimitation((current) => ({ ...current, location: event.target.value }))} placeholder="Ex.: joelho direito" /></div><div><Label htmlFor="limitation_intensity">Intensidade percebida</Label><select id="limitation_intensity" value={limitation.intensity} onChange={(event) => setLimitation((current) => ({ ...current, intensity: event.target.value }))}><option value="">Não informar</option>{Array.from({ length: 10 }, (_, index) => <option key={index + 1} value={index + 1}>{index + 1} de 10</option>)}</select></div><div><Label htmlFor="limitation_started_on">Quando começou?</Label><Input id="limitation_started_on" type="date" value={limitation.started_on} onChange={(event) => setLimitation((current) => ({ ...current, started_on: event.target.value }))} /></div><label className="clearance-check"><input type="checkbox" checked={limitation.professional_clearance_recommended} onChange={(event) => setLimitation((current) => ({ ...current, professional_clearance_recommended: event.target.checked }))} /><span><strong>Orientação profissional recomendada</strong><small>Marque se um médico ou fisioterapeuta deve liberar o treino</small></span></label><label className="clearance-check"><input type="checkbox" checked={limitation.medical_restriction} onChange={(event) => setLimitation((current) => ({ ...current, medical_restriction: event.target.checked }))} /><span><strong>Existe restrição médica atual</strong><small>O plano deve manter a carga protegida até nova orientação</small></span></label></div><div className="form-grid"><div className="textarea-field"><Label htmlFor="limitation_description">Descreva brevemente</Label><textarea id="limitation_description" minLength={3} maxLength={500} required value={limitation.description} onChange={(event) => setLimitation((current) => ({ ...current, description: event.target.value }))} placeholder="Ex.: desconforto no joelho direito ao subir…" /></div><div className="textarea-field"><Label htmlFor="limitation_aggravating_movement">O que agrava?</Label><textarea id="limitation_aggravating_movement" maxLength={200} value={limitation.aggravating_movement} onChange={(event) => setLimitation((current) => ({ ...current, aggravating_movement: event.target.value }))} placeholder="Ex.: subir em pé ou pedalar forte" /></div></div><fieldset className="symptoms-field"><legend>Sintomas durante ou depois do treino</legend><small>Opcional. Se houver sinais importantes, interrompa e procure avaliação profissional.</small><div className="preference-choice">{SAFETY_SYMPTOMS.map((symptom) => <label key={symptom.value}><input type="checkbox" checked={limitation.symptoms_during_after.includes(symptom.value)} onChange={() => toggleSafetySymptom(symptom.value)} /><span>{symptom.label}</span></label>)}</div></fieldset></fieldset>}
-            <FormFeedback error={error} message={message} />
-            <div className="form-actions"><Button type="button" variant="outline" onClick={() => setStep(1)}><ArrowLeft size={15} /> Voltar</Button><Button type="submit" disabled={saving} className="profile-submit">{saving ? 'Salvando…' : 'Salvar e continuar'}<ArrowRight size={16} /></Button></div>
-          </form>}
+          {step === 2 && (
+            <form onSubmit={saveLimitations} className="profile-form">
+              <fieldset>
+                <legend>Condição atual</legend>
+                <div className="binary-choice">
+                  <label>
+                    <input
+                      type="radio"
+                      name="has_limitation"
+                      checked={!hasLimitation}
+                      onChange={() => setHasLimitation(false)}
+                    />
+                    <span>
+                      <strong>Nenhuma limitação atual</strong>
+                      <small>
+                        Posso pedalar sem dor ou restrição conhecida
+                      </small>
+                    </span>
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="has_limitation"
+                      checked={hasLimitation}
+                      onChange={() => setHasLimitation(true)}
+                    />
+                    <span>
+                      <strong>Tenho algo a considerar</strong>
+                      <small>
+                        Dor, lesão, condição ou restrição de movimento
+                      </small>
+                    </span>
+                  </label>
+                </div>
+              </fieldset>
+              {hasLimitation &&
+                questionIsVisible(questionnaire, 'limitation_kind', {
+                  has_limitation: true,
+                }) && (
+                <fieldset>
+                  <legend>O que devemos respeitar?</legend>
+                  <p className="fieldset-intro">
+                    Esses detalhes são opcionais e ajudam a registrar o contexto
+                    com mais precisão. Não são um diagnóstico.
+                  </p>
+                  <div className="form-grid">
+                    <div>
+                      <Label htmlFor="limitation_kind">Tipo</Label>
+                      <select
+                        id="limitation_kind"
+                        value={limitation.kind}
+                        onChange={(event) =>
+                          setLimitation((current) => ({
+                            ...current,
+                            kind: event.target.value,
+                          }))
+                        }
+                      >
+                        <option value="pain">Dor ou desconforto</option>
+                        <option value="injury">Lesão</option>
+                        <option value="medical_condition">
+                          Condição de saúde
+                        </option>
+                        <option value="mobility">Limitação de movimento</option>
+                        <option value="other">Outro</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label htmlFor="limitation_location">Localização</Label>
+                      <Input
+                        id="limitation_location"
+                        maxLength={120}
+                        value={limitation.location}
+                        onChange={(event) =>
+                          setLimitation((current) => ({
+                            ...current,
+                            location: event.target.value,
+                          }))
+                        }
+                        placeholder="Ex.: joelho direito"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="limitation_intensity">
+                        Intensidade percebida
+                      </Label>
+                      <select
+                        id="limitation_intensity"
+                        value={limitation.intensity}
+                        onChange={(event) =>
+                          setLimitation((current) => ({
+                            ...current,
+                            intensity: event.target.value,
+                          }))
+                        }
+                      >
+                        <option value="">Não informar</option>
+                        {Array.from({ length: 10 }, (_, index) => (
+                          <option key={index + 1} value={index + 1}>
+                            {index + 1} de 10
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <Label htmlFor="limitation_started_on">
+                        Quando começou?
+                      </Label>
+                      <Input
+                        id="limitation_started_on"
+                        type="date"
+                        value={limitation.started_on}
+                        onChange={(event) =>
+                          setLimitation((current) => ({
+                            ...current,
+                            started_on: event.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <label className="clearance-check">
+                      <input
+                        type="checkbox"
+                        checked={limitation.professional_clearance_recommended}
+                        onChange={(event) =>
+                          setLimitation((current) => ({
+                            ...current,
+                            professional_clearance_recommended:
+                              event.target.checked,
+                          }))
+                        }
+                      />
+                      <span>
+                        <strong>Orientação profissional recomendada</strong>
+                        <small>
+                          Marque se um médico ou fisioterapeuta deve liberar o
+                          treino
+                        </small>
+                      </span>
+                    </label>
+                    <label className="clearance-check">
+                      <input
+                        type="checkbox"
+                        checked={limitation.medical_restriction}
+                        onChange={(event) =>
+                          setLimitation((current) => ({
+                            ...current,
+                            medical_restriction: event.target.checked,
+                          }))
+                        }
+                      />
+                      <span>
+                        <strong>Existe restrição médica atual</strong>
+                        <small>
+                          O plano deve manter a carga protegida até nova
+                          orientação
+                        </small>
+                      </span>
+                    </label>
+                    <label
+                      className="clearance-check"
+                      aria-label="Passei por uma cirurgia recentemente"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={limitation.recent_surgery}
+                        onChange={(event) =>
+                          setLimitation((current) => ({
+                            ...current,
+                            recent_surgery: event.target.checked,
+                          }))
+                        }
+                      />
+                      <span>
+                        <strong>Passei por uma cirurgia recentemente</strong>
+                        <small>
+                          Não inicie ou avance o plano sem a orientação de quem
+                          acompanha sua recuperação.
+                        </small>
+                      </span>
+                    </label>
+                    <label
+                      className="clearance-check"
+                      aria-label="Recebi orientação para não me exercitar"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={limitation.exercise_prohibited}
+                        onChange={(event) =>
+                          setLimitation((current) => ({
+                            ...current,
+                            exercise_prohibited: event.target.checked,
+                          }))
+                        }
+                      />
+                      <span>
+                        <strong>Recebi orientação para não me exercitar</strong>
+                        <small>
+                          O Cadência não substitui essa orientação e preserva
+                          uma leitura protegida.
+                        </small>
+                      </span>
+                    </label>
+                    <label
+                      className="clearance-check"
+                      aria-label="Tenho uma condição que afeta o exercício"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={limitation.condition_affecting_exercise}
+                        onChange={(event) =>
+                          setLimitation((current) => ({
+                            ...current,
+                            condition_affecting_exercise: event.target.checked,
+                          }))
+                        }
+                      />
+                      <span>
+                        <strong>Tenho uma condição que afeta o exercício</strong>
+                        <small>
+                          Registre o contexto para que a segurança prevaleça
+                          sobre qualquer meta.
+                        </small>
+                      </span>
+                    </label>
+                  </div>
+                  <div className="form-grid">
+                    <div className="textarea-field">
+                      <Label htmlFor="limitation_description">
+                        Descreva brevemente
+                      </Label>
+                      <textarea
+                        id="limitation_description"
+                        minLength={3}
+                        maxLength={500}
+                        required
+                        value={limitation.description}
+                        onChange={(event) =>
+                          setLimitation((current) => ({
+                            ...current,
+                            description: event.target.value,
+                          }))
+                        }
+                        placeholder="Ex.: desconforto no joelho direito ao subir…"
+                      />
+                    </div>
+                    <div className="textarea-field">
+                      <Label htmlFor="limitation_aggravating_movement">
+                        O que agrava?
+                      </Label>
+                      <textarea
+                        id="limitation_aggravating_movement"
+                        maxLength={200}
+                        value={limitation.aggravating_movement}
+                        onChange={(event) =>
+                          setLimitation((current) => ({
+                            ...current,
+                            aggravating_movement: event.target.value,
+                          }))
+                        }
+                        placeholder="Ex.: subir em pé ou pedalar forte"
+                      />
+                    </div>
+                  </div>
+                  <fieldset className="symptoms-field">
+                    <legend>Sintomas durante ou depois do treino</legend>
+                    <small>
+                      Opcional. Se houver sinais importantes, interrompa e
+                      procure avaliação profissional.
+                    </small>
+                    <div className="preference-choice">
+                      {SAFETY_SYMPTOMS.map((symptom) => (
+                        <label key={symptom.value}>
+                          <input
+                            type="checkbox"
+                            checked={limitation.symptoms_during_after.includes(
+                              symptom.value,
+                            )}
+                            onChange={() => toggleSafetySymptom(symptom.value)}
+                          />
+                          <span>{symptom.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                </fieldset>
+              )}
+              <FormFeedback error={error} message={message} />
+              <div className="form-actions">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep(1)}
+                >
+                  <ArrowLeft size={15} /> Voltar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  className="profile-submit"
+                >
+                  {saving ? 'Salvando…' : 'Salvar e continuar'}
+                  <ArrowRight size={16} />
+                </Button>
+              </div>
+            </form>
+          )}
 
-          {step === 3 && <form onSubmit={saveGoals} className="profile-form">
-            <fieldset><legend>Objetivo principal</legend><div className="form-grid"><div><Label htmlFor="primary_goal">Quero principalmente</Label><select id="primary_goal" value={primaryGoal.goal_type} onChange={(event) => setPrimaryGoal((current) => ({ ...current, goal_type: event.target.value }))}><GoalOptions /></select></div><div><Label htmlFor="target_date">Data-alvo (opcional)</Label><Input id="target_date" type="date" value={primaryGoal.target_date} min={new Date().toISOString().slice(0, 10)} onChange={(event) => setPrimaryGoal((current) => ({ ...current, target_date: event.target.value }))} /></div></div><div className="textarea-field"><Label htmlFor="goal_details">Conte um pouco mais (opcional)</Label><textarea id="goal_details" maxLength={500} value={primaryGoal.details} onChange={(event) => setPrimaryGoal((current) => ({ ...current, details: event.target.value }))} placeholder="Ex.: completar meu primeiro pedal de 100 km com segurança…" /></div></fieldset>
-            <fieldset><legend>Objetivo secundário</legend><div className="activity-field"><Label htmlFor="secondary_goal">Outra prioridade (opcional)</Label><select id="secondary_goal" value={secondaryGoal} onChange={(event) => setSecondaryGoal(event.target.value)}><option value="">Nenhuma por enquanto</option><GoalOptions exclude={primaryGoal.goal_type} /></select></div></fieldset>
-            <FormFeedback error={error} message={message} />
-            <div className="form-actions"><Button type="button" variant="outline" onClick={() => setStep(2)}><ArrowLeft size={15} /> Voltar</Button><Button type="submit" disabled={saving} className="profile-submit">{saving ? 'Salvando…' : 'Salvar e continuar'}<ArrowRight size={16} /></Button></div>
-          </form>}
+          {step === 3 && (
+            <form onSubmit={saveGoals} className="profile-form">
+              <fieldset>
+                <legend>Objetivo principal</legend>
+                <div className="form-grid">
+                  <div>
+                    <Label htmlFor="primary_goal">Quero principalmente</Label>
+                    <select
+                      id="primary_goal"
+                      value={primaryGoal.goal_type}
+                      onChange={(event) =>
+                        setPrimaryGoal((current) => ({
+                          ...current,
+                          goal_type: event.target.value,
+                        }))
+                      }
+                    >
+                      <GoalOptions />
+                    </select>
+                  </div>
+                  <div>
+                    <Label htmlFor="target_date">Data-alvo (opcional)</Label>
+                    <Input
+                      id="target_date"
+                      type="date"
+                      value={primaryGoal.target_date}
+                      min={new Date().toISOString().slice(0, 10)}
+                      onChange={(event) =>
+                        setPrimaryGoal((current) => ({
+                          ...current,
+                          target_date: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="textarea-field">
+                  <Label htmlFor="goal_details">
+                    Conte um pouco mais (opcional)
+                  </Label>
+                  <textarea
+                    id="goal_details"
+                    maxLength={500}
+                    value={primaryGoal.details}
+                    onChange={(event) =>
+                      setPrimaryGoal((current) => ({
+                        ...current,
+                        details: event.target.value,
+                      }))
+                    }
+                    placeholder="Ex.: completar meu primeiro pedal de 100 km com segurança…"
+                  />
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend>Objetivo secundário</legend>
+                <div className="activity-field">
+                  <Label htmlFor="secondary_goal">
+                    Outra prioridade (opcional)
+                  </Label>
+                  <select
+                    id="secondary_goal"
+                    value={secondaryGoal}
+                    onChange={(event) => setSecondaryGoal(event.target.value)}
+                  >
+                    <option value="">Nenhuma por enquanto</option>
+                    <GoalOptions exclude={primaryGoal.goal_type} />
+                  </select>
+                  <small className="profile-field-note">
+                    Ela só desempata estímulos já elegíveis. Segurança e
+                    objetivo principal sempre têm prioridade.
+                  </small>
+                </div>
+              </fieldset>
+              <FormFeedback error={error} message={message} />
+              <div className="form-actions">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep(2)}
+                >
+                  <ArrowLeft size={15} /> Voltar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  className="profile-submit"
+                >
+                  {saving ? 'Salvando…' : 'Salvar e continuar'}
+                  <ArrowRight size={16} />
+                </Button>
+              </div>
+            </form>
+          )}
 
-          {step === 4 && <form onSubmit={saveAvailability} className="profile-form availability-form">
-            <fieldset><legend>Seu ciclismo hoje</legend><p className="fieldset-intro">Essas perguntas são opcionais e ajudam a tornar os próximos treinos mais específicos.</p><div className="form-grid"><div><Label>Modalidade principal</Label><select value={cyclingContext.discipline} onChange={(e) => setCyclingContext(c => ({ ...c, discipline: e.target.value }))}><option value="">Não informar</option><option value="road">Estrada (speed)</option><option value="mtb_xco">MTB cross-country (XCO)</option><option value="mtb_xcm">MTB maratona (XCM)</option><option value="gravel">Gravel</option><option value="indoor">Indoor/rolo</option></select></div><div><Label>Horas por semana</Label><Input type="number" min="0" max="80" step="0.5" value={cyclingContext.weekly_hours || ''} onChange={(e) => setCyclingContext(c => ({ ...c, weekly_hours: Number(e.target.value) }))} /></div><div><Label>Pedais por semana</Label><Input type="number" min="0" max="21" value={cyclingContext.weekly_rides || ''} onChange={(e) => setCyclingContext(c => ({ ...c, weekly_rides: Number(e.target.value) }))} /></div><div><Label>Distância semanal recente (km)</Label><Input type="number" min="0" max="2000" step="1" value={cyclingContext.recent_weekly_distance_km || ''} onChange={(e) => setCyclingContext(c => ({ ...c, recent_weekly_distance_km: Number(e.target.value) }))} /></div><div className="training-status-field"><Label htmlFor="training_status">Situação atual do treino</Label><select id="training_status" value={cyclingContext.training_status} onChange={(e) => setCyclingContext(c => ({ ...c, training_status: e.target.value as TrainingStatus }))}><option value="not_informed">Não informar</option><option value="regular">Estou treinando regularmente</option><option value="returning_after_break">Estou retornando após uma pausa</option></select><small>Esse contexto separa falta de informação, treino regular e retomada.</small></div><div><Label htmlFor="recent_training_weeks">Semanas treinando com regularidade</Label><Input id="recent_training_weeks" type="number" min="0" max="52" value={cyclingContext.recent_training_weeks || ''} onChange={(e) => setCyclingContext(c => ({ ...c, recent_training_weeks: Number(e.target.value) }))} /></div><div><Label>Maior distância recente (km)</Label><Input type="number" min="0" max="2000" step="1" value={cyclingContext.recent_best_distance_km || ''} onChange={(e) => setCyclingContext(c => ({ ...c, recent_best_distance_km: Number(e.target.value) }))} /></div><div><Label>Maior pedal recente (min)</Label><Input type="number" min="0" max="1440" value={cyclingContext.longest_ride_minutes || ''} onChange={(e) => setCyclingContext(c => ({ ...c, longest_ride_minutes: Number(e.target.value) }))} /></div><div><Label>Tipo de bicicleta</Label><select value={cyclingContext.bike_type} onChange={(e) => setCyclingContext(c => ({ ...c, bike_type: e.target.value }))}><option value="">Não informar</option><option value="road">Estrada</option><option value="mtb">MTB</option><option value="gravel">Gravel</option><option value="indoor">Indoor/rolo</option></select></div><div><Label>Terreno predominante</Label><select value={cyclingContext.terrain} onChange={(e) => setCyclingContext(c => ({ ...c, terrain: e.target.value }))}><option value="">Não informar</option><option value="flat">Plano</option><option value="rolling">Misto</option><option value="hilly">Com subidas</option></select></div></div><div className="preference-choice"><p>Que tipos de treino você gostaria de fazer?</p><small>Opcional. Isso orienta futuras escolhas sem substituir os critérios de segurança.</small><div>{SESSION_PREFERENCES.map((preference) => <label key={preference.value}><input type="checkbox" checked={cyclingContext.preferred_session_types.includes(preference.value)} onChange={() => toggleSessionPreference(preference.value)} /><span>{preference.label}</span></label>)}</div></div><div className="binary-choice"><label><input type="checkbox" checked={cyclingContext.uses_heart_rate} onChange={(e) => setCyclingContext(c => ({ ...c, uses_heart_rate: e.target.checked }))} /><span><strong>Uso frequência cardíaca</strong></span></label><label><input type="checkbox" checked={cyclingContext.uses_power} onChange={(e) => setCyclingContext(c => ({ ...c, uses_power: e.target.checked, ftp: e.target.checked ? c.ftp : undefined }))} /><span><strong>Uso medidor de potência</strong></span></label><label><input type="checkbox" checked={cyclingContext.event_goal} onChange={(e) => setCyclingContext(c => ({ ...c, event_goal: e.target.checked, event_distance_km: e.target.checked ? c.event_distance_km : undefined, event_date: e.target.checked ? c.event_date : undefined }))} /><span><strong>Estou me preparando para uma prova</strong></span></label></div>{cyclingContext.uses_power && <div className="activity-field"><Label>FTP (watts)</Label><Input type="number" min="50" max="600" value={cyclingContext.ftp || ''} onChange={(e) => setCyclingContext(c => ({ ...c, ftp: Number(e.target.value) || undefined }))} /></div>}{cyclingContext.event_goal && <div className="form-grid"><div><Label>Distância da prova (km)</Label><Input type="number" min="1" max="2000" required value={cyclingContext.event_distance_km || ''} onChange={(e) => setCyclingContext(c => ({ ...c, event_distance_km: Number(e.target.value) || undefined }))} /></div><div><Label>Data da prova</Label><Input type="date" required value={cyclingContext.event_date || ''} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setCyclingContext(c => ({ ...c, event_date: e.target.value || undefined }))} /></div></div>}</fieldset>
-            <fieldset><legend>Dias disponíveis</legend><p className="fieldset-intro">Ative um dia e escolha quanto tempo você realmente consegue reservar.</p><div className="availability-grid">{availability.map((day) => { const active = day.available_minutes > 0; return <div className={`availability-day ${active ? 'active' : ''}`} key={day.weekday}><button type="button" aria-pressed={active} onClick={() => updateDay(day.weekday, active ? { available_minutes: 0, preferred_time: null, location: null } : { available_minutes: 60 })}><span>{DAYS[day.weekday]}</span><i>{active && <Check size={12} />}</i></button>{active && <div><select aria-label={`Duração de ${DAYS[day.weekday]}`} value={day.available_minutes} onChange={(event) => updateDay(day.weekday, { available_minutes: Number(event.target.value) })}><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 hora</option><option value="90">1h30</option><option value="120">2 horas</option><option value="180">3 horas</option><option value="240">4 horas</option><option value="360">6 horas</option><option value="480">8 horas</option></select><select aria-label={`Local de ${DAYS[day.weekday]}`} value={day.location || ''} onChange={(event) => updateDay(day.weekday, { location: event.target.value || null })}><option value="">Qualquer local</option><option value="outdoor">Rua/estrada</option><option value="indoor">Rolo/indoor</option><option value="gym">Academia</option></select></div>}</div>; })}</div></fieldset>
-            <div className="availability-summary"><div><strong>{trainingDays}</strong><span>dias possíveis</span></div><div><strong>{Math.floor(totalMinutes / 60)}h{totalMinutes % 60 ? ` ${totalMinutes % 60}min` : ''}</strong><span>por semana</span></div><p>O plano poderá usar menos tempo conforme sua recuperação e experiência.</p></div>
-            {completed && <div className="completion-card"><span><Check size={20} /></span><div><strong>Perfil inicial concluído</strong><p>Seus dados estão prontos para orientar a próxima fase: a geração do plano.</p></div></div>}
-            <FormFeedback error={error} message={message} />
-            <div className="form-actions"><Button type="button" variant="outline" onClick={() => setStep(3)}><ArrowLeft size={15} /> Voltar</Button>{completed && <Button type="button" variant="outline" onClick={() => { window.location.href = '/'; }}>Ir para o painel<ArrowRight size={16} /></Button>}<Button type="submit" disabled={saving || totalMinutes === 0} className="profile-submit">{saving ? 'Salvando…' : completed ? 'Salvar alterações' : 'Concluir perfil'}<Check size={16} /></Button></div>
-          </form>}
+          {step === 4 && (
+            <form
+              onSubmit={saveAvailability}
+              className="profile-form availability-form"
+            >
+              <fieldset>
+                <legend>Seu ciclismo hoje</legend>
+                <p className="fieldset-intro">
+                  Essas perguntas são opcionais e ajudam a tornar os próximos
+                  treinos mais específicos.
+                </p>
+                <div className="form-grid">
+                  <div>
+                    <Label>Modalidade principal</Label>
+                    <select
+                      value={cyclingContext.discipline}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          discipline: e.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">Não informar</option>
+                      <option value="road">Estrada (speed)</option>
+                      <option value="mtb_xco">MTB cross-country (XCO)</option>
+                      <option value="mtb_xcm">MTB maratona (XCM)</option>
+                      <option value="gravel">Gravel</option>
+                      <option value="indoor">Indoor/rolo</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label>Horas por semana</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="80"
+                      step="0.5"
+                      value={cyclingContext.weekly_hours || ''}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          weekly_hours: Number(e.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="practice_duration_months">
+                      Há quanto tempo pedala? (meses)
+                    </Label>
+                    <Input
+                      id="practice_duration_months"
+                      type="number"
+                      min="0"
+                      max="1200"
+                      value={cyclingContext.practice_duration_months || ''}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          practice_duration_months: Number(e.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label>Pedais por semana</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="21"
+                      value={cyclingContext.weekly_rides || ''}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          weekly_rides: Number(e.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label>Distância semanal recente (km)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="2000"
+                      step="1"
+                      value={cyclingContext.recent_weekly_distance_km || ''}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          recent_weekly_distance_km: Number(e.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="training-status-field">
+                    <Label htmlFor="training_status">
+                      Situação atual do treino
+                    </Label>
+                    <select
+                      id="training_status"
+                      value={cyclingContext.training_status}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          training_status: e.target.value as TrainingStatus,
+                        }))
+                      }
+                    >
+                      <option value="not_informed">Não informar</option>
+                      <option value="regular">
+                        Estou treinando regularmente
+                      </option>
+                      <option value="returning_after_break">
+                        Estou retornando após uma pausa
+                      </option>
+                    </select>
+                    <small>
+                      Esse contexto separa falta de informação, treino regular e
+                      retomada.
+                    </small>
+                  </div>
+                  <div>
+                    <Label htmlFor="recent_training_weeks">
+                      Semanas treinando com regularidade
+                    </Label>
+                    <Input
+                      id="recent_training_weeks"
+                      type="number"
+                      min="0"
+                      max="52"
+                      value={cyclingContext.recent_training_weeks || ''}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          recent_training_weeks: Number(e.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label>Maior distância recente (km)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="2000"
+                      step="1"
+                      value={cyclingContext.recent_best_distance_km || ''}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          recent_best_distance_km: Number(e.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label>Maior pedal recente (min)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="1440"
+                      value={cyclingContext.longest_ride_minutes || ''}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          longest_ride_minutes: Number(e.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="average_ride_minutes">
+                      Duração média do pedal (min)
+                    </Label>
+                    <Input
+                      id="average_ride_minutes"
+                      type="number"
+                      min="0"
+                      max="1440"
+                      value={cyclingContext.average_ride_minutes || ''}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          average_ride_minutes: Number(e.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label>Tipo de bicicleta</Label>
+                    <select
+                      value={cyclingContext.bike_type}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          bike_type: e.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">Não informar</option>
+                      <option value="road">Estrada</option>
+                      <option value="mtb">MTB</option>
+                      <option value="gravel">Gravel</option>
+                      <option value="indoor">Indoor/rolo</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label>Terreno predominante</Label>
+                    <select
+                      value={cyclingContext.terrain}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          terrain: e.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">Não informar</option>
+                      <option value="flat">Plano</option>
+                      <option value="rolling">Misto</option>
+                      <option value="hilly">Com subidas</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="preference-choice">
+                  <p>Que tipos de treino você gostaria de fazer?</p>
+                  <small>
+                    Opcional. Isso orienta futuras escolhas sem substituir os
+                    critérios de segurança.
+                  </small>
+                  <div>
+                    {SESSION_PREFERENCES.map((preference) => (
+                      <label key={preference.value}>
+                        <input
+                          type="checkbox"
+                          checked={cyclingContext.preferred_session_types.includes(
+                            preference.value,
+                          )}
+                          onChange={() =>
+                            toggleSessionPreference(preference.value)
+                          }
+                        />
+                        <span>{preference.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="binary-choice">
+                  <label aria-label="Uso frequência cardíaca">
+                    <input
+                      type="checkbox"
+                      checked={cyclingContext.uses_heart_rate}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          uses_heart_rate: e.target.checked,
+                        }))
+                      }
+                    />
+                    <span>
+                      <strong>Uso frequência cardíaca</strong>
+                    </span>
+                  </label>
+                  <label aria-label="Uso medidor de potência">
+                    <input
+                      type="checkbox"
+                      checked={cyclingContext.uses_power}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          uses_power: e.target.checked,
+                          ftp: e.target.checked ? c.ftp : undefined,
+                          ftp_test_date: e.target.checked
+                            ? c.ftp_test_date
+                            : undefined,
+                          ftp_protocol: e.target.checked
+                            ? c.ftp_protocol
+                            : undefined,
+                          average_power_watts: e.target.checked
+                            ? c.average_power_watts
+                            : undefined,
+                        }))
+                      }
+                    />
+                    <span>
+                      <strong>Uso medidor de potência</strong>
+                    </span>
+                  </label>
+                  <label aria-label="Estou me preparando para uma prova">
+                    <input
+                      type="checkbox"
+                      checked={cyclingContext.event_goal}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          event_goal: e.target.checked,
+                          event_distance_km: e.target.checked
+                            ? c.event_distance_km
+                            : undefined,
+                          event_date: e.target.checked
+                            ? c.event_date
+                            : undefined,
+                        }))
+                      }
+                    />
+                    <span>
+                      <strong>Estou me preparando para uma prova</strong>
+                    </span>
+                  </label>
+                </div>
+                <div className="binary-choice equipment-choice">
+                  <label aria-label="Uso GPS no pedal">
+                    <input
+                      type="checkbox"
+                      checked={cyclingContext.uses_gps}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          uses_gps: e.target.checked,
+                        }))
+                      }
+                    />
+                    <span>
+                      <strong>Uso GPS no pedal</strong>
+                      <small>Registro percurso, distância ou velocidade.</small>
+                    </span>
+                  </label>
+                  <label aria-label="Uso relógio esportivo">
+                    <input
+                      type="checkbox"
+                      checked={cyclingContext.uses_sports_watch}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          uses_sports_watch: e.target.checked,
+                        }))
+                      }
+                    />
+                    <span>
+                      <strong>Uso relógio esportivo</strong>
+                      <small>Posso acompanhar as métricas durante o pedal.</small>
+                    </span>
+                  </label>
+                  <label aria-label="Uso rolo inteligente">
+                    <input
+                      type="checkbox"
+                      checked={cyclingContext.uses_smart_trainer}
+                      onChange={(e) =>
+                        setCyclingContext((c) => ({
+                          ...c,
+                          uses_smart_trainer: e.target.checked,
+                        }))
+                      }
+                    />
+                    <span>
+                      <strong>Uso rolo inteligente</strong>
+                      <small>Tenho sessões indoor com carga controlada.</small>
+                    </span>
+                  </label>
+                </div>
+                {questionIsVisible(questionnaire, 'ftp', {
+                  uses_power: cyclingContext.uses_power,
+                }) && (
+                  <div className="form-grid power-context-fields">
+                    <div>
+                      <Label htmlFor="ftp">FTP (watts)</Label>
+                      <Input
+                        id="ftp"
+                        type="number"
+                        min="50"
+                        max="600"
+                        value={cyclingContext.ftp || ''}
+                        onChange={(e) =>
+                          setCyclingContext((c) => ({
+                            ...c,
+                            ftp: Number(e.target.value) || undefined,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="average_power_watts">
+                        Potência média recente (watts)
+                      </Label>
+                      <Input
+                        id="average_power_watts"
+                        type="number"
+                        min="0"
+                        max="2000"
+                        value={cyclingContext.average_power_watts || ''}
+                        onChange={(e) =>
+                          setCyclingContext((c) => ({
+                            ...c,
+                            average_power_watts:
+                              Number(e.target.value) || undefined,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ftp_test_date">Data do teste FTP</Label>
+                      <Input
+                        id="ftp_test_date"
+                        type="date"
+                        max={new Date().toISOString().slice(0, 10)}
+                        value={cyclingContext.ftp_test_date || ''}
+                        onChange={(e) =>
+                          setCyclingContext((c) => ({
+                            ...c,
+                            ftp_test_date: e.target.value || undefined,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ftp_protocol">Protocolo do teste</Label>
+                      <select
+                        id="ftp_protocol"
+                        value={cyclingContext.ftp_protocol || ''}
+                        onChange={(e) =>
+                          setCyclingContext((c) => ({
+                            ...c,
+                            ftp_protocol: e.target.value || undefined,
+                          }))
+                        }
+                      >
+                        <option value="">Não informar</option>
+                        <option value="20_minute">20 minutos</option>
+                        <option value="ramp">Ramp test</option>
+                        <option value="other">Outro protocolo</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+                {questionIsVisible(questionnaire, 'event_distance_km', {
+                  event_goal: cyclingContext.event_goal,
+                }) && (
+                  <div className="form-grid">
+                    <div>
+                      <Label>Distância da prova (km)</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="2000"
+                        required
+                        value={cyclingContext.event_distance_km || ''}
+                        onChange={(e) =>
+                          setCyclingContext((c) => ({
+                            ...c,
+                            event_distance_km:
+                              Number(e.target.value) || undefined,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label>Data da prova</Label>
+                      <Input
+                        type="date"
+                        required
+                        value={cyclingContext.event_date || ''}
+                        min={new Date().toISOString().slice(0, 10)}
+                        onChange={(e) =>
+                          setCyclingContext((c) => ({
+                            ...c,
+                            event_date: e.target.value || undefined,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+              </fieldset>
+              <fieldset>
+                <legend>Dias disponíveis</legend>
+                <p className="fieldset-intro">
+                  Ative um dia e escolha quanto tempo você realmente consegue
+                  reservar.
+                </p>
+                <div className="availability-grid">
+                  {availability.map((day) => {
+                    const active = day.available_minutes > 0;
+                    return (
+                      <div
+                        className={`availability-day ${active ? 'active' : ''}`}
+                        key={day.weekday}
+                      >
+                        <button
+                          type="button"
+                          aria-pressed={active}
+                          onClick={() =>
+                            updateDay(
+                              day.weekday,
+                              active
+                                ? {
+                                    available_minutes: 0,
+                                    preferred_time: null,
+                                    location: null,
+                                  }
+                                : { available_minutes: 60 },
+                            )
+                          }
+                        >
+                          <span>{DAYS[day.weekday]}</span>
+                          <i>{active && <Check size={12} />}</i>
+                        </button>
+                        {active && (
+                          <div>
+                            <select
+                              aria-label={`Duração de ${DAYS[day.weekday]}`}
+                              value={day.available_minutes}
+                              onChange={(event) =>
+                                updateDay(day.weekday, {
+                                  available_minutes: Number(event.target.value),
+                                })
+                              }
+                            >
+                              <option value="30">30 min</option>
+                              <option value="45">45 min</option>
+                              <option value="60">1 hora</option>
+                              <option value="90">1h30</option>
+                              <option value="120">2 horas</option>
+                              <option value="180">3 horas</option>
+                              <option value="240">4 horas</option>
+                              <option value="360">6 horas</option>
+                              <option value="480">8 horas</option>
+                            </select>
+                            <select
+                              aria-label={`Local de ${DAYS[day.weekday]}`}
+                              value={day.location || ''}
+                              onChange={(event) =>
+                                updateDay(day.weekday, {
+                                  location: event.target.value || null,
+                                })
+                              }
+                            >
+                              <option value="">Qualquer local</option>
+                              <option value="outdoor">Rua/estrada</option>
+                              <option value="indoor">Rolo/indoor</option>
+                              <option value="gym">Academia</option>
+                            </select>
+                            <Input
+                              aria-label={`Horário preferido de ${DAYS[day.weekday]}`}
+                              type="time"
+                              value={day.preferred_time || ''}
+                              onChange={(event) =>
+                                updateDay(day.weekday, {
+                                  preferred_time: event.target.value || null,
+                                })
+                              }
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </fieldset>
+              <div className="availability-summary">
+                <div>
+                  <strong>{trainingDays}</strong>
+                  <span>dias possíveis</span>
+                </div>
+                <div>
+                  <strong>
+                    {Math.floor(totalMinutes / 60)}h
+                    {totalMinutes % 60 ? ` ${totalMinutes % 60}min` : ''}
+                  </strong>
+                  <span>por semana</span>
+                </div>
+                <p>
+                  O plano poderá usar menos tempo conforme sua recuperação e
+                  experiência.
+                </p>
+              </div>
+              {completed && (
+                <div className="completion-card">
+                  <span>
+                    <Check size={20} />
+                  </span>
+                  <div>
+                    <strong>Perfil inicial concluído</strong>
+                    <p>
+                      Seus dados estão prontos para orientar a próxima fase: a
+                      geração do plano.
+                    </p>
+                  </div>
+                </div>
+              )}
+              <FormFeedback error={error} message={message} />
+              <div className="form-actions">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep(3)}
+                >
+                  <ArrowLeft size={15} /> Voltar
+                </Button>
+                {completed && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      window.location.href = '/';
+                    }}
+                  >
+                    Ir para o painel
+                    <ArrowRight size={16} />
+                  </Button>
+                )}
+                <Button
+                  type="submit"
+                  disabled={saving || totalMinutes === 0}
+                  className="profile-submit"
+                >
+                  {saving
+                    ? 'Salvando…'
+                    : completed
+                      ? 'Salvar alterações'
+                      : 'Concluir perfil'}
+                  <Check size={16} />
+                </Button>
+              </div>
+            </form>
+          )}
 
-          <aside className="profile-aside"><div className="aside-icon"><AsideIcon size={18} /></div><h2>{copy.asideTitle}</h2><p>{copy.aside}</p><hr /><span>Você poderá revisar todas essas informações quando sua rotina mudar.</span></aside>
+          <aside className="profile-aside">
+            <div className="aside-icon">
+              <AsideIcon size={18} />
+            </div>
+            <h2>{copy.asideTitle}</h2>
+            <p>{copy.aside}</p>
+            <hr />
+            <span>
+              Você poderá revisar todas essas informações quando sua rotina
+              mudar.
+            </span>
+          </aside>
         </div>
       </section>
     </main>
@@ -288,16 +1906,41 @@ export default function ProfilePage() {
 }
 
 function GoalOptions({ exclude = '' }: { exclude?: string }) {
-  return <>{[
-    ['health', 'Melhorar saúde e bem-estar'],
-    ['fitness', 'Ganhar condicionamento'],
-    ['endurance', 'Pedalar por mais tempo'],
-    ['performance', 'Aumentar meu desempenho'],
-    ['event', 'Preparar para um evento'],
-    ['weight_management', 'Apoiar o controle de peso'],
-  ].filter(([value]) => value !== exclude).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</>;
+  return (
+    <>
+      {[
+        ['health', 'Melhorar saúde e bem-estar'],
+        ['fitness', 'Ganhar condicionamento'],
+        ['endurance', 'Pedalar por mais tempo'],
+        ['performance', 'Aumentar meu desempenho'],
+        ['event', 'Preparar para um evento'],
+        ['weight_management', 'Apoiar o controle de peso'],
+      ]
+        .filter(([value]) => value !== exclude)
+        .map(([value, label]) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
+    </>
+  );
 }
 
 function FormFeedback({ error, message }: { error: string; message: string }) {
-  return <>{error && <p className="profile-message error" role="alert"><CircleAlert size={15} />{error}</p>}{message && <p className="profile-message" role="status"><Check size={15} />{message}</p>}</>;
+  return (
+    <>
+      {error && (
+        <p className="profile-message error" role="alert">
+          <CircleAlert size={15} />
+          {error}
+        </p>
+      )}
+      {message && (
+        <p className="profile-message" role="status">
+          <Check size={15} />
+          {message}
+        </p>
+      )}
+    </>
+  );
 }

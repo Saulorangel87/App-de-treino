@@ -68,7 +68,7 @@ A primeira implementação de IA usa Ollama local como provedor opcional. `AI_EN
 
 **Status:** Aplicada.
 
-As migrações `000001` a `000029` estão versionadas no checkout e aplicadas na produção até `000029`. A `000013` cria os relatos de feedback, a `000014` adiciona o controle de envio do resumo semanal, a `000015` registra fontes do catálogo inicial, a `000016` registra a fonte do piloto XCO, a `000017` registra as fontes do taper pré-prova, a `000018` registra as fontes do piloto VO₂max de estrada, a `000019` registra as fontes do piloto de intervalos curtos, a `000020` adiciona o contexto de conclusão parcial, a `000021` adiciona o contexto pós-treino, a `000022` adiciona contexto opcional de segurança às limitações, a `000023` adiciona feedback estruturado, as `000024`/`000025` adicionam equipamento e sinais de segurança, a `000026` amplia os metadados científicos auditáveis, a `000027` protege a adaptação ativa contra dados incompletos e sinais protetivos recentes, a `000028` registra evidências para recuperação pós-prova e a `000029` adiciona cadência média como métrica observacional opcional. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável, a migração deve ser executada pelo perfil `maintenance` e uma rota autenticada crítica deve ser validada.
+As migrações `000001` a `000030` estão versionadas no checkout; a produção permanece aplicada até `000029`. A `000030_profile_safety_context` é aditiva: registra medidas opcionais de acompanhamento no perfil e os sinais de cirurgia recente, proibição de exercício e condição que afeta exercício. Ela não reclassifica registros antigos, não altera planos já salvos e não autoriza diagnóstico ou prescrição clínica. Antes de qualquer nova mudança estrutural em produção, deve existir backup verificável, a migração deve ser executada pelo perfil `maintenance`, sua presença deve ser conferida em `cadencia_schema_migrations` e uma rota autenticada crítica deve ser validada.
 
 ## ADR-006 — Feedback de produto
 
@@ -94,7 +94,7 @@ A continuidade seguirá o documento canônico `planejamento.md`, com foco exclus
 
 ## ADR-009 — Configurações e encerramento definitivo da conta
 
-**Status:** Implementada no checkout local `0.31.0`; aguarda validação manual e publicação.
+**Status:** Implementada e publicada na versão `0.31.0`.
 
 A área `/configuracoes` centraliza os dados básicos da conta, o acesso ao perfil e a operação de encerramento. Para reduzir exclusões acidentais, o backend exige a senha atual e a confirmação explícita `ENCERRAR CONTA`. O endpoint `DELETE /v1/auth/account` apaga a linha do usuário em uma operação atômica; as relações pessoais do schema usam `ON DELETE CASCADE`, removendo sessões, tokens, perfil, planos, treinos, feedbacks, recuperações e avaliações. O cookie da sessão é expirado após o sucesso.
 
@@ -438,3 +438,13 @@ A migração `000029` permite armazenar cadência média entre 1 e 300 rpm. O ca
 `workout-decision-audit-v1` é anexado à explicação de toda sessão gerada pelo `rules-v1`. Ele não substitui o motor nem observa uma hipótese concorrente: registra a decisão que já foi aplicada, incluindo gates avaliados, regras aplicadas, dados utilizados e ausentes, proteções, alternativas descartadas, condições de mudança e a confiança `rule_based_not_calibrated`.
 
 A interface mantém esse detalhamento recolhido por padrão para não competir com a estrutura do treino. Isso torna visível a proveniência sem depender da camada de IA explicativa. A confiança continua não calibrada porque o registro de decisão não demonstra efeito longitudinal ou validade clínica.
+
+## Questionário adaptativo e contexto seguro do perfil — entrega local com migração `000030`
+
+O onboarding passa a expor um contrato versionado (`cycling-onboarding-v2`) com etapas, perguntas obrigatórias e condições explícitas. A interface mantém controles especializados para uma experiência simples, mas títulos e descrições vêm do mesmo contrato e os clientes podem consultar as perguntas visíveis sem duplicar gates. Perguntas de FTP, data, protocolo e potência só ficam visíveis quando o atleta declara medidor de potência.
+
+O contexto adicional de perfil — cintura, composição corporal e tendência de peso — é opcional e fica fora das fórmulas de dose. Ele é preservado no snapshot para auditabilidade, não classifica saúde, não estima capacidade e não altera automaticamente RPE ou duração. A rotina atual de atividade é a única informação adicional que aplica um gate prescritivo explícito: os valores `sedentary` e `occasional` impedem uma sessão de qualidade até existir consistência maior.
+
+O objetivo secundário só desempata famílias de estímulo já elegíveis; segurança, recuperação, objetivo principal, disponibilidade e elegibilidade de protocolo sempre vencem. Horário e local disponíveis são preservados na estrutura de cada sessão, sem promessa de execução automática. Cirurgia recente, proibição de exercício e condição que afeta exercício são sinais de proteção registrados, não diagnóstico ou autorização clínica.
+
+Na evolução, carga sessão-RPE, velocidade média e objetivos mostram apenas valores observados. A carga é `duração em minutos × RPE realizado`, e a velocidade é calculada somente a partir de distância e duração registradas. Objetivos não recebem porcentagem inventada quando não possuem critério de chegada mensurável. A IA e os shadows não têm permissão para transformar esses dados em prescrição autônoma.

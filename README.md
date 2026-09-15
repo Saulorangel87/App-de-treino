@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão publicada: `0.30.0`. A versão local em validação é `0.31.0`, com a área de configurações e o encerramento seguro da conta. O commit documental `39d8d2e` removeu o antigo arquivo de melhorias sem alterar a aplicação publicada.
+Versão publicada: `0.31.0`. O checkout contém uma melhoria local validada, ainda não publicada: questionário adaptativo versionado, contexto seguro ampliado do perfil/ciclismo e novos indicadores observacionais de evolução. A migração `000030_profile_safety_context` foi validada localmente e só será aplicada em produção após backup e autorização de deploy.
 
 O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro não fazem parte deste app e não são aceitos como modalidades de treino.
 
@@ -21,7 +21,7 @@ O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Spr
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000001`–`000029`; a produção está sincronizada até `000029`.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000001`–`000030`; a produção permanece sincronizada até `000029` enquanto a `000030` aguarda publicação autorizada.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -42,13 +42,14 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `GET /v1/profile`: consulta o perfil básico do ciclista.
 - `PUT /v1/profile`: cria ou atualiza o perfil básico.
 - `GET /v1/onboarding`: consulta limitações, objetivos, disponibilidade e contexto opcional de ciclismo.
-- `PUT /v1/onboarding/limitations`: salva informações de segurança, incluindo opcionalmente localização, intensidade percebida, movimento agravante, data de início, sintomas de alerta e restrição médica. Esses campos são contexto informado pelo atleta e não constituem diagnóstico.
+- `GET /v1/onboarding/questionnaire`: expõe o contrato versionado de etapas, perguntas obrigatórias e gates condicionais do onboarding de ciclismo.
+- `PUT /v1/onboarding/limitations`: salva informações de segurança, incluindo opcionalmente localização, intensidade percebida, movimento agravante, data de início, sintomas de alerta, restrição médica, cirurgia recente, proibição de exercício e condição que afeta exercício. Esses campos são contexto informado pelo atleta e não constituem diagnóstico.
 - `PUT /v1/onboarding/goals`: salva até dois objetivos priorizados.
 - `PUT /v1/onboarding/availability`: salva a disponibilidade semanal.
-- `PUT /v1/onboarding/cycling-context`: salva histórico resumido (horas, pedais, distância semanal recente, semanas de regularidade, situação atual do treino e maior distância), preferências de sessão, equipamento, terreno e meta opcional de prova com distância e data futura válidas.
+- `PUT /v1/onboarding/cycling-context`: salva histórico resumido (tempo de prática, horas, pedais, duração e distância recentes), preferências, GPS/relógio/rolo, sensores, FTP opcional com data/protocolo, potência média, terreno e meta opcional de prova com distância e data futura válidas.
 - `GET /v1/assessments/current` e `POST /v1/assessments/submaximal`: consultam e registram o pedal de referência submáximo.
 - `GET /v1/recovery/today` e `PUT /v1/recovery/today`: consultam e salvam o check-in diário de sono, estresse e fadiga percebida.
-- `GET /v1/evolution/summary`: retorna totais observados, oito semanas de duração e métricas de pedal registradas, além de check-ins recentes para o atleta autenticado.
+- `GET /v1/evolution/summary`: retorna totais observados, oito semanas de duração, carga sessão-RPE, velocidade média calculada de registros e acompanhamento factual dos objetivos nos últimos 28 dias, além de check-ins recentes.
 - `POST /v1/plans/generate`: gera e substitui o rascunho atual de quatro semanas.
 - `GET /v1/plans/current`: consulta o plano ativo ou rascunho mais recente.
 - `POST /v1/plans/{planID}/activate`: aprova um rascunho e mantém somente um plano ativo por atleta.
@@ -78,7 +79,7 @@ A rota `/avaliacao` permite registrar opcionalmente um pedal de referência subm
 
 A rota `/recuperacao` registra o check-in diário. Um sinal desfavorável gera cautela; fadiga máxima ou a combinação de dois sinais desfavoráveis indica necessidade de recuperação. Nesses casos, somente a próxima sessão futura do plano ativo pode ter duração e RPE reduzidos. Um check-in favorável mantém o plano e nunca aumenta a carga por si só. A decisão fica registrada no treino para não aplicar a mesma redução duas vezes.
 
-A rota `/evolucao` organiza o que foi registrado: sessões concluídas e canceladas, tempo e distância por semana, elevação acumulada, médias opcionais de potência e frequência cardíaca, RPE, consistência e check-ins recentes. Ela mostra somente dados observados e explicita quando ainda não há histórico suficiente; não estima desempenho físico nem faz diagnóstico.
+A rota `/evolucao` organiza o que foi registrado: sessões concluídas e canceladas, tempo e distância por semana, elevação acumulada, médias opcionais de potência e frequência cardíaca, carga sessão-RPE, velocidade média calculada, acompanhamento factual dos objetivos e check-ins recentes. Ela mostra somente dados observados e explicita quando ainda não há histórico suficiente; não estima desempenho físico nem faz diagnóstico.
 
 Ao concluir um treino, o atleta pode acrescentar distância, ganho de elevação e cadência média. Quem informa no perfil que usa sensor de frequência cardíaca ou medidor de potência recebe também os respectivos campos opcionais. A cadência é armazenada somente como observação, aparece no resultado da sessão e no histórico e não cria uma meta individual nem altera a prescrição.
 
@@ -90,8 +91,8 @@ O MVP de ciclismo está publicado e validado em produção:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Código funcional publicado no commit `f2f8192`; o commit documental `39d8d2e` removeu o arquivo obsoleto `melhorias.md`.
-- Versão visível: `0.30.0`; migrações de banco aplicadas até `000029`.
+- Código publicado na linha de versão `0.31.0`, incluindo configurações da conta e correções responsivas posteriores.
+- Versão visível: `0.31.0`; migrações de banco aplicadas até `000029`. A `000030_profile_safety_context` está somente no checkout local.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, onboarding, plano, treino, feedback, adaptação, atividades, evolução, novidades e logout foram validados em produção. A nova área de configurações está implementada localmente e aguarda validação manual antes de qualquer deploy.
 - `rules-v1` continua sendo a única fonte prescritiva. Os shadows permanecem observacionais.

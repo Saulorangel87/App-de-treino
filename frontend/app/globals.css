@@ -2357,6 +2357,11 @@ button {
   font-size: 9px;
   line-height: 1.4;
 }
+.profile-field-note {
+  color: #7e8b83;
+  font-size: 9px;
+  line-height: 1.45;
+}
 .profile-form select {
   width: 100%;
   height: 43px;
@@ -2570,6 +2575,17 @@ button {
   line-height: 1.45;
   margin-top: 5px;
 }
+.equipment-choice {
+  margin-top: 11px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.equipment-choice label > span {
+  min-height: 86px;
+  padding: 14px;
+}
+.power-context-fields {
+  margin-top: 18px;
+}
 .preference-choice {
   margin: 18px 0;
   padding: 15px 16px;
@@ -2745,6 +2761,12 @@ button {
 }
 .availability-day select {
   height: 32px;
+  padding: 0 7px;
+  font-size: 8px;
+}
+.availability-day input[type='time'] {
+  height: 32px;
+  min-width: 0;
   padding: 0 7px;
   font-size: 8px;
 }
@@ -3209,6 +3231,7 @@ a.footer-icon:hover {
 .session-comparison-foot { display: flex; flex-wrap: wrap; gap: 6px 10px; margin-top: 10px; color: #718078; font-size: 9px; }
 .session-comparison-foot .pain { color: #a65542; font-weight: 750; }
 .consistency-count { display: flex; align-items: baseline; gap: 8px; margin: 39px 0 14px; }.consistency-count strong { color: #214538; font-family: var(--font-newsreader), Georgia, serif; font-size: 56px; font-weight: 500; }.consistency-count span { color: #66766d; font-size: 12px; }.consistency-line { height: 10px; overflow: hidden; border-radius: 9px; background: #edf2ed; }.consistency-line i { display: block; height: 100%; border-radius: inherit; background: #3b7b59; }.consistency-labels { display: flex; justify-content: space-between; margin-top: 8px; color: #718078; font-size: 10px; }
+.goal-progress-card { margin-bottom: 18px; }.goal-progress-intro { max-width: 760px; margin: 14px 0 0; color: #718078; font-size: 11px; line-height: 1.55; }.goal-progress-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }.goal-progress-list article { min-width: 0; padding: 17px; border: 1px solid #dce6de; border-radius: 12px; background: #fbfdfb; }.goal-progress-list article > div:first-child > span { display: block; color: #65907d; font-size: 8px; font-weight: 800; letter-spacing: .8px; }.goal-progress-list article strong { display: block; margin-top: 5px; color: #294a3a; font-size: 14px; }.goal-progress-list article small { display: block; margin-top: 4px; color: #718078; font-size: 9px; }.goal-progress-metrics { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }.goal-progress-metrics span { padding: 5px 7px; border-radius: 7px; background: #edf5ee; color: #617268; font-size: 9px; }.goal-progress-metrics b { color: #2d6249; }.goal-progress-list article > p { margin: 13px 0 0; color: #718078; font-size: 10px; line-height: 1.5; }
 .recovery-history { margin-top: 18px; }.recovery-history-list { display: grid; margin-top: 18px; border-top: 1px solid #e8ede8; }.recovery-history-item { display: grid; grid-template-columns: 74px 112px repeat(3, 1fr); gap: 10px; align-items: center; min-height: 49px; border-bottom: 1px solid #e8ede8; color: #607168; font-size: 11px; }.recovery-history-item time { color: #355948; font-weight: 750; text-transform: uppercase; }.readiness-tag { width: fit-content; padding: 5px 8px; border-radius: 20px; background: #e7f5eb; color: #2d7050; font-size: 9px; font-weight: 800; }.readiness-tag.caution { background: #fff7e7; color: #92662d; }.readiness-tag.recovery_needed { background: #fff0ea; color: #9a4d36; }
 .evolution-empty { max-width: 700px; margin: 70px auto; padding: 55px; text-align: center; color: #5b7466; }.evolution-empty > svg { color: #558049; }.evolution-empty h2 { margin: 16px 0 8px; color: #29483b; font-family: var(--font-newsreader), Georgia, serif; font-size: 29px; font-weight: 500; }.evolution-empty p { margin: 0; font-size: 13px; line-height: 1.6; }.evolution-empty a { display: inline-block; margin-top: 18px; color: #216448; font-size: 12px; font-weight: 800; }
 @media (max-width: 760px) {
@@ -3220,6 +3243,7 @@ a.footer-icon:hover {
   .evolution-metrics article:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
   .evolution-grid { grid-template-columns: minmax(0, 1fr); }
   .evolution-card { min-width: 0; padding: 20px; overflow: hidden; }
+  .goal-progress-list { grid-template-columns: 1fr; }
   .session-comparison-heading > div { display: block; }
   .session-comparison-heading strong { display: block; margin-top: 4px; }
   .session-comparison-metrics { grid-template-columns: 1fr; }

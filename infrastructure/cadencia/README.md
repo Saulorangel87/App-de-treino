@@ -78,7 +78,7 @@ docker compose --env-file infrastructure/cadencia/.env.production \
 
 O primeiro deploy que incluir o recurso deve executar as migrações `000013_user_feedback` e `000014_feedback_digest` pelo perfil `maintenance` antes de habilitar o timer. Se `FEEDBACK_DIGEST_TO` estiver vazio, o comando encerra sem enviar e-mail.
 
-No checkout atual, as migrações `000015` a `000029` registram as fontes científicas do catálogo, os contextos de conclusão e feedback pós-treino, os campos estruturados de segurança, os gates de adaptação, a evidência de recuperação pós-prova e a cadência média observacional. A produção foi sincronizada até `000029` em 14 de setembro de 2026, após backup verificável e aplicação ordenada pelo perfil `maintenance`. A versão comunicada ao usuário em produção é `0.30.0`.
+No checkout atual, as migrações `000015` a `000030` registram as fontes científicas do catálogo, os contextos de conclusão e feedback pós-treino, os campos estruturados de segurança, os gates de adaptação, a evidência de recuperação pós-prova, a cadência média observacional e o contexto adicional de perfil/segurança. A produção foi sincronizada até `000029`; a `000030_profile_safety_context` foi aplicada e testada no PostgreSQL local, mas permanece fora da produção até validação visual e deploy autorizados. A versão comunicada ao usuário em produção é `0.31.0`.
 
 O Ollama é opcional e não é iniciado pelo comando acima. Ele foi instalado na VPS e permanece parado após o teste de capacidade; a produção usa temporariamente o Worker remoto para evitar sobrecarga. O padrão seguro continua sendo `AI_ENABLED=false`. Para preparar o serviço somente na rede interna do Cadência:
 

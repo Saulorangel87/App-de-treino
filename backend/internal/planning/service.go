@@ -30,16 +30,33 @@ type LimitationContext struct {
 	Kind                             string
 	ProfessionalClearanceRecommended bool
 	MedicalRestriction               bool
+	RecentSurgery                    bool
+	ExerciseProhibited               bool
+	ConditionAffectingExercise       bool
 }
 
 type AvailabilitySlot struct {
 	Weekday          int
 	AvailableMinutes int
+	PreferredTime    *string
 	Location         *string
+}
+
+type ProfileContext struct {
+	BirthDate      *string
+	Sex            *string
+	HeightCM       *float64
+	WeightKG       *float64
+	WaistCM        *float64
+	BodyFatPercent *float64
+	WeightTrend    string
+	ActivityLevel  *string
 }
 
 type CyclingContext struct {
 	WeeklyHours            float64  `json:"weekly_hours"`
+	PracticeDurationMonths int      `json:"practice_duration_months"`
+	AverageRideMinutes     int      `json:"average_ride_minutes"`
 	LongestRideMinutes     int      `json:"longest_ride_minutes"`
 	WeeklyRides            int      `json:"weekly_rides"`
 	RecentWeeklyDistanceKM float64  `json:"recent_weekly_distance_km"`
@@ -52,7 +69,13 @@ type CyclingContext struct {
 	Terrain                string   `json:"terrain"`
 	UsesHeartRate          bool     `json:"uses_heart_rate"`
 	UsesPower              bool     `json:"uses_power"`
+	UsesGPS                bool     `json:"uses_gps"`
+	UsesSportsWatch        bool     `json:"uses_sports_watch"`
+	UsesSmartTrainer       bool     `json:"uses_smart_trainer"`
 	FTP                    *int     `json:"ftp,omitempty"`
+	FTPTestDate            *string  `json:"ftp_test_date,omitempty"`
+	FTPProtocol            string   `json:"ftp_protocol,omitempty"`
+	AveragePowerWatts      *int     `json:"average_power_watts,omitempty"`
 	EventGoal              bool     `json:"event_goal"`
 	EventDistanceKM        *int     `json:"event_distance_km,omitempty"`
 	EventDate              *string  `json:"event_date,omitempty"`
@@ -83,8 +106,10 @@ func (summary ObservedTrainingSummary) RequiresRecovery() bool {
 
 type Context struct {
 	ProfileID              string
+	Profile                ProfileContext
 	ExperienceLevel        string
 	PrimaryGoal            string
+	SecondaryGoal          string
 	Limitations            []LimitationContext
 	Availability           []AvailabilitySlot
 	Cycling                CyclingContext
@@ -478,6 +503,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 		return Plan{}, ErrIncompleteOnboarding
 	}
 
+	lowCurrentActivity := isLowCurrentActivity(input.Profile.ActivityLevel)
 	slots := append([]AvailabilitySlot(nil), input.Availability...)
 	sort.Slice(slots, func(i, j int) bool { return slots[i].AvailableMinutes > slots[j].AvailableMinutes })
 	if len(slots) > maxSessions {
@@ -514,7 +540,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 			kind := "base"
 			if index == longIndex {
 				kind = "long"
-			} else if index == intensityIndex && !restricted && !recoveryWeek && !lowObservedAdherence {
+			} else if index == intensityIndex && !restricted && !recoveryWeek && !lowObservedAdherence && !lowCurrentActivity {
 				kind = "quality"
 			}
 			workouts = append(workouts, makeWorkout(input, slot, kind, restricted, multipliers[week], week, scheduledOn, eventTaper, postEventRecovery))
@@ -541,15 +567,31 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 			"training_history":          trainingHistory,
 			"experience_level":          input.ExperienceLevel,
 			"primary_goal":              input.PrimaryGoal,
-			"restricted":                restricted,
+			"secondary_goal":            input.SecondaryGoal,
+			"profile_context": map[string]any{
+				"birth_date":       input.Profile.BirthDate,
+				"sex":              input.Profile.Sex,
+				"height_cm":        input.Profile.HeightCM,
+				"weight_kg":        input.Profile.WeightKG,
+				"waist_cm":         input.Profile.WaistCM,
+				"body_fat_percent": input.Profile.BodyFatPercent,
+				"weight_trend":     input.Profile.WeightTrend,
+				"activity_level":   input.Profile.ActivityLevel,
+			},
+			"restricted": restricted,
 			"safety_context": map[string]any{
-				"active_limitations":     len(input.Limitations),
-				"medical_restriction":    medicalRestriction,
-				"prescription_protected": restricted,
+				"active_limitations":           len(input.Limitations),
+				"medical_restriction":          medicalRestriction,
+				"prescription_protected":       restricted,
+				"recent_surgery":               hasRecentSurgery(input.Limitations),
+				"exercise_prohibited":          hasExerciseProhibited(input.Limitations),
+				"condition_affecting_exercise": hasConditionAffectingExercise(input.Limitations),
 			},
 			"sessions_per_week": len(slots),
 			"cycling_context": map[string]any{
 				"weekly_hours":              input.Cycling.WeeklyHours,
+				"practice_duration_months":  input.Cycling.PracticeDurationMonths,
+				"average_ride_minutes":      input.Cycling.AverageRideMinutes,
 				"longest_ride_minutes":      input.Cycling.LongestRideMinutes,
 				"weekly_rides":              input.Cycling.WeeklyRides,
 				"recent_weekly_distance_km": input.Cycling.RecentWeeklyDistanceKM,
@@ -562,6 +604,12 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 				"terrain":                   input.Cycling.Terrain,
 				"uses_heart_rate":           input.Cycling.UsesHeartRate,
 				"uses_power":                input.Cycling.UsesPower,
+				"uses_gps":                  input.Cycling.UsesGPS,
+				"uses_sports_watch":         input.Cycling.UsesSportsWatch,
+				"uses_smart_trainer":        input.Cycling.UsesSmartTrainer,
+				"ftp_test_date":             input.Cycling.FTPTestDate,
+				"ftp_protocol":              input.Cycling.FTPProtocol,
+				"average_power_watts":       input.Cycling.AveragePowerWatts,
 				"event_goal":                input.Cycling.EventGoal,
 				"event_distance_km":         input.Cycling.EventDistanceKM,
 				"event_date":                input.Cycling.EventDate,
@@ -605,6 +653,8 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	activeRecoveryApplied := false
 	eventTaperApplied := false
 	postEventRecoveryApplied := false
+	qualityGoal := qualityGoalFor(input)
+	lowCurrentActivity := isLowCurrentActivity(input.Profile.ActivityLevel)
 	eventSpecificPhase := eventSpecificPhase(input.Cycling, date)
 	observedProtected := input.Observed.RequiresRecovery() && (input.Observed.PainReported || kind == "quality")
 	if kind == "base" && weekIndex == 3 {
@@ -625,25 +675,25 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		targetRPE = 6.0
 		mainBlock = "3 blocos sustentados com recuperação leve"
 		preference := preferredQualityPreference(input.Cycling)
-		if input.Cycling.Discipline == "road" && input.ExperienceLevel == "advanced" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && input.Cycling.RecentTrainingWeeks >= 8 && input.Cycling.WeeklyRides >= 3 && preference == "vo2max" && slot.AvailableMinutes >= 60 && multiplier >= 0.95 && (!input.Cycling.EventGoal || eventSpecificPhase) {
+		if input.Cycling.Discipline == "road" && input.ExperienceLevel == "advanced" && input.BaselineEligible && (qualityGoal == "performance" || qualityGoal == "event") && input.Cycling.RecentTrainingWeeks >= 8 && input.Cycling.WeeklyRides >= 3 && preference == "vo2max" && slot.AvailableMinutes >= 60 && multiplier >= 0.95 && (!input.Cycling.EventGoal || eventSpecificPhase) {
 			name = "Intervalos VO₂max de estrada"
 			targetRPE = 8.0
 			mainBlock = "4 blocos de 4 min em esforço muito forte-controlado com 4 min leves entre os blocos"
 			summary = "A modalidade de estrada, a preferência explícita, o objetivo, a avaliação apta e o histórico mínimo permitem um piloto de VO₂max conservador; a sessão não usa sprint máximo nem meta fixa de potência."
 			usesRoadVO2Intervals = true
-		} else if (input.Cycling.Discipline == "road" || input.Cycling.Discipline == "indoor") && input.ExperienceLevel == "advanced" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && input.Cycling.RecentTrainingWeeks >= 8 && input.Cycling.WeeklyRides >= 3 && preference == "short_intervals" && slot.AvailableMinutes >= 50 && multiplier >= 0.95 && (!input.Cycling.EventGoal || eventSpecificPhase) {
+		} else if (input.Cycling.Discipline == "road" || input.Cycling.Discipline == "indoor") && input.ExperienceLevel == "advanced" && input.BaselineEligible && (qualityGoal == "performance" || qualityGoal == "event") && input.Cycling.RecentTrainingWeeks >= 8 && input.Cycling.WeeklyRides >= 3 && preference == "short_intervals" && slot.AvailableMinutes >= 50 && multiplier >= 0.95 && (!input.Cycling.EventGoal || eventSpecificPhase) {
 			name = "Intervalos curtos autorregulados"
 			targetRPE = 7.5
 			mainBlock = "6 blocos de 1 min em RPE 7–8 com 1 min leve entre os blocos"
 			summary = "A modalidade, a preferência explícita, o objetivo, a avaliação apta e o histórico mínimo permitem um piloto curto autorregulado; a sessão não usa sprint máximo, potência fixa ou cadência obrigatória."
 			usesShortSelfRegulatedIntervals = true
-		} else if (input.Cycling.Discipline == "road" || input.Cycling.Discipline == "indoor") && input.ExperienceLevel == "advanced" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && input.Cycling.RecentTrainingWeeks >= 8 && input.Cycling.WeeklyRides >= 3 && preference == "threshold" && slot.AvailableMinutes >= 60 && multiplier >= 0.95 && (!input.Cycling.EventGoal || eventSpecificPhase) {
+		} else if (input.Cycling.Discipline == "road" || input.Cycling.Discipline == "indoor") && input.ExperienceLevel == "advanced" && input.BaselineEligible && (qualityGoal == "performance" || qualityGoal == "event") && input.Cycling.RecentTrainingWeeks >= 8 && input.Cycling.WeeklyRides >= 3 && preference == "threshold" && slot.AvailableMinutes >= 60 && multiplier >= 0.95 && (!input.Cycling.EventGoal || eventSpecificPhase) {
 			name = "Limiar controlado"
 			targetRPE = 7.5
 			mainBlock = "3 blocos de 8 min em esforço de limiar controlado com 4 min leves entre os blocos"
 			summary = "A modalidade, a preferência explícita, o objetivo, a avaliação apta e o histórico mínimo permitem um piloto de limiar conservador; a sessão usa percepção de esforço e não define potência universal."
 			usesControlledThreshold = true
-		} else if input.Cycling.Discipline == "road" && input.ExperienceLevel != "beginner" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 60 && multiplier >= 0.95 && (preference == "" || preference == "intervals") && (!input.Cycling.EventGoal || eventSpecificPhase) {
+		} else if input.Cycling.Discipline == "road" && input.ExperienceLevel != "beginner" && input.BaselineEligible && (qualityGoal == "performance" || qualityGoal == "event") && slot.AvailableMinutes >= 60 && multiplier >= 0.95 && (preference == "" || preference == "intervals") && (!input.Cycling.EventGoal || eventSpecificPhase) {
 			if input.ExperienceLevel == "advanced" && input.Cycling.RecentTrainingWeeks >= 8 && input.Cycling.WeeklyRides >= 3 && input.RotationIndex%2 == 1 && slot.AvailableMinutes >= 75 {
 				name = "Intervalos intensos de estrada"
 				targetRPE = 8.0
@@ -657,7 +707,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 				summary = "A modalidade de estrada, o objetivo e a avaliação submáxima apta permitem um piloto intervalado moderado e conservador."
 				usesRoadModerateIntervals = true
 			}
-		} else if input.Cycling.Discipline == "mtb_xco" && input.ExperienceLevel == "advanced" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 75 && multiplier >= 0.95 && (preference == "" || preference == "intervals") && (!input.Cycling.EventGoal || eventSpecificPhase) {
+		} else if input.Cycling.Discipline == "mtb_xco" && input.ExperienceLevel == "advanced" && input.BaselineEligible && (qualityGoal == "performance" || qualityGoal == "event") && slot.AvailableMinutes >= 75 && multiplier >= 0.95 && (preference == "" || preference == "intervals") && (!input.Cycling.EventGoal || eventSpecificPhase) {
 			name = "Intervalos aeróbicos XCO"
 			targetRPE = 7.0
 			mainBlock = "5 blocos aeróbicos de 4 min com 4 min leves entre os blocos"
@@ -680,7 +730,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 			}
 			mainBlock = "4 blocos sustentados em subida, com recuperação leve"
 			summary = "A preferência por subidas e o terreno informado orientam um estímulo controlado."
-		} else if preference == "intervals" && input.ExperienceLevel == "advanced" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 50 && multiplier >= 0.95 {
+		} else if preference == "intervals" && input.ExperienceLevel == "advanced" && input.BaselineEligible && (qualityGoal == "performance" || qualityGoal == "event") && slot.AvailableMinutes >= 50 && multiplier >= 0.95 {
 			name = "Intervalos controlados"
 			targetRPE = 7.0
 			mainBlock = "4 blocos de 4 min em esforço forte-controlado, com 3 min leves entre os blocos"
@@ -691,7 +741,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 			targetRPE = 7.0
 			mainBlock = "3 blocos sustentados guiados pelo FTP informado, com recuperação leve"
 			summary = "A preferência por sweet spot foi combinada com o medidor de potência e o FTP informado."
-		} else if input.ExperienceLevel == "advanced" && input.BaselineEligible && (input.PrimaryGoal == "performance" || input.PrimaryGoal == "event") && slot.AvailableMinutes >= 50 && multiplier >= 0.95 {
+		} else if input.ExperienceLevel == "advanced" && input.BaselineEligible && (qualityGoal == "performance" || qualityGoal == "event") && slot.AvailableMinutes >= 50 && multiplier >= 0.95 {
 			name = "Intervalos controlados"
 			targetRPE = 7.0
 			mainBlock = "4 blocos de 4 min em esforço forte-controlado, com 3 min leves entre os blocos"
@@ -814,6 +864,15 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	if input.Cycling.WeeklyRides > 0 || input.Cycling.RecentWeeklyDistanceKM > 0 {
 		rules = append(rules, "Histórico recente informado usado para contextualizar a sessão.")
 	}
+	if input.SecondaryGoal != "" && qualityGoal == input.SecondaryGoal && qualityGoal != input.PrimaryGoal {
+		rules = append(rules, "Objetivo secundário considerado como desempate para escolher um estímulo de qualidade já elegível.")
+	}
+	if lowCurrentActivity {
+		rules = append(rules, "Rotina atual de baixa atividade: a sessão de qualidade foi preservada até haver mais consistência observada.")
+	}
+	if slot.PreferredTime != nil || slot.Location != nil {
+		rules = append(rules, "Horário e local preferidos foram preservados como contexto da sessão.")
+	}
 	if input.Observed.HasData() {
 		rules = append(rules, fmt.Sprintf("Histórico observado dos últimos %d dias considerado (%d sessões concluídas).", input.Observed.WindowDays, input.Observed.CompletedSessions))
 	}
@@ -874,6 +933,13 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		evidenceKeys = append(append([]string(nil), eventTaper.EvidenceKeys...), evidenceKeys...)
 		evidenceScope += " O taper pré-prova usa evidência de redução de volume em ciclistas/endurance, com transferência limitada a atletas elegíveis; não é dose universal."
 	}
+	structure := buildStructure(duration, targetRPE, name, mainBlock)
+	if slot.PreferredTime != nil {
+		structure["preferred_time"] = *slot.PreferredTime
+	}
+	if slot.Location != nil {
+		structure["planned_location"] = *slot.Location
+	}
 	decisionAudit := buildWorkoutDecisionAudit(input, kind, rules, restricted, observedProtected, returningAfterPause, weekIndex == 3, eventTaperApplied, postEventRecoveryApplied)
 	return Workout{
 		ScheduledOn:     date.Format("2006-01-02"),
@@ -881,7 +947,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		Objective:       objectiveFor(input.PrimaryGoal),
 		DurationMinutes: duration,
 		TargetRPE:       targetRPE,
-		Structure:       buildStructure(duration, targetRPE, name, mainBlock),
+		Structure:       structure,
 		Explanation:     map[string]any{"summary": summary, "rules": rules, "decision_audit": decisionAudit, "protocol_key": protocol.Key, "protocol_metadata": metadataForProtocol(protocol.Key), "evidence_keys": evidenceKeys, "evidence_scope": evidenceScope, "event_taper_applied": eventTaperApplied},
 		Status:          "planned",
 	}
@@ -894,6 +960,47 @@ func hasMedicalRestriction(limitations []LimitationContext) bool {
 		}
 	}
 	return false
+}
+
+func hasRecentSurgery(limitations []LimitationContext) bool {
+	for _, limitation := range limitations {
+		if limitation.RecentSurgery {
+			return true
+		}
+	}
+	return false
+}
+
+func hasExerciseProhibited(limitations []LimitationContext) bool {
+	for _, limitation := range limitations {
+		if limitation.ExerciseProhibited {
+			return true
+		}
+	}
+	return false
+}
+
+func hasConditionAffectingExercise(limitations []LimitationContext) bool {
+	for _, limitation := range limitations {
+		if limitation.ConditionAffectingExercise {
+			return true
+		}
+	}
+	return false
+}
+
+func isLowCurrentActivity(value *string) bool {
+	return value != nil && (*value == "sedentary" || *value == "occasional")
+}
+
+func qualityGoalFor(input Context) string {
+	if input.PrimaryGoal == "performance" || input.PrimaryGoal == "event" {
+		return input.PrimaryGoal
+	}
+	if input.SecondaryGoal == "performance" || input.SecondaryGoal == "event" {
+		return input.SecondaryGoal
+	}
+	return input.PrimaryGoal
 }
 
 func preferredQualityPreference(context CyclingContext) string {

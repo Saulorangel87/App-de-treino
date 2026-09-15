@@ -17,6 +17,9 @@ type Profile struct {
 	Sex             *string  `json:"sex"`
 	HeightCM        *float64 `json:"height_cm"`
 	WeightKG        *float64 `json:"weight_kg"`
+	WaistCM         *float64 `json:"waist_cm"`
+	BodyFatPercent  *float64 `json:"body_fat_percent"`
+	WeightTrend     string   `json:"weight_trend"`
 	Sport           string   `json:"sport"`
 	ExperienceLevel string   `json:"experience_level"`
 	ActivityLevel   *string  `json:"activity_level"`
@@ -32,6 +35,9 @@ type Service struct{ store Store }
 func NewService(store Store) *Service { return &Service{store: store} }
 
 func (s *Service) Save(ctx context.Context, profile Profile) (Profile, error) {
+	if profile.WeightTrend == "" {
+		profile.WeightTrend = "not_informed"
+	}
 	if !validProfile(profile) {
 		return Profile{}, ErrInvalidProfile
 	}
@@ -46,6 +52,7 @@ func (s *Service) Get(ctx context.Context, userID string) (Profile, error) {
 func validProfile(profile Profile) bool {
 	levels := map[string]bool{"beginner": true, "intermediate": true, "advanced": true}
 	sexes := map[string]bool{"female": true, "male": true, "other": true, "prefer_not_to_say": true}
+	activityLevels := map[string]bool{"sedentary": true, "occasional": true, "regular": true, "frequent": true}
 	if !levels[profile.ExperienceLevel] {
 		return false
 	}
@@ -56,6 +63,18 @@ func validProfile(profile Profile) bool {
 		return false
 	}
 	if profile.WeightKG != nil && (*profile.WeightKG < 30 || *profile.WeightKG > 350) {
+		return false
+	}
+	if profile.WaistCM != nil && (*profile.WaistCM < 30 || *profile.WaistCM > 250) {
+		return false
+	}
+	if profile.BodyFatPercent != nil && (*profile.BodyFatPercent < 2 || *profile.BodyFatPercent > 70) {
+		return false
+	}
+	if profile.WeightTrend != "" && profile.WeightTrend != "not_informed" && profile.WeightTrend != "stable" && profile.WeightTrend != "increasing" && profile.WeightTrend != "decreasing" {
+		return false
+	}
+	if profile.ActivityLevel != nil && !activityLevels[*profile.ActivityLevel] {
 		return false
 	}
 	if profile.BirthDate != nil {

@@ -18,6 +18,9 @@ type Limitation struct {
 	StartedOn                        *string  `json:"started_on,omitempty"`
 	SymptomsDuringAfter              []string `json:"symptoms_during_after,omitempty"`
 	MedicalRestriction               bool     `json:"medical_restriction"`
+	RecentSurgery                    bool     `json:"recent_surgery"`
+	ExerciseProhibited               bool     `json:"exercise_prohibited"`
+	ConditionAffectingExercise       bool     `json:"condition_affecting_exercise"`
 	IsActive                         bool     `json:"is_active"`
 	ProfessionalClearanceRecommended bool     `json:"professional_clearance_recommended"`
 }
@@ -45,6 +48,8 @@ type Onboarding struct {
 
 type CyclingContext struct {
 	WeeklyHours            float64  `json:"weekly_hours"`
+	PracticeDurationMonths int      `json:"practice_duration_months"`
+	AverageRideMinutes     int      `json:"average_ride_minutes"`
 	LongestRideMinutes     int      `json:"longest_ride_minutes"`
 	WeeklyRides            int      `json:"weekly_rides"`
 	RecentWeeklyDistanceKM float64  `json:"recent_weekly_distance_km"`
@@ -57,7 +62,13 @@ type CyclingContext struct {
 	Terrain                string   `json:"terrain"`
 	UsesHeartRate          bool     `json:"uses_heart_rate"`
 	UsesPower              bool     `json:"uses_power"`
+	UsesGPS                bool     `json:"uses_gps"`
+	UsesSportsWatch        bool     `json:"uses_sports_watch"`
+	UsesSmartTrainer       bool     `json:"uses_smart_trainer"`
 	FTP                    *int     `json:"ftp,omitempty"`
+	FTPTestDate            *string  `json:"ftp_test_date,omitempty"`
+	FTPProtocol            string   `json:"ftp_protocol,omitempty"`
+	AveragePowerWatts      *int     `json:"average_power_watts,omitempty"`
 	EventGoal              bool     `json:"event_goal"`
 	EventDistanceKM        *int     `json:"event_distance_km,omitempty"`
 	EventDate              *string  `json:"event_date,omitempty"`
@@ -80,7 +91,7 @@ func (s *OnboardingService) SaveCyclingContext(ctx context.Context, userID strin
 	if value.TrainingStatus == "" {
 		value.TrainingStatus = "not_informed"
 	}
-	if value.WeeklyHours < 0 || value.WeeklyHours > 80 || value.LongestRideMinutes < 0 || value.LongestRideMinutes > 1440 || value.WeeklyRides < 0 || value.WeeklyRides > 21 || value.RecentWeeklyDistanceKM < 0 || value.RecentWeeklyDistanceKM > 2000 || value.RecentTrainingWeeks < 0 || value.RecentTrainingWeeks > 52 || value.RecentBestDistanceKM < 0 || value.RecentBestDistanceKM > 2000 || len(value.PreferredSessionTypes) > 9 || (value.FTP != nil && (*value.FTP < 50 || *value.FTP > 600)) || (value.EventDistanceKM != nil && (*value.EventDistanceKM < 1 || *value.EventDistanceKM > 2000)) {
+	if value.WeeklyHours < 0 || value.WeeklyHours > 80 || value.PracticeDurationMonths < 0 || value.PracticeDurationMonths > 1200 || value.AverageRideMinutes < 0 || value.AverageRideMinutes > 1440 || value.LongestRideMinutes < 0 || value.LongestRideMinutes > 1440 || value.WeeklyRides < 0 || value.WeeklyRides > 21 || value.RecentWeeklyDistanceKM < 0 || value.RecentWeeklyDistanceKM > 2000 || value.RecentTrainingWeeks < 0 || value.RecentTrainingWeeks > 52 || value.RecentBestDistanceKM < 0 || value.RecentBestDistanceKM > 2000 || len(value.PreferredSessionTypes) > 9 || (value.FTP != nil && (*value.FTP < 50 || *value.FTP > 600)) || (value.AveragePowerWatts != nil && (*value.AveragePowerWatts < 0 || *value.AveragePowerWatts > 2000)) || (value.EventDistanceKM != nil && (*value.EventDistanceKM < 1 || *value.EventDistanceKM > 2000)) {
 		return CyclingContext{}, ErrInvalidOnboarding
 	}
 	allowedDisciplines := map[string]bool{"": true, "general": true, "road": true, "mtb_xco": true, "mtb_xcm": true, "gravel": true, "indoor": true}
@@ -101,8 +112,22 @@ func (s *OnboardingService) SaveCyclingContext(ctx context.Context, userID strin
 		value.PreferredSessionTypes[index] = preference
 		seenPreferences[preference] = true
 	}
-	if value.FTP != nil && !value.UsesPower {
-		return CyclingContext{}, ErrInvalidOnboarding
+	if !value.UsesPower {
+		value.FTP, value.FTPTestDate, value.FTPProtocol, value.AveragePowerWatts = nil, nil, "", nil
+	} else {
+		if value.FTPTestDate != nil {
+			date, err := time.Parse("2006-01-02", strings.TrimSpace(*value.FTPTestDate))
+			now := s.now()
+			today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+			if err != nil || date.After(today) {
+				return CyclingContext{}, ErrInvalidOnboarding
+			}
+			formatted := date.Format("2006-01-02")
+			value.FTPTestDate = &formatted
+		}
+		if value.FTPProtocol != "" && value.FTPProtocol != "20_minute" && value.FTPProtocol != "ramp" && value.FTPProtocol != "other" {
+			return CyclingContext{}, ErrInvalidOnboarding
+		}
 	}
 	if value.EventGoal {
 		if value.EventDistanceKM == nil || value.EventDate == nil {
@@ -192,7 +217,7 @@ func (s *OnboardingService) SaveGoals(ctx context.Context, userID string, goals 
 		priorities[goals[index].Priority] = true
 		if goals[index].TargetDate != nil {
 			date, err := time.Parse("2006-01-02", *goals[index].TargetDate)
-			if err != nil || date.Before(time.Now().AddDate(0, 0, -1)) {
+			if err != nil || date.Before(s.now().AddDate(0, 0, -1)) {
 				return nil, ErrInvalidOnboarding
 			}
 		}

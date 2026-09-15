@@ -1046,6 +1046,77 @@ func TestBuildPlanRotatesAdvancedQualityAcrossCycles(t *testing.T) {
 	}
 }
 
+func TestBuildPlanUsesSecondaryPerformanceGoalOnlyForEligibleQuality(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "health", SecondaryGoal: "performance", BaselineEligible: true,
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	foundQuality := false
+	for _, workout := range plan.Workouts {
+		if workout.TargetRPE >= 6 {
+			foundQuality = true
+		}
+	}
+	if !foundQuality {
+		t.Fatalf("expected eligible secondary performance goal to unlock a quality option, got %#v", plan.Workouts)
+	}
+}
+
+func TestBuildPlanLowCurrentActivityBlocksQuality(t *testing.T) {
+	activity := "sedentary"
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance", BaselineEligible: true,
+		Profile:      ProfileContext{ActivityLevel: &activity},
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}, {Weekday: 6, AvailableMinutes: 180}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.TargetRPE >= 6 {
+			t.Fatalf("low current activity must block quality, got %#v", workout)
+		}
+		audit := workout.Explanation["decision_audit"].(WorkoutDecisionAudit)
+		if !slices.Contains(audit.ConstraintsApplied, "low_current_activity") {
+			t.Fatalf("low activity gate must be auditable, got %#v", audit)
+		}
+	}
+}
+
+func TestBuildPlanPreservesAvailabilityTimeAndLocation(t *testing.T) {
+	preferredTime, location := "06:30", "indoor"
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "beginner", PrimaryGoal: "health",
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 45, PreferredTime: &preferredTime, Location: &location}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, workout := range plan.Workouts {
+		if workout.Structure["preferred_time"] != preferredTime || workout.Structure["planned_location"] != location {
+			t.Fatalf("availability context was not preserved: %#v", workout.Structure)
+		}
+	}
+}
+
+func TestBuildPlanRecordsNewSafetyFlags(t *testing.T) {
+	plan, err := buildPlan(Context{
+		ProfileID: "profile-1", ExperienceLevel: "advanced", PrimaryGoal: "performance",
+		Limitations:  []LimitationContext{{Kind: "medical_condition", RecentSurgery: true, ExerciseProhibited: true, ConditionAffectingExercise: true}},
+		Availability: []AvailabilitySlot{{Weekday: 2, AvailableMinutes: 90}},
+	}, time.Date(2026, time.September, 1, 10, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	safety := plan.PrescriptionSnapshot["safety_context"].(map[string]any)
+	if safety["recent_surgery"] != true || safety["exercise_prohibited"] != true || safety["condition_affecting_exercise"] != true {
+		t.Fatalf("new safety flags were not preserved: %#v", safety)
+	}
+}
+
 func intPointer(value int) *int { return &value }
 
 func TestActivateReturnsTheActivePlan(t *testing.T) {

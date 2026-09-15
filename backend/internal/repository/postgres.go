@@ -132,16 +132,18 @@ func (s *Store) withTx(ctx context.Context, operation func(pgx.Tx) error) error 
 func (s *Store) UpsertProfile(ctx context.Context, profile athlete.Profile) (athlete.Profile, error) {
 	var saved athlete.Profile
 	err := s.pool.QueryRow(ctx, `
-		INSERT INTO athlete_profiles (user_id, birth_date, sex, height_cm, weight_kg, sport, experience_level, activity_level)
-		VALUES ($1, $2::date, $3, $4, $5, 'cycling', $6, $7)
+		INSERT INTO athlete_profiles (user_id, birth_date, sex, height_cm, weight_kg, waist_cm, body_fat_percent, weight_trend, sport, experience_level, activity_level)
+		VALUES ($1, $2::date, $3, $4, $5, $6, $7, $8, 'cycling', $9, $10)
 		ON CONFLICT (user_id) DO UPDATE SET
 			birth_date = EXCLUDED.birth_date, sex = EXCLUDED.sex, height_cm = EXCLUDED.height_cm,
-			weight_kg = EXCLUDED.weight_kg, experience_level = EXCLUDED.experience_level,
-			activity_level = EXCLUDED.activity_level, updated_at = now()
+			weight_kg = EXCLUDED.weight_kg, waist_cm = EXCLUDED.waist_cm,
+			body_fat_percent = EXCLUDED.body_fat_percent, weight_trend = EXCLUDED.weight_trend,
+			experience_level = EXCLUDED.experience_level, activity_level = EXCLUDED.activity_level, updated_at = now()
 		RETURNING user_id::text, birth_date::text, sex, height_cm::double precision,
-			weight_kg::double precision, sport, experience_level, activity_level`,
-		profile.UserID, profile.BirthDate, profile.Sex, profile.HeightCM, profile.WeightKG, profile.ExperienceLevel, profile.ActivityLevel,
-	).Scan(&saved.UserID, &saved.BirthDate, &saved.Sex, &saved.HeightCM, &saved.WeightKG, &saved.Sport, &saved.ExperienceLevel, &saved.ActivityLevel)
+			weight_kg::double precision, waist_cm::double precision, body_fat_percent::double precision,
+			weight_trend, sport, experience_level, activity_level`,
+		profile.UserID, profile.BirthDate, profile.Sex, profile.HeightCM, profile.WeightKG, profile.WaistCM, profile.BodyFatPercent, profile.WeightTrend, profile.ExperienceLevel, profile.ActivityLevel,
+	).Scan(&saved.UserID, &saved.BirthDate, &saved.Sex, &saved.HeightCM, &saved.WeightKG, &saved.WaistCM, &saved.BodyFatPercent, &saved.WeightTrend, &saved.Sport, &saved.ExperienceLevel, &saved.ActivityLevel)
 	return saved, err
 }
 
@@ -149,9 +151,10 @@ func (s *Store) ProfileByUserID(ctx context.Context, userID string) (athlete.Pro
 	var profile athlete.Profile
 	err := s.pool.QueryRow(ctx, `
 		SELECT user_id::text, birth_date::text, sex, height_cm::double precision,
-			weight_kg::double precision, sport, experience_level, activity_level
+			weight_kg::double precision, waist_cm::double precision, body_fat_percent::double precision,
+			weight_trend, sport, experience_level, activity_level
 		FROM athlete_profiles WHERE user_id = $1`, userID,
-	).Scan(&profile.UserID, &profile.BirthDate, &profile.Sex, &profile.HeightCM, &profile.WeightKG, &profile.Sport, &profile.ExperienceLevel, &profile.ActivityLevel)
+	).Scan(&profile.UserID, &profile.BirthDate, &profile.Sex, &profile.HeightCM, &profile.WeightKG, &profile.WaistCM, &profile.BodyFatPercent, &profile.WeightTrend, &profile.Sport, &profile.ExperienceLevel, &profile.ActivityLevel)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return athlete.Profile{}, athlete.ErrProfileMissing
 	}

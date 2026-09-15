@@ -1,6 +1,6 @@
 # Matriz histórica de aceitação técnica
 
-Atualizada em 14 de setembro de 2026 para a versão publicada `0.30.0`.
+Atualizada em 15 de setembro de 2026. A versão publicada é `0.31.0`; a entrega local seguinte, ainda não publicada, introduz a migração `000030_profile_safety_context`.
 
 Este documento preserva a matriz verificável que orientou a fase técnica anterior. O documento único de planejamento vigente é [`planejamento.md`](../planejamento.md). Esta matriz separa três situações que não podem ser confundidas:
 
@@ -82,9 +82,9 @@ Condição externa: a seleção plenamente adaptativa depende da validação do 
 
 ## 10. Segurança
 
-**Implementado como coleta e proteção, não como diagnóstico.** Limitações, localização, intensidade, movimento agravante, início, sintomas de alerta, restrição médica e recomendação de avaliação profissional são armazenados. Limitação ativa bloqueia início de sessão acima de RPE 4, sem bypass, e a geração protege o plano.
+**Implementado como coleta e proteção, não como diagnóstico.** Limitações, localização, intensidade, movimento agravante, início, sintomas de alerta, restrição médica, cirurgia recente, proibição de exercício, condição que afeta exercício e recomendação de avaliação profissional são armazenados. Limitação ativa bloqueia início de sessão acima de RPE 4, sem bypass, e a geração protege o plano.
 
-Evidência de teste: `TestWorkoutRequiresSafetyBlockOnlyForIntenseSessionWithLimitation`, `TestGenerateCapsIntensityWhenLimitationExists` e `database/tests/000025_limitation_safety_signals.sql`.
+Evidência de teste: `TestWorkoutRequiresSafetyBlockOnlyForIntenseSessionWithLimitation`, `TestGenerateCapsIntensityWhenLimitationExists`, `TestBuildPlanRecordsNewSafetyFlags`, `database/tests/000025_limitation_safety_signals.sql` e `database/tests/000030_profile_safety_context.sql`.
 
 Condição externa: a classificação clínica de sintomas, diagnóstico e liberação para esforço exigem profissional habilitado; o app não tentará automatizá-los.
 
@@ -116,13 +116,13 @@ Evidência de teste: validações de disciplina e catálogo em `service_test.go`
 
 **Implementado para os cenários automatizáveis.** A suíte cobre iniciante/intermediário/avançado, retorno, recuperação, dor, baixa aderência, evento, ausência de sensores, dados inconsistentes, parcial, aumento/manutenção/redução, semana de recuperação, densidade de qualidade, fadiga, progressão fácil e regressão por esforço alto. A camada SQL testa geração/adaptação transacional; as suítes Go testam serialização e preservação de histórico.
 
-Comandos de verificação da candidata: `go test -count=1 ./...`, `go vet ./...`, fixtures SQL transacionais `000005`, `000020`, `000024`–`000029`, lint direcionado dos arquivos alterados, `npm run build` e `git diff --check`.
+Comandos de verificação da candidata: `go test -count=1 ./...`, `go vet ./...`, fixtures SQL transacionais `000005`, `000020`, `000024`–`000030`, `npm run build` e `git diff --check`. O lint geral continua como dívida histórica e deve ser tratado em uma limpeza própria, sem ser usado como aprovação implícita de publicação.
 
-Limite conhecido: o lint geral possui dívida histórica fora desta entrega; o lint direcionado dos arquivos modificados deve permanecer limpo.
+Limite conhecido: o lint geral possui dívida histórica, inclusive em páginas amplas que receberam extensões ao longo do produto. Cada entrega deve registrar esse limite com transparência e preservar build, testes de domínio e integração SQL como gates obrigatórios.
 
 ## 16. Critérios operacionais de aceitação
 
-**Atendidos e verificados em produção.** O Cadência preserva o PostgreSQL privado, não cria modalidades fora do escopo, mantém o motor explicável e conservador e foi publicado na versão `0.30.0`.
+**Atendidos e verificados em produção.** O Cadência preserva o PostgreSQL privado, não cria modalidades fora do escopo, mantém o motor explicável e conservador e foi publicado na versão `0.31.0`.
 
 O deploy foi concluído com backup verificável, aplicação ordenada das migrações `000024`–`000029`, confirmação de `cadencia_schema_migrations`, leitura autenticada de `/v1/plans/current`, validação da interface e healthchecks. A regra de compatibilidade de schema permanece obrigatória nos próximos deploys; healthcheck isolado não é suficiente.
 

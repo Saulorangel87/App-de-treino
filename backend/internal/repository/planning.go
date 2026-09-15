@@ -242,10 +242,15 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 	var input planning.Context
 	var cyclingContext []byte
 	err := s.pool.QueryRow(ctx, `
-		SELECT ap.id::text, ap.experience_level, ap.cycling_context,
+		SELECT ap.id::text, ap.experience_level, ap.birth_date::text, ap.sex,
+			ap.height_cm::double precision, ap.weight_kg::double precision,
+			ap.waist_cm::double precision, ap.body_fat_percent::double precision,
+			ap.weight_trend, ap.activity_level, ap.cycling_context,
 			COALESCE((SELECT ca.eligible_for_progression FROM cycling_assessments ca WHERE ca.athlete_profile_id = ap.id ORDER BY ca.completed_at DESC LIMIT 1), false)
 		FROM athlete_profiles ap WHERE ap.user_id = $1`, userID,
-	).Scan(&input.ProfileID, &input.ExperienceLevel, &cyclingContext, &input.BaselineEligible)
+	).Scan(&input.ProfileID, &input.ExperienceLevel, &input.Profile.BirthDate, &input.Profile.Sex,
+		&input.Profile.HeightCM, &input.Profile.WeightKG, &input.Profile.WaistCM, &input.Profile.BodyFatPercent,
+		&input.Profile.WeightTrend, &input.Profile.ActivityLevel, &cyclingContext, &input.BaselineEligible)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return planning.Context{}, planning.ErrIncompleteOnboarding
 	}
@@ -310,25 +315,42 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 		return planning.Context{}, err
 	}
 
-	err = s.pool.QueryRow(ctx, `
-		SELECT goal_type FROM goals WHERE athlete_profile_id = $1 AND priority = 1`, input.ProfileID,
-	).Scan(&input.PrimaryGoal)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return planning.Context{}, planning.ErrIncompleteOnboarding
-	}
+	goalRows, err := s.pool.Query(ctx, `
+		SELECT priority, goal_type FROM goals WHERE athlete_profile_id = $1 AND priority IN (1, 2) ORDER BY priority`, input.ProfileID)
 	if err != nil {
 		return planning.Context{}, err
 	}
+	for goalRows.Next() {
+		var priority int
+		var goalType string
+		if err := goalRows.Scan(&priority, &goalType); err != nil {
+			goalRows.Close()
+			return planning.Context{}, err
+		}
+		if priority == 1 {
+			input.PrimaryGoal = goalType
+		} else if priority == 2 {
+			input.SecondaryGoal = goalType
+		}
+	}
+	if err := goalRows.Err(); err != nil {
+		goalRows.Close()
+		return planning.Context{}, err
+	}
+	goalRows.Close()
+	if input.PrimaryGoal == "" {
+		return planning.Context{}, planning.ErrIncompleteOnboarding
+	}
 
 	limitationRows, err := s.pool.Query(ctx, `
-		SELECT kind, professional_clearance_recommended, medical_restriction FROM injuries_or_limitations
+		SELECT kind, professional_clearance_recommended, medical_restriction, recent_surgery, exercise_prohibited, condition_affecting_exercise FROM injuries_or_limitations
 		WHERE athlete_profile_id = $1 AND is_active = true`, input.ProfileID)
 	if err != nil {
 		return planning.Context{}, err
 	}
 	for limitationRows.Next() {
 		var item planning.LimitationContext
-		if err := limitationRows.Scan(&item.Kind, &item.ProfessionalClearanceRecommended, &item.MedicalRestriction); err != nil {
+		if err := limitationRows.Scan(&item.Kind, &item.ProfessionalClearanceRecommended, &item.MedicalRestriction, &item.RecentSurgery, &item.ExerciseProhibited, &item.ConditionAffectingExercise); err != nil {
 			limitationRows.Close()
 			return planning.Context{}, err
 		}
@@ -341,7 +363,7 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 	limitationRows.Close()
 
 	availabilityRows, err := s.pool.Query(ctx, `
-		SELECT weekday, available_minutes, location FROM availability
+		SELECT weekday, available_minutes, to_char(preferred_time, 'HH24:MI'), location FROM availability
 		WHERE athlete_profile_id = $1 AND available_minutes > 0 ORDER BY weekday`, input.ProfileID)
 	if err != nil {
 		return planning.Context{}, err
@@ -349,7 +371,7 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 	defer availabilityRows.Close()
 	for availabilityRows.Next() {
 		var item planning.AvailabilitySlot
-		if err := availabilityRows.Scan(&item.Weekday, &item.AvailableMinutes, &item.Location); err != nil {
+		if err := availabilityRows.Scan(&item.Weekday, &item.AvailableMinutes, &item.PreferredTime, &item.Location); err != nil {
 			return planning.Context{}, err
 		}
 		input.Availability = append(input.Availability, item)

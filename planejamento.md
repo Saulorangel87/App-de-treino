@@ -1531,72 +1531,51 @@ Essa ocorrência encerra a lacuna operacional do deploy, não uma melhoria funci
 
 ---
 
-# Revisão de escopo e encerramento do ciclo atual — 14 de setembro de 2026
+# Estado consolidado e próxima entrega local — 15 de setembro de 2026
 
 Este é o registro vigente do planejamento. O arquivo `melhorias.md` foi removido; não existe um segundo roadmap ativo. O `planejamento.md` é o documento único para visão, escopo e próximos passos do Cadência.
 
 ## Escopo definitivo
 
-O Cadência é um aplicativo de planejamento e acompanhamento de ciclismo. O catálogo atual aceita estrada, MTB XCO/XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro permanecem fora do produto. Corrida e musculação também estão fora deste repositório e poderão ser desenvolvidas em aplicativos independentes.
+O Cadência é um aplicativo de planejamento e acompanhamento de ciclismo. O catálogo aceita estrada, MTB XCO/XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro permanecem fora do produto. Corrida e musculação também estão fora deste repositório e, se existirem, serão produtos independentes.
 
-## Comparação com o aplicativo atual
+## MVP publicado
 
-### Concluído no MVP de ciclismo
+O MVP de ciclismo foi validado e está em produção na versão `0.31.0`, com schema aplicado até `000029`. Ele inclui cadastro e sessão, confirmação de e-mail, configurações e encerramento seguro de conta, perfil em etapas, objetivos, disponibilidade, avaliação submáxima, recuperação, geração e ativação de planos, execução e feedback, correção auditável de métricas, histórico, evolução, novidades, feedback de produto e infraestrutura Docker/PostgreSQL/Cloudflare Tunnel.
 
-O fluxo principal está implementado, testado e publicado em produção na versão `0.30.0`:
+O motor ativo continua sendo o determinístico `rules-v1`. A IA é exclusivamente explicativa, com fallback determinístico. Os componentes `rules-v2`, tolerância, periodização, seleção de estímulos e coerência continuam em modo `shadow`: registram observações, mas não ganham autoridade para prescrever, diagnosticar ou aumentar carga.
 
-1. cadastro, login, confirmação de e-mail, recuperação de senha e logout;
-2. perfil básico com nível, rotina e dados opcionais;
-3. questionário de ciclismo em etapas, com objetivos principal/secundário, disponibilidade diária e contexto de equipamentos;
-4. histórico resumido de ciclismo, situação atual do treino e contexto opcional de prova;
-5. limitações, sintomas de alerta, restrição médica e bloqueios conservadores de segurança;
-6. recuperação diária com sono, estresse e fadiga percebida;
-7. avaliação inicial submáxima, sem teste máximo ou diagnóstico;
-8. motor determinístico `rules-v1`, catálogo de protocolos e geração de ciclos de quatro semanas;
-9. calendário, treino diário, estrutura, RPE, fontes científicas e explicação da escolha;
-10. início, conclusão completa/parcial, cancelamento, registro de treino perdido e correção auditável de métricas;
-11. feedback de esforço, dificuldade, fadiga, dor, recuperação, confiança, satisfação, terreno, condições, equipamento e métricas opcionais;
-12. adaptação básica e conservadora após feedback válido, preservando segurança e histórico;
-13. atividades, evolução observada, consistência, carga por session-RPE e check-ins de recuperação;
-14. auditoria da decisão, estados de prontidão, integridade, comparação planejado versus realizado e shadows sem autoridade prescritiva;
-15. IA explicativa opcional no backend, com fallback determinístico e sem chaves no frontend;
-16. PWA, responsividade, aba de novidades, feedback do produto e infraestrutura Docker/PostgreSQL/Cloudflare Tunnel.
+## Entrega local validada, aguardando publicação
 
-### Nova etapa em validação — configurações da conta (`0.31.0`)
+Esta entrega completa as lacunas de produto que ainda estavam parciais, sem ampliar o escopo além de ciclismo:
 
-A área `/configuracoes` foi implementada no checkout local. Ela apresenta os dados da conta, encaminha para a edição do perfil e permite o encerramento definitivo mediante senha atual e confirmação explícita. O endpoint `DELETE /v1/auth/account` apaga o usuário no PostgreSQL em uma operação atômica; as relações pessoais existentes usam `ON DELETE CASCADE`, e a cobertura está registrada em `database/tests/account_deletion.sql`. A sessão é invalidada e o cookie é removido após o sucesso. A tela foi adaptada para mobile e o acesso também aparece no cabeçalho compacto.
+1. um contrato versionado de questionário (`GET /v1/onboarding/questionnaire`) define etapas, perguntas obrigatórias e gates condicionais; a tela consome esses gates para exibir segurança, potência e evento, incluindo a pergunta de FTP apenas para quem informa medidor de potência;
+2. o perfil passa a registrar, de forma opcional, cintura, composição corporal e tendência de peso; esses dados são contexto e nunca uma fórmula automática de carga ou diagnóstico;
+3. objetivo secundário, rotina de atividade, horário/local disponível e histórico adicional de ciclismo entram no contexto auditável do plano. A rotina sedentária ou ocasional bloqueia sessões de qualidade; objetivo secundário só desempata uma opção que já passou por segurança e elegibilidade;
+4. o histórico de ciclismo registra tempo de prática, duração média, GPS, relógio, rolo inteligente, FTP, data/protocolo do teste e potência média, sempre opcionais e validados;
+5. segurança ganha os sinais explícitos de cirurgia recente, proibição de exercício e condição que afeta exercício. Eles preservam o plano protegido e não substituem liberação profissional;
+6. evolução passa a mostrar acompanhamento factual dos objetivos nos últimos 28 dias, carga sessão-RPE e velocidade média calculada somente quando duração e distância foram registradas. Não há percentual inventado de conclusão nem estimativa de desempenho;
+7. a migração aditiva `000030_profile_safety_context` persiste os novos campos de perfil e segurança. Ela foi aplicada e validada no PostgreSQL local; antes de qualquer deploy deve ser aplicada pelo perfil `maintenance` em produção e validada por uma leitura autenticada de rota crítica.
 
-O código está na versão local `0.31.0`; ainda falta a validação manual da tela em desktop/mobile e do fluxo de encerramento com uma conta descartável. A produção permanece na `0.30.0` até essa validação e um deploy autorizado. A mensagem informa que backups podem permanecer até o prazo de retenção operacional.
+Validação local concluída nesta entrega: `go test ./...`, `go vet ./...`, `npm run build`, OpenAPI, `git diff --check`, fixture transacional da migração `000030`, consulta real ao schema local, teste integrado das consultas de evolução, chamada autenticada de `GET /v1/onboarding/questionnaire` e `scripts/test-local-visual.ps1`. O smoke test visual abriu `/perfil` em mobile/desktop, `/plano` em mobile com a auditoria expandida e `/evolucao` em mobile; as capturas foram inspecionadas. A conta temporária foi encerrada pela própria API, sua remoção foi confirmada no banco e os artefatos temporários foram removidos. O pacote foi registrado no commit desta entrega. O lint geral mantém dívida histórica fora desta entrega e não é apresentado como aprovação de publicação.
 
 ## O que não é pendência de implementação
 
-Os itens abaixo foram retirados do escopo do Cadência e não devem ser tratados como tarefas abertas:
-
-- questionário, plano ou métricas de corrida;
-- questionário, plano ou métricas de musculação;
+- questionário, plano ou métricas de corrida e musculação;
 - sprint máximo, pista/BMX, downhill e enduro;
 - diagnóstico, liberação clínica ou prescrição médica;
-- estimativa fisiológica inventada a partir de RPE ou ausência de sensores.
+- estimativa fisiológica baseada apenas em RPE, sensores ausentes ou medidas corporais;
+- transferência automática de autoridade dos shadows para o `rules-v1` ou para a IA.
 
-## Pendências reais após o MVP
+## Operação contínua após o MVP
 
-Estas são atividades contínuas ou operacionais, não bloqueios para considerar o MVP de ciclismo concluído:
-
-- coletar feedback de usuários reais e observar a entrega e a utilidade do resumo semanal;
-- configurar cópia externa dos backups, monitoramento de falhas e hardening das portas dos demais aplicativos da VPS;
-- corrigir gradualmente a dívida histórica do lint geral, sem misturá-la com as funcionalidades já validadas;
-- manter revisão científica e clínica para qualquer novo protocolo ou mudança de segurança;
-- acumular dados longitudinais antes de ampliar a autoridade de adaptação, calibrar progressão ou substituir o `rules-v1`;
-- avaliar integrações externas, como Strava, somente mediante consentimento, custos e desenho de segurança aprovados.
-
-Os shadows (`rules-v2`, tolerância, periodização, seleção de estímulo e coerência) permanecem deliberadamente observacionais. Eles não são uma funcionalidade quebrada: aguardam dados reais suficientes, calibração e revisão própria antes de qualquer mudança de autoridade.
+- coletar feedback de usuários reais e observar a utilidade do resumo semanal;
+- manter cópia externa de backups, monitoramento e hardening da VPS;
+- reduzir gradualmente a dívida histórica do lint sem misturá-la a funcionalidades validadas;
+- revisar evidência científica e de segurança antes de novos protocolos;
+- acumular dados longitudinais antes de calibrar progressão ou ampliar a autoridade de adaptação;
+- avaliar integrações externas somente com consentimento, custo e desenho de segurança aprovados.
 
 ## Definição de conclusão
 
-Para este repositório, `100% concluído` significa: MVP de ciclismo implementado, validado e publicado, com escopo fechado e documentação coerente. Esse marco foi atingido na versão `0.30.0`.
-
-O produto continuará recebendo manutenção, feedback e evolução científica. Isso não reabre o MVP nem cria uma obrigação de adicionar corrida ou musculação ao Cadência.
-
-### Estado de publicação desta revisão
-
-O código funcional está publicado no commit `f2f8192`; o commit posterior `39d8d2e` removeu o documento obsoleto `melhorias.md`. A atualização deste planejamento e das referências documentais é somente documental e não exige novo deploy da aplicação.
+Para este repositório, `100% concluído` significa: MVP de ciclismo implementado, validado e publicado, com escopo fechado e documentação coerente. Esse marco foi atingido; a entrega local acima também foi validada e registrada no commit desta etapa. A publicação ainda exige autorização, backup, aplicação ordenada da migração `000030` em produção e leitura autenticada pós-deploy.

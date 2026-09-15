@@ -7,7 +7,7 @@ import (
 )
 
 func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (evolution.Summary, error) {
-	result := evolution.Summary{Weeks: make([]evolution.Week, 0, 8), RecentSessions: make([]evolution.SessionComparison, 0, 12), Recovery: make([]evolution.RecoveryPoint, 0, 14)}
+	result := evolution.Summary{Weeks: make([]evolution.Week, 0, 8), GoalProgress: make([]evolution.GoalProgress, 0, 2), RecentSessions: make([]evolution.SessionComparison, 0, 12), Recovery: make([]evolution.RecoveryPoint, 0, 14)}
 	var completed, cancelled int64
 	if err := s.pool.QueryRow(ctx, `
 		SELECT
@@ -19,7 +19,13 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 			COALESCE(SUM(ws.distance_km) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
 			COALESCE(SUM(ws.elevation_gain_m) FILTER (WHERE ws.status = 'completed'), 0),
 			COALESCE(AVG(ws.average_power_watts) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
-			COALESCE(AVG(ws.average_heart_rate) FILTER (WHERE ws.status = 'completed'), 0)::double precision
+			COALESCE(AVG(ws.average_heart_rate) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
+			COALESCE(SUM(ws.duration_minutes * ws.actual_rpe) FILTER (WHERE ws.status = 'completed' AND ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10), 0)::double precision,
+			COALESCE(
+				COALESCE(SUM(ws.distance_km) FILTER (WHERE ws.status = 'completed' AND ws.duration_minutes > 0), 0)::double precision
+					/ NULLIF(COALESCE(SUM(ws.duration_minutes) FILTER (WHERE ws.status = 'completed' AND ws.duration_minutes > 0), 0), 0) * 60,
+				0
+			)::double precision
 		FROM workout_sessions ws
 		JOIN athlete_profiles ap ON ap.id = ws.athlete_profile_id
 		JOIN workouts source_workout ON source_workout.id = ws.workout_id
@@ -32,7 +38,8 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 			  OR source_workout.explanation->'data_integrity'->>'eligible_for_history' = 'true'
 		  )`, userID,
 	).Scan(&completed, &cancelled, &result.TotalMinutes, &result.AverageRPE, &result.AverageFatigue,
-		&result.TotalDistanceKM, &result.TotalElevationM, &result.AveragePowerW, &result.AverageHeartRate); err != nil {
+		&result.TotalDistanceKM, &result.TotalElevationM, &result.AveragePowerW, &result.AverageHeartRate,
+		&result.SessionRPELoad, &result.AverageSpeedKPH); err != nil {
 		return evolution.Summary{}, err
 	}
 	result.CompletedSessions, result.CancelledSessions = int(completed), int(cancelled)
@@ -67,7 +74,13 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 			COALESCE(SUM(ws.distance_km) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
 			COALESCE(SUM(ws.elevation_gain_m) FILTER (WHERE ws.status = 'completed'), 0),
 			COALESCE(AVG(ws.average_power_watts) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
-			COALESCE(AVG(ws.average_heart_rate) FILTER (WHERE ws.status = 'completed'), 0)::double precision
+			COALESCE(AVG(ws.average_heart_rate) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
+			COALESCE(SUM(ws.duration_minutes * ws.actual_rpe) FILTER (WHERE ws.status = 'completed' AND ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10), 0)::double precision,
+			COALESCE(
+				COALESCE(SUM(ws.distance_km) FILTER (WHERE ws.status = 'completed' AND ws.duration_minutes > 0), 0)::double precision
+					/ NULLIF(COALESCE(SUM(ws.duration_minutes) FILTER (WHERE ws.status = 'completed' AND ws.duration_minutes > 0), 0), 0) * 60,
+				0
+			)::double precision
 		FROM weeks w
 		LEFT JOIN athlete_profiles ap ON ap.user_id = $1
 		LEFT JOIN eligible_sessions ws ON ws.athlete_profile_id = ap.id
@@ -83,7 +96,8 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 		var week evolution.Week
 		var weekCompleted, weekCancelled int64
 		if err := weeks.Scan(&week.WeekStart, &weekCompleted, &weekCancelled, &week.TotalMinutes, &week.AverageRPE,
-			&week.TotalDistanceKM, &week.TotalElevationM, &week.AveragePowerW, &week.AverageHeartRate); err != nil {
+			&week.TotalDistanceKM, &week.TotalElevationM, &week.AveragePowerW, &week.AverageHeartRate,
+			&week.SessionRPELoad, &week.AverageSpeedKPH); err != nil {
 			return evolution.Summary{}, err
 		}
 		week.CompletedSessions, week.CancelledSessions = int(weekCompleted), int(weekCancelled)
@@ -92,6 +106,59 @@ func (s *Store) EvolutionSummaryByUserID(ctx context.Context, userID string) (ev
 	if err := weeks.Err(); err != nil {
 		return evolution.Summary{}, err
 	}
+
+	const goalWindowDays = 28
+	var goalWindow evolution.GoalProgress
+	goalWindow.WindowDays = goalWindowDays
+	var goalCompleted int64
+	if err := s.pool.QueryRow(ctx, `
+		SELECT
+			COUNT(ws.id) FILTER (WHERE ws.status = 'completed'),
+			COALESCE(SUM(ws.duration_minutes) FILTER (WHERE ws.status = 'completed'), 0),
+			COALESCE(SUM(ws.distance_km) FILTER (WHERE ws.status = 'completed'), 0)::double precision,
+			COALESCE(SUM(ws.duration_minutes * ws.actual_rpe) FILTER (WHERE ws.status = 'completed' AND ws.duration_minutes > 0 AND ws.actual_rpe BETWEEN 1 AND 10), 0)::double precision,
+			COALESCE(
+				COALESCE(SUM(ws.distance_km) FILTER (WHERE ws.status = 'completed' AND ws.duration_minutes > 0), 0)::double precision
+					/ NULLIF(COALESCE(SUM(ws.duration_minutes) FILTER (WHERE ws.status = 'completed' AND ws.duration_minutes > 0), 0), 0) * 60,
+				0
+			)::double precision
+		FROM workout_sessions ws
+		JOIN athlete_profiles ap ON ap.id = ws.athlete_profile_id
+		JOIN workouts source_workout ON source_workout.id = ws.workout_id
+		WHERE ap.user_id = $1
+		  AND ws.status = 'completed'
+		  AND ws.completed_at >= now() - interval '28 days'
+		  AND ws.completed_at <= now()
+		  AND (
+			  source_workout.explanation->'data_integrity' IS NULL
+			  OR source_workout.explanation->'data_integrity'->>'eligible_for_history' = 'true'
+		  )`, userID,
+	).Scan(&goalCompleted, &goalWindow.TotalMinutes, &goalWindow.TotalDistanceKM, &goalWindow.SessionRPELoad, &goalWindow.AverageSpeedKPH); err != nil {
+		return evolution.Summary{}, err
+	}
+	goalWindow.CompletedSessions = int(goalCompleted)
+	goalRows, err := s.pool.Query(ctx, `
+		SELECT goal_type, priority, target_date::text, COALESCE(details->>'notes', '')
+		FROM goals
+		JOIN athlete_profiles ap ON ap.id = goals.athlete_profile_id
+		WHERE ap.user_id = $1 AND priority IN (1, 2)
+		ORDER BY priority`, userID)
+	if err != nil {
+		return evolution.Summary{}, err
+	}
+	for goalRows.Next() {
+		goal := goalWindow
+		if err := goalRows.Scan(&goal.GoalType, &goal.Priority, &goal.TargetDate, &goal.Details); err != nil {
+			goalRows.Close()
+			return evolution.Summary{}, err
+		}
+		result.GoalProgress = append(result.GoalProgress, goal)
+	}
+	if err := goalRows.Err(); err != nil {
+		goalRows.Close()
+		return evolution.Summary{}, err
+	}
+	goalRows.Close()
 
 	recentRows, err := s.pool.Query(ctx, `
 		SELECT ws.completed_at::date::text, w.name, w.duration_minutes,
