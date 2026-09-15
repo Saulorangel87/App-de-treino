@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.31.0';
+export const APP_VERSION = '0.32.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.32.0',
+    title: 'Onboarding de ciclismo mais completo e seguro',
+    description:
+      'O perfil agora pode registrar contexto adicional de ciclismo, disponibilidade, histórico, equipamento, FTP e sinais de segurança. O questionário adaptativo apresenta cada pergunta no momento certo, enquanto medidas opcionais e indicadores de evolução permanecem observacionais e não alteram o plano sem evidência suficiente.',
+  },
   {
     version: '0.31.0',
     title: 'Configurações e encerramento seguro da conta',
