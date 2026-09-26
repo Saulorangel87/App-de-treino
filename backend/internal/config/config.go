@@ -2,6 +2,9 @@ package config
 
 import (
 	"errors"
+	"fmt"
+	"net"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -19,15 +22,20 @@ type Config struct {
 	SessionTTL       time.Duration
 	EmailTokenTTL    time.Duration
 	SecureCookies    bool
-	AIEnabled        bool
-	AIProvider       string
-	AIBaseURL        string
-	AIModel          string
-	AIWorkerURL      string
-	AIWorkerToken    string
-	AITimeout        time.Duration
-	AIMaxTokens      int
-	AIMaxConcurrent  int
+	// Development only enables responses that expose e-mail action links. It is
+	// fail-closed: it requires a non-production APP_ENV and loopback URLs.
+	Development     bool
+	DBMaxConns      int32
+	DBMinConns      int32
+	AIEnabled       bool
+	AIProvider      string
+	AIBaseURL       string
+	AIModel         string
+	AIWorkerURL     string
+	AIWorkerToken   string
+	AITimeout       time.Duration
+	AIMaxTokens     int
+	AIMaxConcurrent int
 }
 
 func Load() (Config, error) {
@@ -55,6 +63,20 @@ func Load() (Config, error) {
 	if err != nil || aiMaxConcurrent < 1 || aiMaxConcurrent > 2 {
 		return Config{}, errors.New("AI_MAX_CONCURRENT must be between 1 and 2")
 	}
+	dbMaxConns, err := strconv.Atoi(valueOrDefault("DB_MAX_CONNS", "10"))
+	if err != nil || dbMaxConns < 1 || dbMaxConns > 50 {
+		return Config{}, errors.New("DB_MAX_CONNS must be between 1 and 50")
+	}
+	dbMinConns, err := strconv.Atoi(valueOrDefault("DB_MIN_CONNS", "1"))
+	if err != nil || dbMinConns < 0 || dbMinConns > dbMaxConns {
+		return Config{}, errors.New("DB_MIN_CONNS must be between 0 and DB_MAX_CONNS")
+	}
+	appEnv := strings.ToLower(strings.TrimSpace(os.Getenv("APP_ENV")))
+	switch appEnv {
+	case "", "development", "test", "production":
+	default:
+		return Config{}, fmt.Errorf("APP_ENV must be development, test or production, got %q", appEnv)
+	}
 	cfg := Config{
 		Port:             valueOrDefault("API_PORT", "8080"),
 		DatabaseURL:      os.Getenv("DATABASE_URL"),
@@ -65,7 +87,9 @@ func Load() (Config, error) {
 		FeedbackDigestTo: strings.TrimSpace(os.Getenv("FEEDBACK_DIGEST_TO")),
 		SessionTTL:       time.Duration(sessionDays) * 24 * time.Hour,
 		EmailTokenTTL:    time.Duration(emailTokenHours) * time.Hour,
-		SecureCookies:    strings.EqualFold(os.Getenv("APP_ENV"), "production"),
+		SecureCookies:    appEnv == "production",
+		DBMaxConns:       int32(dbMaxConns),
+		DBMinConns:       int32(dbMinConns),
 		AIEnabled:        aiEnabled,
 		AIProvider:       valueOrDefault("AI_PROVIDER", "ollama"),
 		AIBaseURL:        valueOrDefault("AI_BASE_URL", "http://127.0.0.1:11434"),
@@ -82,6 +106,14 @@ func Load() (Config, error) {
 	if cfg.SecureCookies && (cfg.EmailFrom == "" || cfg.ResendAPIKey == "") {
 		return Config{}, errors.New("EMAIL_FROM and RESEND_API_KEY are required in production")
 	}
+	if cfg.SecureCookies {
+		for name, value := range map[string]string{"APP_BASE_URL": cfg.AppBaseURL, "ALLOWED_ORIGIN": cfg.AllowedOrigin} {
+			if parsed, err := url.Parse(value); err != nil || parsed.Scheme != "https" || parsed.Host == "" {
+				return Config{}, fmt.Errorf("%s must be an https URL in production", name)
+			}
+		}
+	}
+	cfg.Development = !cfg.SecureCookies && isLoopbackURL(cfg.AppBaseURL)
 	return cfg, nil
 }
 
@@ -90,4 +122,17 @@ func valueOrDefault(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func isLoopbackURL(value string) bool {
+	parsed, err := url.Parse(value)
+	if err != nil {
+		return false
+	}
+	host := parsed.Hostname()
+	if host == "localhost" {
+		return true
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
 }

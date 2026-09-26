@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -39,6 +40,19 @@ type Server struct {
 	appBaseURL    string
 	emailTokenTTL time.Duration
 	development   bool
+	// loginFailures counts failed logins per e-mail address, complementing the
+	// per-IP limit against distributed guessing of a single account.
+	loginFailures *requestRateLimiter
+}
+
+const (
+	maxLoginFailuresPerAccount = 10
+	loginFailureWindow         = 15 * time.Minute
+)
+
+type changePasswordRequest struct {
+	CurrentPassword string `json:"current_password"`
+	NewPassword     string `json:"new_password"`
 }
 
 type tokenRequest struct {
@@ -98,10 +112,24 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 	if !decodeJSON(w, r, &input) {
 		return
 	}
+	accountKey := "login-account:" + strings.ToLower(strings.TrimSpace(input.Email))
+	if s.loginFailures != nil {
+		if blocked, retryAfter := s.loginFailures.exceeded(accountKey, maxLoginFailuresPerAccount); blocked {
+			w.Header().Set("Retry-After", strconv.Itoa(max(1, int(retryAfter.Seconds()))))
+			writeError(w, http.StatusTooManyRequests, "rate_limited", "Muitas tentativas. Tente novamente mais tarde.")
+			return
+		}
+	}
 	user, token, err := s.auth.Login(r.Context(), input.Email, input.Password)
 	if err != nil {
+		if s.loginFailures != nil && errors.Is(err, auth.ErrInvalidCredentials) {
+			s.loginFailures.hit(accountKey, loginFailureWindow)
+		}
 		writeError(w, http.StatusUnauthorized, "invalid_credentials", "E-mail ou senha inválidos.")
 		return
+	}
+	if s.loginFailures != nil {
+		s.loginFailures.reset(accountKey)
 	}
 	s.setSessionCookie(w, token)
 	writeJSON(w, http.StatusOK, map[string]any{"user": user})
@@ -143,6 +171,41 @@ func (s *Server) deleteAccount(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, &http.Cookie{Name: sessionCookieName, Value: "", Path: "/", MaxAge: -1, HttpOnly: true, Secure: s.secureCookies, SameSite: http.SameSiteLaxMode})
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) changePassword(w http.ResponseWriter, r *http.Request) {
+	user, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	var input changePasswordRequest
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+	err := s.auth.ChangePassword(r.Context(), user, sessionToken(r), input.CurrentPassword, input.NewPassword)
+	switch {
+	case err == nil:
+		writeJSON(w, http.StatusOK, map[string]string{"message": "Senha alterada. Os outros dispositivos foram desconectados."})
+	case errors.Is(err, auth.ErrInvalidInput):
+		writeError(w, http.StatusBadRequest, "invalid_password", "Use uma nova senha diferente da atual, com 10 a 72 caracteres.")
+	case errors.Is(err, auth.ErrInvalidCredentials):
+		writeError(w, http.StatusUnauthorized, "invalid_password", "A senha atual está incorreta.")
+	default:
+		writeError(w, http.StatusInternalServerError, "internal_error", "Não foi possível alterar a senha. Nenhum dado foi alterado.")
+	}
+}
+
+func (s *Server) logoutOthers(w http.ResponseWriter, r *http.Request) {
+	user, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	revoked, err := s.auth.LogoutOthers(r.Context(), user, sessionToken(r))
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "internal_error", "Não foi possível encerrar as outras sessões.")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"revoked_sessions": revoked})
 }
 
 func (s *Server) me(w http.ResponseWriter, r *http.Request) {

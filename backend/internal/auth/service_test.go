@@ -14,6 +14,9 @@ type memoryStore struct {
 	expiresAt   time.Time
 	emailTokens map[string][]byte
 	deleted     bool
+
+	otherSessionsRevoked bool
+	keptSession          []byte
 }
 
 func (s *memoryStore) CreateUser(_ context.Context, email, passwordHash, displayName string) (User, error) {
@@ -75,6 +78,25 @@ func (s *memoryStore) ResetPasswordWithToken(_ context.Context, tokenHash []byte
 	s.tokenHash = nil
 	return nil
 }
+
+func (s *memoryStore) ChangePassword(_ context.Context, userID, passwordHash string, keepSessionHash []byte) error {
+	if s.user.ID != userID {
+		return errors.New("not found")
+	}
+	s.user.PasswordHash = passwordHash
+	s.otherSessionsRevoked = true
+	s.keptSession = append([]byte(nil), keepSessionHash...)
+	return nil
+}
+func (s *memoryStore) DeleteOtherSessions(_ context.Context, userID string, keepSessionHash []byte) (int64, error) {
+	if s.user.ID != userID {
+		return 0, errors.New("not found")
+	}
+	s.otherSessionsRevoked = true
+	s.keptSession = append([]byte(nil), keepSessionHash...)
+	return 2, nil
+}
+func (s *memoryStore) PurgeExpired(context.Context) (int64, int64, error) { return 1, 2, nil }
 
 func TestRegisterCreatesHashedPasswordAndSession(t *testing.T) {
 	store := &memoryStore{}
@@ -148,5 +170,63 @@ func TestDeleteAccountRequiresCurrentPassword(t *testing.T) {
 	}
 	if !store.deleted {
 		t.Fatal("account was not deleted after password confirmation")
+	}
+}
+
+func TestLoginUnknownEmailSpendsBcryptCost(t *testing.T) {
+	service := NewService(&memoryStore{}, time.Hour)
+	// Warm up so the first bcrypt call does not skew the comparison.
+	_, _, _ = service.Login(context.Background(), "ninguem@example.com", "qualquer-senha")
+	started := time.Now()
+	if _, _, err := service.Login(context.Background(), "ninguem@example.com", "qualquer-senha"); err != ErrInvalidCredentials {
+		t.Fatalf("expected invalid credentials, got %v", err)
+	}
+	// bcrypt at the default cost takes tens of milliseconds; returning without
+	// hashing would take microseconds.
+	if elapsed := time.Since(started); elapsed < 5*time.Millisecond {
+		t.Fatalf("unknown e-mail login returned in %s, expected bcrypt-scale work", elapsed)
+	}
+}
+
+func TestChangePasswordVerifiesCurrentPasswordAndKeepsCurrentSession(t *testing.T) {
+	store := &memoryStore{}
+	service := NewService(store, time.Hour)
+	user, token, err := service.Register(context.Background(), "atleta@example.com", "uma-senha-segura", "Atleta")
+	if err != nil {
+		t.Fatalf("unexpected registration error: %v", err)
+	}
+	if err := service.ChangePassword(context.Background(), user, token, "senha-incorreta", "nova-senha-segura"); err != ErrInvalidCredentials {
+		t.Fatalf("expected invalid credentials, got %v", err)
+	}
+	if err := service.ChangePassword(context.Background(), user, token, "uma-senha-segura", "curta"); err != ErrInvalidInput {
+		t.Fatalf("expected invalid input for a short password, got %v", err)
+	}
+	if err := service.ChangePassword(context.Background(), user, token, "uma-senha-segura", "uma-senha-segura"); err != ErrInvalidInput {
+		t.Fatalf("expected invalid input when the password does not change, got %v", err)
+	}
+	if store.otherSessionsRevoked {
+		t.Fatal("sessions were revoked by a rejected change")
+	}
+	if err := service.ChangePassword(context.Background(), user, token, "uma-senha-segura", "nova-senha-segura"); err != nil {
+		t.Fatalf("unexpected change error: %v", err)
+	}
+	if !store.otherSessionsRevoked || !bytes.Equal(store.keptSession, hashToken(token)) {
+		t.Fatal("expected other sessions revoked while keeping the current one")
+	}
+	if _, _, err := service.Login(context.Background(), user.Email, "nova-senha-segura"); err != nil {
+		t.Fatalf("expected login with the new password: %v", err)
+	}
+}
+
+func TestLogoutOthersRequiresSession(t *testing.T) {
+	store := &memoryStore{}
+	service := NewService(store, time.Hour)
+	user, token, _ := service.Register(context.Background(), "atleta@example.com", "uma-senha-segura", "Atleta")
+	if _, err := service.LogoutOthers(context.Background(), user, ""); err != ErrUnauthorized {
+		t.Fatalf("expected unauthorized without a session token, got %v", err)
+	}
+	revoked, err := service.LogoutOthers(context.Background(), user, token)
+	if err != nil || revoked != 2 {
+		t.Fatalf("expected 2 revoked sessions, got %d / %v", revoked, err)
 	}
 }

@@ -29,7 +29,7 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	db, err := database.Open(ctx, cfg.DatabaseURL)
+	db, err := database.Open(ctx, cfg.DatabaseURL, database.Options{MaxConns: 2, MinConns: 0})
 	if err != nil {
 		logger.Error("database connection failed", "error", err)
 		os.Exit(1)

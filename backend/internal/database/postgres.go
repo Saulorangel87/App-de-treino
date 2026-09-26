@@ -8,14 +8,26 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func Open(parent context.Context, databaseURL string) (*pgxpool.Pool, error) {
+// Options tunes the connection pool. Zero values keep the defaults.
+type Options struct {
+	MaxConns int32
+	MinConns int32
+}
+
+func Open(parent context.Context, databaseURL string, options Options) (*pgxpool.Pool, error) {
 	config, err := pgxpool.ParseConfig(databaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse database configuration: %w", err)
 	}
 	config.MaxConns = 10
 	config.MinConns = 1
+	if options.MaxConns > 0 {
+		config.MaxConns = options.MaxConns
+		config.MinConns = min(options.MinConns, options.MaxConns)
+	}
 	config.MaxConnLifetime = 30 * time.Minute
+	config.MaxConnIdleTime = 10 * time.Minute
+	config.HealthCheckPeriod = time.Minute
 	ctx, cancel := context.WithTimeout(parent, 10*time.Second)
 	defer cancel()
 	pool, err := pgxpool.NewWithConfig(ctx, config)

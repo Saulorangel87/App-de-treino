@@ -117,6 +117,42 @@ func (s *Store) ResetPasswordWithToken(ctx context.Context, tokenHash []byte, pa
 	})
 }
 
+func (s *Store) ChangePassword(ctx context.Context, userID, passwordHash string, keepSessionHash []byte) error {
+	return s.withTx(ctx, func(tx pgx.Tx) error {
+		result, err := tx.Exec(ctx, `UPDATE users SET password_hash = $1, updated_at = now() WHERE id = $2`, passwordHash, userID)
+		if err != nil {
+			return err
+		}
+		if result.RowsAffected() != 1 {
+			return pgx.ErrNoRows
+		}
+		_, err = tx.Exec(ctx, `DELETE FROM auth_sessions WHERE user_id = $1 AND token_hash <> $2`, userID, keepSessionHash)
+		return err
+	})
+}
+
+func (s *Store) DeleteOtherSessions(ctx context.Context, userID string, keepSessionHash []byte) (int64, error) {
+	result, err := s.pool.Exec(ctx, `DELETE FROM auth_sessions WHERE user_id = $1 AND token_hash <> $2`, userID, keepSessionHash)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+// PurgeExpired deletes expired sessions plus e-mail tokens that expired or were
+// already used more than a day ago (kept briefly for troubleshooting).
+func (s *Store) PurgeExpired(ctx context.Context) (int64, int64, error) {
+	sessions, err := s.pool.Exec(ctx, `DELETE FROM auth_sessions WHERE expires_at < now()`)
+	if err != nil {
+		return 0, 0, err
+	}
+	tokens, err := s.pool.Exec(ctx, `DELETE FROM auth_email_tokens WHERE expires_at < now() OR used_at < now() - interval '1 day'`)
+	if err != nil {
+		return sessions.RowsAffected(), 0, err
+	}
+	return sessions.RowsAffected(), tokens.RowsAffected(), nil
+}
+
 func (s *Store) withTx(ctx context.Context, operation func(pgx.Tx) error) error {
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {

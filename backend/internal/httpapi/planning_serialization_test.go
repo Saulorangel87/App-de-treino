@@ -55,6 +55,16 @@ func (s *httpTestAuthStore) ResetPasswordWithToken(context.Context, []byte, stri
 	return errHTTPTestUnused
 }
 
+func (s *httpTestAuthStore) ChangePassword(context.Context, string, string, []byte) error {
+	return errHTTPTestUnused
+}
+func (s *httpTestAuthStore) DeleteOtherSessions(context.Context, string, []byte) (int64, error) {
+	return 0, errHTTPTestUnused
+}
+func (s *httpTestAuthStore) PurgeExpired(context.Context) (int64, int64, error) {
+	return 0, 0, errHTTPTestUnused
+}
+
 type httpTestPlanStore struct {
 	plan planning.Plan
 }

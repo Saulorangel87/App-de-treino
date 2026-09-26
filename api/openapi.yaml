@@ -16,10 +16,10 @@ paths:
         '200': { description: API ativa }
   /ready:
     get:
-      summary: Verifica se a API consegue acessar o PostgreSQL
+      summary: Verifica o acesso ao PostgreSQL e, em produção, se todas as migrações exigidas foram aplicadas
       responses:
         '200': { description: API e banco disponíveis }
-        '503': { description: Banco indisponível }
+        '503': { description: Banco indisponível ou schema defasado (status unavailable ou schema_behind) }
   /v1/auth/register:
     post:
       summary: Cria uma conta e inicia uma sessão
@@ -43,6 +43,7 @@ paths:
       responses:
         '200': { description: Sessão iniciada }
         '401': { description: Credenciais inválidas }
+        '429': { description: Muitas tentativas por IP ou para a mesma conta; consulte Retry-After }
   /v1/auth/logout:
     post:
       summary: Encerra a sessão atual
@@ -72,6 +73,43 @@ paths:
         '400': { description: Confirmação ou dados inválidos }
         '401': { description: Sessão ausente ou senha incorreta }
         '500': { description: Falha sem alteração dos dados }
+  /v1/auth/change-password:
+    post:
+      summary: Altera a senha do usuário autenticado e desconecta as demais sessões
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [current_password, new_password]
+              properties:
+                current_password: { type: string, format: password }
+                new_password:
+                  type: string
+                  format: password
+                  minLength: 10
+                  maxLength: 72
+                  description: Deve ser diferente da senha atual
+      responses:
+        '200': { description: Senha alterada; a sessão atual é mantida e as demais são revogadas }
+        '400': { description: Nova senha inválida ou igual à atual }
+        '401': { description: Sessão ausente ou senha atual incorreta }
+        '429': { description: Muitas tentativas }
+  /v1/auth/logout-others:
+    post:
+      summary: Encerra todas as sessões do usuário, exceto a atual
+      responses:
+        '200':
+          description: Sessões revogadas
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [revoked_sessions]
+                properties:
+                  revoked_sessions: { type: integer, minimum: 0 }
+        '401': { description: Sessão ausente ou expirada }
   /v1/auth/resend-verification:
     post:
       summary: Reenvia o link de confirmação para o usuário autenticado
