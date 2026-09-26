@@ -19,7 +19,7 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v5
         with:
           go-version-file: backend/go.mod
@@ -50,7 +50,7 @@ jobs:
       PGPASSWORD: ci-only-password
       PGDATABASE: cadencia_ci
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Instalar cliente psql
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client
       - name: Migrações e fixtures SQL
@@ -64,7 +64,7 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -81,7 +81,7 @@ jobs:
   openapi:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Validar YAML, Compose e scripts
         run: |
           python3 -c "import yaml,sys; [yaml.safe_load(open(f)) for f in ['api/openapi.yaml','compose.yaml','infrastructure/cadencia/compose.production.yaml']]"
