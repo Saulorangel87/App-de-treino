@@ -85,38 +85,38 @@ function Sidebar({ user, plan }: { user: User; plan: TrainingPlan | null }) {
         <span>cadência</span>
       </div>
       <nav className="main-nav" aria-label="Navegação principal">
-        <a className="nav-item active" href="/">
+        <Link className="nav-item active" href="/">
           <Home size={18} />
           Visão geral
-        </a>
-        <a className="nav-item" href="/plano">
+        </Link>
+        <Link className="nav-item" href="/plano">
           <CalendarDays size={18} />
           Meu plano
-        </a>
-        <a className="nav-item" href="/atividades">
+        </Link>
+        <Link className="nav-item" href="/atividades">
           <Activity size={18} />
           Atividades
-        </a>
-        <a className="nav-item" href="/avaliacao">
+        </Link>
+        <Link className="nav-item" href="/avaliacao">
           <Gauge size={18} />
           Avaliação
-        </a>
-        <a className="nav-item" href="/recuperacao">
+        </Link>
+        <Link className="nav-item" href="/recuperacao">
           <HeartPulse size={18} />
           Recuperação
-        </a>
-        <a className="nav-item" href="/evolucao">
+        </Link>
+        <Link className="nav-item" href="/evolucao">
           <LineChart size={18} />
           Evolução
-        </a>
+        </Link>
         <Link className="nav-item" href="/novidades">
           <Sparkles size={18} />
           Novidades
         </Link>
-        <a className="nav-item feedback-nav-item" href="/feedback">
+        <Link className="nav-item feedback-nav-item" href="/feedback">
           <MessageSquareHeart size={18} />
           Feedback
-        </a>
+        </Link>
       </nav>
       <div className="sidebar-bottom">
         <div className="coach-note">
@@ -295,14 +295,14 @@ export default function HomePage() {
                   ? 'Revise as quatro semanas e aceite o plano para mostrar as sessões reais neste painel.'
                   : 'Conclua seu perfil para gerar um plano compatível com sua experiência e disponibilidade.'}
             </div>
-            <a href="/plano">
+            <Link href="/plano">
               {completedCycle
                 ? 'Gerar próximo ciclo'
                 : plan?.status === 'draft'
                   ? 'Revisar e aceitar plano'
                   : 'Criar meu plano'}
               <ArrowRight size={15} />
-            </a>
+            </Link>
           </section>
         </section>
       </main>
@@ -347,18 +347,18 @@ export default function HomePage() {
             <h1>Olá, {user.display_name.split(' ')[0]}.</h1>
           </div>
           <div className="top-actions">
-            <a className="active-plan-pill" href="/plano">
+            <Link className="active-plan-pill" href="/plano">
               <span className="status-dot" />
               Plano ativo<strong>4 semanas</strong>
-            </a>
-            <a className={`recovery-pill ${recovery?.readiness || 'pending'}`} href="/recuperacao">
+            </Link>
+            <Link className={`recovery-pill ${recovery?.readiness || 'pending'}`} href="/recuperacao">
               <HeartPulse size={15} />
               {recovery ? recovery.readiness === 'ready' ? 'Recuperação ok' : recovery.readiness === 'caution' ? 'Atenção à recuperação' : 'Priorize recuperação' : 'Fazer check-in'}
-            </a>
-            <a className="feedback-quick-link" href="/feedback" aria-label="Abrir feedback">
+            </Link>
+            <Link className="feedback-quick-link" href="/feedback" aria-label="Abrir feedback">
               <MessageSquareHeart size={15} />
               Feedback
-            </a>
+            </Link>
             <Link className="profile-quick-link" href="/perfil" aria-label="Abrir perfil">
               <UserRound size={15} />
               Perfil
@@ -400,9 +400,9 @@ export default function HomePage() {
                 <ListTree size={16} />
                 Ver estrutura
               </button>
-              <a className="details-button" href="/plano">
+              <Link className="details-button" href="/plano">
                 Ver plano completo <ArrowRight size={15} />
-              </a>
+              </Link>
             </div>
             <div
               className="effort-visual"
@@ -473,9 +473,9 @@ export default function HomePage() {
                 </b>
               </div>
             </div>
-            <a className="checkin-button" href="/plano">
+            <Link className="checkin-button" href="/plano">
               Revisar plano <ArrowRight size={15} />
-            </a>
+            </Link>
           </aside>
 
           <section className="week-card">
@@ -596,9 +596,9 @@ export default function HomePage() {
               usesPower={Boolean(activePlan.prescription_snapshot.cycling_context?.uses_power)}
               onPlanUpdated={updateSessionPlan}
             />
-            <a className="modal-plan-link" href="/plano">
+            <Link className="modal-plan-link" href="/plano">
               Abrir plano completo <ArrowRight size={15} />
-            </a>
+            </Link>
           </section>
         </dialog>
       )}

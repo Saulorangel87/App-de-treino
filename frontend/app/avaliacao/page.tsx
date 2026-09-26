@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Activity, AlertTriangle, ArrowLeft, Bike, CheckCircle2, Clock3, LoaderCircle } from 'lucide-react';
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { AccountActions } from '@/components/account-actions';
@@ -34,7 +35,7 @@ export default function AssessmentPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
+  async function submit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault(); setSaving(true); setError('');
     try {
       const result = await apiRequest<{ assessment: Assessment }>('/v1/assessments/submaximal', { method: 'POST', body: JSON.stringify({ duration_minutes: duration, actual_rpe: actualRPE, pain_reported: painReported, notes }) });
@@ -45,9 +46,9 @@ export default function AssessmentPage() {
   if (loading) return <main className="profile-loading"><LoaderCircle className="spin" />Carregando sua avaliação…</main>;
   if (!user) return <ApiErrorState message={error || 'Não foi possível carregar sua avaliação.'} />;
   return <main className="assessment-shell">
-    <header className="profile-topbar"><a href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</a><AccountActions label="ATLETA" name={user.display_name} /></header>
+    <header className="profile-topbar"><Link href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</Link><AccountActions label="ATLETA" name={user.display_name} /></header>
     <section className="assessment-content">
-      <a href="/" className="back-link"><ArrowLeft size={15} />Voltar ao painel</a>
+      <Link href="/" className="back-link"><ArrowLeft size={15} />Voltar ao painel</Link>
       <header className="assessment-heading"><p>AVALIAÇÃO INICIAL</p><h1>Seu pedal de referência.</h1><span>Uma referência submáxima para orientar a evolução do plano. Não é exame médico nem teste máximo.</span></header>
       {assessment && <section className={`assessment-result ${assessment.eligible_for_progression ? 'eligible' : ''}`}><CheckCircle2 size={21} /><div><strong>Avaliação registrada</strong><p>{assessment.pain_reported ? 'Você relatou dor. O app não usará este resultado para progredir intensidade; priorize recuperação e orientação profissional se a dor persistir.' : assessment.eligible_for_progression ? 'Referência concluída sem sinal de alerta. Ela ficará disponível para progressões futuras, sempre com regras de segurança.' : 'Resultado salvo como referência. O motor continuará com progressão conservadora.'}</p></div></section>}
       <div className="assessment-layout">

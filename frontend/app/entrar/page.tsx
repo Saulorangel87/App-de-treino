@@ -1,6 +1,7 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { useState } from 'react';
+import Link from 'next/link';
 import { ArrowRight, Bike, Check, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +15,7 @@ export default function SignInPage() {
   const [notice, setNotice] = useState('');
   const [developmentVerificationURL, setDevelopmentVerificationURL] = useState('');
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError('');
@@ -46,7 +47,7 @@ export default function SignInPage() {
   return (
     <main className="account-shell">
       <section className="account-story">
-        <a href="/" className="account-brand"><span><Bike size={21} /></span>cadência</a>
+        <Link href="/" className="account-brand"><span><Bike size={21} /></span>cadência</Link>
         <div className="story-copy">
           <p className="eyebrow-light">SEU TREINO, SEU CONTEXTO</p>
           <h1>Treinar melhor começa por conhecer você.</h1>
@@ -68,7 +69,7 @@ export default function SignInPage() {
           <p className="form-kicker">{mode === 'register' ? 'PRIMEIRO PASSO' : 'BEM-VINDO DE VOLTA'}</p>
           <h2>{mode === 'register' ? 'Vamos começar pelo básico.' : 'Continue sua evolução.'}</h2>
           <p className="form-intro">{mode === 'register' ? 'Poucas informações agora. Seu perfil será construído aos poucos.' : 'Entre para acessar seu plano e registrar seus treinos.'}</p>
-          <form onSubmit={submit} className="account-form">
+          <form method="post" onSubmit={submit} className="account-form">
             {mode === 'register' && <div><Label htmlFor="display_name">Como podemos chamar você?</Label><Input id="display_name" name="display_name" minLength={2} maxLength={100} required placeholder="Seu nome" autoComplete="name" /></div>}
             <div><Label htmlFor="email">E-mail</Label><Input id="email" name="email" type="email" required placeholder="voce@exemplo.com" autoComplete="email" /></div>
             <div><Label htmlFor="password">Senha</Label><Input id="password" name="password" type="password" minLength={10} maxLength={72} required placeholder="No mínimo 10 caracteres" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} /></div>
@@ -76,9 +77,9 @@ export default function SignInPage() {
             {notice && <p className="form-notice" role="status">{notice}</p>}
             <Button type="submit" disabled={loading} className="account-submit">{loading ? 'Aguarde…' : mode === 'register' ? 'Criar minha conta' : 'Entrar'}<ArrowRight size={16} /></Button>
           </form>
-          {mode === 'login' && <a className="form-link" href="/esqueci-minha-senha">Esqueci minha senha</a>}
+          {mode === 'login' && <Link className="form-link" href="/esqueci-minha-senha">Esqueci minha senha</Link>}
           {developmentVerificationURL && <a className="form-link" href={developmentVerificationURL}>Abrir confirmação local</a>}
-          {notice && mode === 'register' && <a className="form-link" href="/perfil">Já confirmei meu e-mail</a>}
+          {notice && mode === 'register' && <Link className="form-link" href="/perfil">Já confirmei meu e-mail</Link>}
           <p className="form-legal">Ao continuar, você concorda em fornecer dados de treino para personalização. O Cadência não realiza diagnóstico clínico.</p>
         </div>
       </section>

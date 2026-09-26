@@ -1,5 +1,11 @@
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
+const DEFAULT_TIMEOUT_MS = 20_000;
+const DEFAULT_GET_RETRIES = 2;
+const RETRY_BASE_DELAY_MS = 300;
+const RETRYABLE_STATUS = new Set([502, 503, 504]);
+const PUBLIC_PATHS = ['/entrar', '/esqueci-minha-senha', '/redefinir-senha', '/verificar-email'];
+
 export class ApiError extends Error {
   readonly status: number;
 
@@ -10,32 +16,105 @@ export class ApiError extends Error {
   }
 }
 
+export type ApiRequestOptions = RequestInit & {
+  /** Tempo máximo de cada tentativa. Padrão: 20 s. */
+  timeoutMs?: number;
+  /** Novas tentativas após falha de rede ou 502/503/504. Só vale para GET; padrão: 2. */
+  retries?: number;
+};
+
 export function isUnauthorized(error: unknown): boolean {
   return error instanceof ApiError && error.status === 401;
 }
 
+export function isTimeout(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 0;
+}
+
 export function apiErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) return error.message;
-  if (error instanceof TypeError && error.message === 'Failed to fetch') {
-    return 'Não foi possível conectar à API. Verifique se ela está em execução e tente novamente.';
+  // Cada navegador usa uma mensagem diferente ("Failed to fetch", "Load failed",
+  // "NetworkError..."); toda falha de rede do fetch é um TypeError.
+  if (error instanceof TypeError) {
+    return 'Não foi possível conectar à API. Verifique sua conexão e tente novamente.';
   }
   if (error instanceof Error) return error.message;
   return fallback;
 }
 
-export async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
-  if (!response.ok) {
-    const body = await response.json().catch(() => null) as { error?: { message?: string } } | null;
-    throw new ApiError(body?.error?.message || 'Não foi possível concluir a solicitação.', response.status);
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function redirectToLoginOnExpiredSession(path: string) {
+  if (typeof window === 'undefined') return;
+  // Rotas de autenticação respondem 401 para credenciais inválidas; isso não é
+  // sessão expirada e a própria tela mostra o erro.
+  if (path.startsWith('/v1/auth/')) return;
+  if (PUBLIC_PATHS.includes(window.location.pathname)) return;
+  window.location.href = '/entrar';
+}
+
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+  const callerSignal = init.signal;
+  const forwardAbort = () => controller.abort();
+  if (callerSignal) {
+    if (callerSignal.aborted) controller.abort();
+    else callerSignal.addEventListener('abort', forwardAbort, { once: true });
   }
-  if (response.status === 204) return undefined as T;
-  return response.json() as Promise<T>;
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (timedOut) {
+      throw new ApiError('A solicitação demorou demais para responder. Tente novamente.', 0);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+    callerSignal?.removeEventListener('abort', forwardAbort);
+  }
+}
+
+export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
+  const { timeoutMs = DEFAULT_TIMEOUT_MS, retries, ...init } = options;
+  const method = (init.method || 'GET').toUpperCase();
+  // Só requisições idempotentes são repetidas; um POST repetido poderia duplicar efeitos.
+  const maxRetries = method === 'GET' ? (retries ?? DEFAULT_GET_RETRIES) : 0;
+
+  const headers = new Headers(init.headers);
+  if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  const requestInit: RequestInit = { ...init, headers, credentials: 'include' };
+
+  let attempt = 0;
+  for (;;) {
+    try {
+      const response = await fetchWithTimeout(`${API_URL}${path}`, requestInit, timeoutMs);
+      if (RETRYABLE_STATUS.has(response.status) && attempt < maxRetries) {
+        attempt += 1;
+        await sleep(RETRY_BASE_DELAY_MS * 2 ** (attempt - 1));
+        continue;
+      }
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as { error?: { message?: string } } | null;
+        if (response.status === 401) redirectToLoginOnExpiredSession(path);
+        throw new ApiError(body?.error?.message || 'Não foi possível concluir a solicitação.', response.status);
+      }
+      if (response.status === 204) return undefined as T;
+      return (await response.json()) as T;
+    } catch (error) {
+      const retryable = error instanceof TypeError || isTimeout(error);
+      if (retryable && attempt < maxRetries && !init.signal?.aborted) {
+        attempt += 1;
+        await sleep(RETRY_BASE_DELAY_MS * 2 ** (attempt - 1));
+        continue;
+      }
+      throw error;
+    }
+  }
 }
