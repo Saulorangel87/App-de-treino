@@ -5,10 +5,11 @@
 #
 #   sh infrastructure/cadencia/scripts/deploy.sh [--yes]
 #
-# Smoke test autenticado (recomendado): crie uma conta de teste dedicada, com
-# e-mail confirmado, e exporte CADENCIA_SMOKE_EMAIL e CADENCIA_SMOKE_PASSWORD
-# (por exemplo em /etc/cadencia/smoke.env). Sem elas, essa etapa é pulada e o
-# script avisa; healthchecks sozinhos NÃO comprovam compatibilidade do schema.
+# Smoke test autenticado (recomendado): usa uma conta de teste dedicada, com
+# e-mail confirmado. As credenciais (CADENCIA_SMOKE_EMAIL e
+# CADENCIA_SMOKE_PASSWORD) são lidas de /etc/cadencia/smoke.env, se existir, ou
+# do ambiente. Sem elas, essa etapa é pulada e o script avisa; healthchecks
+# sozinhos NÃO comprovam compatibilidade do schema.
 set -eu
 
 project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/../../.." && pwd)
@@ -67,6 +68,13 @@ curl -fsS -m 15 "$api_url/ready" | grep -q '"ready"' && echo "api /ready ok"
 curl -fsS -m 15 -o /dev/null "$frontend_url/" && echo "frontend ok"
 
 step "Smoke test autenticado (/v1/plans/current)"
+smoke_env="${CADENCIA_SMOKE_ENV_FILE:-/etc/cadencia/smoke.env}"
+if [ -z "${CADENCIA_SMOKE_EMAIL:-}" ] && [ -r "$smoke_env" ]; then
+  set -a
+  # shellcheck disable=SC1090
+  . "$smoke_env"
+  set +a
+fi
 if [ -n "${CADENCIA_SMOKE_EMAIL:-}" ] && [ -n "${CADENCIA_SMOKE_PASSWORD:-}" ]; then
   jar=$(mktemp)
   trap 'rm -f "$jar"' EXIT
