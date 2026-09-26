@@ -1,0 +1,10 @@
+[Unit]
+Description=Teste mensal de restauração do backup do Cadência
+
+[Timer]
+OnCalendar=*-*-01 05:00:00
+Persistent=true
+Unit=cadencia-restore-test.service
+
+[Install]
+WantedBy=timers.target

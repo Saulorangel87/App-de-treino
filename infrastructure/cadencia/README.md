@@ -101,6 +101,34 @@ docker compose --env-file infrastructure/cadencia/.env.production \
   -f infrastructure/cadencia/compose.production.yaml exec api wget -qO- http://127.0.0.1:8080/ready
 ```
 
+## Deploy automatizado, monitoramento e cópia externa
+
+O script `scripts/deploy.sh` executa o procedimento completo e para no primeiro erro: fast-forward do checkout, backup verificado, build, listagem das migrações pendentes (`DRY_RUN=1`), aplicação em ordem, recriação de `api`, `frontend` e `tunnel`, espera por `/ready` e smoke test público e autenticado.
+
+```sh
+sh infrastructure/cadencia/scripts/deploy.sh          # pergunta antes de aplicar
+sh infrastructure/cadencia/scripts/deploy.sh --yes    # sem confirmação
+```
+
+Para o smoke test autenticado, crie uma conta de teste dedicada com e-mail confirmado e exporte `CADENCIA_SMOKE_EMAIL` e `CADENCIA_SMOKE_PASSWORD` (por exemplo em `/etc/cadencia/smoke.env`, lido antes de chamar o script). Sem elas, essa etapa é pulada com um aviso: healthchecks sozinhos não comprovam que o schema atende ao código.
+
+Compatibilidade de schema: a API conhece a lista de migrações que exige (`backend/internal/database/schema.go`). Em produção ela se recusa a iniciar, e `/ready` responde `503 schema_behind`, enquanto faltar alguma. Por isso o healthcheck do container usa `/ready` e o tunnel só sobe com a API pronta. Ao criar uma migração, atualize essa lista (o teste `TestRequiredMigrationsMatchFiles` avisa se esquecer).
+
+O `migrate.sh` também aceita `DRY_RUN=1` (apenas lista), `MIGRATE_STRICT=1` (falha se uma migração já aplicada foi modificada) e registra o checksum de cada arquivo aplicado.
+
+Configuração opcional do backup, em `/etc/cadencia/backup.env` (lido pelo `cadencia-backup.service`):
+
+```sh
+# Cópia externa (rclone). Use um remote "crypt": o dump contém dados pessoais e de saúde.
+CADENCIA_OFFSITE_REMOTE=cadencia-crypt:backups
+# Monitor de ping (Healthchecks.io ou similar): recebe /start, sucesso e /fail.
+CADENCIA_HEALTHCHECK_URL=https://hc-ping.com/<uuid>
+```
+
+O `test-restore.sh` restaura o dump mais recente em um PostgreSQL descartável e confere o registro de migrações; o timer `cadencia-restore-test.timer` o executa todo dia 1 às 05:00 UTC (instale as duas unidades como as demais e use `/etc/cadencia/monitoring.env` para o ping). Um backup só é considerado bom depois de restaurado.
+
+Os serviços têm limites de memória (`API_MEM_LIMIT`, `FRONTEND_MEM_LIMIT`, `POSTGRES_MEM_LIMIT`) e rotação de logs (10 MB × 3). As imagens são fixadas por digest; o Dependabot propõe as atualizações.
+
 ## Atualização e migrações
 
 Após revisar e atualizar o repositório, crie um backup, execute o `build`, aplique as migrações pelo perfil `maintenance` e só então reinicie os serviços de aplicação. O script registra cada arquivo SQL aplicado em `cadencia_schema_migrations`, portanto uma migração já concluída não é reaplicada. Para a atualização de dependências do commit `41638da`, não houve mudança de esquema e somente a API foi reconstruída.

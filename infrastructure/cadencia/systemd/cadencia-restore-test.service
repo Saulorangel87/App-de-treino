@@ -1,0 +1,14 @@
+[Unit]
+Description=Teste mensal de restauração do backup do Cadência
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=docker
+WorkingDirectory=/home/ubuntu/apps/cadencia
+Environment=CADENCIA_BACKUP_DIR=/var/backups/cadencia
+# EnvironmentFile opcional com CADENCIA_HEALTHCHECK_URL (hífen = pode não existir).
+EnvironmentFile=-/etc/cadencia/monitoring.env
+ExecStart=/usr/bin/sh /home/ubuntu/apps/cadencia/infrastructure/cadencia/scripts/test-restore.sh
