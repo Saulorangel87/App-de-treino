@@ -24,6 +24,10 @@ SQL
 fi
 
 table_exists=$(psql -tA -v ON_ERROR_STOP=1 -c "SELECT to_regclass('cadencia_schema_migrations') IS NOT NULL")
+# Em produção a tabela já existia antes da coluna checksum; no DRY_RUN ela ainda
+# não foi adicionada, então a consulta precisa funcionar sem ela.
+has_checksum=$(psql -tA -v ON_ERROR_STOP=1 -c "SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'cadencia_schema_migrations' AND column_name = 'checksum')")
+if [ "$has_checksum" = "t" ]; then checksum_expr="COALESCE(checksum, '')"; else checksum_expr="''"; fi
 pending=0
 
 for migration in "$migrations_dir"/*.up.sql; do
@@ -31,8 +35,8 @@ for migration in "$migrations_dir"/*.up.sql; do
   checksum=$(sha256sum "$migration" | cut -d' ' -f1)
 
   if [ "$table_exists" = "t" ]; then
-    recorded=$(psql -tA -v ON_ERROR_STOP=1 --set=filename="$filename" <<'SQL'
-SELECT 'applied:' || COALESCE(checksum, '')
+    recorded=$(psql -tA -v ON_ERROR_STOP=1 --set=filename="$filename" <<SQL
+SELECT 'applied:' || $checksum_expr
 FROM cadencia_schema_migrations
 WHERE filename = :'filename';
 SQL
