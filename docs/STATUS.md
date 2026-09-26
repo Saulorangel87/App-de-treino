@@ -10,17 +10,17 @@ Este é o documento de continuidade: curto e sempre atual. O diário cronológic
 | --- | --- |
 | Frontend | <https://cadencia.devsaulo.com.br> |
 | API | <https://cadencia-api.devsaulo.com.br> |
-| Versão publicada | `0.32.0` (commit `95f2c27`) |
+| Versão publicada | `0.33.0` (merge `f925753` + correção `bf87ad2`, deploy de 26/09/2026) |
 | Migrações aplicadas | `000001` a `000030` |
 | Motor prescritivo | `rules-v1` (único); `rules-v2` e demais shadows são somente observacionais |
 | Último backup preventivo | `cadencia-20260915T113044Z.dump` |
-| Pendência de validação | leitura autenticada de `GET /v1/plans/current` do deploy `0.32.0` (agora coberta pelo smoke test do `deploy.sh`) |
+| Validação pós-deploy | login, `GET /v1/plans/current` e `logout-others` = 200 com a conta de smoke test; `/ready` verifica o schema |
 
 Escopo: somente ciclismo (estrada, MTB XCO/XCM, gravel e indoor). Corrida e musculação são produtos separados.
 
-## Checkout local — endurecimento operacional (ainda não commitado nem publicado)
+## Endurecimento operacional — publicado na `0.33.0`
 
-Conjunto de melhorias de robustez preparado em 26/09/2026, a partir do diagnóstico do incidente de 14/09 (schema defasado atrás de healthchecks verdes) e da revisão geral do projeto. A versão local do frontend passou para `0.33.0`.
+Conjunto de melhorias de robustez publicado em 26/09/2026 (PR #5 e #18), a partir do diagnóstico do incidente de 14/09 (schema defasado atrás de healthchecks verdes) e da revisão geral do projeto. A versão local do frontend passou para `0.33.0`.
 
 **Schema e deploy**
 - A API confere na inicialização se todas as migrações de `database.RequiredMigrations` estão em `cadencia_schema_migrations`. Em produção, a divergência é fatal; fora dela, apenas um aviso. `GET /ready` retorna `503 schema_behind` enquanto faltar migração (em produção). `TestRequiredMigrationsMatchFiles` impede esquecer de atualizar a lista ao criar uma migração.
@@ -62,17 +62,17 @@ Conjunto de melhorias de robustez preparado em 26/09/2026, a partir do diagnóst
 
 **Achado do e2e:** clicar em enviar antes da hidratação fazia o navegador enviar o formulário por GET, com a senha na URL. Os formulários com senha agora usam `method="post"`.
 
-## Antes de publicar esta versão
+## Deploy de 26/09/2026
 
-1. Rodar o CI no GitHub e corrigir o que o job `database` apontar.
-2. Conferir na VPS que `.env.production` tem `APP_BASE_URL` e `ALLOWED_ORIGIN` em `https` (a API passa a recusar iniciar caso contrário) e que a conta usada no smoke test existe.
-3. O digest fixado do `postgres:17-alpine` pode ser mais novo que o da VPS; a recriação do container aplica uma atualização de patch. Faça o backup antes (o `deploy.sh` já faz).
-4. A migração de `cadencia_schema_migrations` só adiciona a coluna `checksum`; registros antigos ficam sem checksum e não geram aviso.
-5. Registrar o deploy neste arquivo e no histórico.
+- Primeiro uso do `deploy.sh`. O backup preventivo foi `cadencia-20260926T233525Z.dump`; o container do PostgreSQL foi recriado pela mudança de digest da imagem (volume intacto).
+- A primeira tentativa parou no `DRY_RUN` do `migrate.sh` (a tabela de produção não tinha a coluna `checksum`); corrigido no PR #18. A coluna foi adicionada nesta publicação; os registros antigos permanecem sem checksum, por desenho.
+- O smoke test público falhou com 530 porque o tunnel ainda reconectava; o `deploy.sh` agora espera até ~90 s.
+- Conta de smoke test criada em produção (`smoke-test@cadencia.devsaulo.com.br`, e-mail confirmado no banco); credenciais em `/etc/cadencia/smoke.env` na VPS, lidas pelo `deploy.sh`.
+- Dependabot passou a abrir PRs (#6 a #13). Os saltos de versão maior (Node 26, Go 1.27, actions) exigem teste próprio antes de mesclar.
 
 ## Pendências operacionais (fora do código)
 
-- Configurar na VPS: cópia externa dos backups (`CADENCIA_OFFSITE_REMOTE`), monitor de ping (`CADENCIA_HEALTHCHECK_URL`) e o timer `cadencia-restore-test`.
+- Configurar na VPS (opcionais, ainda desligados): cópia externa dos backups (`CADENCIA_OFFSITE_REMOTE`), monitor de ping (`CADENCIA_HEALTHCHECK_URL`) e o timer `cadencia-restore-test`.
 - Hardening da VPS e limpeza gradual do que restar de dívida técnica.
 - Coleta longitudinal de dados reais antes de dar autoridade adicional aos shadows.
 - Decisão de produto: a hospedagem do frontend usa `vinext` (beta) com dependências herdadas do ambiente de criação (`wrangler`, `@openai/sites-vite-plugin`); avaliar migração para uma base mais estável.

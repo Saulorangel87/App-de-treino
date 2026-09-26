@@ -62,10 +62,23 @@ for _ in $(seq 1 30); do
 done
 [ "$ready" -eq 1 ] || { $compose logs --tail 50 api; fail "a API não ficou pronta; considere restaurar o backup"; }
 
+# O tunnel acabou de ser recriado e leva alguns segundos para reconectar; até lá
+# a Cloudflare responde 530. Tenta por até ~90 s antes de falhar.
+wait_public() {
+  label="$1"; url="$2"; pattern="${3:-}"
+  for _ in $(seq 1 30); do
+    if body=$(curl -fsS -m 15 "$url" 2>/dev/null) && { [ -z "$pattern" ] || printf '%s' "$body" | grep -q "$pattern"; }; then
+      echo "$label ok"; return 0
+    fi
+    sleep 3
+  done
+  fail "$label não respondeu em $url"
+}
+
 step "Smoke test público"
-curl -fsS -m 15 -o /dev/null "$api_url/health" && echo "api /health ok"
-curl -fsS -m 15 "$api_url/ready" | grep -q '"ready"' && echo "api /ready ok"
-curl -fsS -m 15 -o /dev/null "$frontend_url/" && echo "frontend ok"
+wait_public "api /health" "$api_url/health"
+wait_public "api /ready" "$api_url/ready" '"ready"'
+wait_public "frontend" "$frontend_url/"
 
 step "Smoke test autenticado (/v1/plans/current)"
 smoke_env="${CADENCIA_SMOKE_ENV_FILE:-/etc/cadencia/smoke.env}"
