@@ -3,7 +3,7 @@ module github.com/Saulorangel87/App-de-treino/backend
 go 1.25.0
 
 require (
-	github.com/jackc/pgx/v5 v5.9.2
+	github.com/jackc/pgx/v5 v5.11.0
 	golang.org/x/crypto v0.55.0
 )
 
