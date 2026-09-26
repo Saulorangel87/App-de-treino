@@ -5,7 +5,8 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 ## Fontes canônicas
 
 - [`planejamento.md`](../planejamento.md): documento único de visão, escopo do MVP, estado atual e próximos passos do produto.
-- [`project-status.md`](project-status.md): inventário do que está implementado, validado, em produção e pendente.
+- [`STATUS.md`](STATUS.md): estado atual, curto: produção, checkout local, pendências e checklist pré-deploy.
+- [`changelog/project-status-history.md`](changelog/project-status-history.md): diário cronológico das fatias de trabalho, com validações e decisões (histórico; não é o estado atual).
 - [`architecture-decisions.md`](architecture-decisions.md): decisões de arquitetura aceitas e seus limites.
 - [`training-adaptation-rules.md`](training-adaptation-rules.md): comportamento atual do motor `rules-v1`, adaptação e evidências gerais.
 - [`training-cycle-lifecycle.md`](training-cycle-lifecycle.md): estados, transições e regras do ciclo de treino.
@@ -16,7 +17,7 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 
 ## Como atualizar a documentação
 
-1. Registre a mudança no documento canônico mais específico e atualize `project-status.md` quando o estado do projeto mudar.
+1. Registre a mudança no documento canônico mais específico e atualize `STATUS.md` quando o estado do projeto mudar (mantenha-o curto; o detalhe cronológico vai para `changelog/project-status-history.md`).
 2. Se a mudança for visível para o usuário, atualize na mesma entrega `frontend/lib/release.ts`, incrementando `APP_VERSION` e descrevendo a novidade em `UPDATE_NOTES`. A tela de novidades aparece uma vez por conta, versão e navegador.
 3. Atualize o `README.md` apenas quando instalação, API ou comportamento público forem afetados.
 4. Atualize `architecture-decisions.md` somente quando uma decisão, um limite ou o estado de uma decisão mudar.
@@ -25,7 +26,7 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 
 ## Estado documentado neste ciclo
 
-A produção oficial está na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; a versão visível é `0.32.0` e as migrações estão aplicadas até `000030`. A entrega publicada inclui questionário adaptativo versionado, contexto seguro ampliado e indicadores observacionais de evolução. O estado detalhado e as pendências operacionais estão em [`project-status.md`](project-status.md).
+A produção oficial está na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; a versão visível é `0.32.0` e as migrações estão aplicadas até `000030`. A entrega publicada inclui questionário adaptativo versionado, contexto seguro ampliado e indicadores observacionais de evolução. O estado atual e as pendências operacionais estão em [`STATUS.md`](STATUS.md).
 
 ## Organização avaliada
 

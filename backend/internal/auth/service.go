@@ -41,6 +41,9 @@ type Store interface {
 	CreateEmailToken(context.Context, string, string, []byte, time.Time) error
 	VerifyEmailToken(context.Context, []byte) (User, error)
 	ResetPasswordWithToken(context.Context, []byte, string) error
+	ChangePassword(ctx context.Context, userID, passwordHash string, keepSessionHash []byte) error
+	DeleteOtherSessions(ctx context.Context, userID string, keepSessionHash []byte) (int64, error)
+	PurgeExpired(ctx context.Context) (sessions int64, emailTokens int64, err error)
 }
 
 type Service struct {
@@ -49,6 +52,9 @@ type Service struct {
 	now   func() time.Time
 }
 
+// passwordResetTimingHash is a valid bcrypt hash (cost 10, the library default)
+// compared against when an account does not exist, so that login and password
+// reset take a similar time for known and unknown e-mail addresses.
 const passwordResetTimingHash = "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
 
 func NewService(store Store, ttl time.Duration) *Service {
@@ -74,11 +80,50 @@ func (s *Service) Register(ctx context.Context, email, password, displayName str
 
 func (s *Service) Login(ctx context.Context, email, password string) (User, string, error) {
 	user, err := s.store.UserByEmail(ctx, normalizeEmail(email))
-	if err != nil || bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)) != nil {
+	if err != nil {
+		// Spend the same bcrypt cost as a real comparison to avoid revealing
+		// through timing which e-mail addresses have an account.
+		_ = bcrypt.CompareHashAndPassword([]byte(passwordResetTimingHash), []byte(password))
+		return User{}, "", ErrInvalidCredentials
+	}
+	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)) != nil {
 		return User{}, "", ErrInvalidCredentials
 	}
 	token, err := s.newSession(ctx, user.ID)
 	return user, token, err
+}
+
+// ChangePassword replaces the password of an authenticated user after checking
+// the current one, and revokes every session except the one making the request.
+func (s *Service) ChangePassword(ctx context.Context, user User, sessionToken, currentPassword, newPassword string) error {
+	if user.ID == "" || sessionToken == "" || currentPassword == "" || len(currentPassword) > 72 || len(newPassword) < 10 || len(newPassword) > 72 {
+		return ErrInvalidInput
+	}
+	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(currentPassword)) != nil {
+		return ErrInvalidCredentials
+	}
+	if newPassword == currentPassword {
+		return ErrInvalidInput
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	return s.store.ChangePassword(ctx, user.ID, string(hash), hashToken(sessionToken))
+}
+
+// LogoutOthers revokes every session of the user except the current one and
+// returns how many sessions were revoked.
+func (s *Service) LogoutOthers(ctx context.Context, user User, sessionToken string) (int64, error) {
+	if user.ID == "" || sessionToken == "" {
+		return 0, ErrUnauthorized
+	}
+	return s.store.DeleteOtherSessions(ctx, user.ID, hashToken(sessionToken))
+}
+
+// PurgeExpired removes expired sessions and spent or expired e-mail tokens.
+func (s *Service) PurgeExpired(ctx context.Context) (int64, int64, error) {
+	return s.store.PurgeExpired(ctx)
 }
 
 func (s *Service) Authenticate(ctx context.Context, token string) (User, error) {

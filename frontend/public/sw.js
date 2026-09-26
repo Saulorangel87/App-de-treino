@@ -1,7 +1,8 @@
-const CACHE_NAME = 'cadencia-static-v2';
-const OFFLINE_URL = '/offline';
+const CACHE_NAME = 'cadencia-static-v3';
+// Dependendo do servidor (vinext start ou Cloudflare), a página offline responde
+// em /offline ou somente em /offline.html; guardamos as que existirem.
+const OFFLINE_URLS = ['/offline', '/offline.html'];
 const PRECACHE = [
-  OFFLINE_URL,
   '/app.webmanifest',
   '/favicon.svg',
   '/icons/icon-192.png',
@@ -11,7 +12,16 @@ const PRECACHE = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE)).then(() => self.skipWaiting()));
+  event.waitUntil(
+    caches
+      .open(CACHE_NAME)
+      .then(async (cache) => {
+        // addAll falha por inteiro se uma URL falhar e impediria a instalação do
+        // service worker; cada recurso é guardado de forma independente.
+        await Promise.all([...OFFLINE_URLS, ...PRECACHE].map((url) => cache.add(url).catch(() => undefined)));
+      })
+      .then(() => self.skipWaiting()),
+  );
 });
 
 self.addEventListener('activate', (event) => {
@@ -30,7 +40,7 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin || url.pathname.startsWith('/v1/')) return;
 
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).catch(() => caches.match(OFFLINE_URL)));
+    event.respondWith(fetch(request).catch(async () => (await caches.match(OFFLINE_URLS[0])) || (await caches.match(OFFLINE_URLS[1]))));
     return;
   }
 

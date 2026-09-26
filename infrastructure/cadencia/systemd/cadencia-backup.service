@@ -11,4 +11,7 @@ WorkingDirectory=/home/ubuntu/apps/cadencia
 Environment=CADENCIA_ENV_FILE=/home/ubuntu/apps/cadencia/infrastructure/cadencia/.env.production
 Environment=CADENCIA_BACKUP_DIR=/var/backups/cadencia
 Environment=CADENCIA_BACKUP_RETENTION_DAYS=14
+# Opcional: /etc/cadencia/backup.env com CADENCIA_OFFSITE_REMOTE (rclone) e
+# CADENCIA_HEALTHCHECK_URL. O hífen permite que o arquivo não exista.
+EnvironmentFile=-/etc/cadencia/backup.env
 ExecStart=/usr/bin/bash /home/ubuntu/apps/cadencia/infrastructure/cadencia/scripts/backup-postgres.sh

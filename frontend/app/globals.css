@@ -3110,6 +3110,7 @@ a.footer-icon:hover {
 .settings-heading h1 { margin: 0; color: #243f34; font-family: var(--font-newsreader), Georgia, serif; font-size: 43px; font-weight: 500; letter-spacing: -1.4px; }
 .settings-heading span { display: block; margin-top: 9px; color: #607168; font-size: 13px; line-height: 1.6; }
 .settings-layout { display: grid; grid-template-columns: minmax(0, .9fr) minmax(360px, 1.1fr); gap: 18px; align-items: start; }
+.settings-column { display: grid; gap: 18px; align-content: start; min-width: 0; }
 .settings-card { min-width: 0; border: 1px solid var(--line); border-radius: 16px; background: white; padding: 27px; }
 .settings-icon, .settings-danger-icon { width: 45px; height: 45px; display: grid; place-items: center; border-radius: 13px; }
 .settings-icon { background: #eaf5d5; color: #4f761c; }
@@ -3131,6 +3132,18 @@ a.footer-icon:hover {
 .settings-danger-warning { display: flex; align-items: flex-start; gap: 9px; margin: 18px 0 15px; padding: 13px; border: 1px solid #efd1c5; border-radius: 10px; background: #fff5f1; color: #914d3b; font-size: 11px; line-height: 1.55; }
 .settings-danger-warning svg { flex: 0 0 auto; margin-top: 1px; }
 .settings-danger-warning strong { display: block; color: #793d30; }
+.settings-form { display: grid; gap: 7px; margin-top: 20px; }
+.settings-form label { color: #4a5f54; font-size: 10px; font-weight: 750; }
+.settings-form input { width: 100%; min-height: 42px; border: 1px solid #d3ddd5; border-radius: 9px; padding: 10px 11px; background: #fcfefc; color: #2d4a3b; font: inherit; font-size: 12px; outline: none; }
+.settings-form input:focus { border-color: #4e8168; box-shadow: 0 0 0 3px rgba(78, 129, 104, .16); }
+.settings-form > small { margin: 0 0 5px; color: #718078; font-size: 10px; line-height: 1.4; }
+.settings-form .form-error, .settings-form .form-notice { margin: 0; }
+.settings-primary-button, .settings-secondary-button { min-height: 44px; margin-top: 4px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; font-weight: 800; cursor: pointer; }
+.settings-primary-button { border: 0; background: #2f6b4f; color: white; }
+.settings-primary-button:hover { background: #26583f; }
+.settings-secondary-button { width: 100%; margin-top: 12px; border: 1px solid #c5d4c9; background: #f8fbf8; color: #28664b; }
+.settings-secondary-button:hover { border-color: #a9c7b5; background: #eef7f0; }
+.settings-primary-button:disabled, .settings-secondary-button:disabled { opacity: .55; cursor: not-allowed; }
 .settings-delete-form { display: grid; gap: 7px; margin-top: 20px; }
 .settings-delete-form label { color: #5d514d; font-size: 10px; font-weight: 750; }
 .settings-delete-form input { width: 100%; min-height: 42px; border: 1px solid #d9d5d1; border-radius: 9px; padding: 10px 11px; background: #fffdfc; color: #4a3933; font: inherit; font-size: 12px; outline: none; }

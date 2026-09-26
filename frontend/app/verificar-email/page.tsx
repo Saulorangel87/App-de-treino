@@ -10,8 +10,11 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get('token');
-    if (!token) { setState('error'); setMessage('Este link de confirmação está incompleto.'); return; }
-    apiRequest<{ message: string }>('/v1/auth/verify-email', { method: 'POST', body: JSON.stringify({ token }) })
+    // Todo setState ocorre de forma assíncrona, depois da montagem.
+    const request = token
+      ? apiRequest<{ message: string }>('/v1/auth/verify-email', { method: 'POST', body: JSON.stringify({ token }) })
+      : Promise.reject(new Error('Este link de confirmação está incompleto.'));
+    request
       .then((result) => { setState('success'); setMessage(result.message); })
       .catch((error) => { setState('error'); setMessage(error instanceof Error ? error.message : 'Não foi possível confirmar seu e-mail.'); });
   }, []);

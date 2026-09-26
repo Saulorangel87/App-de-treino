@@ -25,6 +25,8 @@ O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Spr
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
+Antes de abrir um PR, o CI (`.github/workflows/ci.yml`) roda `go vet`/`go test`, as migrações com as fixtures de `database/tests`, `tsc`, `oxlint`, `vitest` e o build. Localmente: `go test ./...` em `backend/` e `npm run typecheck && npm run lint && npm test` em `frontend/`; `npm run e2e` exige API e banco locais.
+
 O script da API compila o binário em `backend/.gotmp`, pasta ignorada pelo Git, porque o Smart App Control do Windows pode bloquear o executável temporário criado pelo `go run`.
 
 O frontend nunca se conecta diretamente ao PostgreSQL. Todo acesso passa pela API Go.
@@ -38,6 +40,8 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `DELETE /v1/auth/account`: exige a senha atual e a confirmação `ENCERRAR CONTA` para apagar a conta e todos os dados pessoais em cascata no PostgreSQL.
 - `POST /v1/auth/resend-verification` e `POST /v1/auth/verify-email`: reenviam e consomem um link de confirmação de uso único.
 - `POST /v1/auth/forgot-password` e `POST /v1/auth/reset-password`: iniciam e concluem a redefinição segura da senha.
+- `POST /v1/auth/change-password`: troca a senha após conferir a atual e desconecta as demais sessões, mantendo a atual.
+- `POST /v1/auth/logout-others`: encerra todas as sessões do usuário, exceto a atual.
 - `GET /v1/me`: retorna o usuário autenticado.
 - `GET /v1/profile`: consulta o perfil básico do ciclista.
 - `PUT /v1/profile`: cria ou atualiza o perfil básico.
@@ -58,10 +62,13 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `POST /v1/workouts/{workoutID}/correct`: corrige somente métricas opcionais de pedal de uma sessão concluída marcada como inconsistente ou incompleta; duração, RPE, feedback, plano e prescrição não são alterados, e os valores originais ficam no histórico de auditoria.
 - `POST /v1/workouts/{workoutID}/explanation`: solicita uma explicação em linguagem simples; quando a IA está desligada ou indisponível, retorna o resumo validado pelo motor.
 - `POST /v1/workouts/{workoutID}/cancel`: cancela uma sessão em andamento e mantém esse histórico.
+- `POST /v1/workouts/{workoutID}/missed`: marca como perdida uma sessão planejada cuja data já passou.
 - `GET /v1/activities`: lista, para o atleta autenticado, as sessões concluídas e canceladas.
 - `POST /v1/feedback`: registra, para o atleta autenticado, uma experiência, problema ou sugestão com nota e mensagem. Os relatos pendentes podem entrar no resumo semanal do proprietário.
 
 O início de uma sessão também revalida a segurança contra uma limitação cadastrada depois da geração do plano: sessões acima de RPE 4 são bloqueadas até que exista um novo plano protegido ou orientação profissional. Sessões protegidas em RPE 4 ou abaixo continuam iniciáveis.
+
+O login tem limite por IP e por conta (10 falhas em 15 minutos). `GET /ready` confere o PostgreSQL e, em produção, se todas as migrações exigidas pelo binário estão aplicadas; um schema defasado retorna `503`. Os links de confirmação e redefinição só aparecem na resposta da API em desenvolvimento com URL local (`APP_BASE_URL` em loopback); em produção só são enviados por e-mail.
 
 As sessões são opacas, armazenadas no PostgreSQL apenas como hash e enviadas ao navegador em cookie `HttpOnly`. Em produção, `APP_ENV=production` ativa também a exigência de HTTPS no cookie. Os links de confirmação e redefinição são aleatórios, expiram e só têm o hash armazenado; a redefinição de senha revoga todas as sessões existentes. A geração e a ativação de planos exigem e-mail confirmado.
 
@@ -98,7 +105,7 @@ O MVP de ciclismo está publicado e validado em produção:
 - `rules-v1` continua sendo a única fonte prescritiva. Os shadows permanecem observacionais.
 - Dependabot está com 0 alertas abertos; `go test`, `go vet`, build e auditoria de dependências de produção passaram. `govulncheck` não está instalado.
 
-O planejamento vigente está em [`planejamento.md`](planejamento.md). As atividades restantes são manutenção operacional, feedback real, cópia externa de backups, monitoramento, hardening da VPS, limpeza gradual do lint histórico e calibração científica antes de ampliar a autoridade do motor. Corrida e musculação estão fora deste projeto.
+O estado atual e o checklist de publicação estão em [`docs/STATUS.md`](docs/STATUS.md). O planejamento vigente está em [`planejamento.md`](planejamento.md). As atividades restantes são manutenção operacional, feedback real, cópia externa de backups, monitoramento, hardening da VPS, limpeza gradual do lint histórico e calibração científica antes de ampliar a autoridade do motor. Corrida e musculação estão fora deste projeto.
 
 A publicação oficial usa somente a composição Docker da VPS com os domínios oficiais e o Cloudflare Tunnel dedicado. O ambiente Sites não faz parte da produção do Cadência.
 

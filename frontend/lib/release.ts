@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.32.0';
+export const APP_VERSION = '0.33.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.33.0',
+    title: 'Mais segurança no acesso à conta',
+    description:
+      'Em Configurações você agora pode trocar a senha e encerrar o acesso em outros aparelhos. Ao alterar a senha, os demais dispositivos são desconectados automaticamente. Também tornamos o Cadência mais estável: pedidos de rede lentos são repetidos com segurança e, se sua sessão expirar, você é levado de volta ao login.',
+  },
   {
     version: '0.32.0',
     title: 'Onboarding de ciclismo mais completo e seguro',

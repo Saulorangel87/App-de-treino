@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -17,9 +18,15 @@ import (
 
 type Pinger interface{ Ping(context.Context) error }
 
+// SchemaChecker is optionally implemented by the Pinger. When it is, /ready also
+// fails while the database is missing migrations the application requires, which
+// a plain connectivity check cannot detect.
+type SchemaChecker interface{ Check(context.Context) error }
+
 func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Service, onboardingService *athlete.OnboardingService, assessmentService *athlete.AssessmentService, recoveryService *athlete.RecoveryService, evolutionService *evolution.Service, feedbackService *feedback.Service, planningService *planning.Service, aiService *ai.Service, emailSender email.Sender, appBaseURL, allowedOrigin string, secureCookies, development bool, sessionTTL, emailTokenTTL time.Duration) http.Handler {
 	mux := http.NewServeMux()
 	server := &Server{auth: authService, athlete: athleteService, onboarding: onboardingService, assessments: assessmentService, recovery: recoveryService, evolution: evolutionService, feedback: feedbackService, planning: planningService, ai: aiService, emailSender: emailSender, appBaseURL: appBaseURL, secureCookies: secureCookies, development: development, sessionTTL: sessionTTL, emailTokenTTL: emailTokenTTL}
+	server.loginFailures = newRequestRateLimiter()
 	authLimiter := newRequestRateLimiter()
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "service": "cadencia-api"})
@@ -31,12 +38,21 @@ func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Ser
 			writeJSON(w, http.StatusServiceUnavailable, map[string]string{"status": "unavailable"})
 			return
 		}
+		if checker, ok := db.(SchemaChecker); ok {
+			if err := checker.Check(ctx); err != nil {
+				slog.Default().Error("readiness schema check failed", "error", err)
+				writeJSON(w, http.StatusServiceUnavailable, map[string]string{"status": "schema_behind"})
+				return
+			}
+		}
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ready"})
 	})
 	mux.HandleFunc("POST /v1/auth/register", authLimiter.limit("register", 5, time.Hour, server.register))
 	mux.HandleFunc("POST /v1/auth/login", authLimiter.limit("login", 10, 15*time.Minute, server.login))
 	mux.HandleFunc("POST /v1/auth/logout", server.logout)
 	mux.HandleFunc("DELETE /v1/auth/account", server.deleteAccount)
+	mux.HandleFunc("POST /v1/auth/change-password", authLimiter.limit("change-password", 5, 15*time.Minute, server.changePassword))
+	mux.HandleFunc("POST /v1/auth/logout-others", server.logoutOthers)
 	mux.HandleFunc("POST /v1/auth/resend-verification", authLimiter.limit("resend-verification", 5, time.Hour, server.resendVerification))
 	mux.HandleFunc("POST /v1/auth/verify-email", authLimiter.limit("verify-email", 20, 15*time.Minute, server.verifyEmail))
 	mux.HandleFunc("POST /v1/auth/forgot-password", authLimiter.limit("forgot-password", 5, time.Hour, server.forgotPassword))
@@ -66,7 +82,7 @@ func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Ser
 	mux.HandleFunc("POST /v1/workouts/{workoutID}/correct", server.correctWorkout)
 	mux.HandleFunc("POST /v1/workouts/{workoutID}/cancel", server.cancelWorkout)
 	mux.HandleFunc("POST /v1/workouts/{workoutID}/missed", server.markWorkoutMissed)
-	return securityHeaders(secureCookies, cors(allowedOrigin, csrfProtection(allowedOrigin, mux)))
+	return securityHeaders(secureCookies, observability(slog.Default(), cors(allowedOrigin, csrfProtection(allowedOrigin, mux))))
 }
 
 func writeJSON(w http.ResponseWriter, status int, value any) {

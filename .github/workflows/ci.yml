@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - name: Formatação
+        run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
+      - run: go vet ./...
+      - run: go test -count=1 -race -cover ./...
+      - name: Vulnerabilidades (govulncheck)
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+  database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: cadencia
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: cadencia_ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U cadencia -d cadencia_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      PGHOST: localhost
+      PGUSER: cadencia
+      PGPASSWORD: ci-only-password
+      PGDATABASE: cadencia_ci
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar cliente psql
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client
+      - name: Migrações e fixtures SQL
+        run: bash scripts/run-sql-fixtures.sh
+      - name: Reaplicar migrações (idempotência)
+        run: MIGRATIONS_DIR="$PWD/database/migrations" sh infrastructure/cadencia/scripts/migrate.sh
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - name: Auditoria de dependências de produção
+        run: npm audit --omit=dev --audit-level=high
+
+  openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validar YAML, Compose e scripts
+        run: |
+          python3 -c "import yaml,sys; [yaml.safe_load(open(f)) for f in ['api/openapi.yaml','compose.yaml','infrastructure/cadencia/compose.production.yaml']]"
+          sh -n infrastructure/cadencia/scripts/migrate.sh
+          bash -n scripts/run-sql-fixtures.sh
