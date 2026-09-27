@@ -88,7 +88,10 @@ jobs:
       - run: npm run build
       - name: Auditoria de dependências de produção
         timeout-minutes: 5
-        run: npm audit --omit=dev --audit-level=high
+        run: |
+          # O npm antigo do runner usa um endpoint de auditoria já aposentado (HTTP 400).
+          npm install -g npm@latest
+          npm audit --omit=dev --audit-level=high
 
   openapi:
     runs-on: ubuntu-latest
