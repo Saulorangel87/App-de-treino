@@ -88,7 +88,12 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   const maxRetries = method === 'GET' ? (retries ?? DEFAULT_GET_RETRIES) : 0;
 
   const headers = new Headers(init.headers);
-  if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  // Um corpo FormData (upload de arquivo) precisa que o navegador defina o
+  // Content-Type sozinho, com o boundary do multipart; forçar application/json
+  // quebraria o envio.
+  if (!headers.has('Content-Type') && !(init.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
   const requestInit: RequestInit = { ...init, headers, credentials: 'include' };
 
   let attempt = 0;

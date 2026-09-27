@@ -357,6 +357,36 @@ paths:
       responses:
         '200': { description: Histórico de atividades }
         '401': { description: Sessão ausente ou expirada }
+  /v1/activities/import:
+    post:
+      summary: Importa uma atividade a partir de um arquivo .fit ou .gpx (upload multipart, campo "file", limite 20 MB)
+      description: Extrai duração, distância, elevação, FC, potência e cadência do arquivo e sugere treinos planejados no mesmo dia. Nunca altera um treino nem o plano; a confirmação é feita pelos endpoints de conclusão/correção do treino.
+      responses:
+        '201': { description: Atividade importada, com os treinos do mesmo dia sugeridos como vínculo }
+        '400': { description: Corpo multipart inválido ou sem o campo "file" }
+        '401': { description: Sessão ausente ou expirada }
+        '409': { description: Este arquivo já foi importado por este atleta }
+        '413': { description: Arquivo maior que o limite de 20 MB }
+        '415': { description: Extensão não reconhecida (envie .fit ou .gpx) }
+        '422': { description: Arquivo corrompido, sem dados de atividade ou de um esporte diferente de ciclismo }
+  /v1/activities/imported:
+    get:
+      summary: Lista as atividades importadas do atleta autenticado, da mais recente para a mais antiga
+      responses:
+        '200': { description: Atividades importadas }
+        '401': { description: Sessão ausente ou expirada }
+  /v1/activities/imported/{activityID}:
+    delete:
+      summary: Remove uma atividade importada (não afeta nenhum treino ou plano)
+      parameters:
+        - in: path
+          name: activityID
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Atividade removida }
+        '401': { description: Sessão ausente ou expirada }
+        '404': { description: Atividade não encontrada ou pertencente a outro atleta }
   /v1/plans/{planID}/activate:
     post:
       summary: Ativa um rascunho e cancela o plano ativo anterior do atleta

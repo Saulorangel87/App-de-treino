@@ -1,4 +1,11 @@
 const CACHE_NAME = 'cadencia-static-v3';
+// Guarda, por instante, o arquivo recebido pelo menu "Compartilhar" do Android
+// (Web Share Target), até a página /atividades/importar buscá-lo. Cache
+// separado do CACHE_NAME para não ser limpo pela troca de versão dos
+// recursos estáticos.
+const SHARE_CACHE_NAME = 'cadencia-shared-file';
+const SHARE_TARGET_PATH = '/atividades/compartilhar';
+const SHARED_FILE_URL = '/__shared-activity';
 // Dependendo do servidor (vinext start ou Cloudflare), a página offline responde
 // em /offline ou somente em /offline.html; guardamos as que existirem.
 const OFFLINE_URLS = ['/offline', '/offline.html'];
@@ -27,13 +34,20 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(
+        keys.filter((key) => key !== CACHE_NAME && key !== SHARE_CACHE_NAME).map((key) => caches.delete(key)),
+      ))
       .then(() => self.clients.claim()),
   );
 });
 
 self.addEventListener('fetch', (event) => {
   const request = event.request;
+
+  if (request.method === 'POST' && new URL(request.url).pathname === SHARE_TARGET_PATH) {
+    event.respondWith(handleSharedActivity(request));
+    return;
+  }
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
@@ -70,3 +84,28 @@ self.addEventListener('fetch', (event) => {
     })),
   );
 });
+
+// Recebe o POST do menu "Compartilhar" do Android (Web Share Target),
+// definido em public/app.webmanifest. O navegador entrega o arquivo
+// compartilhado aqui, antes de qualquer navegação; guardamos o arquivo num
+// cache próprio e redirecionamos para a tela de importação, que busca o
+// arquivo e completa o envio como se o atleta tivesse escolhido pelo seletor
+// de arquivos. Nada aqui fala com a API: é só a ponte até a tela normal de
+// upload, que passa pelas mesmas validações de sempre.
+async function handleSharedActivity(request) {
+  try {
+    const form = await request.formData();
+    const file = form.get('file');
+    if (!(file instanceof File)) {
+      return Response.redirect('/atividades/importar?compartilhado=erro', 303);
+    }
+    const cache = await caches.open(SHARE_CACHE_NAME);
+    await cache.put(
+      SHARED_FILE_URL,
+      new Response(file, { headers: { 'X-Shared-Filename': encodeURIComponent(file.name) } }),
+    );
+  } catch {
+    return Response.redirect('/atividades/importar?compartilhado=erro', 303);
+  }
+  return Response.redirect('/atividades/importar?compartilhado=1', 303);
+}

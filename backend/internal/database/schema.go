@@ -46,6 +46,7 @@ var RequiredMigrations = []string{
 	"000028_post_event_recovery_evidence.up.sql",
 	"000029_average_cadence_metric.up.sql",
 	"000030_profile_safety_context.up.sql",
+	"000031_imported_activities.up.sql",
 }
 
 // ErrSchemaBehind reports that the database is missing migrations this binary needs.

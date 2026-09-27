@@ -31,6 +31,19 @@
       "purpose": "maskable"
     }
   ],
+  "share_target": {
+    "action": "/atividades/compartilhar",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [
+        {
+          "name": "file",
+          "accept": [".fit", ".gpx", "application/octet-stream", "application/gpx+xml", "application/vnd.ant.fit"]
+        }
+      ]
+    }
+  },
   "shortcuts": [
     {
       "name": "Visão geral",

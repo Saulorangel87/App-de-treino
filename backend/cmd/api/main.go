@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Saulorangel87/App-de-treino/backend/internal/activityimport"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/ai"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/athlete"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/auth"
@@ -105,6 +106,7 @@ func main() {
 	evolutionService := evolution.NewService(store)
 	feedbackService := feedback.NewService(store)
 	planningService := planning.NewService(store)
+	activityImportService := activityimport.NewService(store)
 	var aiService *ai.Service
 	if cfg.AIEnabled {
 		var primary ai.Provider
@@ -160,7 +162,7 @@ func main() {
 	writeTimeout := max(30*time.Second, cfg.AITimeout+15*time.Second)
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           httpapi.NewRouter(ready, authService, athleteService, onboardingService, assessmentService, recoveryService, evolutionService, feedbackService, planningService, aiService, emailSender, cfg.AppBaseURL, cfg.AllowedOrigin, cfg.SecureCookies, cfg.Development, cfg.SessionTTL, cfg.EmailTokenTTL),
+		Handler:           httpapi.NewRouter(ready, authService, athleteService, onboardingService, assessmentService, recoveryService, evolutionService, feedbackService, planningService, activityImportService, aiService, emailSender, cfg.AppBaseURL, cfg.AllowedOrigin, cfg.SecureCookies, cfg.Development, cfg.SessionTTL, cfg.EmailTokenTTL),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      writeTimeout,
