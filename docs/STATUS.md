@@ -13,7 +13,7 @@ Este é o documento de continuidade: curto e sempre atual. O diário cronológic
 | Versão publicada | `0.34.0`, commit `35c8b28` (deploy de 27/09/2026: importação de atividades por arquivo) |
 | Migrações aplicadas | `000001` a `000031` |
 | Motor prescritivo | `rules-v1` (único); `rules-v2` e demais shadows são somente observacionais |
-| Último backup preventivo | ver `infrastructure/cadencia/README.md` ou `/var/backups/cadencia` na VPS |
+| Último backup preventivo | `cadencia-20260927T155943Z.dump` |
 | Validação pós-deploy | login, `GET /v1/plans/current` e `logout-others` = 200 com a conta de smoke test; `/ready` verifica o schema |
 
 Escopo: somente ciclismo (estrada, MTB XCO/XCM, gravel e indoor). Corrida e musculação são produtos separados.
