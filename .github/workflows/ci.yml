@@ -15,6 +15,7 @@ concurrency:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: backend
@@ -41,6 +42,7 @@ jobs:
 
   database:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     services:
       postgres:
         image: postgres:17-alpine
@@ -68,6 +70,7 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: frontend
@@ -84,10 +87,12 @@ jobs:
       - run: npm test
       - run: npm run build
       - name: Auditoria de dependências de produção
+        timeout-minutes: 5
         run: npm audit --omit=dev --audit-level=high
 
   openapi:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - name: Validar YAML, Compose e scripts
@@ -98,6 +103,7 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - name: Construir as imagens de produção
