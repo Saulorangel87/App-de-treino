@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Saulorangel87/App-de-treino/backend/internal/activityimport"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/ai"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/athlete"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/auth"
@@ -25,21 +26,22 @@ import (
 const sessionCookieName = "cadencia_session"
 
 type Server struct {
-	auth          *auth.Service
-	athlete       *athlete.Service
-	onboarding    *athlete.OnboardingService
-	assessments   *athlete.AssessmentService
-	recovery      *athlete.RecoveryService
-	evolution     *evolution.Service
-	feedback      *feedback.Service
-	planning      *planning.Service
-	ai            *ai.Service
-	secureCookies bool
-	sessionTTL    time.Duration
-	emailSender   email.Sender
-	appBaseURL    string
-	emailTokenTTL time.Duration
-	development   bool
+	auth           *auth.Service
+	athlete        *athlete.Service
+	onboarding     *athlete.OnboardingService
+	assessments    *athlete.AssessmentService
+	recovery       *athlete.RecoveryService
+	evolution      *evolution.Service
+	feedback       *feedback.Service
+	planning       *planning.Service
+	activityImport *activityimport.Service
+	ai             *ai.Service
+	secureCookies  bool
+	sessionTTL     time.Duration
+	emailSender    email.Sender
+	appBaseURL     string
+	emailTokenTTL  time.Duration
+	development    bool
 	// loginFailures counts failed logins per e-mail address, complementing the
 	// per-IP limit against distributed guessing of a single account.
 	loginFailures *requestRateLimiter

@@ -33,15 +33,15 @@ var (
 // converted to the physical units used across the app (seconds, kilometers,
 // meters, bpm, watts, rpm) — the same units workout_sessions already stores.
 type Parsed struct {
-	StartedAt         time.Time
-	MovingSeconds     int
-	DistanceKM        float64
-	ElevationGainM    *int
-	AverageHeartRate  *int
-	MaxHeartRate      *int
-	AveragePowerW     *int
-	NormalizedPowerW  *int
-	AverageCadenceRPM *int
+	StartedAt         time.Time `json:"started_at"`
+	MovingSeconds     int       `json:"moving_seconds"`
+	DistanceKM        float64   `json:"distance_km"`
+	ElevationGainM    *int      `json:"elevation_gain_m,omitempty"`
+	AverageHeartRate  *int      `json:"average_heart_rate,omitempty"`
+	MaxHeartRate      *int      `json:"max_heart_rate,omitempty"`
+	AveragePowerW     *int      `json:"average_power_watts,omitempty"`
+	NormalizedPowerW  *int      `json:"normalized_power_watts,omitempty"`
+	AverageCadenceRPM *int      `json:"average_cadence_rpm,omitempty"`
 }
 
 // avg returns the mean of the samples that are non-nil, or nil when there is

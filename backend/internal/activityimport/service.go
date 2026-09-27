@@ -34,22 +34,22 @@ var (
 // suggested match and confirms it through the existing completion/
 // correction endpoints (POST /v1/workouts/{id}/complete or /correct).
 type Activity struct {
-	ID     string
-	UserID string
+	ID     string `json:"id"`
+	UserID string `json:"-"`
 	Parsed
-	Source     string
-	WorkoutID  *string
-	ImportedAt time.Time
+	Source     string    `json:"source"`
+	WorkoutID  *string   `json:"workout_id,omitempty"`
+	ImportedAt time.Time `json:"imported_at"`
 }
 
 // WorkoutCandidate is the minimal projection of a planned workout offered as
 // a suggested match for an imported activity, based on the same calendar
 // date.
 type WorkoutCandidate struct {
-	ID          string
-	ScheduledOn string
-	Name        string
-	Status      string
+	ID          string `json:"id"`
+	ScheduledOn string `json:"scheduled_on"`
+	Name        string `json:"name"`
+	Status      string `json:"status"`
 }
 
 type Store interface {
