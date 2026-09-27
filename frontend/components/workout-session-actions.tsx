@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   CheckCircle2,
   CircleStop,
@@ -14,12 +14,27 @@ import { Textarea } from '@/components/ui/textarea';
 import { apiRequest } from '@/lib/api';
 import type { TrainingPlan, Workout } from '@/lib/planning';
 
+export type PrefillMetrics = {
+  distance_km?: number;
+  elevation_gain_m?: number;
+  average_heart_rate?: number;
+  average_power_watts?: number;
+  average_cadence_rpm?: number;
+};
+
 type Props = {
   workout: Workout;
   planStatus: TrainingPlan['status'];
   usesHeartRate?: boolean;
   usesPower?: boolean;
   onPlanUpdated: (plan: TrainingPlan, workoutID: string) => void;
+  /**
+   * Preenche o formulário de conclusão (ou de correção, se a sessão já
+   * estiver concluída) com dados extraídos de uma atividade importada
+   * (.fit/.gpx) e abre o formulário automaticamente. O atleta ainda revisa e
+   * confirma manualmente — nada é enviado sozinho.
+   */
+  prefillMetrics?: PrefillMetrics;
 };
 
 const difficultyLabels = {
@@ -76,6 +91,7 @@ export function WorkoutSessionActions({
   usesHeartRate = false,
   usesPower = false,
   onPlanUpdated,
+  prefillMetrics,
 }: Props) {
   const [action, setAction] = useState('');
   const [todayKey, setTodayKey] = useState('');
@@ -109,10 +125,34 @@ export function WorkoutSessionActions({
   const [correctionAverageCadenceRPM, setCorrectionAverageCadenceRPM] = useState('');
   const [correctionNotice, setCorrectionNotice] = useState('');
   const [error, setError] = useState('');
+  const appliedPrefillRef = useRef(false);
 
   useEffect(() => {
     queueMicrotask(() => setTodayKey(localDateKey()));
   }, []);
+
+  useEffect(() => {
+    if (!prefillMetrics || appliedPrefillRef.current) return;
+    appliedPrefillRef.current = true;
+    const asText = (value?: number) => (value !== undefined ? String(value) : '');
+    queueMicrotask(() => {
+      if (workout.status === 'completed') {
+        setCorrectionDistanceKM(asText(prefillMetrics.distance_km));
+        setCorrectionElevationGainM(asText(prefillMetrics.elevation_gain_m));
+        setCorrectionAverageHeartRate(asText(prefillMetrics.average_heart_rate));
+        setCorrectionAveragePowerW(asText(prefillMetrics.average_power_watts));
+        setCorrectionAverageCadenceRPM(asText(prefillMetrics.average_cadence_rpm));
+        setCorrectionOpen(true);
+      } else {
+        setDistanceKM(asText(prefillMetrics.distance_km));
+        setElevationGainM(asText(prefillMetrics.elevation_gain_m));
+        setAverageHeartRate(asText(prefillMetrics.average_heart_rate));
+        setAveragePowerW(asText(prefillMetrics.average_power_watts));
+        setAverageCadenceRPM(asText(prefillMetrics.average_cadence_rpm));
+        setFeedbackOpen(true);
+      }
+    });
+  }, [prefillMetrics, workout.status]);
 
   async function mutate(path: string, body?: object) {
     setAction(path);
