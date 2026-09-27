@@ -120,7 +120,10 @@ Configuração opcional do backup, em `/etc/cadencia/backup.env` (lido pelo `cad
 
 ```sh
 # Cópia externa (rclone). Use um remote "crypt": o dump contém dados pessoais e de saúde.
-CADENCIA_OFFSITE_REMOTE=cadencia-crypt:backups
+CADENCIA_OFFSITE_REMOTE=cadencia-crypt:
+# A VM não tem permissão de apagar no bucket; a retenção externa é uma regra de
+# ciclo de vida do próprio bucket. Use =1 só se a VM puder apagar objetos.
+# CADENCIA_OFFSITE_PRUNE=1
 # Monitor de ping (Healthchecks.io ou similar): recebe /start, sucesso e /fail.
 CADENCIA_HEALTHCHECK_URL=https://hc-ping.com/<uuid>
 ```
