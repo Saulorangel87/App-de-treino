@@ -2,34 +2,33 @@ package activityimport
 
 import (
 	"bytes"
-	"encoding/binary"
 	"testing"
 	"time"
 
-	"github.com/tormoder/fit"
+	"github.com/muktihari/fit/encoder"
+	"github.com/muktihari/fit/profile/mesgdef"
+	"github.com/muktihari/fit/profile/typedef"
+	"github.com/muktihari/fit/proto"
 )
 
 // buildFIT encodes a minimal, valid Activity FIT file using the same
 // library this package decodes with, so these tests exercise the adapter
 // code in parse_fit.go rather than re-testing the binary format itself
-// (already covered by tormoder/fit's own test suite).
-func buildFIT(t *testing.T, configure func(f *fit.File, activity *fit.ActivityFile)) []byte {
+// (already covered by muktihari/fit's own test suite, and by the real XOSS
+// file this parser was validated against during development).
+func buildFIT(t *testing.T, messages ...proto.Message) []byte {
 	t.Helper()
-	f, err := fit.NewFile(fit.FileTypeActivity, fit.NewHeader(fit.V10, false))
-	if err != nil {
-		t.Fatalf("fit.NewFile: %v", err)
+	fileId := mesgdef.NewFileId(nil)
+	fileId.Type = typedef.FileActivity
+	fileId.TimeCreated = time.Date(2026, 9, 20, 8, 0, 0, 0, time.UTC)
+
+	data := proto.FIT{
+		FileHeader: proto.FileHeader{ProtocolVersion: proto.V1, DataType: ".FIT"},
+		Messages:   append([]proto.Message{fileId.ToMesg(nil)}, messages...),
 	}
-	f.FileId.Type = fit.FileTypeActivity
-	f.FileId.Manufacturer = fit.ManufacturerGarmin
-	f.FileId.TimeCreated = time.Date(2026, 9, 20, 8, 0, 0, 0, time.UTC)
-	activity, err := f.Activity()
-	if err != nil {
-		t.Fatalf("f.Activity: %v", err)
-	}
-	configure(f, activity)
 	var buf bytes.Buffer
-	if err := fit.Encode(&buf, f, binary.LittleEndian); err != nil {
-		t.Fatalf("fit.Encode: %v", err)
+	if err := encoder.New(&buf).Encode(&data); err != nil {
+		t.Fatalf("encoder.Encode: %v", err)
 	}
 	return buf.Bytes()
 }
@@ -37,22 +36,20 @@ func buildFIT(t *testing.T, configure func(f *fit.File, activity *fit.ActivityFi
 func TestParseFIT_FromSession(t *testing.T) {
 	start := time.Date(2026, 9, 20, 8, 0, 0, 0, time.UTC)
 	hr, maxHR, power, np, cadence := uint8(140), uint8(178), uint16(210), uint16(225), uint8(88)
-	data := buildFIT(t, func(_ *fit.File, activity *fit.ActivityFile) {
-		session := fit.NewSessionMsg()
-		session.Sport = fit.SportCycling
-		session.StartTime = start
-		session.Timestamp = start.Add(90 * time.Minute)
-		session.TotalTimerTime = 90 * 60 * 1000 // 90 min, in ms
-		session.TotalElapsedTime = 92 * 60 * 1000
-		session.TotalDistance = 4500000 // 45 km in cm
-		session.TotalAscent = 620
-		session.AvgHeartRate = hr
-		session.MaxHeartRate = maxHR
-		session.AvgPower = power
-		session.NormalizedPower = np
-		session.AvgCadence = cadence
-		activity.Sessions = append(activity.Sessions, session)
-	})
+	session := mesgdef.NewSession(nil)
+	session.Sport = typedef.SportCycling
+	session.StartTime = start
+	session.Timestamp = start.Add(90 * time.Minute)
+	session.TotalTimerTime = 90 * 60 * 1000 // 90 min, scale 1000
+	session.TotalElapsedTime = 92 * 60 * 1000
+	session.TotalDistance = 4500000 // 45 km, scale 100 -> m
+	session.TotalAscent = 620
+	session.AvgHeartRate = hr
+	session.MaxHeartRate = maxHR
+	session.AvgPower = power
+	session.NormalizedPower = np
+	session.AvgCadence = cadence
+	data := buildFIT(t, session.ToMesg(nil))
 
 	parsed, err := ParseFIT(bytes.NewReader(data))
 	if err != nil {
@@ -87,15 +84,49 @@ func TestParseFIT_FromSession(t *testing.T) {
 	}
 }
 
+// TestParseFIT_TreatsZeroVitalsAsMissing documents a real quirk found in a
+// ride exported from a XOSS head unit: without a paired sensor, it writes 0
+// into the session's average heart rate/power/cadence fields instead of the
+// FIT protocol's invalid sentinel. A whole-ride average of exactly zero is
+// not physiologically plausible, so it is treated the same as "no sensor".
+func TestParseFIT_TreatsZeroVitalsAsMissing(t *testing.T) {
+	session := mesgdef.NewSession(nil)
+	session.Sport = typedef.SportCycling
+	session.StartTime = time.Now().UTC()
+	session.TotalTimerTime = 3600 * 1000
+	session.TotalElapsedTime = 3600 * 1000
+	session.TotalDistance = 3000000
+	session.AvgHeartRate, session.MaxHeartRate = 0, 0
+	session.AvgPower, session.NormalizedPower = 0, 0
+	session.AvgCadence = 0
+	data := buildFIT(t, session.ToMesg(nil))
+
+	parsed, err := ParseFIT(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("ParseFIT: %v", err)
+	}
+	if parsed.AverageHeartRate != nil || parsed.MaxHeartRate != nil {
+		t.Errorf("heart rate should be nil when the device reports 0, got avg=%v max=%v", parsed.AverageHeartRate, parsed.MaxHeartRate)
+	}
+	if parsed.AveragePowerW != nil || parsed.NormalizedPowerW != nil {
+		t.Errorf("power should be nil when the device reports 0, got avg=%v np=%v", parsed.AveragePowerW, parsed.NormalizedPowerW)
+	}
+	if parsed.AverageCadenceRPM != nil {
+		t.Errorf("cadence should be nil when the device reports 0, got %v", parsed.AverageCadenceRPM)
+	}
+	// A distância real da sessão não deve ser descartada pela mesma regra.
+	if parsed.DistanceKM != 30 {
+		t.Errorf("DistanceKM = %v, want 30", parsed.DistanceKM)
+	}
+}
+
 func TestParseFIT_RejectsNonCyclingSport(t *testing.T) {
-	data := buildFIT(t, func(_ *fit.File, activity *fit.ActivityFile) {
-		session := fit.NewSessionMsg()
-		session.Sport = fit.SportRunning
-		session.StartTime = time.Now().UTC()
-		session.TotalTimerTime = 30 * 60 * 1000
-		session.TotalElapsedTime = 30 * 60 * 1000
-		activity.Sessions = append(activity.Sessions, session)
-	})
+	session := mesgdef.NewSession(nil)
+	session.Sport = typedef.SportRunning
+	session.StartTime = time.Now().UTC()
+	session.TotalTimerTime = 30 * 60 * 1000
+	session.TotalElapsedTime = 30 * 60 * 1000
+	data := buildFIT(t, session.ToMesg(nil))
 
 	_, err := ParseFIT(bytes.NewReader(data))
 	if err != ErrUnsupportedSport {
@@ -105,18 +136,18 @@ func TestParseFIT_RejectsNonCyclingSport(t *testing.T) {
 
 func TestParseFIT_FallbackFromRecords(t *testing.T) {
 	start := time.Date(2026, 9, 20, 8, 0, 0, 0, time.UTC)
-	data := buildFIT(t, func(_ *fit.File, activity *fit.ActivityFile) {
-		for i := 0; i < 3; i++ {
-			rec := fit.NewRecordMsg()
-			rec.Timestamp = start.Add(time.Duration(i) * time.Minute)
-			rec.Distance = uint32(i * 100000)        // meters * 100 (cm), i.e. i * 1000 m
-			rec.Altitude = uint16((100 + i*100) * 5) // scale 1/5
-			rec.HeartRate = uint8(130 + i)
-			rec.Power = uint16(200 + i)
-			rec.Cadence = uint8(80 + i)
-			activity.Records = append(activity.Records, rec)
-		}
-	})
+	var messages []proto.Message
+	for i := 0; i < 3; i++ {
+		rec := mesgdef.NewRecord(nil)
+		rec.Timestamp = start.Add(time.Duration(i) * time.Minute)
+		rec.Distance = uint32(i * 100000)           // scale 100 -> i*1000 m
+		rec.Altitude = uint16((100+i*100)*5 + 2500) // scale 5, offset 500 -> 100+i*100 meters
+		rec.HeartRate = uint8(130 + i)
+		rec.Power = uint16(200 + i)
+		rec.Cadence = uint8(80 + i)
+		messages = append(messages, rec.ToMesg(nil))
+	}
+	data := buildFIT(t, messages...)
 
 	parsed, err := ParseFIT(bytes.NewReader(data))
 	if err != nil {

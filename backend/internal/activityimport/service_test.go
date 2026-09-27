@@ -3,12 +3,12 @@ package activityimport
 import (
 	"bytes"
 	"context"
-	"encoding/binary"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/tormoder/fit"
+	"github.com/muktihari/fit/profile/mesgdef"
+	"github.com/muktihari/fit/profile/typedef"
 )
 
 type fakeStore struct {
@@ -116,27 +116,12 @@ func TestService_Import_NeverTouchesPrescription(t *testing.T) {
 
 func buildFITBytes(t *testing.T) []byte {
 	t.Helper()
-	f, err := fit.NewFile(fit.FileTypeActivity, fit.NewHeader(fit.V10, false))
-	if err != nil {
-		t.Fatalf("fit.NewFile: %v", err)
-	}
-	f.FileId.Type = fit.FileTypeActivity
-	f.FileId.TimeCreated = time.Now().UTC()
-	activity, err := f.Activity()
-	if err != nil {
-		t.Fatalf("f.Activity: %v", err)
-	}
-	session := fit.NewSessionMsg()
-	session.Sport = fit.SportCycling
+	session := mesgdef.NewSession(nil)
+	session.Sport = typedef.SportCycling
 	session.StartTime = time.Now().UTC()
 	session.TotalTimerTime = 1800 * 1000
 	session.TotalElapsedTime = 1800 * 1000
-	activity.Sessions = append(activity.Sessions, session)
-	var buf bytes.Buffer
-	if err := fit.Encode(&buf, f, binary.LittleEndian); err != nil {
-		t.Fatalf("fit.Encode: %v", err)
-	}
-	return buf.Bytes()
+	return buildFIT(t, session.ToMesg(nil))
 }
 
 func TestService_Import_AcceptsFIT(t *testing.T) {
