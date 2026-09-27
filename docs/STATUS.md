@@ -41,7 +41,7 @@ Conjunto de melhorias de robustez publicado em 26/09/2026 (PR #5 e #18), a parti
 **Observabilidade e infraestrutura**
 - Middleware com `X-Request-ID`, log de acesso estruturado (sondas saudáveis não são registradas) e recuperação de panic com JSON 500.
 - Compose: imagens fixadas por digest, `mem_limit` (`API_MEM_LIMIT`, `FRONTEND_MEM_LIMIT`, `POSTGRES_MEM_LIMIT`) e rotação de logs.
-- Backup: alerta de falha/sucesso por URL de ping, cópia externa via `rclone` e teste mensal de restauração (`test-restore.sh` + timer). Ambos opcionais e desligados até serem configurados na VPS.
+- Backup: cópia externa criptografada (rclone `crypt`) no bucket `cadencia-backups` do Oracle Object Storage, com retenção de 60 dias por regra de ciclo de vida do bucket, e teste mensal de restauração (`test-restore.sh` + timer). O alerta por ping é opcional e não é usado (o monitoramento é pelo Uptime Kuma).
 - Pool do PostgreSQL configurável (`DB_MAX_CONNS`, `DB_MIN_CONNS`); `WriteTimeout` acompanha o timeout da IA.
 
 **Frontend**
@@ -84,7 +84,6 @@ Go 1.26 em produção desde 27/09/2026 (commit `4702d10`, backup `cadencia-20260
 
 ## Pendências operacionais (fora do código)
 
-- Configurar na VPS (opcionais, ainda desligados): cópia externa dos backups (`CADENCIA_OFFSITE_REMOTE`), monitor de ping (`CADENCIA_HEALTHCHECK_URL`) e o timer `cadencia-restore-test`.
 - Hardening da VPS e limpeza gradual do que restar de dívida técnica.
 - Coleta longitudinal de dados reais antes de dar autoridade adicional aos shadows.
 - Decisão de produto: a hospedagem do frontend usa `vinext` (beta) com dependências herdadas do ambiente de criação (`wrangler`, `@openai/sites-vite-plugin`); avaliar migração para uma base mais estável.
