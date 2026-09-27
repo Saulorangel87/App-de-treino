@@ -84,7 +84,7 @@ Go 1.26 em produção desde 27/09/2026 (commit `4702d10`, backup `cadencia-20260
 
 ## Pendências operacionais (fora do código)
 
-- Próxima fase: importar atividades do Strava (escopo, segurança e decisões pendentes em [`proxima-fase-strava.md`](proxima-fase-strava.md)); depois LGPD, painel dos shadows e resumo semanal com IA.
+- Próxima fase: importar atividades por arquivo `.fit`/`.gpx` com atalho de compartilhamento no Android (escopo em [`proxima-fase-dados-reais.md`](proxima-fase-dados-reais.md)); depois melhorias no motor de treino, LGPD, painel dos shadows e resumo semanal com IA. Integração com o Strava adiada por exigir assinatura paga da API; desenho preservado no mesmo documento.
 - Hardening da VPS e limpeza gradual do que restar de dívida técnica.
 - Coleta longitudinal de dados reais antes de dar autoridade adicional aos shadows.
 - Decisão de produto: a hospedagem do frontend usa `vinext` (beta) com dependências herdadas do ambiente de criação (`wrangler`, `@openai/sites-vite-plugin`); avaliar migração para uma base mais estável.
