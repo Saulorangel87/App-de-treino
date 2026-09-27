@@ -26,7 +26,12 @@ Em vez disso, a etapa 1 é a **importação de arquivo `.fit`/`.gpx`**, abaixo. 
 
 ## Etapa 1: importação de atividades por arquivo (`.fit`/`.gpx`)
 
-**Status (27/09/2026):** implementada na branch `activity-import-fit-gpx`, ainda não mesclada nem publicada. Backend (parser, migração `000031`, endpoints, testes) e frontend (`/atividades/importar`, atalho de compartilhar no Android) prontos; `go vet`, testes Go, `tsc`, `oxlint`, `npm test` e o build do frontend passaram neste checkout. Ainda faltam: abrir o PR e o CI rodar a migração/fixture num Postgres real (não testado aqui por falta de Docker no momento), testar o atalho de compartilhar num Android real, e publicar.
+**Status (27/09/2026):** mesclada no master (PRs #31, #32, #33), com o CI verde (migração/fixture rodaram num Postgres real). Falta testar o atalho de compartilhar num Android real.
+
+- **PR #31:** implementação inicial (parser, migração `000031`, endpoints, `/atividades/importar`, atalho de compartilhar no Android).
+- **PR #32 (correção):** testado com um arquivo `.fit` real de um XOSS (o aparelho que motivou esta etapa) e a biblioteca `tormoder/fit` rejeitava o arquivo (ela só aceita a mensagem `file_id` sozinha, sem outra definição logo depois — o XOSS grava várias em sequência, válido no protocolo). Trocado para `github.com/muktihari/fit`, que decodifica o mesmo arquivo sem erro e é mais ativamente mantida. Também corrigido: sem sensor de FC/cadência pareado, esse aparelho grava `0` em vez do valor "inválido" do FIT; uma média de sessão inteira igual a 0 passou a ser tratada como ausente.
+- **Fuso horário (mesmo dia do PR #32):** o FIT/GPX grava o horário em UTC; sem correção, uma pedalada perto da meia-noite local pode "virar o dia" em UTC e deixar de bater com a data do treino planejado. Corrigido usando o campo `LocalTimestamp` da mensagem `activity` do FIT quando presente (a maioria tem); como rede de segurança para quando falta (sempre o caso do GPX, que não tem esse campo), a sugestão de vínculo passou a buscar também o dia anterior e o seguinte.
+- **PR #33:** o link do treino sugerido em `/atividades/importar` agora abre `/plano` com o formulário de conclusão (ou correção) já preenchido com os dados extraídos; o atleta ainda confirma manualmente. Sem isso, a atividade importada não entrava no histórico (`/atividades`), que só é alimentado por `workout_sessions`.
 
 ### Escopo (versão 1)
 

@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/muktihari/fit/decoder"
+	"github.com/muktihari/fit/kit/datetime"
 	"github.com/muktihari/fit/profile/basetype"
 	"github.com/muktihari/fit/profile/mesgdef"
 	"github.com/muktihari/fit/profile/typedef"
@@ -28,6 +29,7 @@ func ParseFIT(r io.Reader) (Parsed, error) {
 	}
 	var session *mesgdef.Session
 	var records []*mesgdef.Record
+	var activity *mesgdef.Activity
 	for i := range fit.Messages {
 		mesg := &fit.Messages[i]
 		switch mesg.Num {
@@ -37,12 +39,36 @@ func ParseFIT(r io.Reader) (Parsed, error) {
 			}
 		case typedef.MesgNumRecord:
 			records = append(records, mesgdef.NewRecord(mesg))
+		case typedef.MesgNumActivity:
+			if activity == nil {
+				activity = mesgdef.NewActivity(mesg)
+			}
 		}
 	}
+
+	var parsed Parsed
 	if session != nil {
-		return parseFITFromSession(session)
+		parsed, err = parseFITFromSession(session)
+	} else {
+		parsed, err = parseFITFromRecords(records)
 	}
-	return parseFITFromRecords(records)
+	if err != nil {
+		return Parsed{}, err
+	}
+
+	// O FIT grava tudo em UTC. Sem isso, uma pedalada perto da meia-noite no
+	// horário local pode "virar o dia" em UTC e deixar de bater com a data do
+	// treino planejado (docs/proxima-fase-dados-reais.md). A mensagem
+	// `activity` traz LocalTimestamp além do Timestamp em UTC quando o
+	// aparelho grava o fuso; a maioria grava. Quando falta, o serviço de
+	// importação alarga a busca por um treino em ±1 dia como rede de
+	// segurança (ver Service.Import).
+	if activity != nil && !activity.LocalTimestamp.IsZero() && !activity.Timestamp.IsZero() {
+		offsetHours := datetime.TzOffsetHours(activity.LocalTimestamp, activity.Timestamp)
+		parsed.StartedAt = datetime.ToLocalTime(parsed.StartedAt, offsetHours)
+		parsed.LocalDateKnown = true
+	}
+	return parsed, nil
 }
 
 func parseFITFromSession(session *mesgdef.Session) (Parsed, error) {

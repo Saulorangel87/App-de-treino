@@ -42,6 +42,14 @@ type Parsed struct {
 	AveragePowerW     *int      `json:"average_power_watts,omitempty"`
 	NormalizedPowerW  *int      `json:"normalized_power_watts,omitempty"`
 	AverageCadenceRPM *int      `json:"average_cadence_rpm,omitempty"`
+	// LocalDateKnown is true when StartedAt's calendar date reflects the
+	// athlete's local time (the .fit file carried the device's timezone
+	// offset). Files are stored in UTC; without this, a ride close to
+	// midnight local time can land on the wrong UTC calendar day and miss
+	// the planned workout it belongs to. GPX has no timezone field at all,
+	// so this is always false for it; Service.Import widens the search by a
+	// day in either direction when false, instead of matching exactly.
+	LocalDateKnown bool `json:"-"`
 }
 
 // avg returns the mean of the samples that are non-nil, or nil when there is
