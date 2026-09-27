@@ -33,6 +33,10 @@ jobs:
       - run: go vet ./...
       - run: go test -count=1 -race -cover ./...
       - name: Vulnerabilidades (govulncheck)
+        env:
+          # O govulncheck atual exige Go >= 1.26 para compilar. O setup-go v7 fixa
+          # GOTOOLCHAIN=local; aqui permitimos baixar a toolchain só neste passo.
+          GOTOOLCHAIN: auto
         run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
   database:
