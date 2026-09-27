@@ -84,6 +84,7 @@ Go 1.26 em produção desde 27/09/2026 (commit `4702d10`, backup `cadencia-20260
 
 ## Pendências operacionais (fora do código)
 
+- Próxima fase: importar atividades do Strava (escopo, segurança e decisões pendentes em [`proxima-fase-strava.md`](proxima-fase-strava.md)); depois LGPD, painel dos shadows e resumo semanal com IA.
 - Hardening da VPS e limpeza gradual do que restar de dívida técnica.
 - Coleta longitudinal de dados reais antes de dar autoridade adicional aos shadows.
 - Decisão de produto: a hospedagem do frontend usa `vinext` (beta) com dependências herdadas do ambiente de criação (`wrangler`, `@openai/sites-vite-plugin`); avaliar migração para uma base mais estável.

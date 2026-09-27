@@ -11,6 +11,7 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 - [`training-adaptation-rules.md`](training-adaptation-rules.md): comportamento atual do motor `rules-v1`, adaptação e evidências gerais.
 - [`training-cycle-lifecycle.md`](training-cycle-lifecycle.md): estados, transições e regras do ciclo de treino.
 - [`cycling-evidence-catalog.md`](cycling-evidence-catalog.md): catálogo de evidências e critérios de elegibilidade dos protocolos específicos de ciclismo.
+- [`proxima-fase-strava.md`](proxima-fase-strava.md): desenho da próxima fase (dados reais de execução): escopo, segurança, consentimento, restrições e critérios da integração com o Strava, mais a ordem das etapas seguintes.
 - [`roadmap-acceptance.md`](roadmap-acceptance.md): matriz histórica de aceitação técnica; não é um segundo roadmap e não substitui o `planejamento.md`.
 - [`README.md`](../README.md): visão geral, instalação local, rotas e fluxo funcional.
 - [`infrastructure/README.md`](../infrastructure/README.md) e [`infrastructure/cadencia/README.md`](../infrastructure/cadencia/README.md): somente operação da produção na VPS Oracle.
