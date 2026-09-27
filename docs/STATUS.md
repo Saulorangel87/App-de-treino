@@ -10,10 +10,10 @@ Este é o documento de continuidade: curto e sempre atual. O diário cronológic
 | --- | --- |
 | Frontend | <https://cadencia.devsaulo.com.br> |
 | API | <https://cadencia-api.devsaulo.com.br> |
-| Versão publicada | `0.33.0` (merge `f925753` + correção `bf87ad2`, deploy de 26/09/2026) |
+| Versão publicada | `0.33.0`, commit `4702d10` (deploys de 26 e 27/09/2026; Go 1.26 e dependências atualizadas) |
 | Migrações aplicadas | `000001` a `000030` |
 | Motor prescritivo | `rules-v1` (único); `rules-v2` e demais shadows são somente observacionais |
-| Último backup preventivo | `cadencia-20260915T113044Z.dump` |
+| Último backup preventivo | `cadencia-20260927T013248Z.dump` |
 | Validação pós-deploy | login, `GET /v1/plans/current` e `logout-others` = 200 com a conta de smoke test; `/ready` verifica o schema |
 
 Escopo: somente ciclismo (estrada, MTB XCO/XCM, gravel e indoor). Corrida e musculação são produtos separados.
@@ -72,13 +72,15 @@ Conjunto de melhorias de robustez publicado em 26/09/2026 (PR #5 e #18), a parti
 
 ## Dependências e CI (26/09/2026, após o deploy)
 
-Mesclados após revisão e teste: `pgx` 5.11, `actions/checkout`/`setup-node`/`setup-go` v7, Alpine 3.24 na imagem da API (imagem construída e fluxo de autenticação testado) e o grupo de 21 atualizações do frontend (testado em worktree isolado com e2e completo). Estas dependências estão na `master`, mas **ainda não foram implantadas**: a produção segue com o código do deploy da `0.33.0`.
+Mesclados após revisão e teste: `pgx` 5.11, `actions/checkout`/`setup-node`/`setup-go` v7, Alpine 3.24 na imagem da API (imagem construída e fluxo de autenticação testado) e o grupo de 21 atualizações do frontend (testado em worktree isolado com e2e completo). Foram implantadas em 27/09/2026 (commit `2870f5a`), com `deploy.sh`, backup preventivo e smoke test autenticado.
 
 Fechados sem mesclar (com `@dependabot ignore this major version`): Node 26, Go 1.27, TypeScript 7 e `@types/node` 26. O #11 (`x/crypto` 0.57) exigia Go ≥ 1.26 e entrou junto com a migração do Go para 1.26 (go.mod, imagem `golang:1.26-alpine` e CI), testada com vet, testes, imagem em modo produção e fluxo de autenticação contra PostgreSQL.
 
 O `vinext` beta.11 foi mesclado e **revertido**: passava no CI e em modo dev, mas `vinext start` falha na imagem de produção (container `unhealthy`). O Dependabot agora ignora o `vinext`, e o CI ganhou o job `docker`, que constrói as duas imagens e exige que o frontend responda. A `master` está protegida: exige os 5 jobs do CI, sem force-push nem exclusão (sem exigir aprovação de revisor).
 
 Release publicado: [v0.33.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.33.0).
+
+Go 1.26 em produção desde 27/09/2026 (commit `4702d10`, backup `cadencia-20260927T013248Z.dump`): `vet`, testes, imagem em modo produção e fluxo de autenticação passaram antes do deploy; `deploy.sh` concluído com `/ready` e `plans/current` em 200.
 
 ## Pendências operacionais (fora do código)
 
