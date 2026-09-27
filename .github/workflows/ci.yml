@@ -95,3 +95,23 @@ jobs:
           python3 -c "import yaml,sys; [yaml.safe_load(open(f)) for f in ['api/openapi.yaml','compose.yaml','infrastructure/cadencia/compose.production.yaml']]"
           sh -n infrastructure/cadencia/scripts/migrate.sh
           bash -n scripts/run-sql-fixtures.sh
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Construir as imagens de produção
+        run: |
+          docker build -f infrastructure/cadencia/Dockerfile.api -t cadencia-api-ci .
+          docker build -f infrastructure/cadencia/Dockerfile.frontend --build-arg VITE_API_URL=https://api.example.com -t cadencia-frontend-ci .
+      - name: O frontend precisa subir e responder
+        # Pegaria regressões que só aparecem no runtime da imagem (por exemplo, um
+        # vinext novo que falha em `vinext start`), invisíveis para build e testes.
+        run: |
+          docker run -d --name frontend-ci -p 3000:3000 cadencia-frontend-ci
+          for _ in $(seq 1 30); do
+            curl -fsS -o /dev/null http://localhost:3000/entrar && echo "frontend respondeu" && exit 0
+            sleep 2
+          done
+          docker logs frontend-ci
+          exit 1

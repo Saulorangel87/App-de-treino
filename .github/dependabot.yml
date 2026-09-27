@@ -6,6 +6,10 @@ updates:
   - package-ecosystem: npm
     directory: /frontend
     schedule: { interval: weekly }
+    ignore:
+      # Framework em beta: o beta.11 quebrou `vinext start` na imagem de produção.
+      # Atualize manualmente, testando a imagem (o job docker do CI cobre isso).
+      - dependency-name: "vinext"
     groups:
       minor-and-patch:
         update-types: [minor, patch]
