@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { AccountActions } from '@/components/account-actions';
 import { AdaptationCard } from '@/components/adaptation-card';
 import { RpeHelp } from '@/components/rpe-help';
-import { WorkoutSessionActions } from '@/components/workout-session-actions';
+import { WorkoutSessionActions, type PrefillMetrics } from '@/components/workout-session-actions';
 import { WorkoutStructure } from '@/components/workout-structure';
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { ApiErrorState } from '@/components/api-error-state';
@@ -42,6 +42,13 @@ const fullDateFormatter = new Intl.DateTimeFormat('pt-BR', {
   year: 'numeric',
 });
 
+function numberParam(params: URLSearchParams, key: string): number | undefined {
+  const raw = params.get(key);
+  if (!raw) return undefined;
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : undefined;
+}
+
 export default function PlanPage() {
   const [user, setUser] = useState<User | null>(null);
   const [plan, setPlan] = useState<TrainingPlan | null>(null);
@@ -55,6 +62,7 @@ export default function PlanPage() {
   const [explanationError, setExplanationError] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [prefillMetrics, setPrefillMetrics] = useState<PrefillMetrics | undefined>();
 
   useEffect(() => {
     Promise.all([
@@ -64,8 +72,24 @@ export default function PlanPage() {
       .then(([account, current]) => {
         setUser(account.user);
         setPlan(current.plan);
-        if (current.plan?.workouts.length)
+        const params = new URLSearchParams(window.location.search);
+        const target = current.plan?.workouts.find((workout) => workout.id === params.get('workoutID'));
+        if (target) {
+          setSelected(target);
+          setPrefillMetrics({
+            distance_km: numberParam(params, 'distance_km'),
+            elevation_gain_m: numberParam(params, 'elevation_gain_m'),
+            average_heart_rate: numberParam(params, 'average_heart_rate'),
+            average_power_watts: numberParam(params, 'average_power_watts'),
+            average_cadence_rpm: numberParam(params, 'average_cadence_rpm'),
+          });
+          if (target.status !== 'in_progress' && target.status !== 'completed') {
+            setMessage('Inicie este treino para ver os dados importados preenchidos no formulário de conclusão.');
+          }
+          window.history.replaceState(null, '', window.location.pathname);
+        } else if (current.plan?.workouts.length) {
           setSelected(current.plan.workouts[0]);
+        }
       })
       .catch((caught) => {
         if (caught instanceof ApiError && caught.status === 401) {
@@ -549,6 +573,7 @@ export default function PlanPage() {
                     usesHeartRate={Boolean(plan.prescription_snapshot.cycling_context?.uses_heart_rate)}
                     usesPower={Boolean(plan.prescription_snapshot.cycling_context?.uses_power)}
                     onPlanUpdated={updateSessionPlan}
+                    prefillMetrics={prefillMetrics}
                   />
                   <h3>Estrutura</h3>
                   <WorkoutStructure structure={selected.structure} durationMinutes={selected.duration_minutes} />

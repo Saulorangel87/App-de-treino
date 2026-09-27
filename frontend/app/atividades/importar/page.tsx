@@ -48,6 +48,16 @@ const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
 });
 
+function planLinkFor(workoutID: string, activity: ImportedActivity): string {
+  const params = new URLSearchParams({ workoutID });
+  if (activity.distance_km > 0) params.set('distance_km', String(activity.distance_km));
+  if (activity.elevation_gain_m !== undefined) params.set('elevation_gain_m', String(activity.elevation_gain_m));
+  if (activity.average_heart_rate !== undefined) params.set('average_heart_rate', String(activity.average_heart_rate));
+  if (activity.average_power_watts !== undefined) params.set('average_power_watts', String(activity.average_power_watts));
+  if (activity.average_cadence_rpm !== undefined) params.set('average_cadence_rpm', String(activity.average_cadence_rpm));
+  return `/plano?${params.toString()}`;
+}
+
 function formatDuration(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.round((seconds % 3600) / 60);
@@ -190,11 +200,19 @@ export default function ImportActivityPage() {
               {lastImported.distance_km > 0 && ` · ${lastImported.distance_km.toFixed(1)} km`}
             </p>
             {candidates.length > 0 ? (
-              <p>
-                Encontramos {candidates.length === 1 ? 'um treino planejado' : 'treinos planejados'} no mesmo dia:{' '}
-                {candidates.map((candidate) => candidate.name).join(', ')}. Abra <Link href="/plano">seu plano</Link>{' '}
-                para concluir esse treino usando os dados acima.
-              </p>
+              <>
+                <p>
+                  Encontramos {candidates.length === 1 ? 'um treino planejado' : 'treinos planejados'} no mesmo dia.
+                  Abra e confira: os dados acima já aparecem preenchidos no formulário, e você decide se confirma.
+                </p>
+                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  {candidates.map((candidate) => (
+                    <li key={candidate.id}>
+                      <Link href={planLinkFor(candidate.id, lastImported)}>{candidate.name}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </>
             ) : (
               <p>Não encontramos um treino planejado nesse dia. Os dados ficam guardados aqui, sem vínculo.</p>
             )}
