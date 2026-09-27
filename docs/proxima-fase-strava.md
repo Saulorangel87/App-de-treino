@@ -31,7 +31,7 @@ Fora da v1: enviar treinos ao Strava, ler segmentos e dados de outros atletas, g
 
 ### Fluxo
 
-1. O atleta clica em "Conectar ao Strava" em `/configuracoes`. A API gera `state` aleatório (guardado na sessão, uso único) e redireciona ao Strava com os escopos mínimos: `read` e `activity:read` (atividades públicas e "só seguidores"). Pedir `activity:read_all` só se o atleta optar por incluir atividades privadas, em um segundo consentimento explícito.
+1. O atleta clica em "Conectar ao Strava" em `/configuracoes`. A API gera `state` aleatório (guardado na sessão, uso único) e redireciona ao Strava com os escopos mínimos: `read` e `activity:read` (atividades públicas e "só seguidores"; atividades privadas nunca são pedidas, decisão 2 abaixo).
 2. O Strava redireciona ao callback da API. A API valida o `state`, troca o `code` por tokens e grava a conexão.
 3. **Importação inicial** limitada aos últimos 90 dias, em segundo plano e com pausas para respeitar o limite de requisições.
 4. **Atualização contínua** por webhook do Strava (assinatura de eventos do app, endpoint público validado por `hub.verify_token`), com verificação periódica como reserva. Os eventos de `deauthorize` do atleta apagam os tokens na hora.
@@ -76,12 +76,16 @@ Estas são condições de terceiros que podem mudar o desenho. **Confirme no con
 - Prescrição de `rules-v1` **idêntica** com e sem dados importados (invariante coberta por teste).
 - CI verde, migração `000031` aplicada pelo `deploy.sh` com backup e smoke test.
 
-### Decisões pendentes (com o dono do produto)
+### Decisões (registradas em 27/09/2026, com o dono do produto)
 
-1. Solicitar a análise do Strava para liberar mais atletas ou manter a v1 só para o dono no início?
-2. Incluir atividades privadas (`activity:read_all`) como opção ou nunca?
-3. Guardar *streams* segundo a segundo? Recomendação: não na v1.
-4. Se o contrato do Strava vetar o uso em IA/calibração: seguir para importação por `.fit`/`.gpx` como fonte principal de evolução do motor?
+1. **Só o dono no início.** Não solicitar a análise do Strava agora; a v1 vale só para a conta do dono (`activity:read`, sem liberação para outros atletas). Se funcionar bem, avaliar a análise depois para liberar aos demais usuários.
+2. **Sem atividades privadas.** Nunca pedir `activity:read_all`; a integração lê apenas atividades públicas e "só seguidores".
+3. **Sem *streams*.** Confirmado que a v1 guarda só os totais por atividade (seção "Modelo de dados"), não a série segundo a segundo. Ver explicação abaixo.
+4. **Sim, `.fit`/`.gpx` como alternativa.** Se o contrato do Strava vetar o uso desses dados em calibração de motor ou resumo por IA, a importação de arquivo próprio do atleta (`.fit`/`.gpx`) passa a ser o caminho para alimentar essas etapas, sem depender desse contrato.
+
+#### O que são streams (para referência)
+
+Cada atividade do Strava tem dois níveis: o **resumo** (um valor por atividade — duração, distância, FC média, potência média) e os **streams**, a série de valores a **cada segundo** da atividade inteira (milhares de pontos por hora pedalada, incluindo o trajeto GPS exato). A v1 usa só o resumo. Streams custariam muito mais armazenamento e são mais sensíveis, porque revelam a rota exata (e, por tabela, onde o atleta mora ou treina). Ficam fora até haver um motivo concreto, como gráficos de sessão por segundo.
 
 ## Versão
 
