@@ -100,11 +100,40 @@ func (s *Service) Import(ctx context.Context, userID, filename string, r io.Read
 	if err != nil {
 		return Activity{}, nil, err
 	}
-	candidates, err := s.store.WorkoutCandidatesOnDate(ctx, userID, activity.StartedAt)
+	candidates, err := s.candidatesFor(ctx, userID, parsed)
 	if err != nil {
 		return Activity{}, nil, err
 	}
 	return activity, candidates, nil
+}
+
+// candidatesFor suggests planned workouts to link the imported activity to.
+// When the file didn't tell us the athlete's local timezone (parsed.LocalDateKnown
+// is false — always the case for .gpx, and for a .fit missing the activity
+// message's local timestamp), StartedAt is a UTC instant that can land on the
+// wrong calendar day for a ride close to local midnight; the search widens to
+// the day before and after so that match still surfaces, instead of silently
+// disappearing.
+func (s *Service) candidatesFor(ctx context.Context, userID string, parsed Parsed) ([]WorkoutCandidate, error) {
+	if parsed.LocalDateKnown {
+		return s.store.WorkoutCandidatesOnDate(ctx, userID, parsed.StartedAt)
+	}
+	var candidates []WorkoutCandidate
+	seen := map[string]bool{}
+	for _, dayOffset := range []int{0, -1, 1} {
+		found, err := s.store.WorkoutCandidatesOnDate(ctx, userID, parsed.StartedAt.AddDate(0, 0, dayOffset))
+		if err != nil {
+			return nil, err
+		}
+		for _, candidate := range found {
+			if seen[candidate.ID] {
+				continue
+			}
+			seen[candidate.ID] = true
+			candidates = append(candidates, candidate)
+		}
+	}
+	return candidates, nil
 }
 
 func (s *Service) List(ctx context.Context, userID string) ([]Activity, error) {
