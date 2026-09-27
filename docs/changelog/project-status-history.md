@@ -795,3 +795,39 @@ O contrato OpenAPI e o tipo do frontend foram alinhados a `planned-vs-actual-v3`
 O perfil agora oferece a preferência opcional **Limiar**. O motor pode apresentar **Limiar controlado** somente para estrada ou indoor, nível avançado, objetivo de performance/prova, avaliação submáxima apta, oito semanas de treino recente, três pedais semanais, pelo menos 60 minutos disponíveis e fase compatível com o evento. A sessão usa três blocos de 8 minutos em RPE 7,5 com 4 minutos leves, sem potência universal ou estimativa automática de limiar.
 
 O protocolo permanece no `rules-v1` local como piloto explícito e não altera o `rules-v2`, os shadows, a carga por feedback ou as proteções de dor e recuperação. Não há migração. `go test -count=1 ./...`, `go vet ./...`, `npm run build` e `git diff --check` passaram, e a validação manual confirmou a seleção elegível e a não seleção nos bloqueios. A funcionalidade foi registrada no commit `d6e36ec`; o commit `011b204` removeu os artefatos de cache gerados e adicionou `.gocache/` ao `.gitignore`. Produção continua na `0.27.0`, sem deploy ou release desta fatia.
+
+## Endurecimento operacional — publicado na `0.33.0` (26–27/09/2026)
+
+Conjunto de melhorias de robustez publicado em 26/09/2026 (PR #5 e #18), a partir do diagnóstico do incidente de 14/09 (schema defasado atrás de healthchecks verdes) e da revisão geral do projeto. A versão local do frontend passou para `0.33.0`.
+
+**Schema e deploy**
+- A API confere na inicialização se todas as migrações de `database.RequiredMigrations` estão em `cadencia_schema_migrations`. Em produção, a divergência é fatal; fora dela, apenas um aviso. `GET /ready` retorna `503 schema_behind` enquanto faltar migração (em produção). `TestRequiredMigrationsMatchFiles` impede esquecer de atualizar a lista ao criar uma migração.
+- O `HEALTHCHECK` do container da API usa `/ready`; o tunnel só sobe com a API pronta.
+- `migrate.sh`: lock consultivo por transação, checksum das migrações aplicadas (coluna aditiva `checksum`), `DRY_RUN=1` e `MIGRATE_STRICT=1`.
+- `infrastructure/cadencia/scripts/deploy.sh` automatiza fast-forward, backup, build, migrações, recriação, espera por `/ready` e smoke test (público e autenticado).
+
+**CI**
+- `.github/workflows/ci.yml`: `gofmt`, `go vet`, `go test -race`, `govulncheck`; migrações + fixtures SQL em PostgreSQL 17; `tsc`, `oxlint`, `vitest`, build e `npm audit` do frontend. Dependabot para gomod, npm, docker e actions.
+- O job `database` roda as fixtures SQL pela primeira vez em CI: se falhar, o motivo provável é uma fixture que dependia de dados do banco de desenvolvimento, não da migração.
+
+**Autenticação**
+- Login gasta o mesmo custo de bcrypt para e-mails inexistentes; falhas de login são limitadas também por conta (10 em 15 min), além do limite por IP.
+- Novos endpoints `POST /v1/auth/change-password` e `POST /v1/auth/logout-others`, com cartão "Segurança do acesso" em `/configuracoes`.
+- Sessões e tokens de e-mail expirados são removidos por uma rotina horária na API.
+- Os links de desenvolvimento (`development_*_url`) só existem fora de produção **e** com `APP_BASE_URL` em loopback (falha fechada). `APP_ENV` só aceita `development`, `test` ou `production`; em produção `APP_BASE_URL` e `ALLOWED_ORIGIN` precisam ser `https`.
+
+**Observabilidade e infraestrutura**
+- Middleware com `X-Request-ID`, log de acesso estruturado (sondas saudáveis não são registradas) e recuperação de panic com JSON 500.
+- Compose: imagens fixadas por digest, `mem_limit` (`API_MEM_LIMIT`, `FRONTEND_MEM_LIMIT`, `POSTGRES_MEM_LIMIT`) e rotação de logs.
+- Backup: cópia externa criptografada (rclone `crypt`) no bucket `cadencia-backups` do Oracle Object Storage, com retenção de 60 dias por regra de ciclo de vida do bucket, e teste mensal de restauração (`test-restore.sh` + timer). O alerta por ping é opcional e não é usado (o monitoramento é pelo Uptime Kuma).
+- Pool do PostgreSQL configurável (`DB_MAX_CONNS`, `DB_MIN_CONNS`); `WriteTimeout` acompanha o timeout da IA.
+
+**Frontend**
+- `apiRequest` com timeout, novas tentativas para GET e redirecionamento ao login quando a sessão expira em qualquer rota protegida.
+- CSP e demais cabeçalhos de segurança em `next.config.ts` (verificados com `vinext start`; sem violações no Chrome).
+- Service worker não falha mais a instalação quando `/offline` não existe (o precache falhava com `vinext start`).
+- Removidos 56 componentes `ui/*` e 8 dependências sem uso; `perfil/page.tsx` (1.946 linhas) dividido em modelo, hook e quatro etapas; lint sem erros; `npm test` (vitest) e e2e Playwright (`npm run e2e`, exige API e banco locais).
+
+**Deploy de 26/09/2026:** primeiro uso do `deploy.sh`. Backup preventivo `cadencia-20260926T233525Z.dump`; container do PostgreSQL recriado pela mudança de digest da imagem (volume intacto). A primeira tentativa parou no `DRY_RUN` do `migrate.sh` (tabela de produção sem a coluna `checksum`), corrigido no PR #18. O smoke test público falhou com 530 porque o tunnel ainda reconectava; `deploy.sh` passou a esperar até ~90 s. Conta de smoke test criada em produção (`smoke-test@cadencia.devsaulo.com.br`), credenciais em `/etc/cadencia/smoke.env` na VPS.
+
+**Dependências e CI (26–27/09/2026):** mesclados após revisão e teste: `pgx` 5.11, `actions/checkout`/`setup-node`/`setup-go` v7, Alpine 3.24 na imagem da API, grupo de 21 atualizações do frontend, migração para Go 1.26 (exigida pelo `x/crypto` 0.57). Fechados sem mesclar: Node 26, Go 1.27, TypeScript 7, `@types/node` 26. O `vinext` beta.11 foi mesclado e **revertido**: passava no CI e em modo dev, mas `vinext start` falhava na imagem de produção (container `unhealthy`); o Dependabot passou a ignorar o `vinext`, e o CI ganhou o job `docker`. A `master` está protegida: 5 jobs obrigatórios do CI, sem force-push nem exclusão. Release publicado: [v0.33.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.33.0). Go 1.26 em produção desde 27/09/2026 (commit `4702d10`).

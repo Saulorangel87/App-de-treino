@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.33.0';
+export const APP_VERSION = '0.34.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.34.0',
+    title: 'Importe suas atividades reais',
+    description:
+      'Em Atividades, agora dá para importar o arquivo .fit ou .gpx do seu relógio ou ciclocomputador (Garmin, Wahoo, XOSS e outros). O Cadência mostra o resumo — duração, distância, elevação, frequência cardíaca, potência e cadência — e sugere o treino planejado no mesmo dia; você confirma se quer usar esses dados ao concluir a sessão. No Android, instale o Cadência na tela inicial para compartilhar o arquivo direto do app do seu aparelho.',
+  },
   {
     version: '0.33.0',
     title: 'Mais segurança no acesso à conta',
