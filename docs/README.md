@@ -27,7 +27,7 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 
 ## Estado documentado neste ciclo
 
-A produção oficial está na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; a versão visível é `0.32.0` e as migrações estão aplicadas até `000030`. A entrega publicada inclui questionário adaptativo versionado, contexto seguro ampliado e indicadores observacionais de evolução. O estado atual e as pendências operacionais estão em [`STATUS.md`](STATUS.md).
+A produção oficial está na VPS Oracle, exposta pelos domínios `cadencia.devsaulo.com.br` e `cadencia-api.devsaulo.com.br`; a versão visível é `0.34.0` e as migrações estão aplicadas até `000031`. A entrega publicada permite importar atividades reais de execução por arquivo `.fit`/`.gpx`. O estado atual e as pendências operacionais estão em [`STATUS.md`](STATUS.md).
 
 ## Organização avaliada
 

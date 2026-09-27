@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão publicada: `0.32.0`. A entrega inclui questionário adaptativo versionado, contexto seguro ampliado do perfil/ciclismo e novos indicadores observacionais de evolução. A migração `000030_profile_safety_context` foi aplicada em produção após backup verificável.
+Versão publicada: `0.34.0`. A entrega permite importar atividades reais de execução por arquivo `.fit`/`.gpx` (Garmin, Wahoo, XOSS e outros), com atalho de compartilhamento no Android; ver [`docs/proxima-fase-dados-reais.md`](docs/proxima-fase-dados-reais.md). A migração `000031_imported_activities` foi aplicada em produção após backup verificável.
 
 O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro não fazem parte deste app e não são aceitos como modalidades de treino.
 
@@ -21,7 +21,7 @@ O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Spr
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000001`–`000030`; a produção está sincronizada até `000030`.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000001`–`000031`; a produção está sincronizada até `000031`.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -98,10 +98,10 @@ O MVP de ciclismo está publicado e validado em produção:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Código publicado na linha de versão `0.32.0`, incluindo questionário adaptativo, contexto seguro ampliado e indicadores observacionais de evolução.
-- Versão visível: `0.32.0`; migrações de banco aplicadas até `000030`.
+- Código publicado na linha de versão `0.34.0`, incluindo importação de atividades por arquivo `.fit`/`.gpx`.
+- Versão visível: `0.34.0`; migrações de banco aplicadas até `000031`.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
-- Cadastro, onboarding, plano, treino, feedback, adaptação, atividades, evolução, novidades e logout foram validados em produção. A nova área de configurações está implementada localmente e aguarda validação manual antes de qualquer deploy.
+- Cadastro, onboarding, plano, treino, feedback, adaptação, atividades, evolução, configurações, importação de atividades, novidades e logout foram validados em produção.
 - `rules-v1` continua sendo a única fonte prescritiva. Os shadows permanecem observacionais.
 - Dependabot está com 0 alertas abertos; `go test`, `go vet`, build e auditoria de dependências de produção passaram. `govulncheck` não está instalado.
 
