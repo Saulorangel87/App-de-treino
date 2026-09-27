@@ -74,7 +74,7 @@ Conjunto de melhorias de robustez publicado em 26/09/2026 (PR #5 e #18), a parti
 
 Mesclados após revisão e teste: `pgx` 5.11, `actions/checkout`/`setup-node`/`setup-go` v7, Alpine 3.24 na imagem da API (imagem construída e fluxo de autenticação testado) e o grupo de 21 atualizações do frontend (testado em worktree isolado com e2e completo). Estas dependências estão na `master`, mas **ainda não foram implantadas**: a produção segue com o código do deploy da `0.33.0`.
 
-Fechados sem mesclar (com `@dependabot ignore this major version`): Node 26, Go 1.27, TypeScript 7 e `@types/node` 26. Mantido aberto: #11 (`x/crypto` 0.57), que exige Go ≥ 1.26 e só deve entrar junto com a migração do Go (go.mod, imagem e CI).
+Fechados sem mesclar (com `@dependabot ignore this major version`): Node 26, Go 1.27, TypeScript 7 e `@types/node` 26. O #11 (`x/crypto` 0.57) exigia Go ≥ 1.26 e entrou junto com a migração do Go para 1.26 (go.mod, imagem `golang:1.26-alpine` e CI), testada com vet, testes, imagem em modo produção e fluxo de autenticação contra PostgreSQL.
 
 O `vinext` beta.11 foi mesclado e **revertido**: passava no CI e em modo dev, mas `vinext start` falha na imagem de produção (container `unhealthy`). O Dependabot agora ignora o `vinext`, e o CI ganhou o job `docker`, que constrói as duas imagens e exige que o frontend responda. A `master` está protegida: exige os 5 jobs do CI, sem force-push nem exclusão (sem exigir aprovação de revisor).
 
