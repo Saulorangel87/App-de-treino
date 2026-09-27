@@ -68,7 +68,17 @@ Conjunto de melhorias de robustez publicado em 26/09/2026 (PR #5 e #18), a parti
 - A primeira tentativa parou no `DRY_RUN` do `migrate.sh` (a tabela de produção não tinha a coluna `checksum`); corrigido no PR #18. A coluna foi adicionada nesta publicação; os registros antigos permanecem sem checksum, por desenho.
 - O smoke test público falhou com 530 porque o tunnel ainda reconectava; o `deploy.sh` agora espera até ~90 s.
 - Conta de smoke test criada em produção (`smoke-test@cadencia.devsaulo.com.br`, e-mail confirmado no banco); credenciais em `/etc/cadencia/smoke.env` na VPS, lidas pelo `deploy.sh`.
-- Dependabot passou a abrir PRs (#6 a #13). Os saltos de versão maior (Node 26, Go 1.27, actions) exigem teste próprio antes de mesclar.
+- Dependabot passou a abrir PRs; ver a seção “Dependências e CI” abaixo.
+
+## Dependências e CI (26/09/2026, após o deploy)
+
+Mesclados após revisão e teste: `pgx` 5.11, `actions/checkout`/`setup-node`/`setup-go` v7, Alpine 3.24 na imagem da API (imagem construída e fluxo de autenticação testado) e o grupo de 21 atualizações do frontend (testado em worktree isolado com e2e completo). Estas dependências estão na `master`, mas **ainda não foram implantadas**: a produção segue com o código do deploy da `0.33.0`.
+
+Fechados sem mesclar (com `@dependabot ignore this major version`): Node 26, Go 1.27, TypeScript 7 e `@types/node` 26. Mantido aberto: #11 (`x/crypto` 0.57), que exige Go ≥ 1.26 e só deve entrar junto com a migração do Go (go.mod, imagem e CI).
+
+O `vinext` beta.11 foi mesclado e **revertido**: passava no CI e em modo dev, mas `vinext start` falha na imagem de produção (container `unhealthy`). O Dependabot agora ignora o `vinext`, e o CI ganhou o job `docker`, que constrói as duas imagens e exige que o frontend responda. A `master` está protegida: exige os 5 jobs do CI, sem force-push nem exclusão (sem exigir aprovação de revisor).
+
+Release publicado: [v0.33.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.33.0).
 
 ## Pendências operacionais (fora do código)
 
