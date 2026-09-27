@@ -6,6 +6,8 @@
 #   CADENCIA_OFFSITE_REMOTE   destino rclone (ex.: cadencia-crypt:backups). Se definido,
 #                             o dump é copiado para fora da VPS. Use um remote "crypt":
 #                             o dump contém dados pessoais e de saúde.
+#   CADENCIA_OFFSITE_PRUNE=1  também apaga cópias externas antigas (exige permissão de
+#                             apagar; o padrão é deixar isso a cargo do ciclo de vida do bucket).
 #   CADENCIA_HEALTHCHECK_URL  URL de ping (Healthchecks.io ou similar). Recebe /start,
 #                             sucesso e /fail, avisando quando o backup NÃO roda.
 set -eu
@@ -55,7 +57,11 @@ find "$backup_dir" -type f -name 'cadencia-*.dump' -mtime +"$retention_days" -de
 
 if [ -n "$offsite_remote" ]; then
   rclone copy "$backup_file" "$offsite_remote"
-  rclone delete "$offsite_remote" --min-age "${retention_days}d" --include 'cadencia-*.dump'
+  # A retenção externa normalmente é feita por uma regra de ciclo de vida do
+  # bucket, e a VM não precisa (nem deve) ter permissão de apagar backups.
+  if [ "${CADENCIA_OFFSITE_PRUNE:-0}" = "1" ]; then
+    rclone delete "$offsite_remote" --min-age "${retention_days}d" --include 'cadencia-*.dump'
+  fi
   echo "Cópia externa concluída: $offsite_remote"
 fi
 
