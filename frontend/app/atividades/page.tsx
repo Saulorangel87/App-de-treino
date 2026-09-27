@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Activity, ArrowLeft, Bike, CalendarDays, Clock3, Gauge, HeartPulse, LoaderCircle, MapPinned, XCircle, Zap } from 'lucide-react';
+import { Activity, ArrowLeft, Bike, CalendarDays, Clock3, Gauge, HeartPulse, LoaderCircle, MapPinned, UploadCloud, XCircle, Zap } from 'lucide-react';
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { AccountActions } from '@/components/account-actions';
 import { ApiErrorState } from '@/components/api-error-state';
@@ -74,6 +74,9 @@ export default function ActivitiesPage() {
           <p>HISTÓRICO DE TREINOS</p>
           <h1>Suas atividades.</h1>
           <span>Concluídas e canceladas, da mais recente para a mais antiga.</span>
+          <Link href="/atividades/importar" className="back-link">
+            <UploadCloud size={15} />Importar de um arquivo .fit ou .gpx
+          </Link>
         </header>
         {error && <p className="form-error" role="alert">{error}</p>}
         {!error && activities.length === 0 && (
