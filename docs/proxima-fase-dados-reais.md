@@ -26,6 +26,8 @@ Em vez disso, a etapa 1 é a **importação de arquivo `.fit`/`.gpx`**, abaixo. 
 
 ## Etapa 1: importação de atividades por arquivo (`.fit`/`.gpx`)
 
+**Status (27/09/2026):** implementada na branch `activity-import-fit-gpx`, ainda não mesclada nem publicada. Backend (parser, migração `000031`, endpoints, testes) e frontend (`/atividades/importar`, atalho de compartilhar no Android) prontos; `go vet`, testes Go, `tsc`, `oxlint`, `npm test` e o build do frontend passaram neste checkout. Ainda faltam: abrir o PR e o CI rodar a migração/fixture num Postgres real (não testado aqui por falta de Docker no momento), testar o atalho de compartilhar num Android real, e publicar.
+
 ### Escopo (versão 1)
 
 Dentro:
@@ -55,11 +57,11 @@ Cada atividade tem dois níveis: o **resumo** (um valor por atividade — duraç
 - Testar no Chrome Android real (o Share Target não é simulável de forma confiável em CI); registrar o resultado manual no `STATUS.md` quando testado.
 - iOS: sem Share Target neste momento. A tela de importação mostra só o upload manual para quem acessa de iPhone.
 
-### Modelo de dados (migração `000031`, aditiva)
+### Modelo de dados (migração `000031`, implementada)
 
-- `imported_activities`: `user_id`, `source` (`fit` ou `gpx`), `file_hash` (SHA-256, evita duplicar o mesmo arquivo), `sport_type`, `started_at`, `moving_seconds`, `distance_m`, `elevation_gain_m`, `avg_hr`, `max_hr`, `avg_power`, `normalized_power`, `avg_cadence`, `parser_version`, `imported_at`, `workout_session_id` (nulo até o vínculo).
-- Índice único em `(user_id, file_hash)` para rejeitar reimportação do mesmo arquivo.
-- Atualizar `database.RequiredMigrations`, adicionar fixture SQL e `down`, como nas migrações anteriores.
+- `imported_activities`: `user_id`, `workout_id` (nulo; aponta para `workouts`, não para `workout_sessions` — a execução ainda pode não existir quando o arquivo é importado), `source` (`fit`/`gpx`), `file_hash` (SHA-256, único por `user_id`), `started_at`, `moving_seconds`, `distance_km`, `elevation_gain_m`, `average_heart_rate`, `max_heart_rate`, `average_power_watts`, `normalized_power_watts`, `average_cadence_rpm`, `imported_at`. `ON DELETE SET NULL` no treino, `ON DELETE CASCADE` no usuário.
+- **Decisão tomada na implementação:** a importação não duplica o armazenamento de execução. `workout_sessions` já guarda os mesmos campos (duração, distância, potência, FC, cadência) quando o atleta conclui ou corrige um treino pelos endpoints que já existiam (`POST /v1/workouts/{id}/complete` e `/correct`). A tela de importação mostra o resumo extraído e sugere o treino do mesmo dia; o atleta decide se usa esses números ao concluir/corrigir esse treino em `/plano`. `imported_activities` não é escrita nem lida pelo pacote `planning`.
+- `database.RequiredMigrations` atualizado; fixture SQL cobre unicidade por usuário, `SET NULL` ao apagar o treino e `CASCADE` ao apagar o usuário.
 
 ### Segurança e privacidade
 
