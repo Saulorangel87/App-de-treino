@@ -20,7 +20,7 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           # go.mod fixa o mínimo (1.25.0), que tem vulnerabilidades da biblioteca
           # padrão já corrigidas em patches posteriores. O CI usa o último patch
