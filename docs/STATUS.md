@@ -10,10 +10,10 @@ Este é o documento de continuidade: curto e sempre atual. O diário cronológic
 | --- | --- |
 | Frontend | <https://cadencia.devsaulo.com.br> |
 | API | <https://cadencia-api.devsaulo.com.br> |
-| Versão publicada | `0.35.0`, commit `c6635c7` (deploy de 29/09/2026: identidade visual "carta topográfica", dependências e alertas de segurança corrigidos) |
+| Versão publicada | `0.35.0`, commit `8d51e19` (deploys de 29/09/2026: identidade visual "carta topográfica" em `c6635c7` e, em seguida, correção da rolagem do aviso de novidades) |
 | Migrações aplicadas | `000001` a `000031` |
 | Motor prescritivo | `rules-v1` (único); `rules-v2` e demais shadows são somente observacionais |
-| Último backup preventivo | `cadencia-20260929T220231Z.dump` |
+| Último backup preventivo | `cadencia-20260929T222242Z.dump` |
 | Validação pós-deploy | login, `GET /v1/plans/current` e `logout-others` = 200 com a conta de smoke test; `/ready` verifica o schema |
 
 Escopo: somente ciclismo (estrada, MTB XCO/XCM, gravel e indoor). Corrida e musculação são produtos separados.
