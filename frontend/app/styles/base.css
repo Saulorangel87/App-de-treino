@@ -577,6 +577,7 @@ legend {
   width: 100%;
   max-width: none;
   height: 100%;
+  height: 100dvh;
   max-height: none;
   margin: 0;
   padding: 0;
@@ -585,6 +586,9 @@ legend {
   justify-content: center;
   border: 0;
   background: rgb(31 35 28 / 0.55);
+  /* A rolagem nunca vaza para a página de trás: quem rola é o cartão. */
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 @media (min-width: 720px) {
