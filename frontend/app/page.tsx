@@ -15,6 +15,7 @@ import { AdaptationCard } from '@/components/adaptation-card';
 import { AppHeader } from '@/components/app-header';
 import { RouteMap, RouteScale, stepsForWorkout } from '@/components/route-map';
 import { RpeHelp } from '@/components/rpe-help';
+import { useScrollLock } from '@/components/use-scroll-lock';
 import { TrailLegend, TrailSymbol, intensityLabels, intensityOf } from '@/components/trail-symbol';
 import { WorkoutSessionActions } from '@/components/workout-session-actions';
 import { WorkoutStructure } from '@/components/workout-structure';
@@ -98,28 +99,7 @@ export default function HomePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    if (!selected) return;
-
-    const root = document.documentElement;
-    const body = document.body;
-    const previousRootOverflow = root.style.overflow;
-    const previousBodyOverflow = body.style.overflow;
-    const previousBodyPaddingRight = body.style.paddingRight;
-    const scrollbarWidth = window.innerWidth - root.clientWidth;
-
-    root.style.overflow = 'hidden';
-    body.style.overflow = 'hidden';
-    if (scrollbarWidth > 0) {
-      body.style.paddingRight = `${scrollbarWidth}px`;
-    }
-
-    return () => {
-      root.style.overflow = previousRootOverflow;
-      body.style.overflow = previousBodyOverflow;
-      body.style.paddingRight = previousBodyPaddingRight;
-    };
-  }, [selected]);
+  useScrollLock(Boolean(selected));
 
   const activePlan = plan?.status === 'active' ? plan : null;
   const today = useMemo(() => new Date(), []);

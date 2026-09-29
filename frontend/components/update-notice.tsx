@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Check, Sparkles, X } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
+import { useScrollLock } from './use-scroll-lock';
 import { APP_VERSION, UPDATE_NOTES } from '@/lib/release';
 
 const publicPaths = new Set([
@@ -16,6 +17,8 @@ const publicPaths = new Set([
 export function UpdateNotice() {
   const [visible, setVisible] = useState(false);
   const [storageKey, setStorageKey] = useState<string | null>(null);
+
+  useScrollLock(visible);
 
   useEffect(() => {
     if (publicPaths.has(window.location.pathname)) return;

@@ -350,6 +350,7 @@
   flex-direction: column;
   gap: 14px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   border-top: var(--stroke);
   background: var(--sheet);
 }
