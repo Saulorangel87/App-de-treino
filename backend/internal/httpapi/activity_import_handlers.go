@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -67,6 +68,44 @@ func (s *Server) deleteImportedActivity(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusNoContent)
 }
 
+type linkImportedActivityRequest struct {
+	// WorkoutID nulo remove o vínculo.
+	WorkoutID *string `json:"workout_id"`
+}
+
+// linkImportedActivity liga a atividade a um treino do atleta (ou remove o
+// vínculo). É só uma associação: nada é copiado para o treino nem muda no plano.
+func (s *Server) linkImportedActivity(w http.ResponseWriter, r *http.Request) {
+	user, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	var body linkImportedActivityRequest
+	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4<<10))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_body", "Informe o treino no campo \"workout_id\" (ou null para desvincular).")
+		return
+	}
+	activity, err := s.activityImport.Link(r.Context(), user.ID, r.PathValue("activityID"), body.WorkoutID)
+	if writeActivityImportError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"activity": activity})
+}
+
+func (s *Server) importedActivityCandidates(w http.ResponseWriter, r *http.Request) {
+	user, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	candidates, err := s.activityImport.Candidates(r.Context(), user.ID, r.PathValue("activityID"))
+	if writeActivityImportError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"candidate_workouts": candidates})
+}
+
 func writeActivityImportError(w http.ResponseWriter, err error) bool {
 	switch {
 	case err == nil:
@@ -85,6 +124,10 @@ func writeActivityImportError(w http.ResponseWriter, err error) bool {
 		writeError(w, http.StatusConflict, "duplicate_activity", "Este arquivo já foi importado.")
 	case errors.Is(err, activityimport.ErrNotFound):
 		writeError(w, http.StatusNotFound, "activity_not_found", "Atividade importada não encontrada.")
+	case errors.Is(err, activityimport.ErrWorkoutNotFound):
+		writeError(w, http.StatusNotFound, "workout_not_found", "Treino não encontrado.")
+	case errors.Is(err, activityimport.ErrInvalidWorkoutID):
+		writeError(w, http.StatusBadRequest, "invalid_workout_id", "Identificador de treino inválido.")
 	case errors.Is(err, io.ErrUnexpectedEOF):
 		writeError(w, http.StatusBadRequest, "invalid_upload", "O arquivo enviado está incompleto.")
 	default:

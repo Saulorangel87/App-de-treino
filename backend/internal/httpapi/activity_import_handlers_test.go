@@ -22,6 +22,24 @@ const sampleImportGPX = `<?xml version="1.0" encoding="UTF-8"?>
 type fakeActivityImportStore struct {
 	hashes  map[string]bool
 	deleted string
+	linked  *string
+}
+
+const ownedWorkoutID = "11111111-2222-3333-4444-555555555555"
+
+func (f *fakeActivityImportStore) GetActivity(_ context.Context, userID, activityID string) (activityimport.Activity, error) {
+	if activityID != "activity-1" {
+		return activityimport.Activity{}, activityimport.ErrNotFound
+	}
+	return activityimport.Activity{ID: activityID, UserID: userID, Source: activityimport.SourceGPX, WorkoutID: f.linked}, nil
+}
+
+func (f *fakeActivityImportStore) LinkActivity(_ context.Context, _, _ string, workoutID *string) error {
+	if workoutID != nil && *workoutID != ownedWorkoutID {
+		return activityimport.ErrWorkoutNotFound
+	}
+	f.linked = workoutID
+	return nil
 }
 
 func (f *fakeActivityImportStore) ActivityExists(_ context.Context, _, fileHash string) (bool, error) {
@@ -159,5 +177,84 @@ func TestDeleteImportedActivity_Success(t *testing.T) {
 	}
 	if store.deleted != "activity-1" {
 		t.Errorf("store.deleted = %q, want activity-1", store.deleted)
+	}
+}
+
+func linkRequestOn(server *Server, activityID, body string) *httptest.ResponseRecorder {
+	req := httptest.NewRequest(http.MethodPut, "/v1/activities/imported/"+activityID+"/workout", bytes.NewBufferString(body))
+	req.SetPathValue("activityID", activityID)
+	req.AddCookie(&http.Cookie{Name: sessionCookieName, Value: "session"})
+	response := httptest.NewRecorder()
+	server.linkImportedActivity(response, req)
+	return response
+}
+
+func TestLinkImportedActivity_LinksAndUnlinks(t *testing.T) {
+	server, store := newActivityImportTestServer()
+
+	response := linkRequestOn(server, "activity-1", `{"workout_id":"`+ownedWorkoutID+`"}`)
+	if response.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body: %s", response.Code, response.Body.String())
+	}
+	if store.linked == nil || *store.linked != ownedWorkoutID {
+		t.Fatalf("store.linked = %v, want %s", store.linked, ownedWorkoutID)
+	}
+
+	response = linkRequestOn(server, "activity-1", `{"workout_id":null}`)
+	if response.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body: %s", response.Code, response.Body.String())
+	}
+	if store.linked != nil {
+		t.Fatalf("store.linked = %v, want nil after unlinking", store.linked)
+	}
+}
+
+func TestLinkImportedActivity_Errors(t *testing.T) {
+	cases := []struct {
+		name, activity, body string
+		want                 int
+	}{
+		{"atividade inexistente", "unknown", `{"workout_id":"` + ownedWorkoutID + `"}`, http.StatusNotFound},
+		{"treino de outro atleta", "activity-1", `{"workout_id":"99999999-2222-3333-4444-555555555555"}`, http.StatusNotFound},
+		{"id malformado", "activity-1", `{"workout_id":"nao-e-uuid"}`, http.StatusBadRequest},
+		{"corpo inválido", "activity-1", `nao json`, http.StatusBadRequest},
+		{"campo desconhecido", "activity-1", `{"workout_id":null,"extra":1}`, http.StatusBadRequest},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			server, _ := newActivityImportTestServer()
+			response := linkRequestOn(server, tc.activity, tc.body)
+			if response.Code != tc.want {
+				t.Fatalf("status = %d, want %d; body: %s", response.Code, tc.want, response.Body.String())
+			}
+		})
+	}
+}
+
+func TestLinkImportedActivity_RequiresSession(t *testing.T) {
+	server, _ := newActivityImportTestServer()
+	req := httptest.NewRequest(http.MethodPut, "/v1/activities/imported/activity-1/workout", bytes.NewBufferString(`{"workout_id":null}`))
+	req.SetPathValue("activityID", "activity-1")
+	response := httptest.NewRecorder()
+	server.linkImportedActivity(response, req)
+	if response.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want 401", response.Code)
+	}
+}
+
+func TestImportedActivityCandidates(t *testing.T) {
+	server, _ := newActivityImportTestServer()
+	for _, tc := range []struct {
+		id   string
+		want int
+	}{{"activity-1", http.StatusOK}, {"unknown", http.StatusNotFound}} {
+		req := httptest.NewRequest(http.MethodGet, "/v1/activities/imported/"+tc.id+"/candidates", nil)
+		req.SetPathValue("activityID", tc.id)
+		req.AddCookie(&http.Cookie{Name: sessionCookieName, Value: "session"})
+		response := httptest.NewRecorder()
+		server.importedActivityCandidates(response, req)
+		if response.Code != tc.want {
+			t.Fatalf("%s: status = %d, want %d; body: %s", tc.id, response.Code, tc.want, response.Body.String())
+		}
 	}
 }

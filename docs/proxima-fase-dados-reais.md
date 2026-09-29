@@ -39,7 +39,7 @@ Dentro:
 - Upload manual de um arquivo `.fit` ou `.gpx` por vez, em `/atividades` (nome de rota a confirmar).
 - **Atalho Android:** o Cadência se registra como alvo do menu "Compartilhar" do sistema (Web Share Target API do PWA). No app do relógio/ciclocomputador (XOSS, Garmin Connect, etc.), o atleta toca em Compartilhar → Cadência, sem abrir o navegador manualmente nem procurar o arquivo. iOS fica de fora nesta etapa (suporte de Share Target mais limitado e inconsistente entre versões); nesse caso o fluxo é upload manual mesmo.
 - Extrair da atividade: data/hora, duração em movimento, distância, elevação acumulada, FC média/máxima, potência média e normalizada (quando existir), cadência média, tipo de esporte (aceitar só ciclismo; arquivo de outro esporte é rejeitado com mensagem clara).
-- Casar a atividade importada com a sessão planejada do dia (mesma data e disciplina), sugerindo o vínculo ao atleta em vez de aplicá-lo às cegas.
+- Casar a atividade importada com a sessão planejada do dia (mesma data e disciplina), sugerindo o vínculo ao atleta em vez de aplicá-lo às cegas. **Desde a `0.36.0`** o atleta grava o vínculo com o botão "Vincular" (`PUT /v1/activities/imported/{id}/workout`); até a `0.35.0` só a sugestão existia e nada persistia o vínculo.
 - Permitir apagar uma atividade importada.
 
 Fora da v1: streams segundo a segundo (ver explicação abaixo — mesma decisão tomada para o Strava, vale aqui também), importação em lote de muitos arquivos de uma vez (avaliar na v2 se o upload único gerar atrito para quem quer importar o histórico), OAuth com qualquer provedor externo.
