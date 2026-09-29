@@ -287,30 +287,51 @@ body:has(.tab-bar) {
 .site-footer {
   width: 100%;
   margin-top: auto;
-  padding: 16px var(--gutter);
+  padding: 6px var(--gutter);
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px 16px;
+  gap: 12px;
   border-top: var(--hairline);
   color: var(--muted);
   font-size: 13px;
 }
 
+/* O texto encolhe e quebra dentro da própria coluna; os ícones ficam
+   sempre na mesma linha, à direita. */
 .site-footer p {
+  flex: 1 1 auto;
+  min-width: 0;
   letter-spacing: 0.04em;
+  line-height: 1.35;
+}
+
+.site-footer p span {
+  white-space: nowrap;
 }
 
 .footer-actions {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 0;
+}
+
+@media (max-width: 599px) {
+  .site-footer {
+    padding: 4px var(--gutter);
+    gap: 8px;
+    font-size: 11px;
+  }
+
+  .site-footer p {
+    letter-spacing: 0.02em;
+  }
 }
 
 .footer-icon {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
   color: var(--muted);
