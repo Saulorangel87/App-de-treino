@@ -297,17 +297,33 @@ body:has(.tab-bar) {
   font-size: 13px;
 }
 
-/* O texto encolhe e quebra dentro da própria coluna; os ícones ficam
-   sempre na mesma linha, à direita. */
+/* Texto numa linha só, com os ícones à direita. Em telas estreitas o crédito
+   fica na forma curta ("© 2026 SAULO RANGEL — V…") em vez de quebrar. */
 .site-footer p {
   flex: 1 1 auto;
   min-width: 0;
+  overflow: hidden;
   letter-spacing: 0.04em;
   line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.site-footer p span {
-  white-space: nowrap;
+@media (max-width: 599px) {
+  .footer-credit {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  .site-footer p {
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+
+  .site-footer .footer-icon {
+    width: 32px;
+  }
 }
 
 .footer-actions {
@@ -321,7 +337,7 @@ body:has(.tab-bar) {
   .site-footer {
     padding: 4px var(--gutter);
     gap: 8px;
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .site-footer p {

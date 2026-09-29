@@ -81,7 +81,10 @@ export function AppFooter() {
 
   return (
     <footer className="site-footer">
-      <p>© 2026 DESENVOLVIDO POR SAULO RANGEL <span>— V{APP_VERSION}</span></p>
+      <p>
+        © 2026 <span className="footer-credit">DESENVOLVIDO POR </span>SAULO RANGEL{' '}
+        <span className="footer-version">— V{APP_VERSION}</span>
+      </p>
       <div className="footer-actions">
         {installPrompt && !installed && <button type="button" className="install-app" onClick={installApp}><Download size={14} />Instalar app</button>}
         {installed && <span className="installed-label"><span />App instalado</span>}
