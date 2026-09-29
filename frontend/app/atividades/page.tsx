@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Activity, ArrowLeft, Bike, CalendarDays, Clock3, Gauge, HeartPulse, LoaderCircle, MapPinned, UploadCloud, XCircle, Zap } from 'lucide-react';
+import { Activity, CalendarDays, Clock3, Gauge, HeartPulse, LoaderCircle, MapPinned, UploadCloud, XCircle, Zap } from 'lucide-react';
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
-import { AccountActions } from '@/components/account-actions';
+import { AppHeader } from '@/components/app-header';
 import { ApiErrorState } from '@/components/api-error-state';
 import { parseTrainingDate, type Activity as TrainingActivity } from '@/lib/planning';
 
@@ -64,12 +64,8 @@ export default function ActivitiesPage() {
 
   return (
     <main className="activities-shell">
-      <header className="profile-topbar">
-        <Link href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</Link>
-        <AccountActions label="ATLETA" name={user?.display_name} />
-      </header>
+      <AppHeader name={user?.display_name} />
       <section className="activities-content">
-        <Link href="/" className="back-link"><ArrowLeft size={15} />Voltar ao painel</Link>
         <header className="activities-heading">
           <p>HISTÓRICO DE TREINOS</p>
           <h1>Suas atividades.</h1>

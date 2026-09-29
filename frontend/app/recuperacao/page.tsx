@@ -1,10 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, Bike, CheckCircle2, HeartPulse, LoaderCircle, MoonStar, ShieldAlert } from 'lucide-react';
+import { CheckCircle2, HeartPulse, LoaderCircle, MoonStar, ShieldAlert } from 'lucide-react';
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
-import { AccountActions } from '@/components/account-actions';
+import { AppHeader } from '@/components/app-header';
 import { ApiErrorState } from '@/components/api-error-state';
 
 type User = { display_name: string };
@@ -78,9 +77,8 @@ export default function RecoveryPage() {
   if (!user) return <ApiErrorState message={error || 'Não foi possível carregar sua recuperação.'} />;
   const resultCopy = recovery ? readinessCopy[recovery.readiness] : null;
   return <main className="recovery-shell">
-    <header className="profile-topbar"><Link href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</Link><AccountActions label="ATLETA" name={user.display_name} /></header>
+    <AppHeader name={user.display_name} />
     <section className="recovery-content">
-      <Link href="/" className="back-link"><ArrowLeft size={15} />Voltar ao painel</Link>
       <header className="recovery-heading"><p>CHECK-IN DIÁRIO</p><h1>Como você chega para hoje?</h1><span>Registre sono, estresse e fadiga percebida. O app usa esses sinais apenas para manter ou reduzir a próxima carga — nunca para aumentá-la automaticamente.</span></header>
       {recovery && resultCopy && <section className={`recovery-result ${recovery.readiness}`}><CheckCircle2 size={22} /><div><strong>{resultCopy[0]}</strong><p>{resultCopy[1]}</p>{recovery.adapted_workout && <p className="adapted-recovery-workout"><b>{recovery.adapted_workout.name}</b>: {recovery.adapted_workout.duration_minutes} min · RPE {recovery.adapted_workout.target_rpe}. Por segurança, editar o check-in depois não aumenta novamente essa sessão.</p>}</div></section>}
       <div className="recovery-layout">

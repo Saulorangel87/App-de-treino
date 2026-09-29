@@ -1,0 +1,260 @@
+/* Atividades: diário de sessões concluídas/canceladas e importação de arquivos. */
+
+.activities-heading .back-link {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.activities-subheading {
+  font-size: 22px;
+  font-weight: 800;
+  padding-bottom: 8px;
+  border-bottom: var(--stroke);
+}
+
+.activities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activity-card {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  border: var(--hairline);
+  border-left: 5px solid var(--ok);
+  background: var(--sheet);
+  min-width: 0;
+}
+
+.activity-card.cancelled {
+  border-left-color: var(--line-strong);
+  background: var(--paper);
+}
+
+.activity-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: var(--stroke);
+  background: var(--ok-tint);
+  color: var(--ok);
+}
+
+.activity-card.cancelled .activity-icon {
+  background: var(--paper-deep);
+  color: var(--muted);
+}
+
+.activity-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.activity-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.activity-title > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.activity-title h2 {
+  font-size: 19px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.activity-title p {
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+.activity-status {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  border: 1px solid var(--ok);
+  color: var(--ok);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.activity-card.cancelled .activity-status {
+  border-color: var(--line-strong);
+  color: var(--muted);
+}
+
+.activity-main time {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.activity-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.activity-metrics span {
+  min-height: 30px;
+  padding: 3px 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: var(--hairline);
+  background: var(--paper);
+  color: var(--ink-2);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.activity-metrics span svg {
+  color: var(--muted);
+}
+
+.activity-metrics b {
+  color: var(--ink);
+}
+
+.activity-metrics span.pain {
+  border-color: var(--danger);
+  background: var(--danger-tint);
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.activity-notes {
+  padding-left: 12px;
+  border-left: 3px solid var(--line);
+  color: var(--ink-2);
+  font-size: 15px;
+  font-style: italic;
+}
+
+@media (max-width: 479px) {
+  .activity-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .activity-icon {
+    display: none;
+  }
+}
+
+.icon-button {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: var(--stroke);
+  background: var(--sheet);
+  color: var(--danger);
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: var(--danger-tint);
+}
+
+/* ---------- Estado vazio ---------- */
+.activities-empty {
+  padding: 32px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1.5px dashed var(--line-strong);
+  background: var(--sheet);
+}
+
+.activities-empty h2 {
+  font-size: 22px;
+}
+
+.activities-empty p {
+  color: var(--ink-2);
+}
+
+.activities-empty a {
+  font-weight: 700;
+  text-decoration-color: var(--trail);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+}
+
+/* ---------- Importação ---------- */
+.import-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: var(--stroke);
+  background: var(--sheet);
+  box-shadow: var(--shadow);
+}
+
+.import-form label {
+  font-family: var(--font-title);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.import-form small {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.import-result {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-left: 5px solid var(--ok);
+  background: var(--ok-tint);
+}
+
+.import-result h2 {
+  font-size: 20px;
+}
+
+.import-result p {
+  color: var(--ink-2);
+}
+
+.import-result ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.import-result a {
+  font-weight: 700;
+  text-decoration-color: var(--trail);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.activities-heading b {
+  color: var(--ink);
+}
+
+.activities-heading > span a {
+  font-weight: 700;
+}

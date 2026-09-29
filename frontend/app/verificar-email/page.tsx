@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { CheckCircle2, MailCheck, TriangleAlert } from 'lucide-react';
+import { Brand } from '@/components/brand';
 import { apiRequest } from '@/lib/api';
 
 export default function VerifyEmailPage() {
@@ -19,7 +20,7 @@ export default function VerifyEmailPage() {
       .catch((error) => { setState('error'); setMessage(error instanceof Error ? error.message : 'Não foi possível confirmar seu e-mail.'); });
   }, []);
 
-  return <main className="auth-action-shell"><section className="auth-action-card">
+  return <main className="auth-action-shell"><Brand /><section className="auth-action-card">
     {state === 'success' ? <CheckCircle2 size={34} /> : state === 'error' ? <TriangleAlert size={34} /> : <MailCheck size={34} />}
     <p className="form-kicker">SEGURANÇA DA CONTA</p><h1>{state === 'success' ? 'E-mail confirmado.' : state === 'error' ? 'Não foi possível confirmar.' : 'Só um instante.'}</h1><p>{message}</p>
     <a className="auth-action-link" href={state === 'success' ? '/perfil' : '/entrar'}>{state === 'success' ? 'Continuar para o perfil' : 'Voltar para entrar'}</a>

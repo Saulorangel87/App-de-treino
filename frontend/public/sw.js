@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cadencia-static-v3';
+const CACHE_NAME = 'cadencia-static-v4';
 // Guarda, por instante, o arquivo recebido pelo menu "Compartilhar" do Android
 // (Web Share Target), até a página /atividades/importar buscá-lo. Cache
 // separado do CACHE_NAME para não ser limpo pela troca de versão dos

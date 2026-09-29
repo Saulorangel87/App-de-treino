@@ -1,0 +1,407 @@
+/* Telas de guia + formulário: check-in de recuperação, avaliação e feedback do app. */
+
+.recovery-layout,
+.assessment-layout,
+.feedback-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .recovery-layout,
+  .assessment-layout,
+  .feedback-layout {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 32px;
+  }
+}
+
+@media (max-width: 899px) {
+  /* O check-in é uma ação diária: o formulário vem primeiro no celular. */
+  .recovery-form {
+    order: -1;
+  }
+}
+
+/* ---------- Guia (texto de apoio) ---------- */
+.recovery-guide,
+.assessment-card,
+.feedback-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.recovery-icon,
+.assessment-icon,
+.feedback-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: var(--stroke);
+  background: var(--forest);
+}
+
+.recovery-guide h2,
+.assessment-card h2,
+.feedback-guide h2 {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.recovery-guide > p,
+.feedback-guide > p {
+  color: var(--ink-2);
+}
+
+.recovery-guide ul,
+.feedback-guide ul,
+.assessment-card ol {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  list-style: none;
+}
+
+.recovery-guide li,
+.feedback-guide li,
+.assessment-card li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: var(--ink-2);
+  font-size: 15px;
+}
+
+.recovery-guide li svg,
+.feedback-guide li svg {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  color: var(--easy);
+}
+
+.recovery-guide li span,
+.assessment-card li span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recovery-guide li strong,
+.assessment-card li strong {
+  color: var(--ink);
+}
+
+/* Passos da avaliação como pontos de controle numerados */
+.assessment-card li b {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  color: #fff;
+  font-size: 13px;
+}
+
+.recovery-warning,
+.assessment-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-left: 5px solid var(--warn);
+  background: var(--warn-tint);
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+.recovery-warning svg,
+.assessment-warning svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--warn);
+}
+
+.recovery-evidence,
+.assessment-evidence {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.recovery-evidence a,
+.assessment-evidence a {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ---------- Formulário principal ---------- */
+.recovery-form,
+.assessment-form,
+.feedback-form {
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: var(--stroke);
+  background: var(--sheet);
+  box-shadow: var(--shadow);
+  min-width: 0;
+}
+
+@media (min-width: 720px) {
+  .recovery-form,
+  .assessment-form,
+  .feedback-form {
+    padding: 28px;
+  }
+}
+
+.recovery-form h2,
+.assessment-form h2,
+.feedback-form h2 {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.assessment-form > p,
+.feedback-form > p {
+  color: var(--ink-2);
+  font-size: 15px;
+}
+
+.recovery-form > label,
+.assessment-form > label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.assessment-form > label.assessment-check {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.assessment-check input {
+  margin-top: 2px;
+}
+
+.recovery-form > button[type='submit'],
+.assessment-form > button[type='submit'],
+.feedback-form > button[type='submit'] {
+  min-height: 50px;
+  padding: 0 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: var(--stroke);
+  background: var(--trail);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+}
+
+.recovery-form > button[type='submit']:hover:not(:disabled),
+.assessment-form > button[type='submit']:hover:not(:disabled),
+.feedback-form > button[type='submit']:hover:not(:disabled) {
+  background: var(--trail-deep);
+}
+
+@media (min-width: 720px) {
+  .recovery-form > button[type='submit'],
+  .assessment-form > button[type='submit'],
+  .feedback-form > button[type='submit'] {
+    align-self: flex-start;
+  }
+}
+
+/* Escala de 1 a 5 em botões */
+.recovery-scale,
+.feedback-rating {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recovery-scale legend,
+.feedback-rating legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.feedback-rating legend small {
+  display: block;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.recovery-scale > div,
+.feedback-rating > div {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border: var(--stroke);
+}
+
+.recovery-scale button,
+.feedback-rating button {
+  min-height: 48px;
+  border: 0;
+  background: var(--paper);
+  font-family: var(--font-title);
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.recovery-scale button + button,
+.feedback-rating button + button {
+  border-left: var(--hairline);
+}
+
+.recovery-scale button:hover,
+.feedback-rating button:hover {
+  background: var(--paper-deep);
+}
+
+.recovery-scale button.selected,
+.feedback-rating button.selected {
+  background: var(--ink);
+  color: #fff;
+}
+
+.recovery-scale small {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ---------- Resultado ---------- */
+.recovery-result,
+.assessment-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-left: 5px solid var(--ok);
+  background: var(--ok-tint);
+}
+
+.recovery-result > svg,
+.assessment-result > svg {
+  flex: 0 0 auto;
+  color: var(--ok);
+}
+
+.recovery-result.caution {
+  border-left-color: var(--warn);
+  background: var(--warn-tint);
+}
+
+.recovery-result.caution > svg {
+  color: var(--warn);
+}
+
+.recovery-result.recovery_needed {
+  border-left-color: var(--danger);
+  background: var(--danger-tint);
+}
+
+.recovery-result.recovery_needed > svg {
+  color: var(--danger);
+}
+
+.recovery-result > div,
+.assessment-result > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recovery-result p,
+.assessment-result p {
+  color: var(--ink-2);
+  font-size: 15px;
+}
+
+.adapted-recovery-workout {
+  padding-top: 6px;
+  border-top: 1px solid rgb(31 35 28 / 0.15);
+}
+
+/* ---------- Feedback do app ---------- */
+.feedback-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feedback-categories legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.feedback-categories > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feedback-categories label {
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1.5px solid var(--line-strong);
+  background: var(--paper);
+  cursor: pointer;
+}
+
+.feedback-categories label.selected {
+  border-color: var(--ink);
+  background: var(--forest);
+  box-shadow: inset 5px 0 var(--trail);
+}
+
+.feedback-categories input {
+  margin-top: 2px;
+}
+
+.feedback-categories label span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.feedback-categories small {
+  color: var(--ink-2);
+  font-weight: 400;
+}
+
+.feedback-message {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feedback-message small {
+  color: var(--muted);
+  font-size: 13px;
+}

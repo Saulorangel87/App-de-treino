@@ -831,3 +831,23 @@ Conjunto de melhorias de robustez publicado em 26/09/2026 (PR #5 e #18), a parti
 **Deploy de 26/09/2026:** primeiro uso do `deploy.sh`. Backup preventivo `cadencia-20260926T233525Z.dump`; container do PostgreSQL recriado pela mudança de digest da imagem (volume intacto). A primeira tentativa parou no `DRY_RUN` do `migrate.sh` (tabela de produção sem a coluna `checksum`), corrigido no PR #18. O smoke test público falhou com 530 porque o tunnel ainda reconectava; `deploy.sh` passou a esperar até ~90 s. Conta de smoke test criada em produção (`smoke-test@cadencia.devsaulo.com.br`), credenciais em `/etc/cadencia/smoke.env` na VPS.
 
 **Dependências e CI (26–27/09/2026):** mesclados após revisão e teste: `pgx` 5.11, `actions/checkout`/`setup-node`/`setup-go` v7, Alpine 3.24 na imagem da API, grupo de 21 atualizações do frontend, migração para Go 1.26 (exigida pelo `x/crypto` 0.57). Fechados sem mesclar: Node 26, Go 1.27, TypeScript 7, `@types/node` 26. O `vinext` beta.11 foi mesclado e **revertido**: passava no CI e em modo dev, mas `vinext start` falhava na imagem de produção (container `unhealthy`); o Dependabot passou a ignorar o `vinext`, e o CI ganhou o job `docker`. A `master` está protegida: 5 jobs obrigatórios do CI, sem force-push nem exclusão. Release publicado: [v0.33.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.33.0). Go 1.26 em produção desde 27/09/2026 (commit `4702d10`).
+
+## Identidade visual "carta topográfica" — candidata local `0.35.0` (29/09/2026)
+
+Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serifa, cards arredondados) seguia o padrão genérico de apps gerados por IA. O dono do produto escolheu, entre três direções (livro de etapa, ciclocomputador e carta topográfica), a carta topográfica, com atenção especial ao celular.
+
+**Identidade**
+- Papel de mapa, tinta, curvas de nível e trilha em vermelho. Títulos em Anybody (eixo de largura variável) e texto em Schibsted Grotesk.
+- Escala de intensidade única no app inteiro, pela sinalização de trilhas: círculo verde (RPE 1–3), quadrado azul (RPE 4–6) e losango preto (RPE 7+) (`components/trail-symbol.tsx`).
+- A estrutura do treino é desenhada como percurso com pontos de controle (`components/route-map.tsx`), gerado de forma determinística, sem medir o DOM.
+- Marca nova: curvas de nível formando um "C" em volta de um cume vermelho (`components/brand.tsx`, favicon, ícones do PWA e `og.png`).
+
+**Estrutura do frontend**
+- `globals.css` (4.239 linhas) + `contrast-fixes.css` substituídos por tokens em `globals.css` e estilos por área em `app/styles/*.css`. Os nomes de classe das telas foram mantidos; a lógica das telas não mudou.
+- `components/app-header.tsx` substitui a sidebar da home, o `AccountActions` e os links "Voltar ao painel": cabeçalho com seções e menu da conta no desktop, barra inferior fixa no celular (Hoje, Plano, Atividades, Evolução, Check-in).
+- `Button`, `Input`, `Textarea` e `Label` deixaram de depender de utilitários do Tailwind/shadcn sem tema definido.
+- Estilos inline da tela de importação trocados por classes.
+- Manifesto com as cores novas e atalhos para Hoje, Check-in e Importar; cache do service worker `cadencia-static-v4` para renovar os ícones.
+
+**Verificação:** `tsc`, `oxlint`, `vitest` (12 testes) e `vinext build` passaram. Todas as telas foram conferidas em 390 px e 1440 px com a API simulada no Playwright, sem rolagem horizontal e sem erros de JavaScript. O e2e (`npm run e2e`) não foi executado porque exige API e banco locais (Docker parado).
+

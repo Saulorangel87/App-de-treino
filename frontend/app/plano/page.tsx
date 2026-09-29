@@ -3,8 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft,
-  Bike,
   Check,
   CheckCircle2,
   Clock3,
@@ -16,11 +14,13 @@ import {
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AccountActions } from '@/components/account-actions';
+import { AppHeader } from '@/components/app-header';
 import { AdaptationCard } from '@/components/adaptation-card';
 import { RpeHelp } from '@/components/rpe-help';
 import { WorkoutSessionActions, type PrefillMetrics } from '@/components/workout-session-actions';
 import { WorkoutStructure } from '@/components/workout-structure';
+import { RouteMap, stepsForWorkout } from '@/components/route-map';
+import { TrailSymbol } from '@/components/trail-symbol';
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { ApiErrorState } from '@/components/api-error-state';
 import {
@@ -250,19 +250,8 @@ export default function PlanPage() {
 
   return (
     <main className="plan-shell">
-      <header className="profile-topbar">
-        <Link href="/" className="account-brand dark">
-          <span>
-            <Bike size={19} />
-          </span>
-          cadência
-        </Link>
-        <AccountActions label="ATLETA" name={user?.display_name} />
-      </header>
+      <AppHeader name={user?.display_name} />
       <section className="plan-content">
-        <Link href="/" className="back-link">
-          <ArrowLeft size={15} /> Voltar ao painel
-        </Link>
         {!plan ? (
           <section className="plan-empty">
             <span>
@@ -476,12 +465,8 @@ export default function PlanPage() {
                             )}
                           </span>
                           <em>
-                            <Clock3 size={12} />
-                            {workout.duration_minutes} min
-                          </em>
-                          <em>
-                            <Gauge size={12} />
-                            RPE {workout.target_rpe}
+                            <TrailSymbol rpe={workout.target_rpe} />
+                            {workout.duration_minutes} min · RPE {workout.target_rpe}
                           </em>
                         </button>
                       ))}
@@ -513,7 +498,7 @@ export default function PlanPage() {
                   >
                     <X size={19} />
                   </button>
-                  <span>SESSÃO SELECIONADA</span>
+                  <span className="kicker">Sessão selecionada</span>
                   <h2 id="selected-workout-title">{selected.name}</h2>
                   <p>{selected.explanation.summary}</p>
                   <div className="workout-ai-explanation">
@@ -576,6 +561,9 @@ export default function PlanPage() {
                     prefillMetrics={prefillMetrics}
                   />
                   <h3>Estrutura</h3>
+                  <div className="workout-detail-map">
+                    <RouteMap steps={stepsForWorkout(selected)} label={`Percurso da sessão ${selected.name}`} />
+                  </div>
                   <WorkoutStructure structure={selected.structure} durationMinutes={selected.duration_minutes} />
                   <h3>Por que este treino?</h3>
                   <ul>

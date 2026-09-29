@@ -1,0 +1,190 @@
+/* Linguagem de mapa: símbolos de intensidade, percurso da sessão, escala e relevo. */
+
+/* ---------- Símbolos de intensidade ---------- */
+.trail-sym {
+  --sym: 14px;
+  width: var(--sym);
+  height: var(--sym);
+  flex: 0 0 auto;
+  display: inline-block;
+}
+
+.trail-sym-easy {
+  border-radius: 50%;
+  background: var(--easy);
+}
+
+.trail-sym-moderate {
+  background: var(--moderate);
+}
+
+.trail-sym-hard {
+  background: var(--hard);
+  transform: rotate(45deg) scale(0.8);
+}
+
+.trail-sym-rest {
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 50%;
+}
+
+.trail-legend {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  list-style: none;
+  font-size: 14px;
+}
+
+.trail-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trail-legend small {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ---------- Mapa do percurso ---------- */
+.route-map {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
+.route-forest {
+  fill: var(--forest);
+  opacity: 0.7;
+}
+
+.route-contour {
+  fill: none;
+  stroke: var(--contour);
+  stroke-width: 0.9;
+  opacity: 0.55;
+}
+
+.route-contour.index {
+  stroke-width: 1.7;
+}
+
+.route-water {
+  fill: none;
+  stroke: var(--water);
+  stroke-width: 3;
+  opacity: 0.35;
+}
+
+.route-halo {
+  fill: none;
+  stroke: var(--sheet);
+  stroke-width: 13;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.route-line {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+}
+
+.route-easy {
+  stroke: var(--easy);
+}
+
+.route-moderate {
+  stroke: var(--moderate);
+}
+
+.route-hard {
+  stroke: var(--hard);
+}
+
+.route-marker circle,
+.route-marker rect {
+  stroke: var(--sheet);
+  stroke-width: 2.5;
+}
+
+.route-marker-easy circle {
+  fill: var(--easy);
+}
+
+.route-marker-moderate rect {
+  fill: var(--moderate);
+}
+
+.route-marker-hard rect {
+  fill: var(--hard);
+}
+
+.route-marker text {
+  fill: #fff;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.route-start {
+  fill: var(--sheet);
+  stroke: var(--ink);
+  stroke-width: 3.5;
+}
+
+.route-finish {
+  fill: var(--trail);
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+/* ---------- Escala ---------- */
+.route-scale {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: min(100%, 280px);
+}
+
+.route-scale-bar {
+  height: 8px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: var(--stroke);
+}
+
+.route-scale-bar i:nth-child(odd) {
+  background: var(--ink);
+}
+
+.route-scale-marks {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Relevo de fundo (folha com curvas de nível) ---------- */
+.topo-surface {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.topo-surface::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='320' viewBox='0 0 480 320'%3E%3Cg fill='none' stroke='%23a98559' stroke-opacity='.28'%3E%3Cpath d='M380 40c52 8 88 44 76 88s-70 60-118 48-78-50-64-90 54-54 106-46z'/%3E%3Cpath d='M378 62c38 6 62 32 54 62s-50 42-84 34-54-36-44-64 38-38 74-32z'/%3E%3Cpath d='M374 84c24 4 38 20 34 38s-30 26-52 20-34-22-28-40 24-22 46-18z' stroke-width='1.6'/%3E%3Cpath d='M-20 250c60-30 130-20 180 10s110 40 170 10 110-30 170 0'/%3E%3Cpath d='M-20 276c60-28 128-18 178 12s112 40 172 10 110-28 170 2'/%3E%3Cpath d='M-20 224c62-30 132-22 182 8s108 38 168 8 110-32 170-2'/%3E%3Cpath d='M60 60c30-26 80-24 100 6s0 70-40 74-78-20-74-44 0-24 14-36z'/%3E%3Cpath d='M78 74c20-16 50-14 62 4s0 42-24 44-46-12-44-26 0-14 6-22z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 480px 320px;
+  pointer-events: none;
+}

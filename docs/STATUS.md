@@ -29,6 +29,15 @@ Primeira fatia da fase descrita em [`proxima-fase-dados-reais.md`](proxima-fase-
 - **Correção de biblioteca (PR #32):** um arquivo `.fit` real de um ciclocomputador XOSS expôs um bug no decodificador inicialmente usado (`tormoder/fit`, que rejeita arquivos com várias mensagens de definição em sequência antes dos dados — válido no protocolo, mas fora do que a biblioteca aceitava). Trocado por `github.com/muktihari/fit`, mais ativa. Também corrigido: sem sensor pareado, esse aparelho grava `0` em vez do valor "inválido" do FIT nos campos de FC/potência/cadência da sessão; tratado como ausente.
 - **Correção de fuso horário (PR #34):** o arquivo grava o horário em UTC; sem correção, uma pedalada perto da meia-noite local podia cair no dia UTC errado e não sugerir o treino do dia certo. Usa `LocalTimestamp` do `.fit` quando presente; sem essa informação (sempre o caso do `.gpx`), a busca por treino candidato olha também o dia anterior e o seguinte.
 
+## Identidade visual "carta topográfica" — local `0.35.0`, não publicada
+
+Branch `redesign-carta-topografica` (29/09/2026). Troca completa do visual do frontend, sem mudança de API, banco ou regras do motor. Detalhes em [`changelog/project-status-history.md`](changelog/project-status-history.md).
+
+- Tokens em `frontend/app/globals.css`; estilos por área em `frontend/app/styles/`. `contrast-fixes.css` removido.
+- Navegação única (`components/app-header.tsx`): cabeçalho no desktop, barra inferior no celular.
+- Novos ícones do PWA, `og.png`, tela offline e cache do service worker `v4`.
+- Pendente: revisão do dono do produto, e2e com API local e publicação.
+
 ## Pendências operacionais (fora do código)
 
 - Testar o atalho de compartilhar no Android num aparelho real.

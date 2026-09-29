@@ -3,9 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft,
   ArrowRight,
-  Bike,
   CircleAlert,
   KeyRound,
   LoaderCircle,
@@ -14,7 +12,7 @@ import {
   ShieldCheck,
   Trash2,
 } from 'lucide-react';
-import { AccountActions } from '@/components/account-actions';
+import { AppHeader } from '@/components/app-header';
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { ApiErrorState } from '@/components/api-error-state';
 
@@ -162,20 +160,8 @@ export default function SettingsPage() {
 
   return (
     <main className="settings-shell">
-      <header className="profile-topbar">
-        <Link href="/" className="account-brand dark">
-          <span>
-            <Bike size={19} />
-          </span>
-          cadência
-        </Link>
-        <AccountActions label="CONFIGURAÇÕES" name={user.display_name} />
-      </header>
+      <AppHeader name={user.display_name} />
       <section className="settings-content">
-        <Link href="/" className="back-link">
-          <ArrowLeft size={15} />
-          Voltar ao painel
-        </Link>
         <header className="settings-heading">
           <p>CONTA E SEGURANÇA</p>
           <h1>Suas configurações.</h1>

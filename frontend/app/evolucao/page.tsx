@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Bike, CalendarCheck2, CircleAlert, Clock3, HeartPulse, LineChart, LoaderCircle, MapPinned, MoonStar, Mountain, Target, Zap } from 'lucide-react';
+import { Bike, CalendarCheck2, CircleAlert, Clock3, HeartPulse, LineChart, LoaderCircle, MapPinned, MoonStar, Mountain, Target, Zap } from 'lucide-react';
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
-import { AccountActions } from '@/components/account-actions';
+import { AppHeader } from '@/components/app-header';
 import { ApiErrorState } from '@/components/api-error-state';
 
 type User = { display_name: string };
@@ -57,9 +57,8 @@ export default function EvolutionPage() {
   const goalProgress = summary.goal_progress || [];
 
   return <main className="evolution-shell">
-    <header className="profile-topbar"><Link href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</Link><AccountActions label="ATLETA" name={user.display_name} /></header>
+    <AppHeader name={user.display_name} />
     <section className="evolution-content">
-      <Link href="/" className="back-link"><ArrowLeft size={15} />Voltar ao painel</Link>
       <header className="evolution-heading"><p>EVOLUÇÃO</p><h1>Seu histórico, com contexto.</h1><span>Registros observados ao longo do tempo. Eles ajudam você a acompanhar consistência e resposta percebida, mas não substituem avaliação profissional nem representam diagnóstico.</span></header>
       {!hasActivities ? <section className="evolution-empty"><LineChart size={28} /><h2>Os primeiros dados aparecerão após seus treinos.</h2><p>Ao concluir ou cancelar sessões, o Cadência passará a organizar sua consistência, duração e esforço percebido aqui.</p><Link href="/plano">Ver meu plano</Link></section> : <>
         <section className="evolution-metrics" aria-label="Resumo do histórico"><Metric icon={<CalendarCheck2 size={19} />} value={String(summary.completed_sessions)} label="sessões concluídas" /><Metric icon={<Clock3 size={19} />} value={minutesLabel(summary.total_minutes)} label="tempo registrado" /><Metric icon={<Target size={19} />} value={`${Math.round(summary.completion_rate)}%`} label="conclusão das sessões" /><Metric icon={<CircleAlert size={19} />} value={summary.average_rpe ? `RPE ${summary.average_rpe.toFixed(1)}` : '—'} label="esforço médio registrado" /></section>

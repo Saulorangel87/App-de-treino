@@ -1,4 +1,5 @@
 import type { Workout } from '@/lib/planning';
+import { intensityOf } from './trail-symbol';
 
 type WorkoutStructureProps = {
   structure: Workout['structure'];
@@ -45,7 +46,11 @@ export function WorkoutStructure({ structure, durationMinutes }: WorkoutStructur
   return (
     <ol className="structured-workout">
       {displaySteps.map((step) => (
-        <li className={`structured-workout-step structured-workout-${step.kind}`} key={`${step.order}-${step.title}`}>
+        <li
+          className={`structured-workout-step structured-workout-${step.kind}`}
+          data-intensity={intensityOf(step.target_rpe)}
+          key={`${step.order}-${step.title}`}
+        >
           <span className="structured-workout-index">{String(step.order).padStart(2, '0')}</span>
           <div className="structured-workout-content">
             <strong>{step.title}</strong>
