@@ -832,7 +832,7 @@ Conjunto de melhorias de robustez publicado em 26/09/2026 (PR #5 e #18), a parti
 
 **Dependências e CI (26–27/09/2026):** mesclados após revisão e teste: `pgx` 5.11, `actions/checkout`/`setup-node`/`setup-go` v7, Alpine 3.24 na imagem da API, grupo de 21 atualizações do frontend, migração para Go 1.26 (exigida pelo `x/crypto` 0.57). Fechados sem mesclar: Node 26, Go 1.27, TypeScript 7, `@types/node` 26. O `vinext` beta.11 foi mesclado e **revertido**: passava no CI e em modo dev, mas `vinext start` falhava na imagem de produção (container `unhealthy`); o Dependabot passou a ignorar o `vinext`, e o CI ganhou o job `docker`. A `master` está protegida: 5 jobs obrigatórios do CI, sem force-push nem exclusão. Release publicado: [v0.33.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.33.0). Go 1.26 em produção desde 27/09/2026 (commit `4702d10`).
 
-## Identidade visual "carta topográfica" — candidata local `0.35.0` (29/09/2026)
+## Identidade visual "carta topográfica" — publicada na `0.35.0` (29/09/2026)
 
 Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serifa, cards arredondados) seguia o padrão genérico de apps gerados por IA. O dono do produto escolheu, entre três direções (livro de etapa, ciclocomputador e carta topográfica), a carta topográfica, com atenção especial ao celular.
 
@@ -850,4 +850,8 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - Manifesto com as cores novas e atalhos para Hoje, Check-in e Importar; cache do service worker `cadencia-static-v4` para renovar os ícones.
 
 **Verificação:** `tsc`, `oxlint`, `vitest` (12 testes) e `vinext build` passaram. Todas as telas foram conferidas em 390 px e 1440 px com a API simulada no Playwright, sem rolagem horizontal e sem erros de JavaScript. O e2e (`npm run e2e`) não foi executado porque exige API e banco locais (Docker parado).
+
+**Publicação (29/09/2026):** PR #39 (redesenho) e PR #40 (correção do alerta do CodeQL) mesclados na `master`, com os 5 checks obrigatórios do CI. Deploy pelo `deploy.sh` na VPS: fast-forward `1932a0e` → `c6635c7`, backup preventivo `cadencia-20260929T220231Z.dump` criado e verificado, `0 migração(ões) pendente(s)`, imagens da API e do frontend reconstruídas e `api`, `frontend` e `tunnel` recriados (PostgreSQL permaneceu ativo). `/health`, `/ready`, o frontend e `GET /v1/plans/current` autenticado responderam 200. O site público mostra a versão `0.35.0` e o manifesto, o `og.png` e a página de entrada com o visual novo. Ainda não testado num aparelho real: instalação do PWA com os ícones novos e o atalho de compartilhar do Android.
+
+**Segurança do repositório (29/09/2026):** o `npm audit` do job `frontend` falhava em todo PR por dois avisos altos do `fast-uri` 3.1.6 (GHSA-58mr-gqgx-xq4g e GHSA-qw65-cvwx-89v3, dependência transitiva de `shadcn`). PR #37 atualizou só a entrada do lockfile para 3.1.8, porque o `npm audit fix` do npm 11.9 removia os campos `libc` dos pacotes nativos. O PR #36 do Dependabot foi mesclado depois e trouxe o `wrangler` 4.141.0, que fixa o `miniflare` com `undici` 7.29.0 (seis alertas, um alto); PR #38 subiu `wrangler` para 4.143.1 e `@cloudflare/vite-plugin` para 1.62.1 (lockfile gerado com npm 12.1). O code scanning (CodeQL) foi ativado e seu primeiro alerta (`go/incorrect-integer-conversion` em `config.go`, valores já limitados a 1–50) foi corrigido com `strconv.ParseInt(..., 10, 32)` no PR #40. Resultado: 0 alertas no Dependabot, no code scanning e no secret scanning.
 
