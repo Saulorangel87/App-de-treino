@@ -17,6 +17,9 @@ type fakeStore struct {
 	saveErr      error
 	candidates   []WorkoutCandidate
 	queriedDates []string
+	// ownedWorkouts são os treinos que pertencem ao atleta no teste de vínculo.
+	ownedWorkouts map[string]bool
+	linkCalls     int
 }
 
 func newFakeStore() *fakeStore { return &fakeStore{hashes: map[string]bool{}} }
@@ -40,6 +43,28 @@ func (f *fakeStore) ListActivities(_ context.Context, _ string) ([]Activity, err
 }
 
 func (f *fakeStore) DeleteActivity(_ context.Context, _, _ string) error { return nil }
+
+func (f *fakeStore) GetActivity(_ context.Context, _, activityID string) (Activity, error) {
+	for _, activity := range f.saved {
+		if activity.ID == activityID {
+			return activity, nil
+		}
+	}
+	return Activity{}, ErrNotFound
+}
+
+func (f *fakeStore) LinkActivity(_ context.Context, _, activityID string, workoutID *string) error {
+	f.linkCalls++
+	if workoutID != nil && !f.ownedWorkouts[*workoutID] {
+		return ErrWorkoutNotFound
+	}
+	for i := range f.saved {
+		if f.saved[i].ID == activityID {
+			f.saved[i].WorkoutID = workoutID
+		}
+	}
+	return nil
+}
 
 func (f *fakeStore) WorkoutCandidatesOnDate(_ context.Context, _ string, date time.Time) ([]WorkoutCandidate, error) {
 	f.queriedDates = append(f.queriedDates, date.Format("2006-01-02"))
@@ -183,5 +208,101 @@ func TestService_Import_ExactSearchWithKnownTimezone(t *testing.T) {
 	}
 	if activity.StartedAt.Hour() != 20 {
 		t.Errorf("StartedAt hour = %d, want 20 (23:30 UTC shifted by -3h)", activity.StartedAt.Hour())
+	}
+}
+
+const validWorkoutID = "11111111-2222-3333-4444-555555555555"
+
+func storeWithImportedActivity(t *testing.T) (*fakeStore, *Service) {
+	t.Helper()
+	store := newFakeStore()
+	store.ownedWorkouts = map[string]bool{validWorkoutID: true}
+	service := NewService(store)
+	if _, _, err := service.Import(context.Background(), "user-1", "ride.gpx", bytes.NewReader(sampleGPXBytes())); err != nil {
+		t.Fatalf("Import: %v", err)
+	}
+	return store, service
+}
+
+func TestService_Link_LinksAndUnlinks(t *testing.T) {
+	_, service := storeWithImportedActivity(t)
+	workoutID := validWorkoutID
+
+	linked, err := service.Link(context.Background(), "user-1", "activity-1", &workoutID)
+	if err != nil {
+		t.Fatalf("Link: %v", err)
+	}
+	if linked.WorkoutID == nil || *linked.WorkoutID != validWorkoutID {
+		t.Fatalf("WorkoutID = %v, want %s", linked.WorkoutID, validWorkoutID)
+	}
+
+	unlinked, err := service.Link(context.Background(), "user-1", "activity-1", nil)
+	if err != nil {
+		t.Fatalf("Link(nil): %v", err)
+	}
+	if unlinked.WorkoutID != nil {
+		t.Fatalf("WorkoutID = %v, want nil after unlinking", unlinked.WorkoutID)
+	}
+}
+
+func TestService_Link_RejectsUnknownActivity(t *testing.T) {
+	store, service := storeWithImportedActivity(t)
+	workoutID := validWorkoutID
+	if _, err := service.Link(context.Background(), "user-1", "missing", &workoutID); err != ErrNotFound {
+		t.Fatalf("err = %v, want ErrNotFound", err)
+	}
+	if store.linkCalls != 0 {
+		t.Fatalf("LinkActivity called %d times for an unknown activity", store.linkCalls)
+	}
+}
+
+func TestService_Link_RejectsWorkoutOfAnotherAthlete(t *testing.T) {
+	_, service := storeWithImportedActivity(t)
+	other := "99999999-2222-3333-4444-555555555555"
+	if _, err := service.Link(context.Background(), "user-1", "activity-1", &other); err != ErrWorkoutNotFound {
+		t.Fatalf("err = %v, want ErrWorkoutNotFound", err)
+	}
+}
+
+func TestService_Link_RejectsMalformedWorkoutID(t *testing.T) {
+	store, service := storeWithImportedActivity(t)
+	for _, bad := range []string{"", "abc", "11111111-2222-3333-4444-55555555555", "' OR 1=1 --"} {
+		id := bad
+		if _, err := service.Link(context.Background(), "user-1", "activity-1", &id); err != ErrInvalidWorkoutID {
+			t.Errorf("Link(%q) err = %v, want ErrInvalidWorkoutID", bad, err)
+		}
+	}
+	if store.linkCalls != 0 {
+		t.Fatalf("LinkActivity must not run for malformed ids; calls = %d", store.linkCalls)
+	}
+}
+
+func TestService_Candidates_SearchesAdjacentDays(t *testing.T) {
+	store, service := storeWithImportedActivity(t)
+	store.queriedDates = nil
+	store.candidates = []WorkoutCandidate{{ID: validWorkoutID, ScheduledOn: "2026-09-20", Name: "Giro de base", Status: "planned"}}
+
+	candidates, err := service.Candidates(context.Background(), "user-1", "activity-1")
+	if err != nil {
+		t.Fatalf("Candidates: %v", err)
+	}
+	if len(candidates) != 1 {
+		t.Fatalf("candidates = %+v, want one (deduplicated across days)", candidates)
+	}
+	want := map[string]bool{"2026-09-20": true, "2026-09-19": true, "2026-09-21": true}
+	if len(store.queriedDates) != 3 {
+		t.Fatalf("queried %v, want the day and its neighbors", store.queriedDates)
+	}
+	for _, day := range store.queriedDates {
+		if !want[day] {
+			t.Errorf("unexpected queried day %s", day)
+		}
+	}
+}
+
+func TestService_Candidates_UnknownActivity(t *testing.T) {
+	_, service := storeWithImportedActivity(t)
+	if _, err := service.Candidates(context.Background(), "user-1", "missing"); err != ErrNotFound {
+		t.Fatalf("err = %v, want ErrNotFound", err)
 	}
 }

@@ -387,6 +387,43 @@ paths:
         '204': { description: Atividade removida }
         '401': { description: Sessão ausente ou expirada }
         '404': { description: Atividade não encontrada ou pertencente a outro atleta }
+  /v1/activities/imported/{activityID}/workout:
+    put:
+      summary: Vincula uma atividade importada a um treino do atleta, ou remove o vínculo
+      description: Grava só a associação entre a atividade e o treino, para consulta. Não copia dados para o treino, não altera o plano e não passa pelo motor; a execução registrada continua vindo dos endpoints de conclusão/correção. Envie workout_id nulo para desvincular.
+      parameters:
+        - in: path
+          name: activityID
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [workout_id]
+              properties:
+                workout_id: { type: string, format: uuid, nullable: true }
+      responses:
+        '200': { description: "Atividade com o vínculo atualizado: workout_id, workout_name e workout_scheduled_on quando vinculada" }
+        '400': { description: Corpo inválido ou identificador de treino malformado }
+        '401': { description: Sessão ausente ou expirada }
+        '404': { description: Atividade ou treino não encontrados para este atleta }
+  /v1/activities/imported/{activityID}/candidates:
+    get:
+      summary: Sugere treinos planejados para uma atividade já importada
+      description: Considera o dia da atividade e os dias vizinhos, porque a data local só era conhecida no upload.
+      parameters:
+        - in: path
+          name: activityID
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: "Lista candidate_workouts, com id, scheduled_on, name e status de cada treino" }
+        '401': { description: Sessão ausente ou expirada }
+        '404': { description: Atividade não encontrada ou pertencente a outro atleta }
   /v1/plans/{planID}/activate:
     post:
       summary: Ativa um rascunho e cancela o plano ativo anterior do atleta

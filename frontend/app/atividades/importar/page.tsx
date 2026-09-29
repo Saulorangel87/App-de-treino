@@ -8,6 +8,8 @@ import {
   Clock3,
   Gauge,
   HeartPulse,
+  Link2,
+  Link2Off,
   LoaderCircle,
   MapPinned,
   Trash2,
@@ -17,6 +19,7 @@ import {
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { AppHeader } from '@/components/app-header';
 import { ApiErrorState } from '@/components/api-error-state';
+import { parseTrainingDate } from '@/lib/planning';
 
 type User = { display_name: string };
 
@@ -40,12 +43,20 @@ type ImportedActivity = {
   normalized_power_watts?: number;
   average_cadence_rpm?: number;
   workout_id?: string;
+  workout_name?: string;
+  workout_scheduled_on?: string;
   imported_at: string;
 };
 
 const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
 });
+
+const shortDateFormatter = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
+
+function shortDate(value: string): string {
+  return shortDateFormatter.format(parseTrainingDate(value)).replace(/\./g, '');
+}
 
 function planLinkFor(workoutID: string, activity: ImportedActivity): string {
   const params = new URLSearchParams({ workoutID });
@@ -72,6 +83,11 @@ export default function ImportActivityPage() {
   const [uploadError, setUploadError] = useState('');
   const [lastImported, setLastImported] = useState<ImportedActivity | null>(null);
   const [candidates, setCandidates] = useState<WorkoutCandidate[]>([]);
+  // Vínculo de atividades já importadas: qual está com o seletor aberto, as
+  // sugestões carregadas e qual pedido está em andamento.
+  const [pickerFor, setPickerFor] = useState<string | null>(null);
+  const [pickerCandidates, setPickerCandidates] = useState<WorkoutCandidate[] | null>(null);
+  const [busyActivity, setBusyActivity] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -132,6 +148,46 @@ export default function ImportActivityPage() {
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }
+
+  // Grava (ou remove, com workoutID nulo) só a associação entre a atividade e o
+  // treino; nada é copiado para o treino nem muda no plano.
+  async function linkActivity(activityID: string, workoutID: string | null) {
+    setUploadError('');
+    setBusyActivity(activityID);
+    try {
+      const result = await apiRequest<{ activity: ImportedActivity }>(
+        `/v1/activities/imported/${activityID}/workout`,
+        { method: 'PUT', body: JSON.stringify({ workout_id: workoutID }) },
+      );
+      setActivities((current) => current.map((item) => (item.id === activityID ? result.activity : item)));
+      setPickerFor(null);
+      setPickerCandidates(null);
+    } catch (caught) {
+      setUploadError(apiErrorMessage(caught, 'Não foi possível atualizar o vínculo.'));
+    } finally {
+      setBusyActivity(null);
+    }
+  }
+
+  async function togglePicker(activityID: string) {
+    if (pickerFor === activityID) {
+      setPickerFor(null);
+      setPickerCandidates(null);
+      return;
+    }
+    setUploadError('');
+    setPickerFor(activityID);
+    setPickerCandidates(null);
+    try {
+      const result = await apiRequest<{ candidate_workouts: WorkoutCandidate[] }>(
+        `/v1/activities/imported/${activityID}/candidates`,
+      );
+      setPickerCandidates(result.candidate_workouts || []);
+    } catch (caught) {
+      setPickerFor(null);
+      setUploadError(apiErrorMessage(caught, 'Não foi possível buscar treinos para esta atividade.'));
     }
   }
 
@@ -199,14 +255,38 @@ export default function ImportActivityPage() {
               <>
                 <p>
                   Encontramos {candidates.length === 1 ? 'um treino planejado' : 'treinos planejados'} no mesmo dia.
-                  Abra e confira: os dados acima já aparecem preenchidos no formulário, e você decide se confirma.
+                  Vincule para guardar a relação. Se abrir no plano, os dados acima já aparecem preenchidos no
+                  formulário, e você decide se confirma.
                 </p>
-                <ul>
-                  {candidates.map((candidate) => (
-                    <li key={candidate.id}>
-                      <Link href={planLinkFor(candidate.id, lastImported)}>{candidate.name}</Link>
-                    </li>
-                  ))}
+                <ul className="link-candidates">
+                  {candidates.map((candidate) => {
+                    const current = activities.find((item) => item.id === lastImported.id);
+                    const linkedHere = current?.workout_id === candidate.id;
+                    return (
+                      <li key={candidate.id}>
+                        <span>
+                          <strong>{candidate.name}</strong>
+                          <small>{shortDate(candidate.scheduled_on)}</small>
+                        </span>
+                        <span className="link-actions">
+                          {linkedHere ? (
+                            <span className="link-done"><Link2 size={14} aria-hidden="true" />Vinculada</span>
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn btn-outline btn-sm"
+                              disabled={busyActivity === lastImported.id}
+                              onClick={() => void linkActivity(lastImported.id, candidate.id)}
+                            >
+                              {busyActivity === lastImported.id ? <LoaderCircle className="spin" size={14} /> : <Link2 size={14} />}
+                              Vincular
+                            </button>
+                          )}
+                          <Link href={planLinkFor(candidate.id, lastImported)}>Abrir no plano</Link>
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ul>
               </>
             ) : (
@@ -231,7 +311,11 @@ export default function ImportActivityPage() {
                 <div className="activity-title">
                   <div>
                     <h2>{item.source === 'fit' ? 'Arquivo .fit' : 'Arquivo .gpx'}</h2>
-                    <p>{item.workout_id ? 'Vinculada a um treino' : 'Sem treino vinculado'}</p>
+                    <p>
+                      {item.workout_id
+                        ? `Vinculada a ${item.workout_name ?? 'um treino'}${item.workout_scheduled_on ? ` · ${shortDate(item.workout_scheduled_on)}` : ''}`
+                        : 'Sem treino vinculado'}
+                    </p>
                   </div>
                   <button
                     type="button"
@@ -243,6 +327,60 @@ export default function ImportActivityPage() {
                   </button>
                 </div>
                 <time><CalendarDays size={14} />{dateFormatter.format(new Date(item.started_at))}</time>
+                <div className="activity-link-row">
+                  {item.workout_id ? (
+                    <>
+                      <Link href={planLinkFor(item.workout_id, item)}>Abrir no plano</Link>
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        disabled={busyActivity === item.id}
+                        onClick={() => void linkActivity(item.id, null)}
+                      >
+                        {busyActivity === item.id ? <LoaderCircle className="spin" size={14} /> : <Link2Off size={14} />}
+                        Desvincular
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn-outline btn-sm"
+                      aria-expanded={pickerFor === item.id}
+                      onClick={() => void togglePicker(item.id)}
+                    >
+                      <Link2 size={14} />
+                      Vincular a um treino
+                    </button>
+                  )}
+                </div>
+                {pickerFor === item.id && (
+                  <div className="link-picker" aria-live="polite">
+                    {pickerCandidates === null ? (
+                      <p><LoaderCircle className="spin" size={14} /> Buscando treinos perto dessa data…</p>
+                    ) : pickerCandidates.length === 0 ? (
+                      <p>Nenhum treino planejado perto dessa data. Você pode gerar ou ajustar o plano e voltar aqui.</p>
+                    ) : (
+                      <ul className="link-candidates">
+                        {pickerCandidates.map((candidate) => (
+                          <li key={candidate.id}>
+                            <span>
+                              <strong>{candidate.name}</strong>
+                              <small>{shortDate(candidate.scheduled_on)}</small>
+                            </span>
+                            <button
+                              type="button"
+                              className="btn btn-primary btn-sm"
+                              disabled={busyActivity === item.id}
+                              onClick={() => void linkActivity(item.id, candidate.id)}
+                            >
+                              Vincular
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
                 <div className="activity-metrics">
                   <span><Clock3 size={14} /><b>{formatDuration(item.moving_seconds)}</b></span>
                   {item.distance_km > 0 && <span><MapPinned size={14} /><b>{item.distance_km.toFixed(1)} km</b></span>}

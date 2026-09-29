@@ -258,3 +258,92 @@
 .activities-heading > span a {
   font-weight: 700;
 }
+
+/* ---------- Vínculo com o treino planejado ---------- */
+.import-result ul.link-candidates,
+.link-candidates {
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+
+.link-candidates li {
+  padding: 10px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  border: var(--hairline);
+  background: var(--sheet);
+}
+
+.link-candidates li > span:first-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.link-candidates li small {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Só a primeira letra ("ter, 29 set" -> "Ter, 29 set"). */
+.link-candidates li small::first-letter {
+  text-transform: uppercase;
+}
+
+.link-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.link-done {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ok);
+  font-weight: 700;
+}
+
+.activity-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.activity-link-row a {
+  font-weight: 700;
+  text-decoration-color: var(--trail);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+}
+
+.link-picker {
+  padding: 12px;
+  border: 1.5px dashed var(--line-strong);
+  background: var(--paper);
+}
+
+.link-picker > p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+@media (max-width: 479px) {
+  .link-candidates li .btn,
+  .link-actions .btn {
+    min-height: 44px;
+  }
+}

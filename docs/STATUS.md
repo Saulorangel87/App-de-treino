@@ -1,6 +1,6 @@
 # Estado atual do Cadência
 
-Última atualização: 29 de setembro de 2026.
+Última atualização: 30 de setembro de 2026.
 
 Este é o documento de continuidade: curto e sempre atual. O diário cronológico das fatias de trabalho (com datas, validações e decisões) está em [`changelog/project-status-history.md`](changelog/project-status-history.md). Não inclua senhas, tokens, chaves de API nem conteúdo de `.env`.
 
@@ -37,6 +37,15 @@ Publicada em 29/09/2026 (PRs #39 e #40; deploy sem migração, `0 migração(õe
 - Navegação única (`components/app-header.tsx`): cabeçalho no desktop, barra inferior no celular.
 - Novos ícones do PWA, `og.png`, tela offline e cache do service worker `v4`.
 - Validação: `npm run e2e` (2 testes) e uma verificação da navegação nos dois tamanhos passaram contra a API local antes do deploy; o smoke test público e autenticado passou em produção. Ainda não testado num aparelho real: instalação do PWA com os ícones novos (fechar e abrir o app, ou reinstalar, para trocar o ícone) e o atalho de compartilhar do Android.
+
+## Vínculo de atividade importada a um treino — local `0.36.0`, não publicada
+
+Corrige uma falha da `0.34.0`: a importação só *sugeria* o treino do mesmo dia e nenhum código gravava o vínculo, então a lista sempre mostrava "Sem treino vinculado". Agora o atleta vincula pelo botão, na sugestão logo após importar ou depois, na lista.
+
+- **`PUT /v1/activities/imported/{id}/workout`** (`workout_id` ou `null` para desvincular) e **`GET /v1/activities/imported/{id}/candidates`** (dia da atividade e vizinhos). O treino precisa ser de um plano do próprio atleta (`active`, `draft` ou `completed`).
+- Só grava `imported_activities.workout_id`. Nada é copiado para `workout_sessions`, o plano não muda e o pacote `planning` não é chamado; a execução registrada continua vindo de `/complete` e `/correct`.
+- A listagem devolve `workout_name` e `workout_scheduled_on` do treino vinculado. Sem migração.
+- Testes: serviço e handlers, mais a fixture `database/tests/imported_activity_link.sql` (dono da atividade e do treino, plano cancelado, desvínculo). Validado também com a API e o banco locais (18 verificações).
 
 ## Segurança do repositório (29/09/2026)
 

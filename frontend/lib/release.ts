@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.35.0';
+export const APP_VERSION = '0.36.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.36.0',
+    title: 'Vincule a atividade importada ao treino',
+    description:
+      'Em Atividades > Importar, cada atividade agora pode ser vinculada ao treino planejado do mesmo dia (ou de um dia próximo), e o vínculo aparece na lista com o nome do treino. O vínculo só guarda a relação: não altera o plano nem o treino. Também dá para vincular atividades que você já tinha importado e desfazer o vínculo quando quiser.',
+  },
   {
     version: '0.35.0',
     title: 'Um visual novo, com cara de mapa de trilha',

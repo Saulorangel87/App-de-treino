@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"io"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -25,7 +26,11 @@ var (
 	ErrUnrecognizedFormat = errors.New("activityimport: envie um arquivo .fit ou .gpx")
 	ErrDuplicate          = errors.New("activityimport: este arquivo já foi importado")
 	ErrNotFound           = errors.New("activityimport: atividade importada não encontrada")
+	ErrWorkoutNotFound    = errors.New("activityimport: treino não encontrado para este atleta")
+	ErrInvalidWorkoutID   = errors.New("activityimport: identificador de treino inválido")
 )
+
+var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
 // Activity is an athlete's imported ride, stored independently of any
 // planned workout. Importing never changes a training plan or a workout's
@@ -37,9 +42,13 @@ type Activity struct {
 	ID     string `json:"id"`
 	UserID string `json:"-"`
 	Parsed
-	Source     string    `json:"source"`
-	WorkoutID  *string   `json:"workout_id,omitempty"`
-	ImportedAt time.Time `json:"imported_at"`
+	Source    string  `json:"source"`
+	WorkoutID *string `json:"workout_id,omitempty"`
+	// WorkoutName e WorkoutScheduledOn descrevem o treino vinculado, só para
+	// exibição; ficam vazios quando não há vínculo.
+	WorkoutName        *string   `json:"workout_name,omitempty"`
+	WorkoutScheduledOn *string   `json:"workout_scheduled_on,omitempty"`
+	ImportedAt         time.Time `json:"imported_at"`
 }
 
 // WorkoutCandidate is the minimal projection of a planned workout offered as
@@ -60,6 +69,12 @@ type Store interface {
 	SaveActivity(ctx context.Context, userID, source, fileHash string, parsed Parsed) (Activity, error)
 	ListActivities(ctx context.Context, userID string) ([]Activity, error)
 	DeleteActivity(ctx context.Context, userID, activityID string) error
+	// GetActivity devolve uma atividade do atleta ou ErrNotFound.
+	GetActivity(ctx context.Context, userID, activityID string) (Activity, error)
+	// LinkActivity grava (ou, com workoutID nulo, remove) o vínculo entre a
+	// atividade e um treino do próprio atleta. Devolve ErrNotFound se a
+	// atividade não existir e ErrWorkoutNotFound se o treino não for do atleta.
+	LinkActivity(ctx context.Context, userID, activityID string, workoutID *string) error
 	// WorkoutCandidatesOnDate lists the athlete's planned workouts scheduled
 	// for the given calendar date, used to suggest (never force) a match.
 	WorkoutCandidatesOnDate(ctx context.Context, userID string, date time.Time) ([]WorkoutCandidate, error)
@@ -156,4 +171,33 @@ func parseFile(filename string, data []byte) (string, Parsed, error) {
 	default:
 		return "", Parsed{}, ErrUnrecognizedFormat
 	}
+}
+
+// Link liga uma atividade importada a um treino do atleta, ou remove o vínculo
+// quando workoutID é nulo. É uma associação para consulta: não copia dados
+// para o treino, não altera o plano e não passa pelo motor. Só o atleta, pelos
+// endpoints de conclusão/correção, transforma a atividade em execução
+// registrada.
+func (s *Service) Link(ctx context.Context, userID, activityID string, workoutID *string) (Activity, error) {
+	if workoutID != nil && !uuidPattern.MatchString(*workoutID) {
+		return Activity{}, ErrInvalidWorkoutID
+	}
+	if _, err := s.store.GetActivity(ctx, userID, activityID); err != nil {
+		return Activity{}, err
+	}
+	if err := s.store.LinkActivity(ctx, userID, activityID, workoutID); err != nil {
+		return Activity{}, err
+	}
+	return s.store.GetActivity(ctx, userID, activityID)
+}
+
+// Candidates sugere treinos para uma atividade já importada. A data local só
+// era conhecida no momento do upload, então a busca considera sempre o dia
+// anterior e o seguinte, como no caso de arquivos sem fuso horário.
+func (s *Service) Candidates(ctx context.Context, userID, activityID string) ([]WorkoutCandidate, error) {
+	activity, err := s.store.GetActivity(ctx, userID, activityID)
+	if err != nil {
+		return nil, err
+	}
+	return s.candidatesFor(ctx, userID, Parsed{StartedAt: activity.StartedAt})
 }
