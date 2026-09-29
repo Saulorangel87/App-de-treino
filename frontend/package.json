@@ -20,7 +20,7 @@
     "@base-ui/react": "1.8.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
-    "lucide-react": "1.47.0",
+    "lucide-react": "1.48.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-server-dom-webpack": "19.3.0",
@@ -29,8 +29,8 @@
     "vinext": "1.0.0-beta.8"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "1.58.0",
-    "@cloudflare/workers-types": "5.20260923.1",
+    "@cloudflare/vite-plugin": "1.60.2",
+    "@cloudflare/workers-types": "5.20260926.1",
     "@openai/sites-vite-plugin": "0.2.0",
     "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "4.3.3",
@@ -41,13 +41,13 @@
     "@vitejs/plugin-rsc": "0.5.35",
     "oxfmt": "0.70.0",
     "oxlint": "1.85.0",
-    "oxlint-tsgolint": "7.0.2002",
+    "oxlint-tsgolint": "7.0.2003",
     "shadcn": "4.21.0",
     "tailwindcss": "4.3.3",
     "typescript": "5.9.3",
-    "vite": "8.3.0",
+    "vite": "8.3.1",
     "vitest": "5.0.2",
-    "wrangler": "4.137.0"
+    "wrangler": "4.141.0"
   },
   "type": "module"
 }
