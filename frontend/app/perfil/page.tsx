@@ -1,9 +1,8 @@
 'use client';
 
-import Link from 'next/link';
-import { ArrowLeft, Bike, Check, LoaderCircle, MailCheck } from 'lucide-react';
+import { Check, LoaderCircle, MailCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AccountActions } from '@/components/account-actions';
+import { AppHeader } from '@/components/app-header';
 import { stepCopy } from './profile-model';
 import { useProfileForm } from './use-profile-form';
 import { ProfileStep1 } from './step-basics';
@@ -35,19 +34,8 @@ export default function ProfilePage() {
 
   return (
     <main className="profile-shell">
-      <header className="profile-topbar">
-        <Link href="/" className="account-brand dark">
-          <span>
-            <Bike size={19} />
-          </span>
-          cadência
-        </Link>
-        <AccountActions label="CONTA" name={user?.display_name} />
-      </header>
+      <AppHeader name={user?.display_name} />
       <section className="profile-content">
-        <Link href="/" className="back-link">
-          <ArrowLeft size={15} /> Voltar ao painel
-        </Link>
         {user && !user.email_verified && (
           <section className="email-verification-banner">
             <MailCheck size={19} />

@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { LoaderCircle, LogOut, MessageSquareHeart, Settings, Sparkles } from 'lucide-react';
+import { LoaderCircle, LogOut } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 
 export function LogoutButton({ compact = false }: { compact?: boolean }) {
@@ -40,36 +39,6 @@ export function LogoutButton({ compact = false }: { compact?: boolean }) {
         <span>{leaving ? 'Saindo…' : 'Sair'}</span>
       </button>
       {error && <small role="alert">{error}</small>}
-    </div>
-  );
-}
-
-export function AccountActions({
-  label,
-  name,
-}: {
-  label: string;
-  name?: string;
-}) {
-  return (
-    <div className="account-actions">
-      <div className="account-identity">
-        <small>{label}</small>
-        <strong>{name}</strong>
-      </div>
-      <Link className="account-updates-link" href="/novidades">
-        <Sparkles size={14} />
-        <span>Novidades</span>
-      </Link>
-      <Link className="account-feedback-link" href="/feedback">
-        <MessageSquareHeart size={14} />
-        Feedback
-      </Link>
-      <Link className="account-settings-link" href="/configuracoes" aria-label="Abrir configurações">
-        <Settings size={14} />
-        <span>Configurações</span>
-      </Link>
-      <LogoutButton />
     </div>
   );
 }

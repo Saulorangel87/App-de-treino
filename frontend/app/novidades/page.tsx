@@ -1,16 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import {
-  ArrowLeft,
-  Bike,
   Check,
   ChevronDown,
   LoaderCircle,
   Sparkles,
 } from 'lucide-react';
-import { AccountActions } from '@/components/account-actions';
+import { AppHeader } from '@/components/app-header';
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { ApiErrorState } from '@/components/api-error-state';
 import { APP_VERSION, UPDATE_NOTES, type UpdateNote } from '@/lib/release';
@@ -58,20 +55,8 @@ export default function NoveltiesPage() {
 
   return (
     <main className="updates-shell">
-      <header className="profile-topbar">
-        <Link href="/" className="account-brand dark">
-          <span>
-            <Bike size={19} />
-          </span>
-          cadência
-        </Link>
-        <AccountActions label="NOVIDADES" name={user.display_name} />
-      </header>
+      <AppHeader name={user.display_name} />
       <section className="updates-content">
-        <Link href="/" className="back-link">
-          <ArrowLeft size={15} />
-          Voltar ao painel
-        </Link>
         <header className="updates-heading">
           <p>NOVIDADES DO CADÊNCIA</p>
           <h1>O que mudou.</h1>

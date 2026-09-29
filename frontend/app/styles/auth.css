@@ -1,0 +1,260 @@
+/* Acesso: entrar/criar conta e telas curtas de confirmação e redefinição de senha. */
+
+.account-shell {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 960px) {
+  .account-shell {
+    grid-template-columns: minmax(0, 1fr) minmax(440px, 0.9fr);
+  }
+}
+
+/* ---------- Apresentação (folha com relevo) ---------- */
+.account-story {
+  padding: 24px var(--gutter) 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  border-bottom: var(--stroke);
+  background-color: var(--forest);
+}
+
+@media (min-width: 960px) {
+  .account-story {
+    padding: 40px 56px;
+    justify-content: space-between;
+    border-right: var(--stroke);
+    border-bottom: 0;
+  }
+}
+
+.story-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 34rem;
+}
+
+.story-copy h1 {
+  font-size: clamp(34px, 8vw, 60px);
+  font-weight: 850;
+  font-variation-settings: 'wdth' 112;
+  line-height: 0.98;
+  text-transform: uppercase;
+}
+
+.story-copy > p:not(.eyebrow-light) {
+  color: var(--ink-2);
+  font-size: 17px;
+}
+
+.eyebrow-light {
+  color: var(--ink-2);
+}
+
+.story-copy ul {
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+
+.story-copy li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.story-copy li svg {
+  flex: 0 0 auto;
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--easy);
+  color: #fff;
+}
+
+.privacy-note {
+  max-width: 34rem;
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: var(--stroke);
+  background: var(--sheet);
+  box-shadow: var(--shadow-sm);
+  font-size: 14px;
+}
+
+.privacy-note svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.privacy-note span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--ink-2);
+}
+
+.privacy-note strong {
+  color: var(--ink);
+}
+
+@media (max-width: 719px) {
+  /* No celular o formulário precisa aparecer logo: a apresentação fica curta. */
+  .story-copy > p:not(.eyebrow-light),
+  .story-copy ul,
+  .privacy-note {
+    display: none;
+  }
+}
+
+/* ---------- Formulário ---------- */
+.account-form-panel {
+  padding: 28px var(--gutter) 40px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+@media (min-width: 960px) {
+  .account-form-panel {
+    align-items: center;
+    padding: 48px;
+  }
+}
+
+.account-form-wrap {
+  width: min(100%, 420px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 8px;
+  border: var(--stroke);
+}
+
+.mode-switch button {
+  min-height: 46px;
+  border: 0;
+  background: var(--sheet);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mode-switch button + button {
+  border-left: var(--stroke);
+}
+
+.mode-switch button.active {
+  background: var(--ink);
+  color: #fff;
+}
+
+.account-form-wrap h2 {
+  font-size: clamp(26px, 6vw, 32px);
+  font-weight: 800;
+}
+
+.form-intro {
+  color: var(--ink-2);
+}
+
+.account-form {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.account-form > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.account-form .account-submit {
+  margin-top: 4px;
+  width: 100%;
+}
+
+.form-link {
+  align-self: flex-start;
+  font-size: 15px;
+}
+
+.form-legal {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ---------- Telas curtas de acesso ---------- */
+.auth-action-shell {
+  min-height: 100dvh;
+  padding: 28px var(--gutter);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.auth-action-card {
+  width: min(100%, 460px);
+  padding: 28px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  border: var(--stroke);
+  background: var(--sheet);
+  box-shadow: var(--shadow);
+}
+
+@media (min-width: 720px) {
+  .auth-action-card {
+    padding: 36px;
+  }
+}
+
+.auth-action-card > svg {
+  color: var(--trail);
+}
+
+.auth-action-card h1 {
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.auth-action-card > p:not(.form-kicker) {
+  color: var(--ink-2);
+}
+
+.auth-action-card .account-form {
+  width: 100%;
+}
+
+.auth-action-link {
+  margin-top: 6px;
+  min-height: 46px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  border: var(--stroke);
+  background: var(--trail);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 3px 3px 0 var(--ink);
+}

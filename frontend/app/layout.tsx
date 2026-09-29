@@ -1,15 +1,29 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Newsreader } from 'next/font/google';
+import { Anybody, Schibsted_Grotesk } from 'next/font/google';
 import { AppFooter } from '@/components/app-footer';
 import { UpdateNotice } from '@/components/update-notice';
 import './globals.css';
-import './contrast-fixes.css';
+import './styles/base.css';
+import './styles/shell.css';
+import './styles/route.css';
+import './styles/dashboard.css';
+import './styles/plan.css';
+import './styles/session.css';
+import './styles/activities.css';
+import './styles/evolution.css';
+import './styles/checkin.css';
+import './styles/profile.css';
+import './styles/settings.css';
+import './styles/auth.css';
 
-const geist = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
-const newsreader = Newsreader({
-  variable: '--font-newsreader',
+// Anybody tem eixo de largura variável: títulos largos de carta topográfica e
+// números estreitos usam a mesma família.
+const display = Anybody({
+  variable: '--font-display',
   subsets: ['latin'],
+  axes: ['wdth'],
 });
+const body = Schibsted_Grotesk({ variable: '--font-body', subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Cadência — Treino inteligente de ciclismo',
@@ -32,7 +46,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
     title: 'Cadência',
   },
   openGraph: {
@@ -44,7 +58,7 @@ export const metadata: Metadata = {
         url: '/og.png',
         width: 1536,
         height: 1024,
-        alt: 'Cadência — Treino inteligente. Evolução contínua.',
+        alt: 'Cadência: treino de ciclismo que se adapta a você.',
       },
     ],
   },
@@ -61,7 +75,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#102d24',
+  themeColor: '#eef1ea',
   colorScheme: 'light',
 };
 
@@ -92,7 +106,7 @@ export default function RootLayout({
           <script dangerouslySetInnerHTML={{ __html: devPwaResetScript }} />
         </head>
       )}
-      <body className={`${geist.variable} ${newsreader.variable}`}>
+      <body className={`${display.variable} ${body.variable}`}>
         {children}
         <UpdateNotice />
         <AppFooter />

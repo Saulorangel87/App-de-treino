@@ -1,16 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import {
-  ArrowLeft,
-  Bike,
   CheckCircle2,
   LoaderCircle,
   MessageSquareHeart,
   Send,
 } from 'lucide-react';
-import { AccountActions } from '@/components/account-actions';
+import { AppHeader } from '@/components/app-header';
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { ApiErrorState } from '@/components/api-error-state';
 
@@ -73,12 +70,8 @@ export default function FeedbackPage() {
 
   return (
     <main className="feedback-shell">
-      <header className="profile-topbar">
-        <Link href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</Link>
-        <AccountActions label="FEEDBACK" name={user.display_name} />
-      </header>
+      <AppHeader name={user.display_name} />
       <section className="feedback-content">
-        <Link href="/" className="back-link"><ArrowLeft size={15} />Voltar ao painel</Link>
         <header className="feedback-heading">
           <p>AJUDE A EVOLUIR O CADÊNCIA</p>
           <h1>Como está sendo sua experiência?</h1>

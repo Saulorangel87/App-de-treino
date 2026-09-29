@@ -1,10 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Activity, AlertTriangle, ArrowLeft, Bike, CheckCircle2, Clock3, LoaderCircle } from 'lucide-react';
+import { Activity, AlertTriangle, CheckCircle2, Clock3, LoaderCircle } from 'lucide-react';
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
-import { AccountActions } from '@/components/account-actions';
+import { AppHeader } from '@/components/app-header';
 import { ApiErrorState } from '@/components/api-error-state';
 
 type User = { display_name: string };
@@ -46,9 +45,8 @@ export default function AssessmentPage() {
   if (loading) return <main className="profile-loading"><LoaderCircle className="spin" />Carregando sua avaliação…</main>;
   if (!user) return <ApiErrorState message={error || 'Não foi possível carregar sua avaliação.'} />;
   return <main className="assessment-shell">
-    <header className="profile-topbar"><Link href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</Link><AccountActions label="ATLETA" name={user.display_name} /></header>
+    <AppHeader name={user.display_name} />
     <section className="assessment-content">
-      <Link href="/" className="back-link"><ArrowLeft size={15} />Voltar ao painel</Link>
       <header className="assessment-heading"><p>AVALIAÇÃO INICIAL</p><h1>Seu pedal de referência.</h1><span>Uma referência submáxima para orientar a evolução do plano. Não é exame médico nem teste máximo.</span></header>
       {assessment && <section className={`assessment-result ${assessment.eligible_for_progression ? 'eligible' : ''}`}><CheckCircle2 size={21} /><div><strong>Avaliação registrada</strong><p>{assessment.pain_reported ? 'Você relatou dor. O app não usará este resultado para progredir intensidade; priorize recuperação e orientação profissional se a dor persistir.' : assessment.eligible_for_progression ? 'Referência concluída sem sinal de alerta. Ela ficará disponível para progressões futuras, sempre com regras de segurança.' : 'Resultado salvo como referência. O motor continuará com progressão conservadora.'}</p></div></section>}
       <div className="assessment-layout">

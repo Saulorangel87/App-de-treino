@@ -8,9 +8,13 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f5f7f2",
-  "theme_color": "#102d24",
-  "categories": ["fitness", "health", "sports"],
+  "background_color": "#eef1ea",
+  "theme_color": "#eef1ea",
+  "categories": [
+    "fitness",
+    "health",
+    "sports"
+  ],
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -39,21 +43,32 @@
       "files": [
         {
           "name": "file",
-          "accept": [".fit", ".gpx", "application/octet-stream", "application/gpx+xml", "application/vnd.ant.fit"]
+          "accept": [
+            ".fit",
+            ".gpx",
+            "application/octet-stream",
+            "application/gpx+xml",
+            "application/vnd.ant.fit"
+          ]
         }
       ]
     }
   },
   "shortcuts": [
     {
-      "name": "Visão geral",
-      "short_name": "Painel",
+      "name": "Treino de hoje",
+      "short_name": "Hoje",
       "url": "/"
     },
     {
-      "name": "Perfil do atleta",
-      "short_name": "Perfil",
-      "url": "/perfil"
+      "name": "Check-in de recuperação",
+      "short_name": "Check-in",
+      "url": "/recuperacao"
+    },
+    {
+      "name": "Importar atividade",
+      "short_name": "Importar",
+      "url": "/atividades/importar"
     }
   ]
 }

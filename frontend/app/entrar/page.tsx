@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Bike, Check, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Check, ShieldCheck } from 'lucide-react';
+import { Brand } from '@/components/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -46,8 +47,8 @@ export default function SignInPage() {
 
   return (
     <main className="account-shell">
-      <section className="account-story">
-        <Link href="/" className="account-brand"><span><Bike size={21} /></span>cadência</Link>
+      <section className="account-story topo-surface">
+        <Brand />
         <div className="story-copy">
           <p className="eyebrow-light">SEU TREINO, SEU CONTEXTO</p>
           <h1>Treinar melhor começa por conhecer você.</h1>

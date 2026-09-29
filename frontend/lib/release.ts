@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.34.0';
+export const APP_VERSION = '0.35.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.35.0',
+    title: 'Um visual novo, com cara de mapa de trilha',
+    description:
+      'O Cadência ganhou identidade própria inspirada nas cartas topográficas de MTB e gravel. O treino do dia aparece desenhado como um percurso, e a intensidade usa a sinalização de trilhas: círculo verde para leve, quadrado azul para moderado e losango preto para intenso. A navegação agora é a mesma em todas as telas e, no celular, fica numa barra inferior ao alcance do polegar.',
+  },
   {
     version: '0.34.0',
     title: 'Importe suas atividades reais',

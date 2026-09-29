@@ -1,0 +1,656 @@
+/* Base: tipografia, controles de formulário, botões, estados e padrões de página. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+body > main {
+  flex: 1 0 auto;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-title);
+  font-weight: 750;
+  line-height: 1.1;
+  text-wrap: balance;
+  font-variation-settings: 'wdth' 100;
+}
+
+p {
+  margin: 0;
+}
+
+/* O reset do Tailwind tira o sublinhado; links de texto voltam a ser
+   sublinhados. Navegação, marca e botões definem text-decoration: none. */
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--water);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- Rótulo em caixa alta (legenda de mapa) ---------- */
+.kicker,
+.plan-heading p,
+.activities-heading p,
+.assessment-heading p,
+.evolution-heading p,
+.recovery-heading p,
+.feedback-content > .feedback-heading p,
+.updates-heading p,
+.settings-heading p,
+.profile-heading p,
+.form-kicker,
+.eyebrow-light {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 12px;
+  font-weight: 700;
+  font-variation-settings: 'wdth' 130;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---------- Botões ---------- */
+.btn,
+.session-primary,
+.plan-activate,
+.plan-generate,
+.account-submit,
+.profile-submit {
+  min-height: 44px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: var(--stroke);
+  border-radius: 0;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.btn svg {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+}
+
+.btn-primary,
+.primary-action {
+  background: var(--trail);
+  color: #fff;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.btn-primary:hover:not(:disabled),
+.primary-action:hover:not(:disabled) {
+  background: var(--trail-deep);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.btn-primary:active:not(:disabled),
+.primary-action:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.btn-outline {
+  background: var(--sheet);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: var(--paper-deep);
+}
+
+.btn-outline:active:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.btn-ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.btn-link {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--trail-deep);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.btn-sm {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+.btn-lg {
+  min-height: 52px;
+  padding: 0 22px;
+  font-size: 16px;
+}
+
+.btn-icon {
+  width: 44px;
+  padding: 0;
+}
+
+.btn:disabled,
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Link com seta, usado para ações secundárias dentro de textos e cards */
+.text-link,
+.back-link,
+.details-button,
+.modal-plan-link,
+.form-link,
+.settings-profile-link,
+.checkin-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: underline;
+  text-decoration-color: var(--trail);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+}
+
+.text-link:hover,
+.back-link:hover,
+.details-button:hover,
+.modal-plan-link:hover,
+.form-link:hover,
+.settings-profile-link:hover,
+.checkin-button:hover {
+  color: var(--trail-deep);
+}
+
+/* ---------- Campos ---------- */
+input:not([type='checkbox'], [type='radio'], [type='range'], [type='file']),
+select,
+textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 0;
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  /* 16px evita o zoom automático do iOS ao focar o campo */
+  font-size: 16px;
+  line-height: 1.35;
+  transition: border-color 0.12s ease;
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+select {
+  appearance: none;
+  padding-right: 38px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ink) 50%),
+    linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+  background-position:
+    calc(100% - 19px) 52%,
+    calc(100% - 13px) 52%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+}
+
+input:hover:not(:disabled, [type='checkbox'], [type='radio'], [type='range'], [type='file']),
+select:hover,
+textarea:hover {
+  border-color: var(--ink-2);
+}
+
+input:focus-visible:not([type='checkbox'], [type='radio'], [type='range']),
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px var(--water-tint), 0 0 0 4.5px var(--water);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #7d8674;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  flex: 0 0 auto;
+  accent-color: var(--trail);
+}
+
+input[type='range'] {
+  width: 100%;
+  accent-color: var(--trail);
+}
+
+input[type='file'] {
+  width: 100%;
+  font: inherit;
+  font-size: 15px;
+}
+
+input[type='file']::file-selector-button {
+  margin-right: 12px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: var(--stroke);
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+label {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  padding: 0;
+}
+
+/* ---------- Mensagens ---------- */
+.form-error,
+.form-notice,
+.profile-message,
+.plan-message,
+.feedback-success,
+.session-error,
+.session-correction-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 11px 13px;
+  border-left: 4px solid currentColor;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.form-error,
+.profile-message.error,
+.session-error {
+  background: var(--danger-tint);
+  color: var(--danger);
+}
+
+.form-notice,
+.profile-message,
+.plan-message,
+.feedback-success,
+.session-correction-success {
+  background: var(--ok-tint);
+  color: var(--ok);
+}
+
+.form-error svg,
+.form-notice svg,
+.profile-message svg,
+.plan-message svg,
+.feedback-success svg,
+.session-error svg {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  margin-top: 2px;
+}
+
+/* ---------- Carregamento e erro de tela ---------- */
+.profile-loading {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.api-error-state {
+  min-height: 70vh;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 32px var(--gutter);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+
+.api-error-state strong {
+  font-family: var(--font-title);
+  font-size: 26px;
+  line-height: 1.15;
+}
+
+.api-error-state p {
+  color: var(--muted);
+}
+
+.api-error-state button {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 18px;
+  border: var(--stroke);
+  background: var(--trail);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+}
+
+/* ---------- Container e cabeçalho das páginas ---------- */
+.page-content,
+.workspace,
+.plan-content,
+.activities-content,
+.assessment-content,
+.evolution-content,
+.recovery-content,
+.feedback-content,
+.updates-content,
+.settings-content,
+.profile-content {
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 24px var(--gutter) 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+@media (min-width: 720px) {
+  .page-content,
+  .workspace,
+  .plan-content,
+  .activities-content,
+  .assessment-content,
+  .evolution-content,
+  .recovery-content,
+  .feedback-content,
+  .updates-content,
+  .settings-content,
+  .profile-content {
+    padding-top: 36px;
+    gap: 32px;
+  }
+}
+
+.plan-heading > div,
+.activities-heading,
+.assessment-heading,
+.evolution-heading,
+.recovery-heading,
+.feedback-content > .feedback-heading,
+.updates-heading,
+.settings-heading,
+.profile-heading > div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 68ch;
+  min-width: 0;
+}
+
+.plan-heading h1,
+.activities-heading h1,
+.assessment-heading h1,
+.evolution-heading h1,
+.recovery-heading h1,
+.feedback-content > .feedback-heading h1,
+.updates-heading h1,
+.settings-heading h1,
+.profile-heading h1,
+.page-title {
+  font-size: clamp(30px, 6vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.plan-heading span,
+.activities-heading > span,
+.assessment-heading > span,
+.evolution-heading > span,
+.recovery-heading > span,
+.feedback-content > .feedback-heading > span,
+.updates-heading > span,
+.settings-heading > span,
+.profile-heading > div > span {
+  color: var(--ink-2);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+/* Título de seção dentro das páginas */
+.section-title {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.section-title h2 {
+  font-size: 22px;
+}
+
+/* ---------- Superfícies ---------- */
+/* Folha principal: moldura em tinta e sombra dura. Reservada ao elemento que
+   precisa se destacar na tela. */
+.sheet {
+  background: var(--sheet);
+  border: var(--stroke);
+  box-shadow: var(--shadow);
+}
+
+/* Painel secundário: papel mais claro com filete fino. */
+.panel {
+  background: var(--sheet);
+  border: var(--hairline);
+}
+
+/* ---------- Modais ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  border: 0;
+  background: rgb(31 35 28 / 0.55);
+}
+
+@media (min-width: 720px) {
+  .modal-backdrop {
+    align-items: center;
+    padding: 32px;
+  }
+}
+
+/* ---------- Ajuda de RPE ---------- */
+.rpe-help-wrap {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.rpe-help {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: help;
+}
+
+.rpe-help.compact {
+  width: 26px;
+  height: 26px;
+}
+
+.rpe-help:hover {
+  color: var(--ink);
+}
+
+.rpe-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 30;
+  width: min(260px, 80vw);
+  padding: 12px 14px;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  transform: translateX(-50%);
+  border: var(--stroke);
+  background: var(--sheet);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: left;
+  white-space: normal;
+}
+
+.rpe-tooltip strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.rpe-help-wrap:hover .rpe-tooltip,
+.rpe-help:focus + .rpe-tooltip {
+  display: flex;
+}

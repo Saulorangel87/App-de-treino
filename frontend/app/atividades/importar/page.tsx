@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
-  Bike,
   CalendarDays,
   Clock3,
   Gauge,
@@ -16,7 +15,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
-import { AccountActions } from '@/components/account-actions';
+import { AppHeader } from '@/components/app-header';
 import { ApiErrorState } from '@/components/api-error-state';
 
 type User = { display_name: string };
@@ -150,10 +149,7 @@ export default function ImportActivityPage() {
 
   return (
     <main className="activities-shell">
-      <header className="profile-topbar">
-        <Link href="/" className="account-brand dark"><span><Bike size={19} /></span>cadência</Link>
-        <AccountActions label="ATLETA" name={user?.display_name} />
-      </header>
+      <AppHeader name={user?.display_name} />
       <section className="activities-content">
         <Link href="/atividades" className="back-link"><ArrowLeft size={15} />Voltar às atividades</Link>
         <header className="activities-heading">
@@ -168,7 +164,7 @@ export default function ImportActivityPage() {
         </header>
 
         <form
-          className="settings-form"
+          className="import-form"
           onSubmit={(event) => event.preventDefault()}
         >
           <label htmlFor="activity-file">Arquivo da atividade</label>
@@ -193,7 +189,7 @@ export default function ImportActivityPage() {
         </form>
 
         {lastImported && (
-          <section className="activities-empty" style={{ textAlign: 'left', alignItems: 'flex-start' }}>
+          <section className="import-result" aria-live="polite">
             <h2>Atividade importada.</h2>
             <p>
               {dateFormatter.format(new Date(lastImported.started_at))} · {formatDuration(lastImported.moving_seconds)}
@@ -205,7 +201,7 @@ export default function ImportActivityPage() {
                   Encontramos {candidates.length === 1 ? 'um treino planejado' : 'treinos planejados'} no mesmo dia.
                   Abra e confira: os dados acima já aparecem preenchidos no formulário, e você decide se confirma.
                 </p>
-                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                <ul>
                   {candidates.map((candidate) => (
                     <li key={candidate.id}>
                       <Link href={planLinkFor(candidate.id, lastImported)}>{candidate.name}</Link>
@@ -219,9 +215,7 @@ export default function ImportActivityPage() {
           </section>
         )}
 
-        <header className="activities-heading" style={{ marginTop: 32 }}>
-          <h2 style={{ fontSize: 20 }}>Atividades já importadas.</h2>
-        </header>
+        <h2 className="activities-subheading">Atividades já importadas</h2>
         {activities.length === 0 && (
           <section className="activities-empty">
             <UploadCloud size={25} />
@@ -241,7 +235,7 @@ export default function ImportActivityPage() {
                   </div>
                   <button
                     type="button"
-                    className="settings-primary-button"
+                    className="icon-button"
                     onClick={() => void handleDelete(item.id)}
                     aria-label="Remover atividade importada"
                   >
