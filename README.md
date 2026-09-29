@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão publicada: `0.34.0`. A entrega permite importar atividades reais de execução por arquivo `.fit`/`.gpx` (Garmin, Wahoo, XOSS e outros), com atalho de compartilhamento no Android; ver [`docs/proxima-fase-dados-reais.md`](docs/proxima-fase-dados-reais.md). A migração `000031_imported_activities` foi aplicada em produção após backup verificável.
+Versão publicada: `0.35.0`. A entrega traz a identidade visual "carta topográfica" (treino desenhado como percurso, intensidade pela sinalização de trilhas e navegação única, com barra inferior no celular). Sem mudança de API ou banco. A versão `0.34.0` trouxe a importação de atividades reais por arquivo `.fit`/`.gpx`; ver [`docs/proxima-fase-dados-reais.md`](docs/proxima-fase-dados-reais.md).
 
 O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro não fazem parte deste app e não são aceitos como modalidades de treino.
 
@@ -98,8 +98,8 @@ O MVP de ciclismo está publicado e validado em produção:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Código publicado na linha de versão `0.34.0`, incluindo importação de atividades por arquivo `.fit`/`.gpx`.
-- Versão visível: `0.34.0`; migrações de banco aplicadas até `000031`.
+- Código publicado na linha de versão `0.35.0`, incluindo a importação de atividades por arquivo `.fit`/`.gpx` (desde a `0.34.0`).
+- Versão visível: `0.35.0`; migrações de banco aplicadas até `000031`.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, onboarding, plano, treino, feedback, adaptação, atividades, evolução, configurações, importação de atividades, novidades e logout foram validados em produção.
 - `rules-v1` continua sendo a única fonte prescritiva. Os shadows permanecem observacionais.
