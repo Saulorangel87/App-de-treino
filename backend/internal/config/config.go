@@ -63,11 +63,11 @@ func Load() (Config, error) {
 	if err != nil || aiMaxConcurrent < 1 || aiMaxConcurrent > 2 {
 		return Config{}, errors.New("AI_MAX_CONCURRENT must be between 1 and 2")
 	}
-	dbMaxConns, err := strconv.Atoi(valueOrDefault("DB_MAX_CONNS", "10"))
+	dbMaxConns, err := strconv.ParseInt(valueOrDefault("DB_MAX_CONNS", "10"), 10, 32)
 	if err != nil || dbMaxConns < 1 || dbMaxConns > 50 {
 		return Config{}, errors.New("DB_MAX_CONNS must be between 1 and 50")
 	}
-	dbMinConns, err := strconv.Atoi(valueOrDefault("DB_MIN_CONNS", "1"))
+	dbMinConns, err := strconv.ParseInt(valueOrDefault("DB_MIN_CONNS", "1"), 10, 32)
 	if err != nil || dbMinConns < 0 || dbMinConns > dbMaxConns {
 		return Config{}, errors.New("DB_MIN_CONNS must be between 0 and DB_MAX_CONNS")
 	}
