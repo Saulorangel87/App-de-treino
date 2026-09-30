@@ -88,7 +88,7 @@ func assessEventTaper(input Context, now time.Time, restricted bool) EventTaperA
 		addReason("active_limitation", "Uma limitação ativa mantém as proteções existentes prioritárias.")
 		return result
 	}
-	if input.Observed.RequiresRecovery() {
+	if input.requiresRecovery() {
 		addReason("recovery_needed", "Sinais recentes de dor ou recuperação insuficiente bloqueiam o taper específico.")
 		return result
 	}

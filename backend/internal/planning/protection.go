@@ -1,6 +1,7 @@
 package planning
 
 import (
+	"encoding/json"
 	"sort"
 	"time"
 )
@@ -233,4 +234,125 @@ func assessProtection(signals []RecentSignal, now time.Time) ProtectionAssessmen
 		result.Reasons = []ReadinessReason{}
 	}
 	return result
+}
+
+// PrescriptionInputs are the per-workout parameters makeWorkout needs to build
+// the same session again. They are stored in the workout's explanation so that
+// upcoming sessions can be re-evaluated (and restored) without regenerating the
+// whole plan. Workouts generated before this field existed cannot be rebuilt.
+type PrescriptionInputs struct {
+	Kind       string  `json:"kind"`
+	WeekIndex  int     `json:"week_index"`
+	Multiplier float64 `json:"multiplier"`
+	Weekday    int     `json:"weekday"`
+}
+
+func prescriptionInputsFrom(explanation map[string]any) (PrescriptionInputs, bool) {
+	raw, ok := explanation["prescription_inputs"]
+	if !ok {
+		return PrescriptionInputs{}, false
+	}
+	encoded, err := json.Marshal(raw)
+	if err != nil {
+		return PrescriptionInputs{}, false
+	}
+	var inputs PrescriptionInputs
+	if err := json.Unmarshal(encoded, &inputs); err != nil || inputs.Kind == "" || inputs.Multiplier <= 0 {
+		return PrescriptionInputs{}, false
+	}
+	return inputs, true
+}
+
+// requiresRecovery keeps the legacy aggregate rule until a protection
+// assessment is attached to the context.
+func (input Context) requiresRecovery() bool {
+	if input.Protection != nil {
+		return input.Protection.Level != ProtectionNone
+	}
+	return input.Observed.RequiresRecovery()
+}
+
+// sessionProtection reports whether a session of the given kind becomes the
+// protected easy ride, and which graduated level applies. A nil Protection is the
+// legacy rule: pain protects every session, high fatigue only quality sessions.
+func (input Context) sessionProtection(kind string) (protected bool, level ProtectionLevel) {
+	if input.Protection == nil {
+		return input.Observed.RequiresRecovery() && (input.Observed.PainReported || kind == "quality"), ""
+	}
+	level = input.Protection.Level
+	switch level {
+	case ProtectionStrong:
+		return true, level
+	case ProtectionModerate:
+		return kind == "quality", level
+	}
+	return false, level
+}
+
+func protectionRule(level ProtectionLevel) string {
+	switch level {
+	case ProtectionLight:
+		return "Proteção leve por sinal recente de recuperação: duração reduzida em 10% e esforço dos treinos de qualidade reduzido em 1 ponto."
+	case ProtectionModerate:
+		return "Proteção moderada por sinais recentes de recuperação: duração reduzida em 10%; treinos de qualidade são trocados por giro leve protegido."
+	}
+	return ""
+}
+
+func (assessment ProtectionAssessment) explanation() map[string]any {
+	reasons := make([]string, 0, len(assessment.Reasons))
+	for _, reason := range assessment.Reasons {
+		reasons = append(reasons, reason.Message)
+	}
+	result := map[string]any{
+		"level":                assessment.Level,
+		"reasons":              reasons,
+		"suggest_professional": assessment.SuggestProfessional,
+	}
+	if assessment.ExpiresOn != "" {
+		result["expires_on"] = assessment.ExpiresOn
+	}
+	return result
+}
+
+// restrictionState reports the profile-level restrictions that always win over
+// history-based protection.
+func restrictionState(input Context) (restricted, medical bool) {
+	restricted = len(input.Limitations) > 0
+	for _, item := range input.Limitations {
+		if item.ProfessionalClearanceRecommended {
+			restricted = true
+		}
+		if item.MedicalRestriction {
+			medical = true
+		}
+	}
+	return restricted, medical
+}
+
+// ReprescribeWorkout rebuilds one planned session with the current context. It
+// returns false when the session cannot be rebuilt (no stored inputs, or the
+// weekday is no longer an available slot), in which case it must be left as is.
+func ReprescribeWorkout(input Context, scheduledOn string, explanation map[string]any, now time.Time) (Workout, bool) {
+	inputs, ok := prescriptionInputsFrom(explanation)
+	if !ok {
+		return Workout{}, false
+	}
+	date, err := time.ParseInLocation("2006-01-02", scheduledOn, now.Location())
+	if err != nil {
+		return Workout{}, false
+	}
+	var slot *AvailabilitySlot
+	for index := range input.Availability {
+		if input.Availability[index].Weekday == inputs.Weekday {
+			slot = &input.Availability[index]
+			break
+		}
+	}
+	if slot == nil {
+		return Workout{}, false
+	}
+	restricted, _ := restrictionState(input)
+	return makeWorkout(input, *slot, inputs.Kind, restricted, inputs.Multiplier, inputs.WeekIndex, date,
+		assessEventTaper(input, now, restricted), assessPostEventRecovery(input, now)), true
 }
