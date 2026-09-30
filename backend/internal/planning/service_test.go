@@ -346,7 +346,7 @@ func TestBuildPlanUsesControlledThresholdForExplicitEligiblePreference(t *testin
 		if workout.TargetRPE != 7.5 || workout.DurationMinutes > 90 {
 			t.Fatalf("unexpected controlled threshold load: %#v", workout)
 		}
-		if workout.Explanation["evidence_keys"].([]string)[0] != "road-block-comparison-2025" {
+		if keys := workout.Explanation["evidence_keys"].([]string); keys[0] != "road-block-comparison-2025" || keys[1] != "road-mit-block-2025" {
 			t.Fatalf("expected threshold evidence mapping, got %#v", workout.Explanation)
 		}
 		steps := workout.Structure["steps"].([]WorkoutStep)

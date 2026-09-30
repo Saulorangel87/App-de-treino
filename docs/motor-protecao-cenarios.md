@@ -232,6 +232,10 @@ O que o app exibe como "base científica" tinha quatro registros com dados que n
 - As chaves (`source_key`) não mudaram, porque já estão gravadas nas explicações dos treinos; por isso a chave `impellizzeri-2020` continua com o ano antigo, mas o registro agora descreve o artigo certo.
 - Fixture `database/tests/000033_fix_source_metadata.sql` trava os quatro registros; a migração tem reversão testada.
 
-### Ainda não revisado
+### Auditoria das demais referências (migração `000034`)
 
-As demais referências do catálogo (por exemplo as de limiar, VO₂max e intervalos em ciclismo) **não** foram auditadas nesta etapa; a conferência cobriu as fontes ligadas à proteção e ao monitoramento de carga. Conferir cada uma contra o PubMed é o passo seguinte, se o produto quiser exibir todas com o mesmo rigor.
+Em seguida, as **27 referências** do catálogo foram conferidas contra o PubMed: título, autores, ano, link e tipo de publicação, e, para as fontes dos treinos de limiar, VO₂max, intervalos e taper, também o resumo original contra o que o treino afirma.
+
+- **Metadados:** 24 corretas. Corrigidas: `post-competition-recovery-2019` (revisão narrativa, não sistemática), `haddad-2017` (título traduzido, passa ao original) e `short-self-paced-2025` (título completo e registro do PubMed, PMID 39973903, no lugar do link da editora). Agora todas as fontes apontam para o PubMed; a fixture `000034_audit_remaining_sources.sql` trava isso.
+- **Afirmações dos treinos:** a do "Limiar controlado" citava a meta-análise de distribuição polarizada (`road-intensity-2024`), que compara distribuições de intensidade e não sustenta estímulos próximos ao limiar. Passa a citar os dois ensaios de blocos de intervalos moderados de 10 a 14 minutos em ciclistas bem treinados (`road-block-comparison-2025` e `road-mit-block-2025`). As demais afirmações conferidas (VO₂max, intervalos intensos, curtos, XCO, taper e recuperação pós-prova) correspondem ao que as fontes estudaram e já declaram os limites de população e dose.
+- **Limite geral que continua valendo:** os treinos de base, tempo, sweet spot, subidas e cadência citam só o posicionamento do ACSM (1998), que apoia a progressão gradual de forma geral, em adultos saudáveis, e não trata de ciclismo; o texto de cada um já diz que a referência não define minutos universais.

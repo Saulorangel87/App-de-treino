@@ -50,8 +50,8 @@ var sessionProtocols = map[string]sessionProtocol{
 		WorkTitle: "Ritmo controlado", WorkInstruction: "Sustente um ritmo estável em que ainda consiga manter a técnica e a respiração sob controle.",
 	},
 	"Limiar controlado": {
-		Key: "controlled_threshold", EvidenceKeys: []string{"road-block-comparison-2025", "road-intensity-2024"},
-		EvidenceScope: "Estudos em ciclistas treinados observam respostas de desempenho em estímulos próximos ao limiar, mas não validam esta dose para todos os atletas; o Cadência usa uma adaptação conservadora guiada por RPE.",
+		Key: "controlled_threshold", EvidenceKeys: []string{"road-block-comparison-2025", "road-mit-block-2025"},
+		EvidenceScope: "Dois ensaios em ciclistas bem treinados observaram ganho de desempenho com blocos de intervalos moderados de 10 a 14 minutos, próximos ao limiar, mas a população e o volume estudados não representam todos os atletas; o Cadência usa uma adaptação conservadora guiada por RPE.",
 		WorkMinutes:   8, RecoveryMinutes: 4, Repetitions: 3,
 		WorkTitle: "Bloco de limiar", WorkInstruction: "Sustente um esforço forte e estável, próximo do seu limiar percebido, sem transformar o bloco em sprint; reduza se perder o controle.",
 	},
