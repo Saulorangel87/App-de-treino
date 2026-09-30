@@ -68,3 +68,35 @@ pós-treino (decisão de produto, fora desta etapa).
    sugerem avaliação profissional.
 3. Um check-in bom depois da dor (a partir do 3º dia) rebaixa um nível.
 4. A reavaliação atua na semana atual e na seguinte, só em treinos ainda planejados.
+
+## Etapa 2: implementada, ainda desligada
+
+`backend/internal/planning/protection.go` (`assessProtection`) é uma função pura de
+sinais datados e da data de hoje. Ela **não é chamada** pelo gerador de planos nem
+pelo repositório; o `rules-v1` continua como está. Cada cenário da tabela acima tem
+um caso em `protection_test.go`, e um teste compara com a regra atual.
+
+Regras aplicadas, em dias inteiros (UTC):
+
+- **Dor isolada:** forte nos dias 0 a 2, moderada do 3º ao 7º dia, nenhuma depois.
+- **Dor recorrente** (2 ou mais registros em 14 dias, o mais recente com menos de 7
+  dias): forte, com recomendação de avaliação profissional; não é rebaixada por
+  check-in posterior.
+- **Check-in bom** (sem dor, fadiga 1 a 2) feito pelo menos 3 dias depois da dor
+  rebaixa um nível, com piso "leve" enquanto a dor tem até 7 dias.
+- **Fadiga alta** (≥ 4) nos últimos 7 dias: leve com um registro; moderada com dois
+  ou mais, ou com 3 sessões seguidas de fadiga alta.
+- **Melhora posterior:** um registro mais novo que a fadiga alta e com fadiga ≤ 2
+  anula o sinal de fadiga.
+- O nível final é o maior entre dor e fadiga, e `expires_on` é a data em que todos os
+  sinais deixam de valer, se não houver novos registros.
+
+Ajustes em relação à tabela de cenários, por decisão de implementação:
+
+- **Cenário 6:** um dia de fadiga 5 já seguido de sessões boas não protege nada.
+  Protege levemente apenas se for o registro mais recente.
+- **Cenário 7:** fadiga 5 e depois 3 fica "leve", porque 3 ainda não conta como
+  melhora.
+
+Ainda não feito (etapa 3): ler esses sinais do banco (`feedback` e `recovery_data`,
+últimos 14 dias) e usá-los para reavaliar os treinos futuros.
