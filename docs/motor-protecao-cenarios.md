@@ -190,7 +190,7 @@ literatura, e o app agora diz isso.
 
 ## Situação
 
-Etapas 1 a 4 **publicadas na `0.37.0` (30/09/2026), com a chave ligada em produção**. A etapa 5, a auditoria das referências científicas, está no código (migração `000033` e textos de evidência) e aguarda deploy; ver a seção abaixo. Para voltar à regra antiga sem novo deploy de código, defina `PROTECTION_LEVELS_ENABLED=false` no `.env.production` da VPS e recrie o contêiner da API. O plano de quem já tinha plano ativo só passa a se adaptar depois de gerar um plano novo.
+Etapas 1 a 4 **publicadas na `0.37.0` (30/09/2026), com a chave ligada em produção**. A etapa 5, a auditoria das referências científicas, foi publicada no mesmo dia (migração `000033` e textos de evidência); ver a seção abaixo. Para voltar à regra antiga sem novo deploy de código, defina `PROTECTION_LEVELS_ENABLED=false` no `.env.production` da VPS e recrie o contêiner da API. O plano de quem já tinha plano ativo só passa a se adaptar depois de gerar um plano novo.
 
 
 ## Etapa 5: auditoria das referências científicas
