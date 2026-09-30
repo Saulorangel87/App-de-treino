@@ -62,6 +62,23 @@ func (s *Service) Reevaluate(ctx context.Context, userID string) (int, error) {
 	return s.store.ApplyWorkoutRevisions(ctx, userID, revisions)
 }
 
+// ReportRecovered records the athlete's own declaration of being recovered and
+// re-evaluates the upcoming workouts right away. The declaration is treated like
+// a good check-in: it lowers a protection that has had time to fade, but never a
+// strong protection for a pain reported in the last days.
+func (s *Service) ReportRecovered(ctx context.Context, userID string) (Plan, error) {
+	if !s.protectionLevels {
+		return Plan{}, ErrProtectionDisabled
+	}
+	if err := s.store.RecordRecoverySelfReport(ctx, userID); err != nil {
+		return Plan{}, err
+	}
+	if _, err := s.Reevaluate(ctx, userID); err != nil {
+		return Plan{}, err
+	}
+	return s.store.CurrentPlanByUserID(ctx, userID)
+}
+
 // reevaluateBestEffort never fails the request that triggered it: the signal was
 // already saved, and the next trigger re-evaluates from the stored records.
 func (s *Service) reevaluateBestEffort(ctx context.Context, userID string) {

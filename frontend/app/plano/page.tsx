@@ -9,6 +9,7 @@ import {
   Gauge,
   LoaderCircle,
   RefreshCw,
+  Shield,
   ShieldAlert,
   Sparkles,
   X,
@@ -16,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { AppHeader } from '@/components/app-header';
 import { AdaptationCard } from '@/components/adaptation-card';
+import { ProtectionNotice } from '@/components/protection-notice';
 import { RpeHelp } from '@/components/rpe-help';
 import { WorkoutSessionActions, type PrefillMetrics } from '@/components/workout-session-actions';
 import { WorkoutStructure } from '@/components/workout-structure';
@@ -24,6 +26,7 @@ import { TrailSymbol } from '@/components/trail-symbol';
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { ApiErrorState } from '@/components/api-error-state';
 import {
+  activeProtection,
   parseTrainingDate,
   type TrainingPlan,
   type Workout,
@@ -56,6 +59,7 @@ export default function PlanPage() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [activating, setActivating] = useState(false);
+  const [recovering, setRecovering] = useState(false);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [workoutExplanation, setWorkoutExplanation] = useState<WorkoutExplanationResponse | null>(null);
   const [explainingWorkout, setExplainingWorkout] = useState(false);
@@ -239,6 +243,32 @@ export default function PlanPage() {
     }
   }
 
+  // "Estou recuperado": grava a declaração e recebe o plano já reavaliado.
+  async function reportRecovered() {
+    setRecovering(true);
+    setError('');
+    setMessage('');
+    try {
+      const result = await apiRequest<{ plan: TrainingPlan }>('/v1/protection/recovered', { method: 'POST' });
+      setPlan(result.plan);
+      setSelected(
+        (current) =>
+          result.plan.workouts.find((workout) => workout.id === current?.id) ||
+          result.plan.workouts[0] ||
+          null,
+      );
+      setWorkoutExplanation(null);
+      setExplanationError('');
+      setMessage('Reavaliamos seus próximos treinos com a sua declaração.');
+    } catch (caught) {
+      setError(apiErrorMessage(caught, 'Não foi possível registrar sua recuperação.'));
+    } finally {
+      setRecovering(false);
+    }
+  }
+
+  const protection = plan ? activeProtection(plan) : null;
+
   if (loading)
     return (
       <main className="profile-loading">
@@ -392,6 +422,7 @@ export default function PlanPage() {
                 </div>
               </div>
             )}
+            {protection && <ProtectionNotice protection={protection} busy={recovering} onRecovered={reportRecovered} />}
             {error && (
               <p className="form-error" role="alert">
                 {error}
@@ -463,6 +494,14 @@ export default function PlanPage() {
                                 <Sparkles size={10} /> Ajustado pelo feedback
                               </small>
                             )}
+                            {workout.status === 'planned' &&
+                              workout.explanation.protection &&
+                              workout.explanation.protection.level !== 'none' && (
+                                <small>
+                                  <Shield size={10} /> Proteção{' '}
+                                  {{ light: 'leve', moderate: 'moderada', strong: 'forte' }[workout.explanation.protection.level]}
+                                </small>
+                              )}
                           </span>
                           <em>
                             <TrailSymbol rpe={workout.target_rpe} />

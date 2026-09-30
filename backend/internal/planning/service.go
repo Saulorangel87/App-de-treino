@@ -22,6 +22,9 @@ type Store interface {
 	// ApplyWorkoutRevisions rewrites workouts that are still planned in the
 	// active plan; anything else is left untouched. It returns how many changed.
 	ApplyWorkoutRevisions(ctx context.Context, userID string, revisions []WorkoutRevision) (int, error)
+	// RecordRecoverySelfReport stores "I am recovered" for today. Repeating it on
+	// the same day is a no-op.
+	RecordRecoverySelfReport(ctx context.Context, userID string) error
 }
 
 // WorkoutRevision is the rebuilt content of a planned workout.

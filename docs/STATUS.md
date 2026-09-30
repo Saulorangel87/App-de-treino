@@ -10,10 +10,10 @@ Este é o documento de continuidade: curto e sempre atual. O diário cronológic
 | --- | --- |
 | Frontend | <https://cadencia.devsaulo.com.br> |
 | API | <https://cadencia-api.devsaulo.com.br> |
-| Versão publicada | `0.35.0`, commit `8d51e19` (deploys de 29/09/2026: identidade visual "carta topográfica" em `c6635c7` e, em seguida, correção da rolagem do aviso de novidades) |
-| Migrações aplicadas | `000001` a `000031` |
+| Versão publicada | `0.36.0`, commit `d9e3f4f` (deploy de 30/09/2026 UTC: vínculo de atividade importada; antes, em 29/09/2026, a identidade visual "carta topográfica" e a correção da rolagem do aviso de novidades) |
+| Migrações aplicadas | `000001` a `000031` (a `000032` está no código, ainda não aplicada em produção) |
 | Motor prescritivo | `rules-v1` (único); `rules-v2` e demais shadows são somente observacionais |
-| Último backup preventivo | `cadencia-20260929T222242Z.dump` |
+| Último backup preventivo | `cadencia-20260930T002403Z.dump` |
 | Validação pós-deploy | login, `GET /v1/plans/current` e `logout-others` = 200 com a conta de smoke test; `/ready` verifica o schema |
 
 Escopo: somente ciclismo (estrada, MTB XCO/XCM, gravel e indoor). Corrida e musculação são produtos separados.
@@ -38,7 +38,7 @@ Publicada em 29/09/2026 (PRs #39 e #40; deploy sem migração, `0 migração(õe
 - Novos ícones do PWA, `og.png`, tela offline e cache do service worker `v4`.
 - Validação: `npm run e2e` (2 testes) e uma verificação da navegação nos dois tamanhos passaram contra a API local antes do deploy; o smoke test público e autenticado passou em produção. Ainda não testado num aparelho real: instalação do PWA com os ícones novos (fechar e abrir o app, ou reinstalar, para trocar o ícone) e o atalho de compartilhar do Android.
 
-## Vínculo de atividade importada a um treino — local `0.36.0`, não publicada
+## Vínculo de atividade importada a um treino — publicado na `0.36.0`
 
 Corrige uma falha da `0.34.0`: a importação só *sugeria* o treino do mesmo dia e nenhum código gravava o vínculo, então a lista sempre mostrava "Sem treino vinculado". Agora o atleta vincula pelo botão, na sugestão logo após importar ou depois, na lista.
 
@@ -46,6 +46,18 @@ Corrige uma falha da `0.34.0`: a importação só *sugeria* o treino do mesmo di
 - Só grava `imported_activities.workout_id`. Nada é copiado para `workout_sessions`, o plano não muda e o pacote `planning` não é chamado; a execução registrada continua vindo de `/complete` e `/correct`.
 - A listagem devolve `workout_name` e `workout_scheduled_on` do treino vinculado. Sem migração.
 - Testes: serviço e handlers, mais a fixture `database/tests/imported_activity_link.sql` (dono da atividade e do treino, plano cancelado, desvínculo). Validado também com a API e o banco locais (18 verificações).
+
+## Proteção graduada do motor — código na `master`, desligada por padrão
+
+Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o ciclo inteiro) por sinais com data, níveis e reavaliação. Plano, critérios e decisões em [`motor-protecao-cenarios.md`](motor-protecao-cenarios.md). Etapas 1 a 4 de 5 (PRs #46 a #49 e o da etapa 4); a etapa 5 é esta documentação e a revisão das referências científicas.
+
+- **Chave `PROTECTION_LEVELS_ENABLED` (padrão `false`).** Desligada, o app segue a regra antiga e nenhum treino é reavaliado. Para ligar ou desligar, altere a variável no ambiente da API e recrie o contêiner da API.
+- **Níveis:** nenhuma, leve (−10% e RPE −1 nos de qualidade), moderada (qualidade vira giro protegido, demais −10%) e forte (todos viram giro protegido). Dor isolada: forte por 3 dias, moderada até o 7º; dor recorrente (2+ em 14 dias): forte por 7 dias com sugestão de avaliação profissional; check-in bom rebaixa um nível; dor sempre conta, mesmo em sessão sem dados mínimos.
+- **Reavaliação:** ao concluir ou corrigir um treino, salvar o check-in ou tocar em "Estou recuperado", os treinos `planned` do plano ativo (hoje até o domingo da semana seguinte) são refeitos. Nunca toca concluídos, iniciados, cancelados, `adapted`, rascunho, os 1 a 2 treinos que o gatilho do banco já adaptou, nem treinos gerados antes de `explanation.prescription_inputs` existir (o plano atual do atleta só muda ao gerar um plano novo).
+- **Migração `000032_recovery_self_reports`** (declaração "Estou recuperado", única por dia, em cascata com o perfil) e **`POST /v1/protection/recovered`** (404 com a chave desligada).
+- **Tela do plano:** aviso com o motivo, a data em que a proteção termina e o botão "Estou recuperado"; marca "Proteção leve/moderada/forte" nos treinos.
+- **Validação:** testes unitários, fixtures `protection_reevaluation.sql` e `account_deletion.sql`, fluxo real com API e PostgreSQL (21 verificações) e verificação visual no celular e no desktop.
+- **Antes de ligar em produção:** aplicar a `000032` (o `deploy.sh` faz, com backup), ligar a chave e gerar um plano novo para o atleta.
 
 ## Segurança do repositório (29/09/2026)
 

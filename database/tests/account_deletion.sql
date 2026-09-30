@@ -25,6 +25,9 @@ BEGIN
     INSERT INTO recovery_data (athlete_profile_id, recorded_on, sleep_quality, stress_level, fatigue_level)
     VALUES (test_profile_id, DATE '2099-01-01', 4, 2, 2);
 
+    INSERT INTO recovery_self_reports (athlete_profile_id, reported_on)
+    VALUES (test_profile_id, DATE '2099-01-02');
+
     INSERT INTO injuries_or_limitations (athlete_profile_id, kind, description)
     VALUES (test_profile_id, 'pain', 'Teste de exclusão');
 
@@ -72,6 +75,7 @@ BEGIN
        OR EXISTS (SELECT 1 FROM goals WHERE athlete_profile_id = test_profile_id)
        OR EXISTS (SELECT 1 FROM availability WHERE athlete_profile_id = test_profile_id)
        OR EXISTS (SELECT 1 FROM recovery_data WHERE athlete_profile_id = test_profile_id)
+       OR EXISTS (SELECT 1 FROM recovery_self_reports WHERE athlete_profile_id = test_profile_id)
        OR EXISTS (SELECT 1 FROM injuries_or_limitations WHERE athlete_profile_id = test_profile_id)
        OR EXISTS (SELECT 1 FROM training_plans WHERE athlete_profile_id = test_profile_id)
        OR EXISTS (SELECT 1 FROM workouts WHERE training_plan_id = test_plan_id)

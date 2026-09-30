@@ -49,6 +49,7 @@ export type Workout = {
       progression_eligible: false;
       used_for_prescription: false;
     };
+    protection?: WorkoutProtection;
     adaptation?: {
       kind: 'safety' | 'recovery' | 'progression';
       reason: string;
@@ -575,4 +576,26 @@ export type EventTaperAssessment = {
 
 export function parseTrainingDate(value: string) {
   return new Date(`${value}T12:00:00`);
+}
+
+// Proteção aplicada a um treino pelos sinais recentes de dor e fadiga. Só existe
+// em planos gerados ou reavaliados com a proteção graduada ligada.
+export type WorkoutProtection = {
+  level: 'none' | 'light' | 'moderate' | 'strong';
+  reasons: string[];
+  expires_on?: string;
+  suggest_professional: boolean;
+};
+
+const protectionRank: Record<WorkoutProtection['level'], number> = { none: 0, light: 1, moderate: 2, strong: 3 };
+
+// A proteção mais forte entre os treinos que ainda vão acontecer; nula se não houver.
+export function activeProtection(plan: Pick<TrainingPlan, 'workouts'>): WorkoutProtection | null {
+  let strongest: WorkoutProtection | null = null;
+  for (const workout of plan.workouts) {
+    const protection = workout.explanation.protection;
+    if (workout.status !== 'planned' || !protection || protection.level === 'none') continue;
+    if (!strongest || protectionRank[protection.level] > protectionRank[strongest.level]) strongest = protection;
+  }
+  return strongest;
 }

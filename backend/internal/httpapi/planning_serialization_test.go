@@ -108,6 +108,7 @@ func (s *httpTestPlanStore) MarkWorkoutMissedByUserID(context.Context, string, s
 func (s *httpTestPlanStore) PlannedWorkoutsForReevaluation(context.Context, string, string, string) ([]planning.Workout, error) {
 	return nil, nil
 }
+func (s *httpTestPlanStore) RecordRecoverySelfReport(context.Context, string) error { return nil }
 func (s *httpTestPlanStore) ApplyWorkoutRevisions(context.Context, string, []planning.WorkoutRevision) (int, error) {
 	return 0, nil
 }

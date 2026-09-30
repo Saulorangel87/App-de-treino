@@ -167,3 +167,23 @@ concluído e adaptado permanecem intactos. Fixture
 Defina `PROTECTION_LEVELS_ENABLED=true` no ambiente da API e recrie o contêiner da API
 para ligar; volte a `false` e recrie para restaurar a regra antiga. Treinos já
 reescritos ficam como estão até a próxima reavaliação ou até gerar um plano novo.
+
+## Etapa 4: aviso na tela, "Estou recuperado" e versão 0.37.0
+
+- **Aviso no plano** (`components/protection-notice.tsx`): aparece quando algum treino
+  ainda planejado tem proteção leve, moderada ou forte. Mostra o motivo, até quando vale
+  se não houver novos registros e, quando a dor é recorrente, a recomendação de avaliação
+  profissional. Cada treino protegido ganha a marca "Proteção leve/moderada/forte".
+- **"Estou recuperado"** (`POST /v1/protection/recovered`): grava a declaração do dia em
+  `recovery_self_reports`, separada do check-in para não sobrescrevê-lo, e reavalia na
+  hora. O motor a trata como um check-in bom: rebaixa uma proteção que já teve tempo de
+  diminuir (a partir do 3º dia após a dor) e anula fadiga alta anterior, mas **não**
+  rebaixa a proteção forte de uma dor de ontem. Com a chave desligada, responde 404.
+- **Migração `000032`:** tabela `recovery_self_reports` (única por atleta e dia). Aplicada
+  em produção pelo `deploy.sh`, com backup.
+- **Nota de versão `0.37.0`** já descreve o recurso; só deve ser publicada junto com a
+  chave ligada.
+
+Falta (etapa 5): revisar as referências científicas de cada critério em `protocols.go`.
+Os prazos (3 e 7 dias, 14 dias para recorrência) e a redução de 10% são escolhas de
+produto, não doses da literatura; a documentação do app deve dizer isso.
