@@ -68,9 +68,10 @@ Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o cicl
 
 ## Pendências operacionais (fora do código)
 
+- **Na `master`, não publicado (deploy combinado para junto da integração com o Strava):** migração `000034` (auditoria das 27 referências contra o PubMed; troca da fonte do "Limiar controlado") e a primeira parte da etapa 2 da fase de dados reais (bloco observacional `imported_execution` no plano; ver [`proxima-fase-dados-reais.md`](proxima-fase-dados-reais.md)).
+
 - Gerar um plano novo na conta do dono do produto em produção, para a proteção graduada passar a valer nela. O aviso de novidades foi conferido no celular pelo dono do produto em 30/09/2026.
-- Conferir contra o PubMed as demais referências do catálogo (limiar, VO₂max, intervalos em ciclismo). A etapa 5 auditou só as ligadas à proteção e ao monitoramento de carga; ver [`motor-protecao-cenarios.md`](motor-protecao-cenarios.md).
-- Testar o atalho de compartilhar no Android num aparelho real.
+- Atalho de compartilhar no Android: o app XOSS não mostra o Cadência na lista; manifesto e Chrome auditados sem erro em 30/09/2026. Decisão do dono do produto: deixar como está (Atividades → Importar funciona).
 - Etapa 2 da fase de dados reais: melhorias no motor de treino usando os dados importados (ainda não desenhada em detalhe; ver [`proxima-fase-dados-reais.md`](proxima-fase-dados-reais.md)).
 - Depois: LGPD (exportar/apagar dados), painel interno dos shadows, resumo semanal com IA.
 - Hardening da VPS e limpeza gradual do que restar de dívida técnica.

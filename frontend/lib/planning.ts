@@ -170,6 +170,29 @@ export type Workout = {
   };
   status: 'planned' | 'in_progress' | 'completed' | 'skipped' | 'adapted';
   session?: WorkoutSession;
+  // Comparação observacional com a atividade importada vinculada; nunca prescreve.
+  imported_execution?: {
+    version: string;
+    mode: 'observation';
+    used_for_prescription: false;
+    activity_id: string;
+    source: 'fit' | 'gpx';
+    started_at: string;
+    planned_duration_minutes: number;
+    measured_moving_minutes: number;
+    duration_delta_minutes: number;
+    duration_completion_percent?: number;
+    recorded_duration_minutes?: number;
+    recorded_vs_measured_delta_minutes?: number;
+    distance_km?: number;
+    elevation_gain_m?: number;
+    average_heart_rate?: number;
+    max_heart_rate?: number;
+    average_power_watts?: number;
+    normalized_power_watts?: number;
+    average_cadence_rpm?: number;
+    missing_data: string[];
+  };
 };
 
 export type WorkoutExplanationResponse = {

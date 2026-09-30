@@ -1446,6 +1446,30 @@ components:
           oneOf:
             - { $ref: '#/components/schemas/WorkoutSession' }
             - { type: 'null' }
+        imported_execution:
+          type: object
+          description: "Comparação observacional entre o treino planejado e a atividade importada vinculada a ele (medida pelo aparelho). Presente só quando há vínculo; nunca usada para prescrever."
+          properties:
+            version: { type: string }
+            mode: { type: string, enum: [observation] }
+            used_for_prescription: { type: boolean, enum: [false] }
+            activity_id: { type: string, format: uuid }
+            source: { type: string, enum: [fit, gpx] }
+            started_at: { type: string, format: date-time }
+            planned_duration_minutes: { type: integer }
+            measured_moving_minutes: { type: integer }
+            duration_delta_minutes: { type: integer }
+            duration_completion_percent: { type: number }
+            recorded_duration_minutes: { type: integer }
+            recorded_vs_measured_delta_minutes: { type: integer }
+            distance_km: { type: number }
+            elevation_gain_m: { type: integer }
+            average_heart_rate: { type: integer }
+            max_heart_rate: { type: integer }
+            average_power_watts: { type: integer }
+            normalized_power_watts: { type: integer }
+            average_cadence_rpm: { type: integer }
+            missing_data: { type: array, items: { type: string } }
     EventTaperAssessment:
       type: object
       description: Avaliação prescritiva do taper pré-prova local. Só é aplicada quando os gates de evento, base de treino, avaliação e segurança são atendidos.
