@@ -171,3 +171,73 @@ func TestCompleteWorkoutReevaluatesAndIgnoresReevaluationFailures(t *testing.T) 
 		t.Fatal("the completion itself must still have been saved")
 	}
 }
+
+func TestReportRecoveredIsUnavailableWhenProtectionLevelsAreOff(t *testing.T) {
+	store := reevaluationStore(t, planWithProtection(t, ProtectionStrong), nil)
+	if _, err := reevaluationService(store, false).ReportRecovered(context.Background(), "user-1"); !errors.Is(err, ErrProtectionDisabled) {
+		t.Fatalf("expected ErrProtectionDisabled, got %v", err)
+	}
+	if store.selfReports != 0 || store.applyCalls != 0 {
+		t.Fatalf("nothing may be recorded or rewritten when the feature is off: reports=%d apply=%d", store.selfReports, store.applyCalls)
+	}
+}
+
+func TestReportRecoveredRecordsTheDeclarationAndReevaluates(t *testing.T) {
+	// Plano protegido por uma dor antiga (há 5 dias), que só a declaração rebaixa.
+	signals := []RecentSignal{
+		{Date: reevaluationNow.AddDate(0, 0, -5), Source: "session", PainReported: true, Fatigue: 3},
+		{Date: reevaluationNow, Source: "self_report", Fatigue: 1}, // o que o store gravaria
+	}
+	input := readinessContext()
+	input.RecentSignals = signals[:1]
+	stored, err := buildPlan(func() Context {
+		c := readinessContext()
+		a := assessProtection(signals[:1], reevaluationNow)
+		c.Protection = &a
+		return c
+	}(), protectionPlanNow)
+	if err != nil {
+		t.Fatal(err)
+	}
+	store := &planStore{input: input, planned: workoutsWithIDs(t, stored), saved: Plan{ID: "plan-1"}}
+	// Ao gravar a declaração, o contexto seguinte já traz o sinal novo.
+	recording := &recordingStore{planStore: store, onRecord: func() { store.input.RecentSignals = signals }}
+	service := NewService(recording, WithProtectionLevels(true))
+	service.now = func() time.Time { return reevaluationNow }
+
+	plan, err := service.ReportRecovered(context.Background(), "user-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if store.selfReports != 1 || plan.ID != "plan-1" {
+		t.Fatalf("expected the declaration to be recorded and the plan returned: reports=%d plan=%+v", store.selfReports, plan)
+	}
+	if len(store.revisions) == 0 {
+		t.Fatal("the declaration must re-evaluate the upcoming workouts right away")
+	}
+	for _, revision := range store.revisions {
+		protection, _ := revision.Explanation["protection"].(map[string]any)
+		if protection["level"] != ProtectionLight {
+			t.Fatalf("pain from 5 days ago plus a declaration should leave light protection, got %#v", protection)
+		}
+	}
+
+	store.selfReportErr = errors.New("db down")
+	if _, err := service.ReportRecovered(context.Background(), "user-1"); err == nil {
+		t.Fatal("a storage failure must be reported to the caller")
+	}
+}
+
+// recordingStore executa um gancho quando a declaração é gravada.
+type recordingStore struct {
+	*planStore
+	onRecord func()
+}
+
+func (s *recordingStore) RecordRecoverySelfReport(ctx context.Context, userID string) error {
+	err := s.planStore.RecordRecoverySelfReport(ctx, userID)
+	if err == nil && s.onRecord != nil {
+		s.onRecord()
+	}
+	return err
+}

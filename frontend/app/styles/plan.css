@@ -57,6 +57,61 @@
   font-size: 15px;
 }
 
+/* ---------- Aviso de proteção ---------- */
+.protection-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-left: 5px solid var(--moderate);
+  background: var(--sheet);
+}
+
+.protection-notice.level-strong {
+  border-left-color: var(--warn);
+  background: var(--warn-tint);
+}
+
+.protection-notice > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--ink-2);
+}
+
+.protection-notice > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.protection-notice p {
+  color: var(--ink-2);
+  font-size: 15px;
+}
+
+.protection-notice-when,
+.protection-notice-professional {
+  font-size: 14px;
+}
+
+.protection-notice-professional {
+  font-weight: 600;
+}
+
+.protection-notice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 6px;
+}
+
+.protection-notice-actions small {
+  flex: 1 1 220px;
+  color: var(--ink-2);
+}
+
 .plan-message a {
   margin-left: auto;
   font-weight: 700;

@@ -29,11 +29,13 @@ const (
 	protectionHighFatigueMin    = 4
 )
 
-// RecentSignal is one dated record from a completed session's feedback or from a
-// recovery check-in. Fatigue is 0 when the record has no fatigue value.
+// RecentSignal is one dated record from a completed session's feedback, from a
+// recovery check-in or from the athlete's "I am recovered" declaration
+// ("self_report", stored with fatigue 1). Fatigue is 0 when the record has no
+// fatigue value.
 type RecentSignal struct {
 	Date         time.Time
-	Source       string // "session" or "checkin"
+	Source       string // "session", "checkin" or "self_report"
 	PainReported bool
 	Fatigue      int
 }
@@ -159,7 +161,7 @@ func assessProtection(signals []RecentSignal, now time.Time) ProtectionAssessmen
 		if painLevel != ProtectionStrong || !result.SuggestProfessional {
 			goodAfter := false
 			for _, record := range records {
-				if record.Source == "checkin" && !record.PainReported && record.Fatigue >= 1 && record.Fatigue <= protectionGoodFatigueMax &&
+				if (record.Source == "checkin" || record.Source == "self_report") && !record.PainReported && record.Fatigue >= 1 && record.Fatigue <= protectionGoodFatigueMax &&
 					record.age <= latest.age-protectionGoodCheckinAfter {
 					goodAfter = true
 					break

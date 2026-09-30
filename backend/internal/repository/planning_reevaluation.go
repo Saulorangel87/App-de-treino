@@ -66,7 +66,48 @@ func (s *Store) recentSignalsByProfileID(ctx context.Context, profileID string) 
 		}
 		signals = append(signals, planning.RecentSignal{Date: recordedOn, Source: "checkin", Fatigue: fatigue})
 	}
-	return signals, checkins.Err()
+	if err := checkins.Err(); err != nil {
+		return nil, err
+	}
+
+	reports, err := s.pool.Query(ctx, `
+		SELECT reported_on FROM recovery_self_reports
+		WHERE athlete_profile_id = $1 AND reported_on >= CURRENT_DATE - ($2::int - 1)
+		ORDER BY reported_on DESC`, profileID, recentSignalDays)
+	if err != nil {
+		return nil, err
+	}
+	defer reports.Close()
+	for reports.Next() {
+		var reportedOn time.Time
+		if err := reports.Scan(&reportedOn); err != nil {
+			return nil, err
+		}
+		signals = append(signals, planning.RecentSignal{Date: reportedOn, Source: "self_report", Fatigue: 1})
+	}
+	return signals, reports.Err()
+}
+
+// RecordRecoverySelfReport stores today's "I am recovered" declaration.
+func (s *Store) RecordRecoverySelfReport(ctx context.Context, userID string) error {
+	tag, err := s.pool.Exec(ctx, `
+		INSERT INTO recovery_self_reports (athlete_profile_id)
+		SELECT id FROM athlete_profiles WHERE user_id = $1
+		ON CONFLICT (athlete_profile_id, reported_on) DO NOTHING`, userID)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		// Either the profile does not exist or it was already reported today.
+		var exists bool
+		if err := s.pool.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM athlete_profiles WHERE user_id = $1)`, userID).Scan(&exists); err != nil {
+			return err
+		}
+		if !exists {
+			return planning.ErrIncompleteOnboarding
+		}
+	}
+	return nil
 }
 
 // PlannedWorkoutsForReevaluation lists the still-planned workouts of the active

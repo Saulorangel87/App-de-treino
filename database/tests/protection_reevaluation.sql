@@ -135,6 +135,20 @@ BEGIN
     FROM workout_sessions ws JOIN workouts source_workout ON source_workout.id = ws.workout_id
     LEFT JOIN feedback f ON f.workout_session_id = ws.id WHERE ws.workout_id = src_fatigue_eligible;
     IF fatigue_seen <> 4 THEN RAISE EXCEPTION 'fatigue from an eligible session must count, got %', fatigue_seen; END IF;
+
+    -- 4) A declaração "Estou recuperado" é única por dia e só existe para quem tem perfil.
+    FOR n IN 1..2 LOOP
+        INSERT INTO recovery_self_reports (athlete_profile_id)
+        SELECT id FROM athlete_profiles WHERE user_id = user_c
+        ON CONFLICT (athlete_profile_id, reported_on) DO NOTHING;
+    END LOOP;
+    SELECT count(*) INTO n FROM recovery_self_reports WHERE athlete_profile_id = profile_c;
+    IF n <> 1 THEN RAISE EXCEPTION 'repeating the declaration on the same day must be a no-op, got % rows', n; END IF;
+    INSERT INTO recovery_self_reports (athlete_profile_id)
+    SELECT id FROM athlete_profiles WHERE user_id = '00000000-0000-4000-8000-000000000000'
+    ON CONFLICT (athlete_profile_id, reported_on) DO NOTHING;
+    GET DIAGNOSTICS affected = ROW_COUNT;
+    IF affected <> 0 THEN RAISE EXCEPTION 'a user without a profile cannot declare recovery, got %', affected; END IF;
 END;
 $$;
 

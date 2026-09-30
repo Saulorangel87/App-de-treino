@@ -45,10 +45,12 @@ type planStore struct {
 	activities  []Activity
 	// Reavaliação: treinos planejados devolvidos (filtrados pela janela) e as
 	// revisões gravadas.
-	planned    []Workout
-	plannedErr error
-	revisions  []WorkoutRevision
-	applyCalls int
+	planned       []Workout
+	plannedErr    error
+	revisions     []WorkoutRevision
+	selfReports   int
+	selfReportErr error
+	applyCalls    int
 }
 
 func (s *planStore) PlanningContextByUserID(context.Context, string) (Context, error) {
@@ -103,6 +105,10 @@ func (s *planStore) PlannedWorkoutsForReevaluation(_ context.Context, _ string, 
 		}
 	}
 	return inWindow, nil
+}
+func (s *planStore) RecordRecoverySelfReport(context.Context, string) error {
+	s.selfReports++
+	return s.selfReportErr
 }
 func (s *planStore) ApplyWorkoutRevisions(_ context.Context, _ string, revisions []WorkoutRevision) (int, error) {
 	s.applyCalls++

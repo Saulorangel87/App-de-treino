@@ -438,6 +438,15 @@ paths:
         '401': { description: Sessão ausente ou expirada }
         '404': { description: Rascunho não encontrado ou pertencente a outro atleta }
         '403': { description: E-mail ainda não confirmado }
+  /v1/protection/recovered:
+    post:
+      summary: "Registra a declaração 'Estou recuperado' e reavalia os treinos futuros planejados"
+      description: "Só está disponível com a proteção graduada ligada (PROTECTION_LEVELS_ENABLED). A declaração vale como um check-in bom: rebaixa uma proteção que já teve tempo de diminuir, mas não uma proteção forte por dor relatada nos últimos dias. Repetir no mesmo dia não duplica o registro."
+      responses:
+        '200': { description: Plano atual após a reavaliação }
+        '401': { description: Sessão ausente ou expirada }
+        '404': { description: Recurso indisponível ou plano inexistente }
+        '409': { description: Perfil incompleto }
   /v1/workouts/{workoutID}/start:
     post:
       summary: Inicia um treino planejado pertencente ao plano ativo
@@ -1418,6 +1427,14 @@ components:
           additionalProperties: true
           properties:
             event_taper_applied: { type: boolean }
+            protection:
+              type: object
+              description: "Nível de proteção aplicado com base nos sinais recentes de dor e fadiga. Presente apenas com a proteção graduada ligada."
+              properties:
+                level: { type: string, enum: [none, light, moderate, strong] }
+                reasons: { type: array, items: { type: string } }
+                expires_on: { type: string, format: date, description: "Primeiro dia em que os sinais deixam de valer, se não houver novos registros" }
+                suggest_professional: { type: boolean }
             decision_audit:
               $ref: '#/components/schemas/WorkoutDecisionAudit'
             data_integrity:

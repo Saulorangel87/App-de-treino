@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.36.0';
+export const APP_VERSION = '0.37.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +7,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.37.0',
+    title: 'Treinos que acompanham a sua recuperação',
+    description:
+      'Quando você relata dor ou fadiga alta, o plano agora se protege em níveis (leve, moderado ou forte) em vez de travar o ciclo inteiro. A proteção tem prazo, diminui conforme os dias passam e é reavaliada a cada treino concluído e a cada check-in. Na tela do plano, o aviso explica o motivo e até quando vale, e o botão "Estou recuperado" pede uma nova avaliação na hora. Se houve dor nos últimos dias, a proteção é mantida por segurança.',
+  },
   {
     version: '0.36.0',
     title: 'Vincule a atividade importada ao treino',

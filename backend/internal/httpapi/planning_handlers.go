@@ -69,3 +69,30 @@ func (s *Server) activatePlan(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"plan": plan})
 }
+
+// reportRecovered registra a declaração "Estou recuperado" e reavalia os treinos
+// futuros. Só existe com a proteção graduada ligada.
+func (s *Server) reportRecovered(w http.ResponseWriter, r *http.Request) {
+	user, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	plan, err := s.planning.ReportRecovered(r.Context(), user.ID)
+	if errors.Is(err, planning.ErrProtectionDisabled) {
+		writeError(w, http.StatusNotFound, "not_available", "Este recurso ainda não está disponível.")
+		return
+	}
+	if errors.Is(err, planning.ErrIncompleteOnboarding) {
+		writeError(w, http.StatusConflict, "profile_required", "Conclua seu perfil antes de usar este recurso.")
+		return
+	}
+	if errors.Is(err, planning.ErrPlanMissing) {
+		writeError(w, http.StatusNotFound, "plan_not_found", "Não há plano para reavaliar.")
+		return
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "internal_error", "Não foi possível registrar sua recuperação.")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"plan": plan})
+}
