@@ -105,6 +105,12 @@ func (s *httpTestPlanStore) MarkWorkoutMissedByUserID(context.Context, string, s
 	return errHTTPTestUnused
 }
 
+func (s *httpTestPlanStore) PlannedWorkoutsForReevaluation(context.Context, string, string, string) ([]planning.Workout, error) {
+	return nil, nil
+}
+func (s *httpTestPlanStore) ApplyWorkoutRevisions(context.Context, string, []planning.WorkoutRevision) (int, error) {
+	return 0, nil
+}
 func (s *httpTestPlanStore) ActivitiesByUserID(context.Context, string) ([]planning.Activity, error) {
 	return nil, errHTTPTestUnused
 }

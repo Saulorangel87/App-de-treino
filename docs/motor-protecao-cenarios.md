@@ -119,3 +119,51 @@ Ainda não feito (etapa 3): ler esses sinais do banco (`feedback` e `recovery_da
 Falta (etapa 3b): ler os sinais do banco, reavaliar os treinos planejados da semana
 atual e da seguinte ao concluir treino ou registrar check-in, e a chave de
 configuração que liga tudo (desligada por padrão).
+
+## Etapa 3b: leitura dos sinais, reavaliação e chave de configuração
+
+Tudo atrás de `PROTECTION_LEVELS_ENABLED` (padrão `false`). Desligada, o app segue a
+regra antiga de 28 dias e nenhum treino é reavaliado; as duas consultas novas de
+leitura rodam, mas o resultado não é usado.
+
+- **Sinais datados:** `recentSignalsByProfileID` lê os últimos 14 dias de sessões
+  concluídas (dor e fadiga pós-treino) e de check-ins (fadiga).
+- **Dor sempre conta.** A regra antiga de 28 dias descarta sessões sem dados mínimos
+  (por exemplo, sem duração). Para a dor isso seria remover uma proteção, então os
+  sinais datados contam a dor mesmo nessas sessões; só a **fadiga** segue o filtro de
+  integridade.
+- **Quando reavalia:** ao concluir ou corrigir um treino e ao salvar o check-in diário,
+  de forma "melhor esforço": se a reavaliação falhar, a operação principal não falha e
+  o próximo gatilho reavalia a partir dos registros gravados.
+- **O que reavalia:** treinos `planned` do plano **ativo**, de hoje até o domingo da
+  semana seguinte. Reconstrói cada um com os parâmetros gravados e só grava quando algo
+  mudou.
+- **O que nunca é tocado:** treinos concluídos, iniciados, cancelados ou ajustados
+  pelo check-in (`adapted`); plano em rascunho; treino de outro atleta; treino gerado
+  antes de existirem os parâmetros; e os 1 ou 2 próximos treinos que o **gatilho do
+  banco** (`feedback_adapts_future_workouts`) já reduziu após o feedback
+  (`explanation.adaptation`).
+
+### Correção sobre a adaptação que existe hoje
+
+Antes eu disse que a adaptação pós-treino só rodava como shadow. Isso vale para a
+função Go `DecideAdaptation`. A adaptação de curto prazo **ativa** vive no banco: o
+gatilho `feedback_adapts_future_workouts` reduz os próximos 1 a 2 treinos planejados
+(dor: −20% e RPE ≤ 3; esforço 9 ou fadiga 5: −20%; acima do esperado: −10%). Esse
+gatilho só age quando o treino concluído tem dados mínimos. A reavaliação convive com
+ele: não sobrescreve esses treinos, porque a redução dele pode ser mais forte que o
+nível leve.
+
+### Validação
+
+Fluxo real (API compilada, `PROTECTION_LEVELS_ENABLED=true`, PostgreSQL local): concluir
+treino com dor protege os treinos da janela; o gatilho e a reavaliação não se
+sobrepõem; ao sumir o sinal, um check-in restaura os treinos; treino fora da janela,
+concluído e adaptado permanecem intactos. Fixture
+`database/tests/protection_reevaluation.sql` cobre as regras das duas consultas.
+
+### Como ligar e desligar
+
+Defina `PROTECTION_LEVELS_ENABLED=true` no ambiente da API e recrie o contêiner da API
+para ligar; volte a `false` e recrie para restaurar a regra antiga. Treinos já
+reescritos ficam como estão até a próxima reavaliação ou até gerar um plano novo.

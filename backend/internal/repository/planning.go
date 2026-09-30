@@ -303,6 +303,9 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 		return planning.Context{}, err
 	}
 	input.Observed.RecoveryCheckins = int(recoveryCheckins)
+	if input.RecentSignals, err = s.recentSignalsByProfileID(ctx, input.ProfileID); err != nil {
+		return planning.Context{}, err
+	}
 	input.TrainingHistory, err = s.trainingHistoryByProfileID(ctx, input.ProfileID)
 	if err != nil {
 		return planning.Context{}, err

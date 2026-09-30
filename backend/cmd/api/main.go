@@ -105,7 +105,7 @@ func main() {
 	recoveryService := athlete.NewRecoveryService(store)
 	evolutionService := evolution.NewService(store)
 	feedbackService := feedback.NewService(store)
-	planningService := planning.NewService(store)
+	planningService := planning.NewService(store, planning.WithProtectionLevels(cfg.ProtectionLevelsEnabled))
 	activityImportService := activityimport.NewService(store)
 	var aiService *ai.Service
 	if cfg.AIEnabled {

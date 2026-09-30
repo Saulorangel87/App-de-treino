@@ -59,5 +59,10 @@ func (s *Server) putTodayRecovery(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "internal_error", "Não foi possível salvar seu check-in.")
 		return
 	}
+	// O check-in novo é um sinal de recuperação: treinos futuros ainda planejados
+	// são reavaliados (sem efeito quando a proteção graduada está desligada).
+	if s.planning != nil {
+		s.planning.ReevaluateBestEffort(r.Context(), user.ID)
+	}
 	writeJSON(w, http.StatusOK, map[string]any{"recovery": result})
 }
