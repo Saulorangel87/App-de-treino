@@ -69,7 +69,7 @@ func assessPostEventRecovery(input Context, now time.Time) PostEventRecoveryAsse
 		addReason("post_event_window_expired", "A janela conservadora de até sete dias após o evento já terminou.")
 		return result
 	}
-	if len(input.Limitations) > 0 || isReturningAfterPause(input.Cycling) || input.Observed.RequiresRecovery() {
+	if len(input.Limitations) > 0 || isReturningAfterPause(input.Cycling) || input.requiresRecovery() {
 		result.Status = "protective_signal"
 		addReason("existing_protection_precedes_event_template", "Uma proteção ativa de limitação, retorno ou recuperação insuficiente continua prioritária; a recuperação pós-prova não altera a prescrição.")
 		return result

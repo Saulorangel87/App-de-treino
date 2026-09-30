@@ -100,3 +100,22 @@ Ajustes em relação à tabela de cenários, por decisão de implementação:
 
 Ainda não feito (etapa 3): ler esses sinais do banco (`feedback` e `recovery_data`,
 últimos 14 dias) e usá-los para reavaliar os treinos futuros.
+
+## Etapa 3a: o gerador entende os níveis (ainda sem efeito no app)
+
+- `Context` ganhou `RecentSignals` e `Protection`. Com `Protection` nulo, o gerador
+  segue exatamente a regra antiga (testes existentes inalterados).
+- Com `Protection` preenchido: **forte** protege todos os treinos; **moderada** troca
+  só os de qualidade por giro leve protegido e encurta os demais em 10%; **leve**
+  encurta em 10% e reduz em 1 ponto o RPE dos de qualidade; **nenhuma** não altera
+  nada. Limitações e restrição médica do perfil continuam mandando sempre.
+- Cada treino novo grava em `explanation.prescription_inputs` os parâmetros que o
+  geraram (tipo, semana, multiplicador, dia da semana). `ReprescribeWorkout` usa isso
+  para reconstruir um treino futuro sem regenerar o plano, e voltar ao treino original
+  quando a proteção some (coberto por teste). Planos já gerados não têm o campo e não
+  são reavaliados; para eles vale gerar um plano novo.
+- O nível aplicado fica em `explanation.protection` (nível, motivos, data de fim).
+
+Falta (etapa 3b): ler os sinais do banco, reavaliar os treinos planejados da semana
+atual e da seguinte ao concluir treino ou registrar check-in, e a chave de
+configuração que liga tudo (desligada por padrão).

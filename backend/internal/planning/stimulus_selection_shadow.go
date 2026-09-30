@@ -125,7 +125,7 @@ func assessStimulusSelectionShadow(input Context, workouts []Workout, now time.T
 }
 
 func classifyStimulusNeed(input Context, restricted bool) (string, []string, []string) {
-	if restricted || input.Observed.RequiresRecovery() {
+	if restricted || input.requiresRecovery() {
 		return "recovery_protection", []string{"active_recovery", "protected_recovery"}, nil
 	}
 	if isReturningAfterPause(input.Cycling) {

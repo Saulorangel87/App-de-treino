@@ -25,16 +25,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 
 	start := nextMonday(now)
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	restricted := len(input.Limitations) > 0
-	medicalRestriction := false
-	for _, item := range input.Limitations {
-		if item.ProfessionalClearanceRecommended {
-			restricted = true
-		}
-		if item.MedicalRestriction {
-			medicalRestriction = true
-		}
-	}
+	restricted, medicalRestriction := restrictionState(input)
 	workouts := make([]Workout, 0, len(slots)*4)
 	multipliers := []float64{0.85, 0.95, 1.0, 0.75}
 	eventTaper := assessEventTaper(input, now, restricted)
@@ -137,7 +128,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 				"pain_reported":            input.Observed.PainReported,
 				"recovery_checkins":        input.Observed.RecoveryCheckins,
 				"average_recovery_fatigue": input.Observed.AverageRecoveryFatigue,
-				"requires_recovery":        input.Observed.RequiresRecovery(),
+				"requires_recovery":        input.requiresRecovery(),
 			},
 		},
 		Workouts: workouts,
@@ -146,6 +137,7 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 }
 
 func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted bool, multiplier float64, weekIndex int, date time.Time, eventTaper EventTaperAssessment, postEventRecovery PostEventRecoveryAssessment) Workout {
+	inputs := PrescriptionInputs{Kind: kind, WeekIndex: weekIndex, Multiplier: multiplier, Weekday: slot.Weekday}
 	if kind == "quality" && input.ExperienceLevel == "beginner" {
 		kind = "base"
 	}
@@ -168,7 +160,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	qualityGoal := qualityGoalFor(input)
 	lowCurrentActivity := isLowCurrentActivity(input.Profile.ActivityLevel)
 	eventSpecificPhase := eventSpecificPhase(input.Cycling, date)
-	observedProtected := input.Observed.RequiresRecovery() && (input.Observed.PainReported || kind == "quality")
+	observedProtected, protectionLevel := input.sessionProtection(kind)
 	if kind == "base" && weekIndex == 3 {
 		name = "Recuperação ativa"
 		targetRPE = 3.5
@@ -351,6 +343,13 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		multiplier *= 0.8
 		summary = "O histórico recente de esforço, fadiga ou dor recomenda uma sessão leve e protegida neste ciclo."
 	}
+	graduatedProtection := !restricted && !observedProtected && (protectionLevel == ProtectionLight || protectionLevel == ProtectionModerate)
+	if graduatedProtection {
+		multiplier *= protectionLevel.Effect().DurationFactor
+		if effect := protectionLevel.Effect(); kind == "quality" && targetRPE > 4 && effect.QualityRPEDelta < 0 {
+			targetRPE = max(targetRPE+effect.QualityRPEDelta, 4)
+		}
+	}
 	duration := int(float64(baseMinutes) * multiplier)
 	if duration < 20 {
 		duration = 20
@@ -439,6 +438,9 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 	if observedProtected {
 		rules = append(rules, "Sessão protegida por sinais recentes de recuperação insuficiente ou dor relatada.")
 	}
+	if graduatedProtection {
+		rules = append(rules, protectionRule(protectionLevel))
+	}
 	evidenceKeys := append([]string(nil), protocol.EvidenceKeys...)
 	evidenceScope := protocol.EvidenceScope
 	if eventTaperApplied {
@@ -453,6 +455,11 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		structure["planned_location"] = *slot.Location
 	}
 	decisionAudit := buildWorkoutDecisionAudit(input, kind, rules, restricted, observedProtected, returningAfterPause, weekIndex == 3, eventTaperApplied, postEventRecoveryApplied)
+	explanation := map[string]any{"summary": summary, "rules": rules, "decision_audit": decisionAudit, "protocol_key": protocol.Key, "protocol_metadata": metadataForProtocol(protocol.Key), "evidence_keys": evidenceKeys, "evidence_scope": evidenceScope, "event_taper_applied": eventTaperApplied}
+	if input.Protection != nil {
+		explanation["protection"] = input.Protection.explanation()
+	}
+	explanation["prescription_inputs"] = inputs
 	return Workout{
 		ScheduledOn:     date.Format("2006-01-02"),
 		Name:            name,
@@ -460,7 +467,7 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		DurationMinutes: duration,
 		TargetRPE:       targetRPE,
 		Structure:       structure,
-		Explanation:     map[string]any{"summary": summary, "rules": rules, "decision_audit": decisionAudit, "protocol_key": protocol.Key, "protocol_metadata": metadataForProtocol(protocol.Key), "evidence_keys": evidenceKeys, "evidence_scope": evidenceScope, "event_taper_applied": eventTaperApplied},
+		Explanation:     explanation,
 		Status:          "planned",
 	}
 }

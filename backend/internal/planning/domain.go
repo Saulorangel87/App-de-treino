@@ -114,6 +114,11 @@ type Context struct {
 	TrainingHistoryPeriods []TrainingHistoryPeriod
 	BaselineEligible       bool
 	RotationIndex          int
+	// RecentSignals are dated records of the last 14 days, used only to assess
+	// Protection. Protection stays nil until protection levels are enabled, and
+	// prescription then keeps the legacy Observed.RequiresRecovery() behavior.
+	RecentSignals []RecentSignal
+	Protection    *ProtectionAssessment
 }
 
 type Workout struct {
