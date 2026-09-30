@@ -187,3 +187,7 @@ reescritos ficam como estão até a próxima reavaliação ou até gerar um plan
 Falta (etapa 5): revisar as referências científicas de cada critério em `protocols.go`.
 Os prazos (3 e 7 dias, 14 dias para recorrência) e a redução de 10% são escolhas de
 produto, não doses da literatura; a documentação do app deve dizer isso.
+
+## Situação
+
+Etapas 1 a 4 **publicadas na `0.37.0` (30/09/2026), com a chave ligada em produção**. A etapa 5, a revisão das referências científicas de cada critério, continua pendente. Para voltar à regra antiga sem novo deploy de código, defina `PROTECTION_LEVELS_ENABLED=false` no `.env.production` da VPS e recrie o contêiner da API. O plano de quem já tinha plano ativo só passa a se adaptar depois de gerar um plano novo.
