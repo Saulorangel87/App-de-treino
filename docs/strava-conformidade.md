@@ -95,6 +95,8 @@ A integração é viável para **mostrar ao atleta as próprias atividades e aju
 
 ## Perguntas para o Strava
 
+**Status:** e-mail enviado pelo dono do produto a `developers@strava.com` em 30/09/2026, aguardando resposta (o Strava não garante prazo). Nenhum código da integração deve gravar dados do Strava antes da resposta; registrar aqui o texto recebido.
+
 1. Quando o atleta usa uma atividade do Strava para concluir o treino planejado no nosso app, podemos guardar o registro resultante (duração, distância, FC, potência e cadência da sessão) como histórico de treino dele, visível só para ele, por mais de 7 dias? Ou esse registro é "data derived from Strava Data" sujeito à 5.5 e à 6.2?
 2. Usar esse histórico, só do próprio atleta, para ajustar a prescrição dos próximos treinos dele (regras determinísticas, sem IA) é "operation of your Developer Application" ou é vedado pela 5.4?
 3. Nosso app tem uma explicação de treino gerada por um modelo de linguagem a partir da prescrição (sem dados do Strava). Se uma regra da prescrição mencionar a quantidade de sessões concluídas, e algumas vierem do Strava, isso já viola a 5.3?
