@@ -99,7 +99,7 @@ O MVP de ciclismo está publicado e validado em produção:
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
 - Código publicado na linha de versão `0.37.0`, incluindo a proteção graduada do motor (ligada em produção) e a importação de atividades por arquivo `.fit`/`.gpx` (desde a `0.34.0`).
-- Versão visível: `0.37.0`; migrações de banco aplicadas até `000032`.
+- Versão visível: `0.37.0`; migrações de banco aplicadas até `000033`.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, onboarding, plano, treino, feedback, adaptação, atividades, evolução, configurações, importação de atividades, novidades e logout foram validados em produção.
 - `rules-v1` continua sendo a única fonte prescritiva. Os shadows permanecem observacionais.
