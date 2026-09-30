@@ -93,7 +93,11 @@ Cada atividade tem dois níveis: o **resumo** (um valor por atividade — duraç
 
 ## Etapa 2: melhorias no motor de treino (depois da etapa 1)
 
-Ainda não desenhada em detalhe; entra em um próximo ciclo, com dados reais de pelo menos algumas semanas de uso da etapa 1 disponíveis. Direção pretendida, a refinar quando chegar a vez:
+**Primeira parte feita (30/09/2026, na `master`, não publicada; deploy combinado para junto da integração com o Strava):** quando uma atividade importada está vinculada a um treino, `GET /v1/plans/current` devolve em cada treino o bloco `imported_execution` (`imported-execution-v1`, modo observação): duração planejada × minutos em movimento medidos pelo aparelho, a duração registrada no app × a medida, e FC, potência, cadência, distância e elevação do arquivo, com `missing_data` explícito. É calculado na leitura (sem migração, nada gravado), só com atividades do próprio atleta e a importada por último quando há mais de uma. **Não altera a prescrição:** `buildPlan`, a proteção e as adaptações não leem esse bloco (`used_for_prescription: false`). Isso muda uma regra da etapa 1 só na leitura: o repositório passa a ler `imported_activities` para montar o plano, mas o pacote `planning` só recebe os fatos já extraídos e não os usa para decidir. Validação: testes unitários, fixture `imported_execution.sql` e fluxo real (importar, vincular, ler o plano, desvincular).
+
+**Por que o restante ainda não:** em 30/09/2026 a produção tinha 0 atividades importadas e 3 treinos concluídos nos últimos 42 dias. Calibrar shadows com isso seria decidir sem dados. O restante continua dependendo de algumas semanas de uso real.
+
+Restante ainda não desenhado em detalhe; entra em um próximo ciclo, com dados reais de pelo menos algumas semanas de uso da etapa 1 disponíveis. Direção pretendida, a refinar quando chegar a vez:
 - Comparar sistematicamente planejado × realizado (duração, RPE percebido vs. esforço medido) usando `imported_activities`, sem alterar prescrição.
 - Usar essa comparação para calibrar os shadows (`rules-v2`, tolerância de carga, etc.) com dados de execução reais, não só o feedback subjetivo já coletado hoje.
 - Qualquer ganho de autoridade de um shadow sobre a prescrição exige a comparação controlada e a revisão explícita já exigidas em `roadmap-acceptance.md` (seção 2); esta etapa não muda esse critério, só melhora a base de dados disponível para a decisão.

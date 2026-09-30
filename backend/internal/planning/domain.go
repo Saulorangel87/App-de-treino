@@ -133,6 +133,9 @@ type Workout struct {
 	Explanation     map[string]any  `json:"explanation"`
 	Status          string          `json:"status"`
 	Session         *WorkoutSession `json:"session,omitempty"`
+	// ImportedExecution is attached when the plan is read and a linked imported
+	// activity exists; observation only, never used for prescription.
+	ImportedExecution *ImportedExecutionAssessment `json:"imported_execution,omitempty"`
 }
 
 // WorkoutStep is the actionable sequence shown to the athlete. Keeping the
