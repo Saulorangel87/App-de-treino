@@ -104,6 +104,8 @@ Restante ainda não desenhado em detalhe; entra em um próximo ciclo, com dados 
 
 ## Anexo: integração com o Strava (desenho preservado, adiado)
 
+**Atualização de 30/09/2026:** as regras em vigor desde 1º/06/2026 proíbem guardar dados do Strava por mais de 7 dias, usá-los em IA e usá-los para análise ou melhoria do produto. O desenho abaixo (que guardava atividades e as usava na calibração) está desatualizado nesses pontos; ver [`strava-conformidade.md`](strava-conformidade.md) antes de retomar.
+
 Mantido como referência para quando a integração for revisitada. Nada aqui está em desenvolvimento agora.
 
 ### Por que foi adiada
