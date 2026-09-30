@@ -291,6 +291,21 @@ func (input Context) sessionProtection(kind string) (protected bool, level Prote
 	return false, level
 }
 
+// protectionEvidenceKey is the only source cited for graduated protection, and only
+// for what it supports: the practice of monitoring athlete training load and
+// adjusting it to context. None of the cited sources sets thresholds for pain or
+// fatigue, so the levels, the day counts and the 10% reduction are product choices.
+const protectionEvidenceKey = "bourdon-2017"
+
+const protectionEvidenceScope = "A proteção por níveis é um critério de produto do Cadência: os prazos e os percentuais não vêm de estudos. A fonte citada apoia apenas o princípio de monitorar a carga do atleta e ajustá-la ao contexto."
+
+// protectionAffectsEvidence reports whether graduated protection changed the
+// session, which is when the protection note belongs in its evidence. A profile
+// restriction overrides the history-based protection, so it never adds the note.
+func protectionAffectsEvidence(input Context, restricted bool) bool {
+	return !restricted && input.Protection != nil && input.Protection.Level != ProtectionNone
+}
+
 func protectionRule(level ProtectionLevel) string {
 	switch level {
 	case ProtectionLight:

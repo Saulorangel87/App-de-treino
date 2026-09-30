@@ -49,7 +49,7 @@ Corrige uma falha da `0.34.0`: a importação só *sugeria* o treino do mesmo di
 
 ## Proteção graduada do motor — publicada na `0.37.0`, ligada em produção
 
-Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o ciclo inteiro) por sinais com data, níveis e reavaliação. Plano, critérios e decisões em [`motor-protecao-cenarios.md`](motor-protecao-cenarios.md). Etapas 1 a 4 de 5 (PRs #46 a #50), publicadas em 30/09/2026 pelo `deploy.sh` (fast-forward `d9e3f4f` → `8786881`, backup `cadencia-20260930T110311Z.dump`, 1 migração aplicada). Release [v0.37.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.37.0). A etapa 5 (revisão das referências científicas em `protocols.go`) continua pendente.
+Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o ciclo inteiro) por sinais com data, níveis e reavaliação. Plano, critérios e decisões em [`motor-protecao-cenarios.md`](motor-protecao-cenarios.md). Etapas 1 a 4 de 5 (PRs #46 a #50), publicadas em 30/09/2026 pelo `deploy.sh` (fast-forward `d9e3f4f` → `8786881`, backup `cadencia-20260930T110311Z.dump`, 1 migração aplicada). Release [v0.37.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.37.0). A etapa 5 (auditoria das referências científicas) está no código, com a migração `000033`, e aguarda deploy.
 
 - **Chave `PROTECTION_LEVELS_ENABLED` (padrão `false`, `true` em produção desde o deploy).** Desligada, o app segue a regra antiga e nenhum treino é reavaliado. Para desligar, mude a linha no `.env.production` da VPS para `false` e recrie o contêiner da API (`docker compose ... up -d api`); não precisa de novo deploy de código.
 - **Níveis:** nenhuma, leve (−10% e RPE −1 nos de qualidade), moderada (qualidade vira giro protegido, demais −10%) e forte (todos viram giro protegido). Dor isolada: forte por 3 dias, moderada até o 7º; dor recorrente (2+ em 14 dias): forte por 7 dias com sugestão de avaliação profissional; check-in bom rebaixa um nível; dor sempre conta, mesmo em sessão sem dados mínimos.
@@ -69,7 +69,7 @@ Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o cicl
 ## Pendências operacionais (fora do código)
 
 - Gerar um plano novo na conta do dono do produto em produção, para a proteção graduada passar a valer nela, e conferir o aviso de novidades da `0.37.0` no aparelho (a de `0.36.0` também).
-- Etapa 5 da proteção graduada: revisar as referências científicas de cada critério em `protocols.go`; os prazos (3 e 7 dias, 14 para recorrência) e a redução de 10% são escolhas de produto, não doses da literatura.
+- Publicar a etapa 5 da proteção graduada (migração `000033`, que corrige os metadados de quatro referências, e os textos de evidência). Auditoria em [`motor-protecao-cenarios.md`](motor-protecao-cenarios.md): nenhuma fonte cadastrada define prazos ou limiares, então eles são escolhas de produto e o app diz isso. As demais referências do catálogo (limiar, VO₂max, intervalos) ainda não foram conferidas contra o PubMed.
 - Testar o atalho de compartilhar no Android num aparelho real.
 - Etapa 2 da fase de dados reais: melhorias no motor de treino usando os dados importados (ainda não desenhada em detalhe; ver [`proxima-fase-dados-reais.md`](proxima-fase-dados-reais.md)).
 - Depois: LGPD (exportar/apagar dados), painel interno dos shadows, resumo semanal com IA.
