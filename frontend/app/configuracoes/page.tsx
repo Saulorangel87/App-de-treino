@@ -8,12 +8,13 @@ import {
   KeyRound,
   LoaderCircle,
   LogOut,
+  Download,
   Mail,
   ShieldCheck,
   Trash2,
 } from 'lucide-react';
 import { AppHeader } from '@/components/app-header';
-import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
+import { ApiError, apiDownload, apiErrorMessage, apiRequest } from '@/lib/api';
 import { ApiErrorState } from '@/components/api-error-state';
 
 type User = {
@@ -37,6 +38,8 @@ export default function SettingsPage() {
   const [securityBusy, setSecurityBusy] = useState(false);
   const [securityError, setSecurityError] = useState('');
   const [securityMessage, setSecurityMessage] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
 
   useEffect(() => {
     apiRequest<{ user: User }>('/v1/me')
@@ -109,6 +112,21 @@ export default function SettingsPage() {
       );
     } finally {
       setSecurityBusy(false);
+    }
+  }
+
+  async function exportData() {
+    setExportError('');
+    setExporting(true);
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      await apiDownload('/v1/auth/account/export', `cadencia-dados-${today}.json`);
+    } catch (caught) {
+      setExportError(
+        apiErrorMessage(caught, 'Não foi possível exportar seus dados agora.'),
+      );
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -294,6 +312,45 @@ export default function SettingsPage() {
               >
                 <LogOut size={16} /> Sair dos outros dispositivos
               </button>
+            </section>
+
+            <section className="settings-card settings-data-card">
+              <span className="settings-icon">
+                <Download size={23} />
+              </span>
+              <h2>Seus dados</h2>
+              <p className="settings-card-intro">
+                Baixe uma cópia de tudo o que o Cadência guarda sobre você:
+                conta, perfil, limitações, check-ins, planos, treinos, sessões,
+                feedbacks e atividades importadas. Senhas e códigos de sessão
+                não fazem parte do arquivo.
+              </p>
+              {exportError && (
+                <p className="form-error" role="alert">
+                  {exportError}
+                </p>
+              )}
+              <button
+                type="button"
+                className="settings-secondary-button"
+                onClick={exportData}
+                disabled={exporting}
+              >
+                {exporting ? (
+                  <>
+                    <LoaderCircle className="spin" size={16} /> Preparando…
+                  </>
+                ) : (
+                  <>
+                    <Download size={16} /> Exportar meus dados
+                  </>
+                )}
+              </button>
+              <p className="settings-card-intro">
+                Veja como tratamos seus dados na{' '}
+                <Link href="/privacidade">Política de Privacidade</Link> e nos{' '}
+                <Link href="/termos">Termos de Uso</Link>.
+              </p>
             </section>
           </div>
 

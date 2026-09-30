@@ -24,10 +24,13 @@ type Pinger interface{ Ping(context.Context) error }
 // a plain connectivity check cannot detect.
 type SchemaChecker interface{ Check(context.Context) error }
 
-func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Service, onboardingService *athlete.OnboardingService, assessmentService *athlete.AssessmentService, recoveryService *athlete.RecoveryService, evolutionService *evolution.Service, feedbackService *feedback.Service, planningService *planning.Service, activityImportService *activityimport.Service, aiService *ai.Service, emailSender email.Sender, appBaseURL, allowedOrigin string, secureCookies, development bool, sessionTTL, emailTokenTTL time.Duration) http.Handler {
+func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Service, onboardingService *athlete.OnboardingService, assessmentService *athlete.AssessmentService, recoveryService *athlete.RecoveryService, evolutionService *evolution.Service, feedbackService *feedback.Service, planningService *planning.Service, activityImportService *activityimport.Service, aiService *ai.Service, emailSender email.Sender, appBaseURL, allowedOrigin string, secureCookies, development bool, sessionTTL, emailTokenTTL time.Duration, options ...RouterOption) http.Handler {
 	mux := http.NewServeMux()
 	server := &Server{auth: authService, athlete: athleteService, onboarding: onboardingService, assessments: assessmentService, recovery: recoveryService, evolution: evolutionService, feedback: feedbackService, planning: planningService, activityImport: activityImportService, ai: aiService, emailSender: emailSender, appBaseURL: appBaseURL, secureCookies: secureCookies, development: development, sessionTTL: sessionTTL, emailTokenTTL: emailTokenTTL}
 	server.loginFailures = newRequestRateLimiter()
+	for _, option := range options {
+		option(server)
+	}
 	authLimiter := newRequestRateLimiter()
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "service": "cadencia-api"})
@@ -52,6 +55,7 @@ func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Ser
 	mux.HandleFunc("POST /v1/auth/login", authLimiter.limit("login", 10, 15*time.Minute, server.login))
 	mux.HandleFunc("POST /v1/auth/logout", server.logout)
 	mux.HandleFunc("DELETE /v1/auth/account", server.deleteAccount)
+	mux.HandleFunc("GET /v1/auth/account/export", authLimiter.limit("account-export", 10, time.Hour, server.exportAccountData))
 	mux.HandleFunc("POST /v1/auth/change-password", authLimiter.limit("change-password", 5, 15*time.Minute, server.changePassword))
 	mux.HandleFunc("POST /v1/auth/logout-others", server.logoutOthers)
 	mux.HandleFunc("POST /v1/auth/resend-verification", authLimiter.limit("resend-verification", 5, time.Hour, server.resendVerification))

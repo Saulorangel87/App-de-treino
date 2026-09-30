@@ -3,16 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Check, Sparkles, X } from 'lucide-react';
-import { apiRequest } from '@/lib/api';
+import { PUBLIC_PATHS, apiRequest } from '@/lib/api';
 import { useScrollLock } from './use-scroll-lock';
 import { APP_VERSION, UPDATE_NOTES } from '@/lib/release';
 
-const publicPaths = new Set([
-  '/entrar',
-  '/esqueci-minha-senha',
-  '/redefinir-senha',
-  '/verificar-email',
-]);
+const publicPaths = new Set(PUBLIC_PATHS);
 
 export function UpdateNotice() {
   const [visible, setVisible] = useState(false);

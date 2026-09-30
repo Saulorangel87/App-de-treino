@@ -4,7 +4,7 @@ const DEFAULT_TIMEOUT_MS = 20_000;
 const DEFAULT_GET_RETRIES = 2;
 const RETRY_BASE_DELAY_MS = 300;
 const RETRYABLE_STATUS = new Set([502, 503, 504]);
-const PUBLIC_PATHS = ['/entrar', '/esqueci-minha-senha', '/redefinir-senha', '/verificar-email'];
+export const PUBLIC_PATHS = ['/entrar', '/esqueci-minha-senha', '/redefinir-senha', '/verificar-email', '/privacidade', '/termos'];
 
 export class ApiError extends Error {
   readonly status: number;
@@ -122,4 +122,24 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
       throw error;
     }
   }
+}
+
+const DOWNLOAD_TIMEOUT_MS = 60_000;
+
+/** Baixa um arquivo gerado pela API (por exemplo, a exportação de dados) e o salva no aparelho. */
+export async function apiDownload(path: string, filename: string): Promise<void> {
+  const response = await fetchWithTimeout(`${API_URL}${path}`, { credentials: 'include' }, DOWNLOAD_TIMEOUT_MS);
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { error?: { message?: string } } | null;
+    if (response.status === 401) redirectToLoginOnExpiredSession(path);
+    throw new ApiError(body?.error?.message || 'Não foi possível baixar o arquivo.', response.status);
+  }
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }

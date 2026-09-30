@@ -73,6 +73,29 @@ paths:
         '400': { description: Confirmação ou dados inválidos }
         '401': { description: Sessão ausente ou senha incorreta }
         '500': { description: Falha sem alteração dos dados }
+  /v1/auth/account/export:
+    get:
+      summary: Baixa uma cópia de todos os dados do usuário autenticado (LGPD, art. 18)
+      description: >
+        Arquivo JSON com conta, perfil, metas, disponibilidade, limitações, check-ins,
+        avaliações, planos, treinos, sessões, feedbacks, atividades importadas e
+        mensagens de feedback. Não inclui senha nem códigos de sessão.
+      responses:
+        '200':
+          description: Arquivo JSON para download (Content-Disposition attachment)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [format_version, exported_at, account]
+                properties:
+                  format_version: { type: integer }
+                  exported_at: { type: string, format: date-time }
+                  account: { type: object }
+                additionalProperties: true
+        '401': { description: Sessão ausente ou expirada }
+        '429': { description: Muitas exportações em pouco tempo }
+        '500': { description: Falha ao montar o arquivo }
   /v1/auth/change-password:
     post:
       summary: Altera a senha do usuário autenticado e desconecta as demais sessões
