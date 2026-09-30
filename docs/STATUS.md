@@ -10,11 +10,11 @@ Este é o documento de continuidade: curto e sempre atual. O diário cronológic
 | --- | --- |
 | Frontend | <https://cadencia.devsaulo.com.br> |
 | API | <https://cadencia-api.devsaulo.com.br> |
-| Versão publicada | `0.36.0`, commit `d9e3f4f` (deploy de 30/09/2026 UTC: vínculo de atividade importada; antes, em 29/09/2026, a identidade visual "carta topográfica" e a correção da rolagem do aviso de novidades) |
-| Migrações aplicadas | `000001` a `000031` (a `000032` está no código, ainda não aplicada em produção) |
-| Motor prescritivo | `rules-v1` (único); `rules-v2` e demais shadows são somente observacionais |
-| Último backup preventivo | `cadencia-20260930T002403Z.dump` |
-| Validação pós-deploy | login, `GET /v1/plans/current` e `logout-others` = 200 com a conta de smoke test; `/ready` verifica o schema |
+| Versão publicada | `0.37.0`, commit `8786881` (deploy de 30/09/2026: proteção graduada do motor e "Estou recuperado"; o vínculo de atividade importada, `0.36.0`, foi publicado antes, no mesmo dia em UTC) |
+| Migrações aplicadas | `000001` a `000032` |
+| Motor prescritivo | `rules-v1` (único); `rules-v2` e demais shadows são somente observacionais. Proteção graduada ligada (`PROTECTION_LEVELS_ENABLED=true` no `.env.production` da VPS) |
+| Último backup preventivo | `cadencia-20260930T110311Z.dump` |
+| Validação pós-deploy | `/health`, `/ready`, frontend e `GET /v1/plans/current` autenticado = 200 com a conta de smoke test; `/ready` verifica o schema; `recovery_self_reports` criada; chave `true` confirmada dentro do contêiner da API; `POST /v1/protection/recovered` sem sessão = 401 |
 
 Escopo: somente ciclismo (estrada, MTB XCO/XCM, gravel e indoor). Corrida e musculação são produtos separados.
 
@@ -47,17 +47,18 @@ Corrige uma falha da `0.34.0`: a importação só *sugeria* o treino do mesmo di
 - A listagem devolve `workout_name` e `workout_scheduled_on` do treino vinculado. Sem migração.
 - Testes: serviço e handlers, mais a fixture `database/tests/imported_activity_link.sql` (dono da atividade e do treino, plano cancelado, desvínculo). Validado também com a API e o banco locais (18 verificações).
 
-## Proteção graduada do motor — código na `master`, desligada por padrão
+## Proteção graduada do motor — publicada na `0.37.0`, ligada em produção
 
-Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o ciclo inteiro) por sinais com data, níveis e reavaliação. Plano, critérios e decisões em [`motor-protecao-cenarios.md`](motor-protecao-cenarios.md). Etapas 1 a 4 de 5 (PRs #46 a #49 e o da etapa 4); a etapa 5 é esta documentação e a revisão das referências científicas.
+Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o ciclo inteiro) por sinais com data, níveis e reavaliação. Plano, critérios e decisões em [`motor-protecao-cenarios.md`](motor-protecao-cenarios.md). Etapas 1 a 4 de 5 (PRs #46 a #50), publicadas em 30/09/2026 pelo `deploy.sh` (fast-forward `d9e3f4f` → `8786881`, backup `cadencia-20260930T110311Z.dump`, 1 migração aplicada). Release [v0.37.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.37.0). A etapa 5 (revisão das referências científicas em `protocols.go`) continua pendente.
 
-- **Chave `PROTECTION_LEVELS_ENABLED` (padrão `false`).** Desligada, o app segue a regra antiga e nenhum treino é reavaliado. Para ligar ou desligar, altere a variável no ambiente da API e recrie o contêiner da API.
+- **Chave `PROTECTION_LEVELS_ENABLED` (padrão `false`, `true` em produção desde o deploy).** Desligada, o app segue a regra antiga e nenhum treino é reavaliado. Para desligar, mude a linha no `.env.production` da VPS para `false` e recrie o contêiner da API (`docker compose ... up -d api`); não precisa de novo deploy de código.
 - **Níveis:** nenhuma, leve (−10% e RPE −1 nos de qualidade), moderada (qualidade vira giro protegido, demais −10%) e forte (todos viram giro protegido). Dor isolada: forte por 3 dias, moderada até o 7º; dor recorrente (2+ em 14 dias): forte por 7 dias com sugestão de avaliação profissional; check-in bom rebaixa um nível; dor sempre conta, mesmo em sessão sem dados mínimos.
 - **Reavaliação:** ao concluir ou corrigir um treino, salvar o check-in ou tocar em "Estou recuperado", os treinos `planned` do plano ativo (hoje até o domingo da semana seguinte) são refeitos. Nunca toca concluídos, iniciados, cancelados, `adapted`, rascunho, os 1 a 2 treinos que o gatilho do banco já adaptou, nem treinos gerados antes de `explanation.prescription_inputs` existir (o plano atual do atleta só muda ao gerar um plano novo).
 - **Migração `000032_recovery_self_reports`** (declaração "Estou recuperado", única por dia, em cascata com o perfil) e **`POST /v1/protection/recovered`** (404 com a chave desligada).
 - **Tela do plano:** aviso com o motivo, a data em que a proteção termina e o botão "Estou recuperado"; marca "Proteção leve/moderada/forte" nos treinos.
 - **Validação:** testes unitários, fixtures `protection_reevaluation.sql` e `account_deletion.sql`, fluxo real com API e PostgreSQL (21 verificações) e verificação visual no celular e no desktop.
-- **Antes de ligar em produção:** aplicar a `000032` (o `deploy.sh` faz, com backup), ligar a chave e gerar um plano novo para o atleta.
+- **Plano existente:** os planos gerados antes da `0.37.0` não têm `prescription_inputs` e não são reavaliados. A proteção só passa a se adaptar depois que o atleta gera um plano novo em Plano > Atualizar plano.
+- **Validado com o dono do produto** num ambiente local com seis contas de demonstração (nenhuma, leve, moderada, forte, dor recorrente, dor antiga), já apagadas.
 
 ## Segurança do repositório (29/09/2026)
 
@@ -67,6 +68,8 @@ Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o cicl
 
 ## Pendências operacionais (fora do código)
 
+- Gerar um plano novo na conta do dono do produto em produção, para a proteção graduada passar a valer nela, e conferir o aviso de novidades da `0.37.0` no aparelho (a de `0.36.0` também).
+- Etapa 5 da proteção graduada: revisar as referências científicas de cada critério em `protocols.go`; os prazos (3 e 7 dias, 14 para recorrência) e a redução de 10% são escolhas de produto, não doses da literatura.
 - Testar o atalho de compartilhar no Android num aparelho real.
 - Etapa 2 da fase de dados reais: melhorias no motor de treino usando os dados importados (ainda não desenhada em detalhe; ver [`proxima-fase-dados-reais.md`](proxima-fase-dados-reais.md)).
 - Depois: LGPD (exportar/apagar dados), painel interno dos shadows, resumo semanal com IA.
