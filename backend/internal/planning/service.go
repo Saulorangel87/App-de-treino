@@ -16,15 +16,54 @@ type Store interface {
 	CancelWorkoutByUserID(context.Context, string, string) error
 	MarkWorkoutMissedByUserID(context.Context, string, string) error
 	ActivitiesByUserID(context.Context, string) ([]Activity, error)
+	// PlannedWorkoutsForReevaluation returns the still-planned workouts of the
+	// active plan scheduled between the two dates (inclusive, YYYY-MM-DD).
+	PlannedWorkoutsForReevaluation(ctx context.Context, userID, from, to string) ([]Workout, error)
+	// ApplyWorkoutRevisions rewrites workouts that are still planned in the
+	// active plan; anything else is left untouched. It returns how many changed.
+	ApplyWorkoutRevisions(ctx context.Context, userID string, revisions []WorkoutRevision) (int, error)
+}
+
+// WorkoutRevision is the rebuilt content of a planned workout.
+type WorkoutRevision struct {
+	WorkoutID       string
+	Name            string
+	Objective       string
+	DurationMinutes int
+	TargetRPE       float64
+	Structure       map[string]any
+	Explanation     map[string]any
 }
 
 type Service struct {
-	store Store
-	now   func() time.Time
+	store            Store
+	now              func() time.Time
+	protectionLevels bool
 }
 
-func NewService(store Store) *Service {
-	return &Service{store: store, now: time.Now}
+type Option func(*Service)
+
+// WithProtectionLevels switches prescription and re-evaluation to the graduated,
+// dated protection levels. Without it the legacy 28-day rule applies unchanged.
+func WithProtectionLevels(enabled bool) Option {
+	return func(s *Service) { s.protectionLevels = enabled }
+}
+
+func NewService(store Store, options ...Option) *Service {
+	service := &Service{store: store, now: time.Now}
+	for _, option := range options {
+		option(service)
+	}
+	return service
+}
+
+// withProtection attaches the dated protection assessment when enabled.
+func (s *Service) withProtection(input Context) Context {
+	if s.protectionLevels {
+		assessment := assessProtection(input.RecentSignals, s.now())
+		input.Protection = &assessment
+	}
+	return input
 }
 
 func (s *Service) Generate(ctx context.Context, userID string) (Plan, error) {
@@ -32,6 +71,7 @@ func (s *Service) Generate(ctx context.Context, userID string) (Plan, error) {
 	if err != nil {
 		return Plan{}, err
 	}
+	input = s.withProtection(input)
 	plan, err := buildPlan(input, s.now())
 	if err != nil {
 		return Plan{}, err
@@ -89,6 +129,7 @@ func (s *Service) CompleteWorkout(ctx context.Context, userID, workoutID string,
 	if err := s.store.CompleteWorkoutByUserID(ctx, userID, workoutID, input); err != nil {
 		return Plan{}, err
 	}
+	s.reevaluateBestEffort(ctx, userID)
 	return s.store.CurrentPlanByUserID(ctx, userID)
 }
 
@@ -102,6 +143,7 @@ func (s *Service) CorrectWorkout(ctx context.Context, userID, workoutID string, 
 	if err := s.store.CorrectWorkoutDataByUserID(ctx, userID, workoutID, input); err != nil {
 		return Plan{}, err
 	}
+	s.reevaluateBestEffort(ctx, userID)
 	return s.store.CurrentPlanByUserID(ctx, userID)
 }
 

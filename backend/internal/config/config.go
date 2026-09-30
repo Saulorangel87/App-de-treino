@@ -36,6 +36,9 @@ type Config struct {
 	AITimeout       time.Duration
 	AIMaxTokens     int
 	AIMaxConcurrent int
+	// ProtectionLevelsEnabled switches prescription from the legacy all-or-nothing
+	// recovery rule to graduated, dated protection levels.
+	ProtectionLevelsEnabled bool
 }
 
 func Load() (Config, error) {
@@ -63,6 +66,10 @@ func Load() (Config, error) {
 	if err != nil || aiMaxConcurrent < 1 || aiMaxConcurrent > 2 {
 		return Config{}, errors.New("AI_MAX_CONCURRENT must be between 1 and 2")
 	}
+	protectionLevels, err := strconv.ParseBool(valueOrDefault("PROTECTION_LEVELS_ENABLED", "false"))
+	if err != nil {
+		return Config{}, errors.New("PROTECTION_LEVELS_ENABLED must be true or false")
+	}
 	dbMaxConns, err := strconv.ParseInt(valueOrDefault("DB_MAX_CONNS", "10"), 10, 32)
 	if err != nil || dbMaxConns < 1 || dbMaxConns > 50 {
 		return Config{}, errors.New("DB_MAX_CONNS must be between 1 and 50")
@@ -78,27 +85,28 @@ func Load() (Config, error) {
 		return Config{}, fmt.Errorf("APP_ENV must be development, test or production, got %q", appEnv)
 	}
 	cfg := Config{
-		Port:             valueOrDefault("API_PORT", "8080"),
-		DatabaseURL:      os.Getenv("DATABASE_URL"),
-		AllowedOrigin:    valueOrDefault("ALLOWED_ORIGIN", "http://localhost:3000"),
-		AppBaseURL:       valueOrDefault("APP_BASE_URL", "http://localhost:3000"),
-		EmailFrom:        strings.TrimSpace(os.Getenv("EMAIL_FROM")),
-		ResendAPIKey:     strings.TrimSpace(os.Getenv("RESEND_API_KEY")),
-		FeedbackDigestTo: strings.TrimSpace(os.Getenv("FEEDBACK_DIGEST_TO")),
-		SessionTTL:       time.Duration(sessionDays) * 24 * time.Hour,
-		EmailTokenTTL:    time.Duration(emailTokenHours) * time.Hour,
-		SecureCookies:    appEnv == "production",
-		DBMaxConns:       int32(dbMaxConns),
-		DBMinConns:       int32(dbMinConns),
-		AIEnabled:        aiEnabled,
-		AIProvider:       valueOrDefault("AI_PROVIDER", "ollama"),
-		AIBaseURL:        valueOrDefault("AI_BASE_URL", "http://127.0.0.1:11434"),
-		AIModel:          valueOrDefault("AI_MODEL", "qwen3:4b-instruct"),
-		AIWorkerURL:      strings.TrimRight(strings.TrimSpace(os.Getenv("AI_WORKER_URL")), "/"),
-		AIWorkerToken:    strings.TrimSpace(os.Getenv("AI_WORKER_TOKEN")),
-		AITimeout:        time.Duration(aiTimeoutSeconds) * time.Second,
-		AIMaxTokens:      aiMaxTokens,
-		AIMaxConcurrent:  aiMaxConcurrent,
+		Port:                    valueOrDefault("API_PORT", "8080"),
+		DatabaseURL:             os.Getenv("DATABASE_URL"),
+		AllowedOrigin:           valueOrDefault("ALLOWED_ORIGIN", "http://localhost:3000"),
+		AppBaseURL:              valueOrDefault("APP_BASE_URL", "http://localhost:3000"),
+		EmailFrom:               strings.TrimSpace(os.Getenv("EMAIL_FROM")),
+		ResendAPIKey:            strings.TrimSpace(os.Getenv("RESEND_API_KEY")),
+		FeedbackDigestTo:        strings.TrimSpace(os.Getenv("FEEDBACK_DIGEST_TO")),
+		SessionTTL:              time.Duration(sessionDays) * 24 * time.Hour,
+		EmailTokenTTL:           time.Duration(emailTokenHours) * time.Hour,
+		SecureCookies:           appEnv == "production",
+		DBMaxConns:              int32(dbMaxConns),
+		DBMinConns:              int32(dbMinConns),
+		AIEnabled:               aiEnabled,
+		AIProvider:              valueOrDefault("AI_PROVIDER", "ollama"),
+		AIBaseURL:               valueOrDefault("AI_BASE_URL", "http://127.0.0.1:11434"),
+		AIModel:                 valueOrDefault("AI_MODEL", "qwen3:4b-instruct"),
+		AIWorkerURL:             strings.TrimRight(strings.TrimSpace(os.Getenv("AI_WORKER_URL")), "/"),
+		AIWorkerToken:           strings.TrimSpace(os.Getenv("AI_WORKER_TOKEN")),
+		AITimeout:               time.Duration(aiTimeoutSeconds) * time.Second,
+		AIMaxTokens:             aiMaxTokens,
+		AIMaxConcurrent:         aiMaxConcurrent,
+		ProtectionLevelsEnabled: protectionLevels,
 	}
 	if cfg.DatabaseURL == "" {
 		return Config{}, errors.New("DATABASE_URL is required")

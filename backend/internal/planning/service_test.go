@@ -43,6 +43,12 @@ type planStore struct {
 	completion  CompletionInput
 	correction  WorkoutCorrectionInput
 	activities  []Activity
+	// Reavaliação: treinos planejados devolvidos (filtrados pela janela) e as
+	// revisões gravadas.
+	planned    []Workout
+	plannedErr error
+	revisions  []WorkoutRevision
+	applyCalls int
 }
 
 func (s *planStore) PlanningContextByUserID(context.Context, string) (Context, error) {
@@ -85,6 +91,23 @@ func (s *planStore) MarkWorkoutMissedByUserID(_ context.Context, _ string, worko
 }
 func (s *planStore) ActivitiesByUserID(context.Context, string) ([]Activity, error) {
 	return s.activities, nil
+}
+func (s *planStore) PlannedWorkoutsForReevaluation(_ context.Context, _ string, from, to string) ([]Workout, error) {
+	if s.plannedErr != nil {
+		return nil, s.plannedErr
+	}
+	var inWindow []Workout
+	for _, workout := range s.planned {
+		if workout.ScheduledOn >= from && workout.ScheduledOn <= to {
+			inWindow = append(inWindow, workout)
+		}
+	}
+	return inWindow, nil
+}
+func (s *planStore) ApplyWorkoutRevisions(_ context.Context, _ string, revisions []WorkoutRevision) (int, error) {
+	s.applyCalls++
+	s.revisions = append(s.revisions, revisions...)
+	return len(revisions), nil
 }
 
 func TestGenerateBuildsFourWeeksAndRespectsAvailability(t *testing.T) {
