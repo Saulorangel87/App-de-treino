@@ -2,6 +2,7 @@ package planning
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 )
@@ -146,6 +147,51 @@ func TestProfileRestrictionsStillWinOverGraduatedProtection(t *testing.T) {
 		}
 		if workout.TargetRPE > 4 || workout.DurationMinutes > 45 {
 			t.Fatalf("restriction lost: %+v", workout)
+		}
+	}
+}
+
+func TestProtectionEvidenceIsHonestAboutWhatTheSourceSupports(t *testing.T) {
+	scopeOf := func(workout Workout) string {
+		scope, _ := workout.Explanation["evidence_scope"].(string)
+		return scope
+	}
+	hasKey := func(workout Workout) bool {
+		keys, _ := workout.Explanation["evidence_keys"].([]string)
+		for _, key := range keys {
+			if key == protectionEvidenceKey {
+				return true
+			}
+		}
+		return false
+	}
+	for _, level := range []ProtectionLevel{ProtectionLight, ProtectionModerate, ProtectionStrong} {
+		for _, workout := range planWithProtection(t, level).Workouts {
+			if !hasKey(workout) || !strings.Contains(scopeOf(workout), "critério de produto") {
+				t.Fatalf("level %s must cite the source and say the thresholds are a product choice: %+v", level, workout.Explanation["evidence_keys"])
+			}
+		}
+	}
+	for _, workout := range planWithProtection(t, ProtectionNone).Workouts {
+		if hasKey(workout) || strings.Contains(scopeOf(workout), "critério de produto") {
+			t.Fatal("level none must not add the protection note")
+		}
+	}
+	for _, workout := range planWithProtection(t, "").Workouts {
+		if hasKey(workout) {
+			t.Fatal("the legacy path must keep its evidence unchanged")
+		}
+	}
+	input := readinessContext()
+	input.Limitations = []LimitationContext{{Kind: "medical_condition", MedicalRestriction: true}}
+	input.Protection = &ProtectionAssessment{Level: ProtectionStrong}
+	restricted, err := buildPlan(input, protectionPlanNow)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, workout := range restricted.Workouts {
+		if hasKey(workout) {
+			t.Fatal("a profile restriction overrides history protection and must not add the note")
 		}
 	}
 }

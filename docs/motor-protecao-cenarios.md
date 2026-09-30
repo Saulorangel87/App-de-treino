@@ -184,10 +184,54 @@ reescritos ficam como estão até a próxima reavaliação ou até gerar um plan
 - **Nota de versão `0.37.0`** já descreve o recurso; só deve ser publicada junto com a
   chave ligada.
 
-Falta (etapa 5): revisar as referências científicas de cada critério em `protocols.go`.
-Os prazos (3 e 7 dias, 14 dias para recorrência) e a redução de 10% são escolhas de
-produto, não doses da literatura; a documentação do app deve dizer isso.
+A etapa 5 revisou as referências (ver a seção "Etapa 5" abaixo). Os prazos (3 e 7 dias, 14
+dias para recorrência) e a redução de 10% são escolhas de produto, não doses da
+literatura, e o app agora diz isso.
 
 ## Situação
 
-Etapas 1 a 4 **publicadas na `0.37.0` (30/09/2026), com a chave ligada em produção**. A etapa 5, a revisão das referências científicas de cada critério, continua pendente. Para voltar à regra antiga sem novo deploy de código, defina `PROTECTION_LEVELS_ENABLED=false` no `.env.production` da VPS e recrie o contêiner da API. O plano de quem já tinha plano ativo só passa a se adaptar depois de gerar um plano novo.
+Etapas 1 a 4 **publicadas na `0.37.0` (30/09/2026), com a chave ligada em produção**. A etapa 5, a auditoria das referências científicas, está no código (migração `000033` e textos de evidência) e aguarda deploy; ver a seção abaixo. Para voltar à regra antiga sem novo deploy de código, defina `PROTECTION_LEVELS_ENABLED=false` no `.env.production` da VPS e recrie o contêiner da API. O plano de quem já tinha plano ativo só passa a se adaptar depois de gerar um plano novo.
+
+
+## Etapa 5: auditoria das referências científicas
+
+Conferência feita em 30/09/2026 contra o PubMed (API de metadados do NCBI e resumos originais). O resultado em uma frase: **nenhuma fonte cadastrada define prazos, limiares ou percentuais de proteção por dor ou fadiga.** Elas sustentam princípios gerais, e o restante é decisão de produto.
+
+### O que cada critério tem de apoio
+
+| Critério | Apoio nas fontes | Situação |
+| --- | --- | --- |
+| Monitorar a carga e ajustá-la ao contexto do atleta | Consenso de Bourdon et al. (2017), PMID 28463642: monitorar cargas interna e externa, inclusive para ajudar a proteger contra lesão e problemas de saúde | **Princípio apoiado**, sem limiares |
+| Esforço percebido como medida da carga interna (session-RPE) | Foster et al. (2001), PMID 11708692; revisão de Haddad et al. (2017), PMID 29163016 | **Apoiado** para o uso do RPE; não para dor ou fadiga de check-in |
+| Progressão gradual e sobrecarga | Posicionamento do ACSM (1998), PMID 9624661 | **Princípio geral apoiado**; não trata de proteção |
+| Níveis leve, moderada e forte | Nenhuma | **Escolha de produto** |
+| Dor: forte por 3 dias, moderada até o 7º | Nenhuma | **Escolha de produto** |
+| Recorrência: 2 ou mais dores em 14 dias | Nenhuma | **Escolha de produto** |
+| Fadiga alta (≥ 4) vale 7 dias | Nenhuma | **Escolha de produto** |
+| Redução de 10% na duração e −1 de RPE nos treinos de qualidade | Nenhuma | **Escolha de produto** |
+| Um check-in bom depois de 3 dias rebaixa um nível | Nenhuma | **Escolha de produto** |
+| Recomendar avaliação profissional quando a dor persiste | Segurança do produto; não é uma dose | **Decisão de segurança** |
+
+### O que mudou no app
+
+- Os treinos afetados pela proteção em níveis passam a citar `bourdon-2017` e a dizer, na seção de evidência, que a proteção por níveis é um critério de produto e que a fonte apoia apenas o princípio de monitorar e ajustar a carga. Treinos sem proteção, o caminho antigo e planos com restrição do perfil não recebem esse texto.
+- O aviso na tela do plano diz que os níveis e os prazos são critérios do Cadência, não recomendações de estudos científicos.
+
+### Erros de cadastro encontrados e corrigidos (migração `000033`)
+
+O que o app exibe como "base científica" tinha quatro registros com dados que não correspondiam ao link:
+
+| Chave | Antes | Depois (conforme o PubMed) |
+| --- | --- | --- |
+| `acsm-1998` | Título de outro documento ("Progression Models in Resistance Training for Healthy Adults", 2002); link e ano eram do posicionamento de 1998 | Título do posicionamento de 1998 sobre quantidade e qualidade do exercício |
+| `bourdon-2017` | Link da revisão de Foster et al. (2017), PMID 28253038 | Link do consenso de Bourdon et al. (2017), PMID 28463642 |
+| `impellizzeri-2020` | "Impellizzeri et al., 2020", "revisão sistemática" | Foster et al., 2021, perspectiva histórica, revisão narrativa |
+| `haddad-2017` | "Revisão sistemática" | Revisão da literatura (narrativa), conforme o PubMed |
+
+- O nível de evidência `narrative_review` foi acrescentado à restrição da tabela.
+- As chaves (`source_key`) não mudaram, porque já estão gravadas nas explicações dos treinos; por isso a chave `impellizzeri-2020` continua com o ano antigo, mas o registro agora descreve o artigo certo.
+- Fixture `database/tests/000033_fix_source_metadata.sql` trava os quatro registros; a migração tem reversão testada.
+
+### Ainda não revisado
+
+As demais referências do catálogo (por exemplo as de limiar, VO₂max e intervalos em ciclismo) **não** foram auditadas nesta etapa; a conferência cobriu as fontes ligadas à proteção e ao monitoramento de carga. Conferir cada uma contra o PubMed é o passo seguinte, se o produto quiser exibir todas com o mesmo rigor.

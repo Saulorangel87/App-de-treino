@@ -33,6 +33,9 @@ export function ProtectionNotice({ protection, busy, onRecovered }: ProtectionNo
           {protection.expires_on &&
             ` Sem novos registros, a proteção termina em ${dateFormatter.format(parseTrainingDate(protection.expires_on))}.`}
         </p>
+        <p className="protection-notice-scope">
+          Os níveis e os prazos são critérios do Cadência, não recomendações de estudos científicos.
+        </p>
         {protection.suggest_professional && (
           <p className="protection-notice-professional">
             Se a dor persistir, procure avaliação de um profissional de saúde.

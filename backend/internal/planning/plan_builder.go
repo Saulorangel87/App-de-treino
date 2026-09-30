@@ -447,6 +447,10 @@ func makeWorkout(input Context, slot AvailabilitySlot, kind string, restricted b
 		evidenceKeys = append(append([]string(nil), eventTaper.EvidenceKeys...), evidenceKeys...)
 		evidenceScope += " O taper pré-prova usa evidência de redução de volume em ciclistas/endurance, com transferência limitada a atletas elegíveis; não é dose universal."
 	}
+	if protectionAffectsEvidence(input, restricted) {
+		evidenceKeys = appendUniqueString(evidenceKeys, protectionEvidenceKey)
+		evidenceScope += " " + protectionEvidenceScope
+	}
 	structure := buildStructure(duration, targetRPE, name, mainBlock)
 	if slot.PreferredTime != nil {
 		structure["preferred_time"] = *slot.PreferredTime
