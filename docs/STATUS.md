@@ -10,10 +10,10 @@ Este é o documento de continuidade: curto e sempre atual. O diário cronológic
 | --- | --- |
 | Frontend | <https://cadencia.devsaulo.com.br> |
 | API | <https://cadencia-api.devsaulo.com.br> |
-| Versão publicada | `0.37.0`, commit `6b9134d` (deploys de 30/09 a 01/10/2026: `8786881`, proteção graduada do motor e "Estou recuperado"; `0ba6efa`, correção das referências; `6b9134d`, auditoria das 27 referências, comparação com a atividade importada, Política de Privacidade, Termos de Uso e exportação de dados; a versão visível não mudou desde a `0.37.0`) |
-| Migrações aplicadas | `000001` a `000034` |
+| Versão publicada | `0.37.0`, commit `2a64b4f` (deploys de 30/09 a 01/10/2026: `8786881`, proteção graduada do motor e "Estou recuperado"; `0ba6efa`, correção das referências; `6b9134d`, auditoria das 27 referências, comparação com a atividade importada, Política de Privacidade e Termos de Uso; `2a64b4f`, planilha de dados e registro do aceite dos termos; a versão visível não mudou desde a `0.37.0`) |
+| Migrações aplicadas | `000001` a `000035` |
 | Motor prescritivo | `rules-v1` (único); `rules-v2` e demais shadows são somente observacionais. Proteção graduada ligada (`PROTECTION_LEVELS_ENABLED=true` no `.env.production` da VPS) |
-| Último backup preventivo | `cadencia-20261001T000919Z.dump` (cópia externa criptografada no bucket da Oracle, com regra "excluir após 60 dias"; no servidor, 14 dias) |
+| Último backup preventivo | `cadencia-20261001T005456Z.dump` (cópia externa criptografada no bucket da Oracle, com regra "excluir após 60 dias"; no servidor, 14 dias) |
 | Validação pós-deploy | `/health`, `/ready`, frontend e `GET /v1/plans/current` autenticado = 200 com a conta de smoke test; `/ready` verifica o schema; `recovery_self_reports` criada; chave `true` confirmada dentro do contêiner da API; `POST /v1/protection/recovered` sem sessão = 401 |
 
 Escopo: somente ciclismo (estrada, MTB XCO/XCM, gravel e indoor). Corrida e musculação são produtos separados.
@@ -68,7 +68,7 @@ Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o cicl
 
 ## Pendências operacionais (fora do código)
 
-- **Na `master`, não publicado:** migração `000035` (`legal_acceptances`), registro do aceite dos Termos de Uso e da Política de Privacidade (caixa no cadastro, aviso que bloqueia o app para quem ainda não aceitou a versão vigente e `POST /v1/auth/accept-terms`) e a exportação passando de JSON para planilha `.xlsx` só com o essencial (conta, treinos realizados e atividades importadas, sem dados de saúde). A cópia completa, com saúde e limitações, é entregue por e-mail ao contato da política: hoje isso é manual (consultas SQL); um comando administrativo para gerar o JSON completo ainda não existe.
+- **LGPD, publicado (`2a64b4f`):** registro do aceite dos termos (migração `000035`, caixa no cadastro e aviso para quem ainda não aceitou, o que inclui a conta do dono do produto) e exportação em planilha `.xlsx` só com o essencial. A cópia completa, com saúde e limitações, é entregue por e-mail ao contato da política: hoje isso é manual (consultas SQL); um comando administrativo para gerar o JSON completo ainda não existe. Validação pós-deploy: `/ready` com o schema, `GET /v1/plans/current` autenticado = 200, exportação e aceite sem sessão = 401. Falta o dono do produto conferir a planilha e o aviso de aceite no celular.
 - **Textos legais:** `frontend/lib/legal.ts` e `backend/internal/legal/legal.go` (versão e contato) precisam andar juntos; um teste confere. Mudou o texto de forma relevante, suba a versão nos dois e todos aceitam de novo.
 
 - Plano novo gerado pelo dono do produto em produção: a proteção graduada passou a valer nele (30/09/2026). Ainda não foi exercitado em produção o botão "Estou recuperado".
