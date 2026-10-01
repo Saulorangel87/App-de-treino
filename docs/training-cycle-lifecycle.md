@@ -42,4 +42,21 @@ Treinos futuros não podem ser marcados dessa forma. Cancelar uma sessão já in
 
 Limites: vale para o plano ativo ou para o último plano, quando ele foi concluído e não há outro ativo; um treino de plano antigo não pode ser desfeito. Treinos ajustados por um check-in antes da sessão (`pre_session_recovery`) não têm o ajuste revertido, porque os valores "anteriores" gravados descartariam também aquele ajuste. A atividade importada vinculada ao treino continua vinculada. O gatilho só ajusta treinos ainda `planned` e não ajusta de novo um que já foi ajustado, então cada treino tem no máximo um dono de ajuste, e desfazer uma sessão que não causou ajuste não toca nos ajustes de outra.
 
+## Modo tarefa: marcar como feito
+
+Além do cronômetro (**Iniciar treino**), o treino planejado ou adaptado de hoje ou de um dia passado tem **Marcar como feito**. É para quem pedala e registra depois, ou não quer abrir o app no pedal. O formulário é o mesmo da conclusão (zona, dificuldade, fadiga, dor e métricas opcionais), com dois campos a mais: a **duração** em minutos (já preenchida com o tempo planejado) e o **dia do treino**.
+
+`POST /v1/workouts/{workoutID}/log` guarda uma sessão concluída com `duration_source = reported` (o cronômetro grava `timer`; a coluna também prevê `imported`, para arquivos do dispositivo). `started_at` é `completed_at` menos a duração informada. Hoje termina agora; um dia anterior é colocado ao meio-dia de Brasília (15:00 UTC). Depois disso a sessão segue o mesmo caminho da conclusão pelo cronômetro (`recordCompletion`): avaliação de integridade, comparação planejado e realizado, avaliação shadow e o gatilho de adaptação.
+
+Regras:
+
+- duração de 1 a 720 minutos; dia entre hoje e 7 dias atrás, e nunca anterior ao dia planejado do treino (adiantar um treino continua bloqueado, assim como iniciar um treino futuro);
+- o treino precisa estar `planned` ou `adapted`; um treino em andamento se conclui pelo cronômetro, e quem marcou por engano usa **Desfazer registro**;
+- vale o bloqueio de segurança de uma limitação ativa, como no início do treino;
+- erros: `400 invalid_workout_log` (duração ou dia fora das regras), `409 workout_in_future`.
+
+**A validade não depende de cumprir o tempo planejado.** O que torna uma sessão elegível para o histórico é a coerência dos dados (duração maior que zero, escalas válidas), e não o percentual feito. O que o percentual muda é só a progressão: a regra do gatilho (migração `000036`) exige **pelo menos 80% do tempo planejado** para subir a carga do treino seguinte. Reduções por dor, fadiga ou esforço acima do esperado continuam valendo com qualquer duração. O percentual de 80% é escolha de produto, e o app diz isso na tela.
+
+**Por que guardar a origem da duração.** A etapa 2 do motor (calibrar com dados reais) deve preferir duração medida pelo cronômetro ou por arquivo; a duração digitada pelo atleta é menos confiável. A coluna permite filtrar. A tela mostra "duração informada por você" no treino concluído, e a planilha de dados traz a coluna **Origem da duração**.
+
 O ciclo de vida permanece baseado no motor determinístico `rules-v1`. A observação de feedbacks reais e do resumo semanal é a próxima etapa antes de qualquer mudança na transição de estados ou na progressão automática.

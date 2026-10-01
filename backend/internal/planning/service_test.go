@@ -38,6 +38,10 @@ type planStore struct {
 	startedID    string
 	startedToday string
 	undoneID     string
+	loggedID     string
+	logged       LogWorkoutInput
+	loggedToday  string
+	logErr       error
 	undoErr      error
 	completedID  string
 	correctedID  string
@@ -77,6 +81,10 @@ func (s *planStore) StartWorkoutByUserID(_ context.Context, _ string, workoutID,
 	s.startedID = workoutID
 	s.startedToday = today
 	return nil
+}
+func (s *planStore) LogWorkoutByUserID(_ context.Context, _ string, workoutID string, input LogWorkoutInput, today string) error {
+	s.loggedID, s.logged, s.loggedToday = workoutID, input, today
+	return s.logErr
 }
 func (s *planStore) UndoWorkoutByUserID(_ context.Context, _ string, workoutID string) error {
 	s.undoneID = workoutID

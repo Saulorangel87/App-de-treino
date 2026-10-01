@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   activeProtection,
+  addDays,
+  durationSourceLabel,
   formatTrainingDay,
   isFutureTrainingDate,
+  loggableDateRange,
   undoConfirmation,
   type Workout,
 } from './planning';
@@ -57,5 +60,41 @@ describe('undoConfirmation', () => {
 
   it('é mais simples ao reabrir um treino não realizado', () => {
     expect(undoConfirmation('skipped')).toContain('Reabrir');
+  });
+});
+
+describe('addDays', () => {
+  it('soma e subtrai dias atravessando mês e ano', () => {
+    expect(addDays('2026-10-01', -7)).toBe('2026-09-24');
+    expect(addDays('2026-01-03', -7)).toBe('2025-12-27');
+    expect(addDays('2026-02-27', 3)).toBe('2026-03-02');
+  });
+});
+
+describe('datas ainda desconhecidas', () => {
+  it('não quebram na primeira renderização, antes de saber a data local', () => {
+    expect(addDays('', -7)).toBe('');
+    expect(addDays('abc', 1)).toBe('abc');
+    expect(loggableDateRange('2026-10-01', '')).toEqual({ min: '', max: '' });
+  });
+});
+
+describe('loggableDateRange', () => {
+  it('permite até 7 dias atrás e hoje', () => {
+    expect(loggableDateRange('2026-09-01', '2026-10-01')).toEqual({ min: '2026-09-24', max: '2026-10-01' });
+  });
+
+  it('não deixa registrar antes do dia planejado', () => {
+    expect(loggableDateRange('2026-09-30', '2026-10-01')).toEqual({ min: '2026-09-30', max: '2026-10-01' });
+    expect(loggableDateRange('2026-10-01', '2026-10-01')).toEqual({ min: '2026-10-01', max: '2026-10-01' });
+  });
+});
+
+describe('durationSourceLabel', () => {
+  it('diz de onde vem a duração', () => {
+    expect(durationSourceLabel('reported')).toBe('informada por você');
+    expect(durationSourceLabel('imported')).toBe('de um arquivo importado');
+    expect(durationSourceLabel('timer')).toBe('medida pelo cronômetro');
+    expect(durationSourceLabel(undefined)).toBe('medida pelo cronômetro');
   });
 });

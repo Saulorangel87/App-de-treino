@@ -13,8 +13,11 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { apiRequest } from '@/lib/api';
 import {
+  MAX_LOGGED_DURATION_MINUTES,
+  durationSourceLabel,
   formatTrainingDay,
   isFutureTrainingDate,
+  loggableDateRange,
   undoConfirmation,
   type TrainingPlan,
   type Workout,
@@ -114,6 +117,9 @@ export function WorkoutSessionActions({
   const [action, setAction] = useState('');
   const [todayKey, setTodayKey] = useState('');
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [logOpen, setLogOpen] = useState(false);
+  const [logDuration, setLogDuration] = useState('');
+  const [logDate, setLogDate] = useState('');
   const [completionStatus, setCompletionStatus] = useState<'complete' | 'partial'>('complete');
   const [partialReason, setPartialReason] = useState<keyof typeof partialReasonLabels | ''>('');
   const plannedZone = zoneForRpe(workout.target_rpe).number;
@@ -171,7 +177,7 @@ export function WorkoutSessionActions({
     });
   }, [prefillMetrics, workout.status]);
 
-  async function mutate(path: string, body?: object, query = '') {
+  async function mutate(path: string, body?: object, query = ''): Promise<boolean> {
     setAction(path);
     setError('');
     try {
@@ -184,19 +190,21 @@ export function WorkoutSessionActions({
       );
       onPlanUpdated(result.plan, workout.id);
       setFeedbackOpen(false);
+      return true;
     } catch (caught) {
       setError(
         caught instanceof Error
           ? caught.message
           : 'Não foi possível atualizar a sessão.',
       );
+      return false;
     } finally {
       setAction('');
     }
   }
 
-  async function complete() {
-    await mutate('complete', {
+  function feedbackPayload() {
+    return {
       completion_status: completionStatus,
       partial_reason: completionStatus === 'partial' ? partialReason : undefined,
       actual_zone: actualZone,
@@ -215,7 +223,38 @@ export function WorkoutSessionActions({
       average_heart_rate: usesHeartRate ? optionalNumber(averageHeartRate) : undefined,
       average_power_watts: usesPower ? optionalNumber(averagePowerW) : undefined,
       average_cadence_rpm: optionalNumber(averageCadenceRPM),
-    });
+    };
+  }
+
+  async function complete() {
+    await mutate('complete', feedbackPayload());
+  }
+
+  function openLog() {
+    setError('');
+    setLogDuration(String(workout.duration_minutes));
+    setLogDate(todayKey);
+    setLogOpen(true);
+  }
+
+  // Marca o treino como feito sem o cronômetro: o atleta informa duração e dia.
+  async function logDone() {
+    const minutes = Number(logDuration);
+    if (!Number.isInteger(minutes) || minutes < 1 || minutes > MAX_LOGGED_DURATION_MINUTES) {
+      setError(`Informe a duração em minutos, de 1 a ${MAX_LOGGED_DURATION_MINUTES}.`);
+      return;
+    }
+    const saved = await mutate(
+      'log',
+      { ...feedbackPayload(), duration_minutes: minutes, performed_on: logDate },
+      `?date=${todayKey}`,
+    );
+    if (saved) setLogOpen(false);
+  }
+
+  function closeForm() {
+    if (logOpen) setLogOpen(false);
+    else setFeedbackOpen(false);
   }
 
   function openCorrection() {
@@ -270,6 +309,7 @@ export function WorkoutSessionActions({
     isPastWorkout &&
     (workout.status === 'planned' || workout.status === 'adapted');
   const isFutureWorkout = isFutureTrainingDate(workout.scheduled_on, todayKey);
+  const logRange = loggableDateRange(workout.scheduled_on, todayKey);
   const awaitingStart =
     planStatus === 'active' &&
     (workout.status === 'planned' || workout.status === 'adapted');
@@ -315,8 +355,8 @@ export function WorkoutSessionActions({
         </p>
       )}
 
-      {canStart && (
-        <div className={canMarkMissed ? 'session-button-row' : undefined}>
+      {canStart && !logOpen && (
+        <div className="session-button-row">
           <Button
             type="button"
             className="session-primary"
@@ -329,6 +369,10 @@ export function WorkoutSessionActions({
               <Play />
             )}
             {action === 'start' ? 'Iniciando…' : startLabel}
+          </Button>
+          <Button type="button" variant="outline" disabled={busy} onClick={openLog}>
+            <CheckCircle2 />
+            Marcar como feito
           </Button>
           {canMarkMissed && (
             <Button
@@ -391,27 +435,65 @@ export function WorkoutSessionActions({
         </div>
       )}
 
-      {workout.status === 'in_progress' && feedbackOpen && (
+      {(logOpen || (workout.status === 'in_progress' && feedbackOpen)) && (
         <form
           className="session-feedback"
           onSubmit={(event) => {
             event.preventDefault();
-            void complete();
+            if (logOpen) void logDone();
+            else void complete();
           }}
         >
           <div className="feedback-heading">
             <div>
-              <strong>Como foi o treino?</strong>
+              <strong>{logOpen ? 'Registrar treino feito' : 'Como foi o treino?'}</strong>
               <small>Seu relato será usado na adaptação futura.</small>
             </div>
             <button
               type="button"
-              onClick={() => setFeedbackOpen(false)}
+              onClick={closeForm}
               aria-label="Voltar para as ações da sessão"
             >
               <RotateCcw />
             </button>
           </div>
+
+          {logOpen && (
+            <fieldset className="log-fields">
+              <legend>Quanto tempo e quando?</legend>
+              <div className="feedback-grid">
+                <label>
+                  Duração (min)
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    max={MAX_LOGGED_DURATION_MINUTES}
+                    step="1"
+                    inputMode="numeric"
+                    value={logDuration}
+                    onChange={(event) => setLogDuration(event.target.value)}
+                  />
+                </label>
+                <label>
+                  Dia do treino
+                  <input
+                    type="date"
+                    required
+                    min={logRange.min}
+                    max={logRange.max}
+                    value={logDate}
+                    onChange={(event) => setLogDate(event.target.value)}
+                  />
+                </label>
+              </div>
+              <small className="completion-help">
+                Planejado: {workout.duration_minutes} min. Você pode registrar até
+                7 dias depois. Para o próximo treino subir de carga, o app
+                considera pelo menos 80% do tempo planejado.
+              </small>
+            </fieldset>
+          )}
 
           <fieldset className="completion-context">
             <legend>Quanto do treino você realizou?</legend>
@@ -667,14 +749,16 @@ export function WorkoutSessionActions({
           />
 
           <Button type="submit" className="session-primary" disabled={busy}>
-            {action === 'complete' ? (
+            {action === (logOpen ? 'log' : 'complete') ? (
               <LoaderCircle className="spin" />
             ) : (
               <CheckCircle2 />
             )}
-            {action === 'complete'
-              ? 'Salvando feedback…'
-              : 'Salvar e concluir'}
+            {action === (logOpen ? 'log' : 'complete')
+              ? 'Salvando…'
+              : logOpen
+                ? 'Salvar treino feito'
+                : 'Salvar e concluir'}
           </Button>
         </form>
       )}
@@ -684,6 +768,11 @@ export function WorkoutSessionActions({
           <CheckCircle2 />
           <div>
             <strong>Treino concluído · {session?.actual_rpe !== undefined ? zoneLabel(session.actual_rpe) : 'zona não informada'}</strong>
+            {session?.duration_minutes !== undefined && (
+              <small className="duration-source">
+                {session.duration_minutes} min · duração {durationSourceLabel(session.duration_source)}
+              </small>
+            )}
             <span>
               {feedback.completion_status === 'partial'
                 ? `Conclusão parcial · ${feedback.partial_reason ? partialReasonLabels[feedback.partial_reason] : 'motivo não informado'}`

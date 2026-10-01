@@ -274,6 +274,7 @@
 }
 
 .completion-context,
+.log-fields,
 .session-metrics {
   display: flex;
   flex-direction: column;
@@ -284,6 +285,7 @@
 }
 
 .completion-context legend,
+.log-fields legend,
 .session-metrics legend {
   float: left;
   width: 100%;
@@ -370,4 +372,10 @@
 
 .session-data-warning > svg {
   color: var(--warn);
+}
+
+.duration-source {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
 }

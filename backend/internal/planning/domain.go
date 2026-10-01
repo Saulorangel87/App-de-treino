@@ -20,6 +20,7 @@ var (
 	ErrWorkoutSafetyBlocked = errors.New("workout blocked by active safety limitation")
 	ErrProtectionDisabled   = errors.New("protection levels are not enabled")
 	ErrWorkoutInFuture      = errors.New("workout is scheduled for a future date")
+	ErrInvalidLog           = errors.New("invalid workout log")
 )
 
 var planIDPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
@@ -164,7 +165,10 @@ type WorkoutSession struct {
 	AveragePowerW     *int       `json:"average_power_watts,omitempty"`
 	AverageHeartRate  *int       `json:"average_heart_rate,omitempty"`
 	AverageCadenceRPM *int       `json:"average_cadence_rpm,omitempty"`
-	Feedback          *Feedback  `json:"feedback,omitempty"`
+	// DurationSource says where the duration comes from: "timer" (the app's
+	// stopwatch), "reported" (typed by the athlete) or "imported" (a device file).
+	DurationSource string    `json:"duration_source,omitempty"`
+	Feedback       *Feedback `json:"feedback,omitempty"`
 }
 
 type Feedback struct {
@@ -202,6 +206,22 @@ type CompletionInput struct {
 	AverageHeartRate   *int
 	AverageCadenceRPM  *int
 }
+
+// LogWorkoutInput marks a planned workout as done without the stopwatch: the
+// athlete reports how long it took and on which day.
+type LogWorkoutInput struct {
+	CompletionInput
+	// DurationMinutes is reported by the athlete, from 1 to MaxLoggedDurationMinutes.
+	DurationMinutes int
+	// PerformedOn is the day of the ride (YYYY-MM-DD), today or up to
+	// MaxLogBackdateDays earlier; empty means today.
+	PerformedOn string
+}
+
+const (
+	MaxLoggedDurationMinutes = 720
+	MaxLogBackdateDays       = 7
+)
 
 // WorkoutCorrectionInput replaces only optional pedal metrics on a completed
 // session. Nil values intentionally clear the corresponding metric.

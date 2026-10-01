@@ -510,6 +510,32 @@ paths:
         '401': { description: Sessão de usuário ausente ou expirada }
         '404': { description: Treino não encontrado no plano ativo }
         '409': { description: Transição de estado inválida, treino bloqueado por limitação ativa ou treino de data futura (workout_in_future) }
+  /v1/workouts/{workoutID}/log:
+    post:
+      summary: Marca um treino planejado como feito, sem cronômetro (modo tarefa)
+      description: >
+        O atleta informa a duração (1 a 720 minutos) e o dia (hoje ou até 7 dias atrás, sem ser anterior ao dia
+        planejado do treino), além do mesmo feedback da conclusão (zona em actual_zone, ou actual_rpe). A sessão fica
+        concluída com duration_source reported, passa pela mesma avaliação de integridade e adaptação de uma sessão
+        concluída no cronômetro e o treino precisa estar agendado para hoje ou antes.
+      parameters:
+        - $ref: '#/components/parameters/WorkoutID'
+        - name: date
+          in: query
+          required: false
+          description: Data local do atleta (AAAA-MM-DD), com a mesma regra do início do treino.
+          schema: { type: string, format: date }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LogWorkoutRequest' }
+      responses:
+        '200': { description: Treino registrado e plano atualizado }
+        '400': { description: Identificador, feedback, duração ou dia inválidos (invalid_workout_log) }
+        '401': { description: Sessão de usuário ausente ou expirada }
+        '404': { description: Treino não encontrado no plano ativo }
+        '409': { description: Treino não está planejado, é de data futura ou está bloqueado por limitação ativa }
   /v1/workouts/{workoutID}/undo:
     post:
       summary: Desfaz o registro de um treino concluído, não realizado ou em andamento
@@ -1612,6 +1638,10 @@ components:
         average_heart_rate: { type: integer, minimum: 30, maximum: 250 }
         average_power_watts: { type: integer, minimum: 0, maximum: 2000 }
         average_cadence_rpm: { type: integer, minimum: 1, maximum: 300 }
+        duration_source:
+          type: string
+          enum: [timer, reported, imported]
+          description: De onde vem a duração; cronômetro do app, informada pelo atleta (modo tarefa) ou arquivo importado.
         feedback: { $ref: '#/components/schemas/WorkoutFeedback' }
     WorkoutFeedback:
       type: object
@@ -1629,6 +1659,15 @@ components:
         external_conditions: { type: string, enum: [normal, heat, cold, wind, rain, poor_visibility, other] }
         equipment_used: { type: string, maxLength: 120 }
         notes: { type: string, maxLength: 1000 }
+    LogWorkoutRequest:
+      description: O mesmo feedback de CompleteWorkoutRequest, mais a duração informada e o dia do treino.
+      allOf:
+        - $ref: '#/components/schemas/CompleteWorkoutRequest'
+        - type: object
+          required: [duration_minutes]
+          properties:
+            duration_minutes: { type: integer, minimum: 1, maximum: 720 }
+            performed_on: { type: string, format: date, description: Dia do treino; vazio significa hoje. }
     CompleteWorkoutRequest:
       type: object
       description: >
