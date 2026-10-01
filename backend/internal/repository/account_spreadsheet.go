@@ -51,7 +51,7 @@ const completedWorkoutsSheetQuery = `
 	ORDER BY w.scheduled_on, ws.completed_at`
 
 const importedActivitiesSheetQuery = `
-	SELECT to_char(ia.started_at AT TIME ZONE 'America/Sao_Paulo', ` + brasiliaTime + `), ia.source,
+	SELECT to_char(ia.started_at AT TIME ZONE 'America/Sao_Paulo', ` + brasiliaTime + `), upper(ia.source),
 		round(ia.moving_seconds / 60.0)::int, ia.distance_km::float8, ia.elevation_gain_m,
 		ia.average_heart_rate, ia.max_heart_rate, ia.average_power_watts, ia.normalized_power_watts,
 		ia.average_cadence_rpm, w.name
@@ -64,6 +64,17 @@ var completedWorkoutsHeader = []string{
 	"Data planejada", "Treino", "Objetivo do treino", "Duração planejada (min)", "Esforço-alvo (RPE)",
 	"Início (horário de Brasília)", "Fim (horário de Brasília)", "Duração real (min)", "Esforço percebido (RPE)",
 	"Distância (km)", "Altimetria (m)", "Potência média (W)", "FC média (bpm)", "Cadência média (rpm)",
+}
+
+var completedWorkoutsKinds = []xlsx.Kind{
+	xlsx.KindCenter, xlsx.KindText, xlsx.KindWrap, xlsx.KindInt, xlsx.KindDecimal,
+	xlsx.KindCenter, xlsx.KindCenter, xlsx.KindInt, xlsx.KindDecimal,
+	xlsx.KindDecimal, xlsx.KindInt, xlsx.KindInt, xlsx.KindInt, xlsx.KindInt,
+}
+
+var importedActivitiesKinds = []xlsx.Kind{
+	xlsx.KindCenter, xlsx.KindCenter, xlsx.KindInt, xlsx.KindDecimal, xlsx.KindInt,
+	xlsx.KindInt, xlsx.KindInt, xlsx.KindInt, xlsx.KindInt, xlsx.KindInt, xlsx.KindText,
 }
 
 var importedActivitiesHeader = []string{
@@ -87,7 +98,7 @@ func (s *Store) ExportAccountSpreadsheet(ctx context.Context, userID string) ([]
 		Scan(&name, &email, &verified, &createdAt, &level, &termsVersion, &termsAcceptedAt, &generatedAt, &completedWorkouts); err != nil {
 		return nil, fmt.Errorf("export account sheet: %w", err)
 	}
-	account := xlsx.Sheet{Name: "Conta", Header: []string{"Campo", "Valor"}, Rows: [][]any{
+	account := xlsx.Sheet{Name: "Conta", Header: []string{"Campo", "Valor"}, Kinds: []xlsx.Kind{xlsx.KindLabel, xlsx.KindWrap}, Rows: [][]any{
 		{"Nome", name},
 		{"E-mail", email},
 		{"E-mail confirmado", verified},
@@ -112,8 +123,8 @@ func (s *Store) ExportAccountSpreadsheet(ctx context.Context, userID string) ([]
 	}
 	return []xlsx.Sheet{
 		account,
-		{Name: "Treinos realizados", Header: completedWorkoutsHeader, Rows: workouts},
-		{Name: "Atividades importadas", Header: importedActivitiesHeader, Rows: imported},
+		{Name: "Treinos realizados", Header: completedWorkoutsHeader, Kinds: completedWorkoutsKinds, Rows: workouts, Filter: true},
+		{Name: "Atividades importadas", Header: importedActivitiesHeader, Kinds: importedActivitiesKinds, Rows: imported, Filter: true},
 	}, nil
 }
 
