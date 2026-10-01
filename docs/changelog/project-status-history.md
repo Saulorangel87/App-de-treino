@@ -891,3 +891,11 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - **Validação:** testes Go e do frontend, fixtures SQL (`000035_legal_acceptances.sql` e `account_deletion.sql` com a nova tabela), teste com banco da planilha e da cópia completa, build, planilha aberta no LibreOffice e em uma biblioteca independente, e fluxo no navegador (cadastro sem e com aceite, aviso para conta sem aceite, download). Em produção, após cada deploy: `/ready`, leitura autenticada do plano e rotas novas sem sessão = 401; o script da cópia foi testado com um e-mail inexistente.
 - **Não foi criada release nova** (a versão visível continua `0.37.0`), por decisão do dono do produto.
 - **Pendências:** conferência no celular pelo dono do produto; resposta do Strava (a política precisa ganhar a seção do Strava antes de qualquer conexão); automatizar a cópia completa com verificação de identidade só se o app escalar.
+
+## Segurança da VPS — auditoria e contêineres sem privilégios (01/10/2026)
+
+**Auditoria só de leitura.** SSH só por chave e restrito à Tailscale; as 18 portas testadas no IP público estão fechadas; segredos e backups com permissões corretas; contêineres sem root. Lacuna: capacidades padrão do kernel, elevação de privilégio possível e sistema de arquivos gravável nos contêineres do Cadência.
+
+**Mudança.** `x-hardening` no Compose (`cap_drop: ALL`, `no-new-privileges`, `read_only` com `/tmp` em memória, `pids_limit`) aplicado à API, ao frontend, ao túnel e ao `account-export`. O PostgreSQL e os demais aplicativos da VPS não foram alterados. Validado localmente com as imagens de produção (API e frontend saudáveis; cadastro, plano, importação, planilha e cópia completa funcionando; túnel iniciando).
+
+**Pendências (decisão do dono do produto):** reinício da VPS para o kernel novo, ajustes opcionais do SSH, Samba/rpcbind, revisão da Cloudflare. Detalhes em `infrastructure/cadencia/README.md`.

@@ -8,6 +8,18 @@ x-logging: &default-logging
     max-size: "10m"
     max-file: "3"
 
+# Endurecimento dos contêineres sem estado (API, frontend e túnel): nenhuma
+# capacidade do kernel, sem elevação de privilégio, sistema de arquivos somente
+# leitura (só /tmp é gravável, em memória) e limite de processos. O PostgreSQL fica
+# de fora porque precisa gravar no volume e trocar de usuário ao iniciar.
+x-hardening: &hardening
+  cap_drop: ["ALL"]
+  security_opt: ["no-new-privileges:true"]
+  read_only: true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m
+  pids_limit: 256
+
 services:
   postgres:
     image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24 # postgres:17-alpine
@@ -57,6 +69,7 @@ services:
       context: ../..
       dockerfile: infrastructure/cadencia/Dockerfile.api
     restart: unless-stopped
+    <<: *hardening
     mem_limit: ${API_MEM_LIMIT:-512m}
     logging: *default-logging
     environment:
@@ -121,6 +134,7 @@ services:
       dockerfile: infrastructure/cadencia/Dockerfile.api
     profiles: ["admin"]
     restart: "no"
+    <<: *hardening
     entrypoint: ["/usr/local/bin/cadencia-account-export"]
     environment:
       DATABASE_URL: ${DATABASE_URL}
@@ -153,6 +167,7 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL}
     restart: unless-stopped
+    <<: *hardening
     mem_limit: ${FRONTEND_MEM_LIMIT:-768m}
     logging: *default-logging
     expose:
@@ -163,6 +178,7 @@ services:
   tunnel:
     image: cloudflare/cloudflared@sha256:e39ee8da81ad5e05d77f38d2f51c60ca51bf2a8450ac3abab50c17fdb91d91bf # cloudflared 2026.7.3, linux/arm64
     restart: unless-stopped
+    <<: *hardening
     logging: *default-logging
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on:

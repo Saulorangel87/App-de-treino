@@ -203,3 +203,27 @@ O diretório de produção é `/var/backups/cadencia`, com acesso do usuário `u
 - O hardening das portas dos demais aplicativos da VPS é uma atividade separada; não altere seus containers por este compose.
 
 Na auditoria de 2 de setembro de 2026, os serviços externos continuavam fora desta composição. O Nginx Proxy Manager usa Tailscale para `casaos.oraclecloud.com.br` (`100.67.151.30:8888`) e `immich.photo.com.br` (`100.67.151.30:2283`). A porta `8123` é do Home Assistant e a `8888` é do `casaos-gateway`; existe ainda um `cloudflared-tunnel` separado para outros aplicativos. A porta pública `2283` foi bloqueada na cadeia `DOCKER-USER` somente pela interface `enp0s6`, preservando Tailscale, loopback e o funcionamento do Immich. Novas conexões SSH também foram bloqueadas em `enp0s6`, mantendo o acesso administrativo validado pelo IP Tailscale `100.67.151.30`. As regras TCP públicas `22`, `81`, `2283`, `8096` e `8097` foram removidas da Oracle Cloud; restaram somente ICMP.
+
+### Auditoria de segurança da VPS (01/10/2026)
+
+Auditoria somente de leitura, feita por SSH e por testes de fora. Escopo: o servidor (host) e o Cadência. Os demais aplicativos da VPS não foram alterados.
+
+| Item | Situação |
+| --- | --- |
+| SSH | Só por chave (`PasswordAuthentication no`); conexões novas na porta 22 pela interface pública são descartadas por regra do firewall e o acesso é pela Tailscale. 0 tentativas falhas nas últimas 24 horas. |
+| Exposição pública | Testadas 18 portas no IP público (22, 80, 443, 81, 111, 139, 445, 3000, 3001, 3011, 4443, 5678, 8080, 8081, 8082, 8091, 8181, 9000): todas fechadas. O firewall da nuvem bloqueia tudo; o Cadência entra só pelo Cloudflare Tunnel e não publica porta nenhuma. |
+| Segredos | `.env.production` em 600; `/etc/cadencia/*.env` em 640 (root:ubuntu); backups em 600, com cópia externa criptografada e regra de exclusão em 60 dias. |
+| Atualizações | `unattended-upgrades` ativo. Havia 46 pacotes atualizáveis e um reinício pendente (kernel). |
+| Contêineres do Cadência | Rodam sem root (API, frontend e túnel), com limite de memória, logs rotacionados e imagens fixadas por hash; o PostgreSQL fica numa rede interna, sem porta publicada. |
+| Lacuna encontrada | Os contêineres mantinham as capacidades padrão do kernel, podiam elevar privilégios e tinham o sistema de arquivos gravável. |
+
+**Mudança feita (`compose.production.yaml`):** API, frontend, túnel e o comando `account-export` passam a rodar sem nenhuma capacidade (`cap_drop: ALL`), com `no-new-privileges`, sistema de arquivos somente leitura (só `/tmp` gravável, em memória, `noexec`) e `pids_limit: 256`. Testado localmente com as imagens de produção: a API e o frontend sobem e ficam saudáveis; cadastro, geração de plano, importação de arquivo e planilha funcionam sem erros de escrita; o túnel inicia normalmente; a cópia completa chega ao banco. O PostgreSQL ficou de fora (precisa gravar no volume e trocar de usuário ao iniciar). Se algum serviço falhar depois do deploy, o primeiro passo é remover a linha `<<: *hardening` do serviço e recriá-lo.
+
+**Pendente, com decisão do dono do produto:**
+
+1. **Reiniciar a VPS** para aplicar o kernel novo e os 46 pacotes. Reinicia também os outros aplicativos hospedados lá, então escolha um horário calmo. Conferido em 01/10/2026 que é seguro: Docker, Tailscale e `ssh.socket` sobem no boot, todos os contêineres em execução têm política de reinício (`unless-stopped` ou `always`; só o `watchtower`, parado, não tem) e os timers de backup, de teste de restauração e do resumo semanal são do systemd.
+2. **Reduzir o SSH** (opcional, baixo ganho porque a porta não é pública): `X11Forwarding no` e `MaxAuthTries 3` em um arquivo de `/etc/ssh/sshd_config.d/`, validando com `sshd -t` antes de recarregar, sem fechar a sessão atual.
+3. **`fail2ban` desligado:** sem ganho enquanto a porta 22 estiver descartada na interface pública; só vale se ela for reaberta.
+4. **Samba (139/445) e rpcbind (111)** escutam em todas as interfaces do host. Não estão acessíveis da internet, mas estão na rede local e na Tailscale; desligar o que não for usado (provavelmente do CasaOS).
+5. **Firewall do host** com política `ACCEPT` por padrão: a proteção pública depende do firewall da Oracle. Trocar para política de bloqueio exige regras para Docker e Tailscale e pode derrubar os outros aplicativos; fica como melhoria futura, com janela de teste.
+6. **Cloudflare** (fora do alcance desta auditoria): conferir SSL/TLS em modo "Full (strict)", regras de limite de requisições e proteção contra bots no painel.
