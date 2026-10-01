@@ -1,6 +1,6 @@
 # Estado atual do Cadência
 
-Última atualização: 30 de setembro de 2026.
+Última atualização: 1 de outubro de 2026.
 
 Este é o documento de continuidade: curto e sempre atual. O diário cronológico das fatias de trabalho (com datas, validações e decisões) está em [`changelog/project-status-history.md`](changelog/project-status-history.md). Não inclua senhas, tokens, chaves de API nem conteúdo de `.env`.
 
@@ -10,10 +10,10 @@ Este é o documento de continuidade: curto e sempre atual. O diário cronológic
 | --- | --- |
 | Frontend | <https://cadencia.devsaulo.com.br> |
 | API | <https://cadencia-api.devsaulo.com.br> |
-| Versão publicada | `0.37.0`, commit `2a64b4f` (deploys de 30/09 a 01/10/2026: `8786881`, proteção graduada do motor e "Estou recuperado"; `0ba6efa`, correção das referências; `6b9134d`, auditoria das 27 referências, comparação com a atividade importada, Política de Privacidade e Termos de Uso; `2a64b4f`, planilha de dados e registro do aceite dos termos; a versão visível não mudou desde a `0.37.0`) |
+| Versão publicada | `0.37.0`, commit `40898f8` (deploys de 30/09 a 01/10/2026: `8786881`, proteção graduada do motor e "Estou recuperado"; `0ba6efa`, correção das referências; `6b9134d`, auditoria das 27 referências, comparação com a atividade importada, Política de Privacidade e Termos de Uso; `2a64b4f`, planilha de dados e registro do aceite dos termos; `395ea86`, comando administrativo da cópia completa; `40898f8`, rodapé compacto no celular; a versão visível não mudou desde a `0.37.0`) |
 | Migrações aplicadas | `000001` a `000035` |
 | Motor prescritivo | `rules-v1` (único); `rules-v2` e demais shadows são somente observacionais. Proteção graduada ligada (`PROTECTION_LEVELS_ENABLED=true` no `.env.production` da VPS) |
-| Último backup preventivo | `cadencia-20261001T005456Z.dump` (cópia externa criptografada no bucket da Oracle, com regra "excluir após 60 dias"; no servidor, 14 dias) |
+| Último backup preventivo | `cadencia-20261001T101835Z.dump` (cópia externa criptografada no bucket da Oracle, com regra "excluir após 60 dias"; no servidor, 14 dias) |
 | Validação pós-deploy | `/health`, `/ready`, frontend e `GET /v1/plans/current` autenticado = 200 com a conta de smoke test; `/ready` verifica o schema; `recovery_self_reports` criada; chave `true` confirmada dentro do contêiner da API; `POST /v1/protection/recovered` sem sessão = 401 |
 
 Escopo: somente ciclismo (estrada, MTB XCO/XCM, gravel e indoor). Corrida e musculação são produtos separados.
@@ -68,9 +68,12 @@ Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o cicl
 
 ## Pendências operacionais (fora do código)
 
-- **LGPD, publicado (`2a64b4f`):** registro do aceite dos termos (migração `000035`, caixa no cadastro e aviso para quem ainda não aceitou, o que inclui a conta do dono do produto) e exportação em planilha `.xlsx` só com o essencial. A cópia completa, com saúde e limitações, é entregue por e-mail ao contato da política. Na `master`, ainda sem deploy: o comando administrativo `cadencia-account-export --email ...` (perfil `admin` do Compose) que gera esse JSON na VPS; o procedimento, com os cuidados (confirmar quem pediu, baixar e apagar, enviar com senha), está em [`infrastructure/cadencia/README.md`](../infrastructure/cadencia/README.md). Validação pós-deploy: `/ready` com o schema, `GET /v1/plans/current` autenticado = 200, exportação e aceite sem sessão = 401. Falta o dono do produto conferir a planilha e o aviso de aceite no celular.
+- **LGPD, publicado (`2a64b4f`):** registro do aceite dos termos (migração `000035`, caixa no cadastro e aviso para quem ainda não aceitou, o que inclui a conta do dono do produto) e exportação em planilha `.xlsx` só com o essencial. A cópia completa, com saúde e limitações, é entregue por e-mail ao contato da política. Publicado em `395ea86`: `sh infrastructure/cadencia/scripts/account-export.sh <e-mail>` gera esse JSON na VPS (perfil `admin` do Compose; só lê o banco); o procedimento, com os cuidados (confirmar quem pediu, baixar e apagar, enviar com senha), está em [`infrastructure/cadencia/README.md`](../infrastructure/cadencia/README.md). Validação pós-deploy: `/ready` com o schema, `GET /v1/plans/current` autenticado = 200, exportação e aceite sem sessão = 401. Falta o dono do produto conferir a planilha e o aviso de aceite no celular.
 - **Textos legais:** `frontend/lib/legal.ts` e `backend/internal/legal/legal.go` (versão e contato) precisam andar juntos; um teste confere. Mudou o texto de forma relevante, suba a versão nos dois e todos aceitam de novo.
 
+- **Strava, aguardando resposta** (ticket ZLJ55R-JPPP1; só houve resposta automática): as três perguntas enviadas a developers@strava.com em 30/09/2026 definem se dá para guardar o treino concluído a partir de uma atividade do Strava. Até lá, nenhum código grava dados do Strava. Quando a resposta chegar: registrá-la em [`strava-conformidade.md`](strava-conformidade.md), ajustar o desenho e, antes de liberar a conexão, incluir a seção do Strava na política de privacidade (checklist no mesmo documento).
+- **Conferência do dono do produto no celular:** aviso de aceite dos termos, planilha de dados e botão "Estou recuperado" (este último ainda não foi exercitado em produção).
+- **Sem release nova:** a versão visível continua `0.37.0` desde o deploy das novidades de 30/09/2026; as entregas de LGPD e o rodapé foram publicadas sem aviso de novidades, por decisão do dono do produto.
 - Plano novo gerado pelo dono do produto em produção: a proteção graduada passou a valer nele (30/09/2026). Ainda não foi exercitado em produção o botão "Estou recuperado".
 - Atalho de compartilhar no Android: o app XOSS não mostra o Cadência na lista; manifesto e Chrome auditados sem erro em 30/09/2026. Decisão do dono do produto: deixar como está (Atividades → Importar funciona).
 - Etapa 2 da fase de dados reais: melhorias no motor de treino usando os dados importados (ainda não desenhada em detalhe; ver [`proxima-fase-dados-reais.md`](proxima-fase-dados-reais.md)).

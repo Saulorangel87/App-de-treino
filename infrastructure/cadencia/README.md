@@ -97,7 +97,7 @@ Cuidados, porque o arquivo tem dados de saúde:
 
 Se o app crescer, o próximo passo é um fluxo automatizado com verificação de identidade; hoje, com poucos atletas, o procedimento manual é suficiente.
 
-No checkout atual, as migrações `000015` a `000030` registram as fontes científicas do catálogo, os contextos de conclusão e feedback pós-treino, os campos estruturados de segurança, os gates de adaptação, a evidência de recuperação pós-prova, a cadência média observacional e o contexto adicional de perfil/segurança. A produção foi sincronizada até `000030` no deploy de 15 de setembro de 2026. A versão comunicada ao usuário em produção é `0.32.0`.
+O esquema versionado vai até `000035` e a produção está sincronizada com ele (deploy de 1 de outubro de 2026, commit `40898f8`). A versão visível ao usuário é `0.37.0`. O histórico de cada deploy fica em [`docs/STATUS.md`](../../docs/STATUS.md) e em [`docs/changelog/project-status-history.md`](../../docs/changelog/project-status-history.md).
 
 O Ollama é opcional e não é iniciado pelo comando acima. Ele foi instalado na VPS e permanece parado após o teste de capacidade; a produção usa temporariamente o Worker remoto para evitar sobrecarga. O padrão seguro continua sendo `AI_ENABLED=false`. Para preparar o serviço somente na rede interna do Cadência:
 

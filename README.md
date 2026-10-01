@@ -21,7 +21,7 @@ O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Spr
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000001`–`000031`; a produção está sincronizada até `000031`.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000001`–`000035`; a produção está sincronizada até `000035`.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -37,6 +37,8 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `POST /v1/auth/register`: cria usuário, aplica hash seguro à senha, inicia sessão e envia a confirmação de e-mail.
 - `POST /v1/auth/login`: autentica e cria uma nova sessão.
 - `POST /v1/auth/logout`: revoga a sessão atual.
+- `GET /v1/auth/account/export`: planilha `.xlsx` com os dados essenciais do usuário (conta, treinos realizados e atividades importadas), sem dados de saúde, senha nem tokens. A cópia completa, com saúde e limitações, é gerada pelo dono do produto com `infrastructure/cadencia/scripts/account-export.sh` (ver `infrastructure/cadencia/README.md`).
+- `POST /v1/auth/accept-terms`: registra o aceite da versão vigente dos Termos de Uso e da Política de Privacidade. O cadastro (`POST /v1/auth/register`) exige `accept_terms` e `terms_version`; `GET /v1/me` informa se a versão vigente foi aceita (`legal.accepted`).
 - `DELETE /v1/auth/account`: exige a senha atual e a confirmação `ENCERRAR CONTA` para apagar a conta e todos os dados pessoais em cascata no PostgreSQL.
 - `POST /v1/auth/resend-verification` e `POST /v1/auth/verify-email`: reenviam e consomem um link de confirmação de uso único.
 - `POST /v1/auth/forgot-password` e `POST /v1/auth/reset-password`: iniciam e concluem a redefinição segura da senha.
@@ -72,7 +74,7 @@ O login tem limite por IP e por conta (10 falhas em 15 minutos). `GET /ready` co
 
 As sessões são opacas, armazenadas no PostgreSQL apenas como hash e enviadas ao navegador em cookie `HttpOnly`. Em produção, `APP_ENV=production` ativa também a exigência de HTTPS no cookie. Os links de confirmação e redefinição são aleatórios, expiram e só têm o hash armazenado; a redefinição de senha revoga todas as sessões existentes. A geração e a ativação de planos exigem e-mail confirmado.
 
-As rotas atuais do frontend são `/`, `/entrar`, `/perfil`, `/configuracoes`, `/plano`, `/atividades`, `/avaliacao`, `/recuperacao`, `/evolucao`, `/feedback` e `/novidades`. A tela de atividades apresenta sessões concluídas e canceladas com data, duração, RPE e feedback. A aba de feedback de produto permite que atletas autenticados registrem a experiência, um problema ou uma sugestão; o relato é salvo no PostgreSQL sem expor o e-mail na resposta. Um job separado pode consolidar os relatos ainda não enviados em um resumo semanal pelo Resend, destinado somente ao endereço administrativo configurado na VPS. O perfil possui quatro etapas e retoma dados já salvos. A área de configurações mostra os dados da conta, encaminha para o perfil e permite o encerramento definitivo com confirmação dupla. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
+As rotas atuais do frontend são `/`, `/entrar`, `/perfil`, `/configuracoes`, `/plano`, `/atividades`, `/avaliacao`, `/recuperacao`, `/evolucao`, `/feedback`, `/novidades`, e as páginas públicas `/privacidade` e `/termos` (texto em `frontend/lib/legal.ts`). A tela de atividades apresenta sessões concluídas e canceladas com data, duração, RPE e feedback. A aba de feedback de produto permite que atletas autenticados registrem a experiência, um problema ou uma sugestão; o relato é salvo no PostgreSQL sem expor o e-mail na resposta. Um job separado pode consolidar os relatos ainda não enviados em um resumo semanal pelo Resend, destinado somente ao endereço administrativo configurado na VPS. O perfil possui quatro etapas e retoma dados já salvos. A área de configurações mostra os dados da conta, encaminha para o perfil e permite o encerramento definitivo com confirmação dupla. Configure `frontend/.env` a partir de `frontend/.env.example` quando a URL da API for diferente de `http://localhost:8080`.
 
 A tela `/plano` gera, apresenta e ativa ciclos de quatro semanas. O motor `rules-v1` é determinístico: considera experiência, objetivo, limitações, disponibilidade, o contexto opcional de ciclismo e um resumo observado dos últimos 28 dias de sessões e recuperação. Ele seleciona sessões específicas de forma gradual (cadência no indoor, subidas, sweet spot por potência/FTP, ritmo de prova e os pilotos de intervalos moderados de estrada, intensos de estrada, VO₂max de estrada, intervalos curtos autorregulados e aeróbicos XCO), limita cada sessão ao tempo informado e reduz a intensidade quando há uma condição de segurança ativa ou sinais recentes de recuperação insuficiente. Os pilotos VO₂max e de intervalos curtos exigem preferência explícita, elegibilidade restrita, avaliação apta e histórico mínimo; foram publicados na versão `0.20.0` com as migrações correspondentes. O dashboard usa o plano aprovado, explica a escala RPE e permite acompanhar a sessão do início ao feedback pós-treino. No desenvolvimento local e em produção, novos rascunhos também congelam no `prescription_snapshot` uma classificação observacional de prontidão e medições de 7/28/42 dias de aderência e carga por session-RPE; esses campos ainda não alteram a prescrição.
 
@@ -99,7 +101,7 @@ O MVP de ciclismo está publicado e validado em produção:
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
 - Código publicado na linha de versão `0.37.0`, incluindo a proteção graduada do motor (ligada em produção) e a importação de atividades por arquivo `.fit`/`.gpx` (desde a `0.34.0`).
-- Versão visível: `0.37.0`; migrações de banco aplicadas até `000033`.
+- Versão visível: `0.37.0`; migrações de banco aplicadas até `000035`.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, onboarding, plano, treino, feedback, adaptação, atividades, evolução, configurações, importação de atividades, novidades e logout foram validados em produção.
 - `rules-v1` continua sendo a única fonte prescritiva. Os shadows permanecem observacionais.
