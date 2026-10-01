@@ -201,3 +201,76 @@
     font-size: 12px;
   }
 }
+
+.footer-icons {
+  display: flex;
+  align-items: center;
+}
+
+/* No celular o rodapé é compacto, em duas linhas: crédito e ícones; links e botão
+   de instalar. */
+@media (max-width: 599px) {
+  .site-footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 0;
+    padding: 2px var(--gutter) 6px;
+    text-align: left;
+  }
+
+  /* O crédito ocupa a linha inteira (reservando o espaço dos ícones à direita), para
+     a largura do botão de instalar, na linha de baixo, não o comprimir. */
+  .site-footer p {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    padding-right: 100px;
+  }
+
+  .site-footer .footer-actions {
+    display: contents;
+  }
+
+  .site-footer .footer-icons {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .site-footer .footer-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .site-footer .legal-links {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-start;
+    gap: 2px 12px;
+  }
+
+  .site-footer .install-app,
+  .site-footer .installed-label {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    min-height: 30px;
+    margin: 0;
+    font-size: 12px;
+  }
+
+  .site-footer .install-app {
+    padding: 0 10px;
+  }
+}
+
+@media (max-width: 359px) {
+  .site-footer p {
+    padding-right: 88px;
+  }
+
+  .site-footer .footer-icon {
+    width: 28px;
+  }
+}
