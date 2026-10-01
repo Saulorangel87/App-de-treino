@@ -93,9 +93,11 @@ export function AppFooter() {
       <div className="footer-actions">
         {installPrompt && !installed && <button type="button" className="install-app" onClick={installApp}><Download size={14} />Instalar app</button>}
         {installed && <span className="installed-label"><span />App instalado</span>}
-        <a className="footer-icon" href="https://www.linkedin.com/in/saulorangel87" target="_blank" rel="noreferrer" aria-label="LinkedIn de Saulo Rangel"><ContactRound size={15} /></a>
-        <a className="footer-icon" href="https://github.com/Saulorangel87" target="_blank" rel="noreferrer" aria-label="GitHub de Saulo Rangel"><Code2 size={16} /></a>
-        <a className="footer-icon" href="mailto:sauloleonardo1987@gmail.com" aria-label="Enviar e-mail para Saulo Rangel"><Mail size={16} /></a>
+        <div className="footer-icons">
+          <a className="footer-icon" href="https://www.linkedin.com/in/saulorangel87" target="_blank" rel="noreferrer" aria-label="LinkedIn de Saulo Rangel"><ContactRound size={15} /></a>
+          <a className="footer-icon" href="https://github.com/Saulorangel87" target="_blank" rel="noreferrer" aria-label="GitHub de Saulo Rangel"><Code2 size={16} /></a>
+          <a className="footer-icon" href="mailto:sauloleonardo1987@gmail.com" aria-label="Enviar e-mail para Saulo Rangel"><Mail size={16} /></a>
+        </div>
       </div>
     </footer>
   );
