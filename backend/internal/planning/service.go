@@ -10,7 +10,12 @@ type Store interface {
 	SaveDraftPlan(context.Context, string, Plan) (Plan, error)
 	CurrentPlanByUserID(context.Context, string) (Plan, error)
 	ActivatePlanByUserID(context.Context, string, string) error
-	StartWorkoutByUserID(context.Context, string, string) error
+	// StartWorkoutByUserID starts the session; today is the athlete's local date
+	// (YYYY-MM-DD) and a workout scheduled after it cannot be started.
+	StartWorkoutByUserID(ctx context.Context, userID, workoutID, today string) error
+	// UndoWorkoutByUserID erases a completed, skipped or in-progress record and
+	// returns the workout to the plan, reverting the adaptations it caused.
+	UndoWorkoutByUserID(ctx context.Context, userID, workoutID string) error
 	CompleteWorkoutByUserID(context.Context, string, string, CompletionInput) error
 	CorrectWorkoutDataByUserID(context.Context, string, string, WorkoutCorrectionInput) error
 	CancelWorkoutByUserID(context.Context, string, string) error
@@ -112,13 +117,29 @@ func (s *Service) Activate(ctx context.Context, userID, planID string) (Plan, er
 	return s.store.CurrentPlanByUserID(ctx, userID)
 }
 
-func (s *Service) StartWorkout(ctx context.Context, userID, workoutID string) (Plan, error) {
+// StartWorkout starts a workout scheduled for today or earlier. localDate is the
+// athlete's date as the client sees it; see NormalizeLocalDate.
+func (s *Service) StartWorkout(ctx context.Context, userID, workoutID, localDate string) (Plan, error) {
 	if !planIDPattern.MatchString(workoutID) {
 		return Plan{}, ErrInvalidWorkoutID
 	}
-	if err := s.store.StartWorkoutByUserID(ctx, userID, workoutID); err != nil {
+	if err := s.store.StartWorkoutByUserID(ctx, userID, workoutID, NormalizeLocalDate(localDate, s.now())); err != nil {
 		return Plan{}, err
 	}
+	return s.store.CurrentPlanByUserID(ctx, userID)
+}
+
+// UndoWorkout erases the record of a workout and gives it back to the plan, so a
+// test or mistaken session does not stay in the history. Protection is
+// reevaluated because the session's pain and fatigue no longer count.
+func (s *Service) UndoWorkout(ctx context.Context, userID, workoutID string) (Plan, error) {
+	if !planIDPattern.MatchString(workoutID) {
+		return Plan{}, ErrInvalidWorkoutID
+	}
+	if err := s.store.UndoWorkoutByUserID(ctx, userID, workoutID); err != nil {
+		return Plan{}, err
+	}
+	s.reevaluateBestEffort(ctx, userID)
 	return s.store.CurrentPlanByUserID(ctx, userID)
 }
 

@@ -622,3 +622,22 @@ export function activeProtection(plan: Pick<TrainingPlan, 'workouts'>): WorkoutP
   }
   return strongest;
 }
+
+/** Um treino com data posterior à de hoje ainda não pode ser iniciado. Datas em AAAA-MM-DD. */
+export function isFutureTrainingDate(scheduledOn: string, todayKey: string): boolean {
+  return todayKey !== '' && scheduledOn > todayKey;
+}
+
+/** Dia e mês de um treino ("03/10"), sem passar por fuso horário. */
+export function formatTrainingDay(scheduledOn: string): string {
+  const [, month, day] = scheduledOn.split('-');
+  return month && day ? `${day}/${month}` : scheduledOn;
+}
+
+/** Texto do aviso antes de desfazer o registro de um treino. */
+export function undoConfirmation(status: Workout['status']): string {
+  if (status === 'skipped') {
+    return 'Reabrir este treino? Ele volta para o plano como planejado.';
+  }
+  return 'Desfazer o registro deste treino? A sessão e o feedback serão apagados, o treino volta para o plano e os ajustes que ele causou nos próximos treinos serão revertidos. Isso não pode ser desfeito.';
+}

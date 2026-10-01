@@ -494,15 +494,37 @@ paths:
         '409': { description: Perfil incompleto }
   /v1/workouts/{workoutID}/start:
     post:
-      summary: Inicia um treino planejado pertencente ao plano ativo
+      summary: Inicia um treino planejado de hoje ou de uma data passada, do plano ativo
       parameters:
         - $ref: '#/components/parameters/WorkoutID'
+        - name: date
+          in: query
+          required: false
+          description: >
+            Data local do atleta (AAAA-MM-DD). O servidor aceita só uma data a até um dia da data UTC;
+            qualquer outro valor é trocado pela data UTC. Treinos agendados depois dessa data não iniciam.
+          schema: { type: string, format: date }
       responses:
         '200': { description: Sessão iniciada e plano atualizado }
         '400': { description: Identificador inválido }
         '401': { description: Sessão de usuário ausente ou expirada }
         '404': { description: Treino não encontrado no plano ativo }
-        '409': { description: Transição de estado inválida }
+        '409': { description: Transição de estado inválida, treino bloqueado por limitação ativa ou treino de data futura (workout_in_future) }
+  /v1/workouts/{workoutID}/undo:
+    post:
+      summary: Desfaz o registro de um treino concluído, não realizado ou em andamento
+      description: >
+        Apaga a sessão e o feedback, devolve o treino ao plano (planejado ou adaptado), reverte os ajustes
+        que a sessão causou nos treinos seguintes, reabre o plano se o treino o havia encerrado e reavalia a
+        proteção. Vale para o plano ativo ou para o último plano, quando ele foi concluído e não há outro ativo.
+      parameters:
+        - $ref: '#/components/parameters/WorkoutID'
+      responses:
+        '200': { description: Registro desfeito e plano atualizado }
+        '400': { description: Identificador inválido }
+        '401': { description: Sessão de usuário ausente ou expirada }
+        '404': { description: Treino não pertence ao plano ativo nem ao último plano concluído }
+        '409': { description: O treino não tem registro para desfazer (já está planejado) }
   /v1/workouts/{workoutID}/explanation:
     post:
       summary: Gera uma explicação em linguagem simples sem alterar a prescrição do treino

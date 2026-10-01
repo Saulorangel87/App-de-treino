@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -55,5 +56,15 @@ func TestReportRecoveredReturnsThePlanWhenEnabled(t *testing.T) {
 	}
 	if envelope.Plan.ID != "plan-1" {
 		t.Fatalf("expected the current plan in the response, got %+v", envelope)
+	}
+}
+
+func TestWriteWorkoutErrorMapsAFutureWorkoutToConflict(t *testing.T) {
+	response := httptest.NewRecorder()
+	if !writeWorkoutError(response, planning.ErrWorkoutInFuture) {
+		t.Fatal("the error must be handled")
+	}
+	if response.Code != http.StatusConflict || !strings.Contains(response.Body.String(), "workout_in_future") {
+		t.Fatalf("got %d %s, want 409 workout_in_future", response.Code, response.Body)
 	}
 }

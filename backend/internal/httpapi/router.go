@@ -88,6 +88,7 @@ func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Ser
 	mux.HandleFunc("POST /v1/workouts/{workoutID}/complete", server.completeWorkout)
 	mux.HandleFunc("POST /v1/workouts/{workoutID}/correct", server.correctWorkout)
 	mux.HandleFunc("POST /v1/workouts/{workoutID}/cancel", server.cancelWorkout)
+	mux.HandleFunc("POST /v1/workouts/{workoutID}/undo", server.undoWorkout)
 	mux.HandleFunc("POST /v1/workouts/{workoutID}/missed", server.markWorkoutMissed)
 	mux.HandleFunc("POST /v1/activities/import", server.importActivity)
 	mux.HandleFunc("GET /v1/activities/imported", server.listImportedActivities)
