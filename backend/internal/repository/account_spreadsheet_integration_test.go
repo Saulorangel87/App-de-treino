@@ -76,7 +76,7 @@ func TestAccountSpreadsheetHasTheEssentialsAndNoHealthData(t *testing.T) {
 		}
 	}
 	text := dump.String()
-	for _, want := range []string{email, "Atleta de Teste", "Intermediário", "2026-09-30", "Giro de teste", "32.5", "180", "141", "33.1", "65"} {
+	for _, want := range []string{email, "Atleta de Teste", "Intermediário", "30/09/2026", "01/01/2099", "Giro de teste", "32.5", "180", "141", "33.1", "65"} {
 		if !strings.Contains(text, want) {
 			t.Errorf("the spreadsheet is missing %q:\n%s", want, text)
 		}
@@ -88,5 +88,17 @@ func TestAccountSpreadsheetHasTheEssentialsAndNoHealthData(t *testing.T) {
 	}
 	if got := len(sheets[1].Rows); got != 1 {
 		t.Errorf("got %d completed workouts, want 1", got)
+	}
+	var count any
+	for _, row := range sheets[0].Rows {
+		if row[0] == "Treinos realizados" {
+			count = row[1]
+		}
+	}
+	if count != 1 {
+		t.Errorf("the account sheet reports %v completed workouts, want 1", count)
+	}
+	if strings.Contains(text, "2099-01-01") || strings.Contains(text, "2026-09-30") {
+		t.Errorf("dates must be in the Brazilian format:\n%s", text)
 	}
 }

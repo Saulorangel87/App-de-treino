@@ -10,9 +10,12 @@ import (
 
 // The spreadsheet carries the essentials an athlete wants to keep: who the
 // account is and the training they did. It deliberately leaves out health data
-// (limitations, pain, check-ins, body measurements). Dates are ISO text and times
-// are shown in Brasília time so they sort and read the same in any program.
-const brasiliaTime = `'YYYY-MM-DD HH24:MI'`
+// (limitations, pain, check-ins, body measurements). Dates and times are text in
+// the Brazilian format (DD/MM/AAAA) and Brasília time; rows come already ordered.
+const (
+	brasiliaTime = `'DD/MM/YYYY HH24:MI'`
+	brazilDate   = `'DD/MM/YYYY'`
+)
 
 const accountSheetQuery = `
 	SELECT u.display_name, u.email,
@@ -20,9 +23,12 @@ const accountSheetQuery = `
 		to_char(u.created_at AT TIME ZONE 'America/Sao_Paulo', ` + brasiliaTime + `),
 		COALESCE(CASE ap.experience_level WHEN 'beginner' THEN 'Iniciante'
 			WHEN 'intermediate' THEN 'Intermediário' WHEN 'advanced' THEN 'Avançado' END, ''),
-		COALESCE(la.terms_version, ''),
+		COALESCE(to_char(la.terms_version::date, ` + brazilDate + `), ''),
 		COALESCE(to_char(la.accepted_at AT TIME ZONE 'America/Sao_Paulo', ` + brasiliaTime + `), ''),
-		to_char(now() AT TIME ZONE 'America/Sao_Paulo', ` + brasiliaTime + `)
+		to_char(now() AT TIME ZONE 'America/Sao_Paulo', ` + brasiliaTime + `),
+		(SELECT count(*) FROM workout_sessions ws
+			JOIN athlete_profiles owner ON owner.id = ws.athlete_profile_id
+			WHERE owner.user_id = u.id AND ws.status = 'completed')::int
 	FROM users u
 	LEFT JOIN athlete_profiles ap ON ap.user_id = u.id
 	LEFT JOIN LATERAL (
@@ -32,7 +38,7 @@ const accountSheetQuery = `
 	WHERE u.id = $1`
 
 const completedWorkoutsSheetQuery = `
-	SELECT to_char(w.scheduled_on, 'YYYY-MM-DD'), w.name, w.objective,
+	SELECT to_char(w.scheduled_on, ` + brazilDate + `), w.name, w.objective,
 		w.duration_minutes, w.target_rpe::float8,
 		to_char(ws.started_at AT TIME ZONE 'America/Sao_Paulo', ` + brasiliaTime + `),
 		to_char(ws.completed_at AT TIME ZONE 'America/Sao_Paulo', ` + brasiliaTime + `),
@@ -76,8 +82,9 @@ func (s *Store) ExportAccountSpreadsheet(ctx context.Context, userID string) ([]
 	defer tx.Rollback(ctx)
 
 	var name, email, verified, createdAt, level, termsVersion, termsAcceptedAt, generatedAt string
+	var completedWorkouts int
 	if err := tx.QueryRow(ctx, accountSheetQuery, userID).
-		Scan(&name, &email, &verified, &createdAt, &level, &termsVersion, &termsAcceptedAt, &generatedAt); err != nil {
+		Scan(&name, &email, &verified, &createdAt, &level, &termsVersion, &termsAcceptedAt, &generatedAt, &completedWorkouts); err != nil {
 		return nil, fmt.Errorf("export account sheet: %w", err)
 	}
 	account := xlsx.Sheet{Name: "Conta", Header: []string{"Campo", "Valor"}, Rows: [][]any{
@@ -86,6 +93,7 @@ func (s *Store) ExportAccountSpreadsheet(ctx context.Context, userID string) ([]
 		{"E-mail confirmado", verified},
 		{"Conta criada em (horário de Brasília)", createdAt},
 		{"Nível de experiência", level},
+		{"Treinos realizados", completedWorkouts},
 		{"Versão dos termos aceita", termsVersion},
 		{"Termos aceitos em (horário de Brasília)", termsAcceptedAt},
 		{"Planilha gerada em (horário de Brasília)", generatedAt},
