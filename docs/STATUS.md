@@ -72,7 +72,7 @@ Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o cicl
 - **Textos legais:** `frontend/lib/legal.ts` e `backend/internal/legal/legal.go` (versão e contato) precisam andar juntos; um teste confere. Mudou o texto de forma relevante, suba a versão nos dois e todos aceitam de novo.
 
 - **Strava, aguardando resposta** (ticket ZLJ55R-JPPP1; só houve resposta automática): as três perguntas enviadas a developers@strava.com em 30/09/2026 definem se dá para guardar o treino concluído a partir de uma atividade do Strava. Até lá, nenhum código grava dados do Strava. Quando a resposta chegar: registrá-la em [`strava-conformidade.md`](strava-conformidade.md), ajustar o desenho e, antes de liberar a conexão, incluir a seção do Strava na política de privacidade (checklist no mesmo documento).
-- **Conferência do dono do produto no celular:** aviso de aceite dos termos, planilha de dados e botão "Estou recuperado" (este último ainda não foi exercitado em produção).
+- **Conferido pelo dono do produto no celular (01/10/2026):** aviso de aceite dos termos e planilha de dados. Falta apenas exercitar em produção o botão "Estou recuperado".
 - **Sem release nova:** a versão visível continua `0.37.0` desde o deploy das novidades de 30/09/2026; as entregas de LGPD e o rodapé foram publicadas sem aviso de novidades, por decisão do dono do produto.
 - Plano novo gerado pelo dono do produto em produção: a proteção graduada passou a valer nele (30/09/2026). Ainda não foi exercitado em produção o botão "Estou recuperado".
 - Atalho de compartilhar no Android: o app XOSS não mostra o Cadência na lista; manifesto e Chrome auditados sem erro em 30/09/2026. Decisão do dono do produto: deixar como está (Atividades → Importar funciona).
