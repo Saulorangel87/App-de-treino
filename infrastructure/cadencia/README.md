@@ -78,6 +78,25 @@ docker compose --env-file infrastructure/cadencia/.env.production \
 
 O primeiro deploy que incluir o recurso deve executar as migrações `000013_user_feedback` e `000014_feedback_digest` pelo perfil `maintenance` antes de habilitar o timer. Se `FEEDBACK_DIGEST_TO` estiver vazio, o comando encerra sem enviar e-mail.
 
+### Cópia completa dos dados de um atleta (LGPD)
+
+A planilha em Configurações traz só o essencial e deixa de fora os dados de saúde. Quando um atleta pedir a cópia completa (a política promete resposta em até 15 dias), gere o arquivo na VPS com o comando administrativo. Ele só lê o banco, não abre portas, não tem rede de saída e não é acessível pela API:
+
+```sh
+sh infrastructure/cadencia/scripts/account-export.sh atleta@exemplo.com
+```
+
+O script grava `~/copia-<e-mail>-<data>.json` (legível só pelo seu usuário), mostra os próximos passos e não deixa arquivo se algo falhar. Por baixo, ele roda o serviço `account-export` do perfil `admin` do Compose. O arquivo traz conta, perfil, metas, disponibilidade, limitações, check-ins, avaliações, planos, treinos, sessões, feedbacks, atividades importadas, aceites dos termos e mensagens de feedback. Não traz senha nem códigos de sessão. O log (na tela, não no arquivo) registra o e-mail consultado e a hora, sem o conteúdo. Um e-mail sem conta, ou inválido, termina com erro e sem arquivo.
+
+Cuidados, porque o arquivo tem dados de saúde:
+
+1. **Confirme quem pediu.** Responda ao e-mail cadastrado ou confirme a identidade de outra forma antes de enviar qualquer coisa.
+2. **Baixe e apague.** Copie o arquivo para o seu computador (`scp`) e apague-o da VPS com `shred -u`; o script mostra os dois comandos já com o nome do arquivo.
+3. **Envie protegido.** Compacte em `.zip` com senha forte e mande a senha por outro canal, como o WhatsApp. Não anexe o JSON puro.
+4. **Anote o pedido** (data, quem pediu, quando respondeu) onde você controla os pedidos de privacidade.
+
+Se o app crescer, o próximo passo é um fluxo automatizado com verificação de identidade; hoje, com poucos atletas, o procedimento manual é suficiente.
+
 No checkout atual, as migrações `000015` a `000030` registram as fontes científicas do catálogo, os contextos de conclusão e feedback pós-treino, os campos estruturados de segurança, os gates de adaptação, a evidência de recuperação pós-prova, a cadência média observacional e o contexto adicional de perfil/segurança. A produção foi sincronizada até `000030` no deploy de 15 de setembro de 2026. A versão comunicada ao usuário em produção é `0.32.0`.
 
 O Ollama é opcional e não é iniciado pelo comando acima. Ele foi instalado na VPS e permanece parado após o teste de capacidade; a produção usa temporariamente o Worker remoto para evitar sobrecarga. O padrão seguro continua sendo `AI_ENABLED=false`. Para preparar o serviço somente na rede interna do Cadência:
