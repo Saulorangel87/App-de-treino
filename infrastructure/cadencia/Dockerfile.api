@@ -8,6 +8,7 @@ RUN go mod download
 COPY backend/ ./
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/cadencia-api ./cmd/api
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/cadencia-feedback-digest ./cmd/feedback-digest
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/cadencia-account-export ./cmd/account-export
 
 FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
 
@@ -17,6 +18,7 @@ RUN apk add --no-cache ca-certificates wget \
 
 COPY --from=build /out/cadencia-api /usr/local/bin/cadencia-api
 COPY --from=build /out/cadencia-feedback-digest /usr/local/bin/cadencia-feedback-digest
+COPY --from=build /out/cadencia-account-export /usr/local/bin/cadencia-account-export
 
 USER cadencia
 EXPOSE 8080

@@ -68,13 +68,13 @@ Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o cicl
 
 ## Pendências operacionais (fora do código)
 
-- **LGPD, publicado (`2a64b4f`):** registro do aceite dos termos (migração `000035`, caixa no cadastro e aviso para quem ainda não aceitou, o que inclui a conta do dono do produto) e exportação em planilha `.xlsx` só com o essencial. A cópia completa, com saúde e limitações, é entregue por e-mail ao contato da política: hoje isso é manual (consultas SQL); um comando administrativo para gerar o JSON completo ainda não existe. Validação pós-deploy: `/ready` com o schema, `GET /v1/plans/current` autenticado = 200, exportação e aceite sem sessão = 401. Falta o dono do produto conferir a planilha e o aviso de aceite no celular.
+- **LGPD, publicado (`2a64b4f`):** registro do aceite dos termos (migração `000035`, caixa no cadastro e aviso para quem ainda não aceitou, o que inclui a conta do dono do produto) e exportação em planilha `.xlsx` só com o essencial. A cópia completa, com saúde e limitações, é entregue por e-mail ao contato da política. Na `master`, ainda sem deploy: o comando administrativo `cadencia-account-export --email ...` (perfil `admin` do Compose) que gera esse JSON na VPS; o procedimento, com os cuidados (confirmar quem pediu, baixar e apagar, enviar com senha), está em [`infrastructure/cadencia/README.md`](../infrastructure/cadencia/README.md). Validação pós-deploy: `/ready` com o schema, `GET /v1/plans/current` autenticado = 200, exportação e aceite sem sessão = 401. Falta o dono do produto conferir a planilha e o aviso de aceite no celular.
 - **Textos legais:** `frontend/lib/legal.ts` e `backend/internal/legal/legal.go` (versão e contato) precisam andar juntos; um teste confere. Mudou o texto de forma relevante, suba a versão nos dois e todos aceitam de novo.
 
 - Plano novo gerado pelo dono do produto em produção: a proteção graduada passou a valer nele (30/09/2026). Ainda não foi exercitado em produção o botão "Estou recuperado".
 - Atalho de compartilhar no Android: o app XOSS não mostra o Cadência na lista; manifesto e Chrome auditados sem erro em 30/09/2026. Decisão do dono do produto: deixar como está (Atividades → Importar funciona).
 - Etapa 2 da fase de dados reais: melhorias no motor de treino usando os dados importados (ainda não desenhada em detalhe; ver [`proxima-fase-dados-reais.md`](proxima-fase-dados-reais.md)).
-- Depois: comando administrativo para a cópia completa dos dados (LGPD), painel interno dos shadows, resumo semanal com IA.
+- Depois: painel interno dos shadows, resumo semanal com IA.
 - Hardening da VPS e limpeza gradual do que restar de dívida técnica.
 - Coleta longitudinal de dados reais antes de dar autoridade adicional aos shadows.
 - Decisão de produto: a hospedagem do frontend usa `vinext` (beta) com dependências herdadas do ambiente de criação (`wrangler`, `@openai/sites-vite-plugin`); avaliar migração para uma base mais estável.

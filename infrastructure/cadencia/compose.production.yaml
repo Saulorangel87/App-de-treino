@@ -113,6 +113,24 @@ services:
       cadencia_egress:
         gw_priority: 100
 
+  # Cópia completa dos dados de um atleta (LGPD). Roda só quando chamado, pelo
+  # perfil "admin"; só lê o banco e não tem rede de saída nem portas publicadas.
+  account-export:
+    build:
+      context: ../..
+      dockerfile: infrastructure/cadencia/Dockerfile.api
+    profiles: ["admin"]
+    restart: "no"
+    entrypoint: ["/usr/local/bin/cadencia-account-export"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      cadencia_data:
+        gw_priority: 0
+
   ollama:
     image: ollama/ollama:latest@sha256:8262851b2846b87c649eddf3e76beb270c52f4d1bc94559f47efde16b0841551 # ollama/ollama:latest em 2026-09-26; atualize com o Dependabot
     restart: unless-stopped
