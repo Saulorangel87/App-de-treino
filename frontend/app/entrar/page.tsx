@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiRequest } from '@/lib/api';
+import { LEGAL_VERSION } from '@/lib/legal';
 
 export default function SignInPage() {
   const [mode, setMode] = useState<'login' | 'register'>('register');
@@ -29,7 +30,7 @@ export default function SignInPage() {
         body: JSON.stringify({
           email: data.get('email'),
           password: data.get('password'),
-          ...(mode === 'register' ? { display_name: data.get('display_name') } : {}),
+          ...(mode === 'register' ? { display_name: data.get('display_name'), accept_terms: data.get('accept_terms') === 'on', terms_version: LEGAL_VERSION } : {}),
         }),
       });
       if (mode === 'register') {
@@ -74,6 +75,7 @@ export default function SignInPage() {
             {mode === 'register' && <div><Label htmlFor="display_name">Como podemos chamar você?</Label><Input id="display_name" name="display_name" minLength={2} maxLength={100} required placeholder="Seu nome" autoComplete="name" /></div>}
             <div><Label htmlFor="email">E-mail</Label><Input id="email" name="email" type="email" required placeholder="voce@exemplo.com" autoComplete="email" /></div>
             <div><Label htmlFor="password">Senha</Label><Input id="password" name="password" type="password" minLength={10} maxLength={72} required placeholder="No mínimo 10 caracteres" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} /></div>
+            {mode === 'register' && <label className="terms-check"><input type="checkbox" name="accept_terms" required /><span>Li e aceito os <Link href="/termos" target="_blank">Termos de Uso</Link> e a <Link href="/privacidade" target="_blank">Política de Privacidade</Link>, inclusive o tratamento dos dados de saúde que eu informar para montar meus treinos.</span></label>}
             {error && <p className="form-error" role="alert">{error}</p>}
             {notice && <p className="form-notice" role="status">{notice}</p>}
             <Button type="submit" disabled={loading} className="account-submit">{loading ? 'Aguarde…' : mode === 'register' ? 'Criar minha conta' : 'Entrar'}<ArrowRight size={16} /></Button>
@@ -81,7 +83,7 @@ export default function SignInPage() {
           {mode === 'login' && <Link className="form-link" href="/esqueci-minha-senha">Esqueci minha senha</Link>}
           {developmentVerificationURL && <a className="form-link" href={developmentVerificationURL}>Abrir confirmação local</a>}
           {notice && mode === 'register' && <Link className="form-link" href="/perfil">Já confirmei meu e-mail</Link>}
-          <p className="form-legal">Ao continuar, você concorda em fornecer dados de treino para personalização. O Cadência não realiza diagnóstico clínico. Leia a <Link href="/privacidade">Política de Privacidade</Link> e os <Link href="/termos">Termos de Uso</Link>.</p>
+          <p className="form-legal">Ao continuar, você concorda em fornecer dados de treino para personalização. O Cadência não realiza diagnóstico clínico.</p>
         </div>
       </section>
     </main>

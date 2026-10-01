@@ -17,7 +17,7 @@ export function LegalPage({
     <main className="legal-shell">
       <header className="legal-top">
         <Brand />
-        <Link href="/entrar" className="legal-back">
+        <Link href="/" className="legal-back">
           Voltar ao app
         </Link>
       </header>

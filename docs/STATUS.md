@@ -10,10 +10,10 @@ Este é o documento de continuidade: curto e sempre atual. O diário cronológic
 | --- | --- |
 | Frontend | <https://cadencia.devsaulo.com.br> |
 | API | <https://cadencia-api.devsaulo.com.br> |
-| Versão publicada | `0.37.0`, commit `0ba6efa` (deploys de 30/09/2026: `8786881`, proteção graduada do motor e "Estou recuperado"; `0ba6efa`, correção das referências científicas sem mudar a versão; o vínculo de atividade importada, `0.36.0`, foi publicado antes, no mesmo dia em UTC) |
-| Migrações aplicadas | `000001` a `000033` |
+| Versão publicada | `0.37.0`, commit `6b9134d` (deploys de 30/09 a 01/10/2026: `8786881`, proteção graduada do motor e "Estou recuperado"; `0ba6efa`, correção das referências; `6b9134d`, auditoria das 27 referências, comparação com a atividade importada, Política de Privacidade, Termos de Uso e exportação de dados; a versão visível não mudou desde a `0.37.0`) |
+| Migrações aplicadas | `000001` a `000034` |
 | Motor prescritivo | `rules-v1` (único); `rules-v2` e demais shadows são somente observacionais. Proteção graduada ligada (`PROTECTION_LEVELS_ENABLED=true` no `.env.production` da VPS) |
-| Último backup preventivo | `cadencia-20260930T222018Z.dump` |
+| Último backup preventivo | `cadencia-20261001T000919Z.dump` (cópia externa criptografada no bucket da Oracle, com regra "excluir após 60 dias"; no servidor, 14 dias) |
 | Validação pós-deploy | `/health`, `/ready`, frontend e `GET /v1/plans/current` autenticado = 200 com a conta de smoke test; `/ready` verifica o schema; `recovery_self_reports` criada; chave `true` confirmada dentro do contêiner da API; `POST /v1/protection/recovered` sem sessão = 401 |
 
 Escopo: somente ciclismo (estrada, MTB XCO/XCM, gravel e indoor). Corrida e musculação são produtos separados.
@@ -68,13 +68,13 @@ Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o cicl
 
 ## Pendências operacionais (fora do código)
 
-- **Na `master`, não publicado (deploy combinado para junto da integração com o Strava):** migração `000034` (auditoria das 27 referências contra o PubMed; troca da fonte do "Limiar controlado") a primeira parte da etapa 2 da fase de dados reais (bloco observacional `imported_execution` no plano; ver [`proxima-fase-dados-reais.md`](proxima-fase-dados-reais.md)) e a LGPD: exportação dos dados (`GET /v1/auth/account/export`, botão em Configurações), Política de Privacidade (`/privacidade`) e Termos de Uso (`/termos`). Os textos estão em `frontend/lib/legal.ts`; o dono do produto precisa revisá-los antes do deploy (prazos de resposta e de aviso são compromissos dele).
+- **Na `master`, não publicado:** migração `000035` (`legal_acceptances`), registro do aceite dos Termos de Uso e da Política de Privacidade (caixa no cadastro, aviso que bloqueia o app para quem ainda não aceitou a versão vigente e `POST /v1/auth/accept-terms`) e a exportação passando de JSON para planilha `.xlsx` só com o essencial (conta, treinos realizados e atividades importadas, sem dados de saúde). A cópia completa, com saúde e limitações, é entregue por e-mail ao contato da política: hoje isso é manual (consultas SQL); um comando administrativo para gerar o JSON completo ainda não existe.
+- **Textos legais:** `frontend/lib/legal.ts` e `backend/internal/legal/legal.go` (versão e contato) precisam andar juntos; um teste confere. Mudou o texto de forma relevante, suba a versão nos dois e todos aceitam de novo.
 
 - Plano novo gerado pelo dono do produto em produção: a proteção graduada passou a valer nele (30/09/2026). Ainda não foi exercitado em produção o botão "Estou recuperado".
 - Atalho de compartilhar no Android: o app XOSS não mostra o Cadência na lista; manifesto e Chrome auditados sem erro em 30/09/2026. Decisão do dono do produto: deixar como está (Atividades → Importar funciona).
 - Etapa 2 da fase de dados reais: melhorias no motor de treino usando os dados importados (ainda não desenhada em detalhe; ver [`proxima-fase-dados-reais.md`](proxima-fase-dados-reais.md)).
-- LGPD, o que falta: registrar o aceite dos termos no cadastro (hoje só há links e aviso; o aceite não é gravado).
-- Depois: painel interno dos shadows, resumo semanal com IA.
+- Depois: comando administrativo para a cópia completa dos dados (LGPD), painel interno dos shadows, resumo semanal com IA.
 - Hardening da VPS e limpeza gradual do que restar de dívida técnica.
 - Coleta longitudinal de dados reais antes de dar autoridade adicional aos shadows.
 - Decisão de produto: a hospedagem do frontend usa `vinext` (beta) com dependências herdadas do ambiente de criação (`wrangler`, `@openai/sites-vite-plugin`); avaliar migração para uma base mais estável.

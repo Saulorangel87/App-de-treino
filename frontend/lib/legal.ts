@@ -3,8 +3,8 @@
 // de dados (nova integração, novo provedor, novo dado coletado) deve atualizar
 // estes textos e LEGAL_VERSION no mesmo PR.
 
-export const LEGAL_VERSION = '2026-09-30';
-export const LEGAL_UPDATED_LABEL = '30 de setembro de 2026';
+export const LEGAL_VERSION = '2026-10-01';
+export const LEGAL_UPDATED_LABEL = '1 de outubro de 2026';
 export const LEGAL_CONTACT_EMAIL = 'sauloleonardo1987@gmail.com';
 
 export type LegalSection = {
@@ -48,6 +48,7 @@ export const PRIVACY_POLICY: LegalDocument = {
         'Treinos: planos gerados, sessões realizadas, esforço percebido (RPE), fadiga, dor, feedback, avaliações e check-ins de recuperação (sono, estresse e fadiga).',
         'Atividades importadas de arquivos .fit, .gpx ou .tcx que você envia: data e hora, duração, distância, altimetria e médias de frequência cardíaca, potência e cadência. O trajeto (coordenadas de GPS) é lido para calcular esses números e não é guardado.',
         'Mensagens que você envia pelo formulário de feedback do app.',
+        'Registro do aceite: a data e a versão dos Termos de Uso e da Política de Privacidade que você aceitou.',
         'Dados técnicos: um cookie de sessão e registros de acesso do servidor e da rede, como endereço IP e horário, usados para segurança.',
       ],
     },
@@ -56,7 +57,7 @@ export const PRIVACY_POLICY: LegalDocument = {
       title: 'Para que usamos e em que base legal',
       items: [
         'Montar e ajustar seus treinos, registrar sua evolução e mostrar os resultados: execução do serviço que você pediu (LGPD, art. 7º, V).',
-        'Tratar seus dados de saúde e limitações para tornar os treinos mais seguros: seu consentimento específico, dado quando você informa esses dados (art. 11, I). Você pode retirá-lo a qualquer momento, apagando a informação no perfil ou encerrando a conta.',
+        'Tratar seus dados de saúde e limitações para tornar os treinos mais seguros: seu consentimento específico, dado ao aceitar estes documentos e ao informar esses dados (art. 11, I). Você pode retirá-lo a qualquer momento, apagando a informação no perfil ou encerrando a conta.',
         'Manter o serviço seguro, limitar tentativas de acesso indevido e investigar abusos: interesse legítimo (art. 7º, IX).',
         'Cumprir obrigações legais, quando houver.',
       ],
@@ -98,9 +99,9 @@ export const PRIVACY_POLICY: LegalDocument = {
       title: 'Seus direitos',
       paragraphs: ['Você pode, a qualquer momento e sem custo (LGPD, art. 18):'],
       items: [
-        'Confirmar que tratamos seus dados e acessá-los. Em Configurações, o botão "Exportar meus dados" baixa uma cópia completa em JSON.',
+        `Confirmar que tratamos seus dados e acessá-los. Em Configurações, o botão "Baixar minha planilha" entrega os dados da conta, os treinos realizados e as atividades importadas. Para uma cópia completa, inclusive dados de saúde e limitações, escreva para ${LEGAL_CONTACT_EMAIL}.`,
         'Corrigir dados incompletos ou desatualizados: em Perfil, e nos registros de treino que permitem correção.',
-        'Levar seus dados a outro serviço: o arquivo exportado é estruturado e legível por máquina.',
+        'Levar seus dados a outro serviço: a planilha abre em qualquer programa de planilhas e pode ser convertida para outros formatos.',
         'Apagar seus dados: em Configurações, "Encerrar conta".',
         'Saber com quem compartilhamos dados, conforme a seção acima.',
         'Retirar o consentimento e pedir a revisão de decisões automatizadas.',
