@@ -83,17 +83,15 @@ O primeiro deploy que incluir o recurso deve executar as migrações `000013_use
 A planilha em Configurações traz só o essencial e deixa de fora os dados de saúde. Quando um atleta pedir a cópia completa (a política promete resposta em até 15 dias), gere o arquivo na VPS com o comando administrativo. Ele só lê o banco, não abre portas, não tem rede de saída e não é acessível pela API:
 
 ```sh
-cd /home/ubuntu/apps/cadencia
-umask 077
-docker compose --env-file infrastructure/cadencia/.env.production   -f infrastructure/cadencia/compose.production.yaml --profile admin   run --rm -T account-export --email atleta@exemplo.com > ~/copia-atleta.json
+sh infrastructure/cadencia/scripts/account-export.sh atleta@exemplo.com
 ```
 
-O arquivo traz conta, perfil, metas, disponibilidade, limitações, check-ins, avaliações, planos, treinos, sessões, feedbacks, atividades importadas, aceites dos termos e mensagens de feedback. Não traz senha nem códigos de sessão. O log (na tela, não no arquivo) registra o e-mail consultado e a hora, sem o conteúdo. Um e-mail sem conta, ou inválido, termina com erro e sem arquivo.
+O script grava `~/copia-<e-mail>-<data>.json` (legível só pelo seu usuário), mostra os próximos passos e não deixa arquivo se algo falhar. Por baixo, ele roda o serviço `account-export` do perfil `admin` do Compose. O arquivo traz conta, perfil, metas, disponibilidade, limitações, check-ins, avaliações, planos, treinos, sessões, feedbacks, atividades importadas, aceites dos termos e mensagens de feedback. Não traz senha nem códigos de sessão. O log (na tela, não no arquivo) registra o e-mail consultado e a hora, sem o conteúdo. Um e-mail sem conta, ou inválido, termina com erro e sem arquivo.
 
 Cuidados, porque o arquivo tem dados de saúde:
 
 1. **Confirme quem pediu.** Responda ao e-mail cadastrado ou confirme a identidade de outra forma antes de enviar qualquer coisa.
-2. **Baixe e apague.** Copie o arquivo para o seu computador (`scp vps:copia-atleta.json .`) e apague-o da VPS com `shred -u ~/copia-atleta.json`.
+2. **Baixe e apague.** Copie o arquivo para o seu computador (`scp`) e apague-o da VPS com `shred -u`; o script mostra os dois comandos já com o nome do arquivo.
 3. **Envie protegido.** Compacte em `.zip` com senha forte e mande a senha por outro canal, como o WhatsApp. Não anexe o JSON puro.
 4. **Anote o pedido** (data, quem pediu, quando respondeu) onde você controla os pedidos de privacidade.
 
