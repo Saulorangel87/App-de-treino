@@ -31,18 +31,21 @@ func TestWorkoutRequiresSafetyBlockOnlyForIntenseSessionWithLimitation(t *testin
 }
 
 type planStore struct {
-	input       Context
-	saved       Plan
-	activatedID string
-	activateErr error
-	startedID   string
-	completedID string
-	correctedID string
-	cancelledID string
-	missedID    string
-	completion  CompletionInput
-	correction  WorkoutCorrectionInput
-	activities  []Activity
+	input        Context
+	saved        Plan
+	activatedID  string
+	activateErr  error
+	startedID    string
+	startedToday string
+	undoneID     string
+	undoErr      error
+	completedID  string
+	correctedID  string
+	cancelledID  string
+	missedID     string
+	completion   CompletionInput
+	correction   WorkoutCorrectionInput
+	activities   []Activity
 	// Reavaliação: treinos planejados devolvidos (filtrados pela janela) e as
 	// revisões gravadas.
 	planned       []Workout
@@ -51,6 +54,7 @@ type planStore struct {
 	selfReports   int
 	selfReportErr error
 	applyCalls    int
+	plannedCalls  int
 }
 
 func (s *planStore) PlanningContextByUserID(context.Context, string) (Context, error) {
@@ -69,9 +73,14 @@ func (s *planStore) ActivatePlanByUserID(_ context.Context, _ string, planID str
 	s.saved.Status = "active"
 	return nil
 }
-func (s *planStore) StartWorkoutByUserID(_ context.Context, _ string, workoutID string) error {
+func (s *planStore) StartWorkoutByUserID(_ context.Context, _ string, workoutID, today string) error {
 	s.startedID = workoutID
+	s.startedToday = today
 	return nil
+}
+func (s *planStore) UndoWorkoutByUserID(_ context.Context, _ string, workoutID string) error {
+	s.undoneID = workoutID
+	return s.undoErr
 }
 func (s *planStore) CompleteWorkoutByUserID(_ context.Context, _ string, workoutID string, input CompletionInput) error {
 	s.completedID = workoutID
@@ -95,6 +104,7 @@ func (s *planStore) ActivitiesByUserID(context.Context, string) ([]Activity, err
 	return s.activities, nil
 }
 func (s *planStore) PlannedWorkoutsForReevaluation(_ context.Context, _ string, from, to string) ([]Workout, error) {
+	s.plannedCalls++
 	if s.plannedErr != nil {
 		return nil, s.plannedErr
 	}
@@ -1176,7 +1186,7 @@ func TestWorkoutLifecycleValidatesAndDelegates(t *testing.T) {
 	store := &planStore{saved: Plan{Status: "active"}}
 	service := NewService(store)
 
-	if _, err := service.StartWorkout(context.Background(), "user-1", workoutID); err != nil {
+	if _, err := service.StartWorkout(context.Background(), "user-1", workoutID, "2026-10-01"); err != nil {
 		t.Fatalf("start failed: %v", err)
 	}
 	input := CompletionInput{ActualRPE: 7, Difficulty: "hard", FatigueAfter: 4, PainReported: false, Notes: "Sessão consistente."}

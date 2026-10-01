@@ -42,7 +42,7 @@ func (s *Server) startWorkout(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	plan, err := s.planning.StartWorkout(r.Context(), user.ID, r.PathValue("workoutID"))
+	plan, err := s.planning.StartWorkout(r.Context(), user.ID, r.PathValue("workoutID"), r.URL.Query().Get("date"))
 	if writeWorkoutError(w, err) {
 		return
 	}
@@ -111,6 +111,18 @@ func (s *Server) cancelWorkout(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"plan": plan})
 }
 
+func (s *Server) undoWorkout(w http.ResponseWriter, r *http.Request) {
+	user, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	plan, err := s.planning.UndoWorkout(r.Context(), user.ID, r.PathValue("workoutID"))
+	if writeWorkoutError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"plan": plan})
+}
+
 func (s *Server) markWorkoutMissed(w http.ResponseWriter, r *http.Request) {
 	user, ok := s.requireUser(w, r)
 	if !ok {
@@ -141,6 +153,8 @@ func writeWorkoutError(w http.ResponseWriter, err error) bool {
 		writeError(w, http.StatusNotFound, "workout_not_found", "O treino não pertence ao seu plano ativo.")
 	case errors.Is(err, planning.ErrInvalidTransition):
 		writeError(w, http.StatusConflict, "invalid_workout_transition", "O treino não está no estado necessário para esta ação.")
+	case errors.Is(err, planning.ErrWorkoutInFuture):
+		writeError(w, http.StatusConflict, "workout_in_future", "Este treino é de uma data futura. Ele fica disponível no dia planejado.")
 	case errors.Is(err, planning.ErrWorkoutNotPast):
 		writeError(w, http.StatusConflict, "workout_not_past", "Esse treino ainda não passou da data planejada.")
 	default:

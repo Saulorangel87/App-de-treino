@@ -12,7 +12,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { apiRequest } from '@/lib/api';
-import type { TrainingPlan, Workout } from '@/lib/planning';
+import {
+  formatTrainingDay,
+  isFutureTrainingDate,
+  undoConfirmation,
+  type TrainingPlan,
+  type Workout,
+} from '@/lib/planning';
 
 export type PrefillMetrics = {
   distance_km?: number;
@@ -154,12 +160,12 @@ export function WorkoutSessionActions({
     });
   }, [prefillMetrics, workout.status]);
 
-  async function mutate(path: string, body?: object) {
+  async function mutate(path: string, body?: object, query = '') {
     setAction(path);
     setError('');
     try {
       const result = await apiRequest<{ plan: TrainingPlan }>(
-        `/v1/workouts/${workout.id}/${path}`,
+        `/v1/workouts/${workout.id}/${path}${query}`,
         {
           method: 'POST',
           ...(body ? { body: JSON.stringify(body) } : {}),
@@ -252,9 +258,16 @@ export function WorkoutSessionActions({
     planStatus === 'active' &&
     isPastWorkout &&
     (workout.status === 'planned' || workout.status === 'adapted');
-  const canStart =
+  const isFutureWorkout = isFutureTrainingDate(workout.scheduled_on, todayKey);
+  const awaitingStart =
     planStatus === 'active' &&
     (workout.status === 'planned' || workout.status === 'adapted');
+  // Só depois de saber a data local (todayKey) é que dá para decidir; um treino
+  // futuro não pode ser iniciado (o servidor também recusa).
+  const canStart = awaitingStart && todayKey !== '' && !isFutureWorkout;
+  const canUndo =
+    (planStatus === 'active' || planStatus === 'completed') &&
+    (workout.status === 'completed' || workout.status === 'skipped');
   const startLabel =
     workout.status === 'adapted' ? 'Iniciar treino adaptado' : 'Iniciar treino';
   const dataIntegrityIssue =
@@ -285,13 +298,19 @@ export function WorkoutSessionActions({
         </p>
       )}
 
+      {awaitingStart && isFutureWorkout && (
+        <p className="session-guidance">
+          Este treino é de {formatTrainingDay(workout.scheduled_on)}. Ele fica disponível no dia planejado.
+        </p>
+      )}
+
       {canStart && (
         <div className={canMarkMissed ? 'session-button-row' : undefined}>
           <Button
             type="button"
             className="session-primary"
             disabled={busy}
-            onClick={() => mutate('start')}
+            onClick={() => mutate('start', undefined, `?date=${todayKey}`)}
           >
             {action === 'start' ? (
               <LoaderCircle className="spin" />
@@ -732,6 +751,26 @@ export function WorkoutSessionActions({
         <p className="session-guidance">
           Esta sessão não foi realizada e ficou registrada no histórico.
         </p>
+      )}
+
+      {canUndo && (
+        <Button
+          type="button"
+          variant="outline"
+          disabled={busy}
+          onClick={() => {
+            if (window.confirm(undoConfirmation(workout.status))) {
+              void mutate('undo');
+            }
+          }}
+        >
+          {action === 'undo' ? <LoaderCircle className="spin" /> : <RotateCcw />}
+          {action === 'undo'
+            ? 'Desfazendo…'
+            : workout.status === 'completed'
+              ? 'Desfazer registro'
+              : 'Reabrir treino'}
+        </Button>
       )}
 
       {error && (

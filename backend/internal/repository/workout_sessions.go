@@ -71,7 +71,7 @@ func (s *Store) ActivitiesByUserID(ctx context.Context, userID string) ([]planni
 	return activities, rows.Err()
 }
 
-func (s *Store) StartWorkoutByUserID(ctx context.Context, userID, workoutID string) error {
+func (s *Store) StartWorkoutByUserID(ctx context.Context, userID, workoutID, today string) error {
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
 		return err
@@ -80,19 +80,20 @@ func (s *Store) StartWorkoutByUserID(ctx context.Context, userID, workoutID stri
 
 	var profileID, status string
 	var targetRPE float64
-	var hasActiveLimitation bool
+	var hasActiveLimitation, scheduledInFuture bool
 	err = tx.QueryRow(ctx, `
 		SELECT ap.id::text, w.status, COALESCE(w.target_rpe, 0)::double precision,
 			EXISTS (
 				SELECT 1 FROM injuries_or_limitations il
 				WHERE il.athlete_profile_id = ap.id AND il.is_active = true
-			)
+			),
+			w.scheduled_on > $3::date
 		FROM workouts w
 		JOIN training_plans tp ON tp.id = w.training_plan_id
 		JOIN athlete_profiles ap ON ap.id = tp.athlete_profile_id
 		WHERE ap.user_id = $1 AND w.id = $2 AND tp.status = 'active'
-		FOR UPDATE OF w`, userID, workoutID,
-	).Scan(&profileID, &status, &targetRPE, &hasActiveLimitation)
+		FOR UPDATE OF w`, userID, workoutID, today,
+	).Scan(&profileID, &status, &targetRPE, &hasActiveLimitation, &scheduledInFuture)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return planning.ErrWorkoutMissing
 	}
@@ -101,6 +102,9 @@ func (s *Store) StartWorkoutByUserID(ctx context.Context, userID, workoutID stri
 	}
 	if !isStartableWorkoutStatus(status) {
 		return planning.ErrInvalidTransition
+	}
+	if scheduledInFuture {
+		return planning.ErrWorkoutInFuture
 	}
 	if planning.WorkoutRequiresSafetyBlock(targetRPE, hasActiveLimitation) {
 		return planning.ErrWorkoutSafetyBlocked
@@ -518,6 +522,94 @@ func (s *Store) MarkWorkoutMissedByUserID(ctx context.Context, userID, workoutID
 
 	if _, err := tx.Exec(ctx, `UPDATE workouts SET status = 'skipped' WHERE id = $1`, workoutID); err != nil {
 		return err
+	}
+	return tx.Commit(ctx)
+}
+
+// UndoWorkoutByUserID erases the record of a completed, skipped or in-progress
+// workout and gives it back to the plan, so a test or mistaken session does not
+// stay in the history. In one transaction it:
+//
+//  1. deletes the session (its feedback goes with it, by cascade);
+//  2. restores the workouts that the feedback trigger adapted because of this
+//     session, using the previous duration and effort the trigger recorded;
+//  3. puts the workout back to planned (or adapted, if it had been adapted);
+//  4. reopens the plan when finishing this workout had completed it.
+//
+// The workout may be in the active plan or in the athlete's latest plan when that
+// one was completed and no other plan is active. Workouts that a pre-session
+// recovery check-in also changed are left as they are, because the recorded
+// "previous" values would drop that adjustment.
+func (s *Store) UndoWorkoutByUserID(ctx context.Context, userID, workoutID string) error {
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	var planID, planStatus, profileID, workoutStatus string
+	var latestPlan, hasAdaptation bool
+	err = tx.QueryRow(ctx, `
+		SELECT tp.id::text, tp.status, ap.id::text, w.status,
+			NOT EXISTS (
+				SELECT 1 FROM training_plans other
+				WHERE other.athlete_profile_id = ap.id AND other.id <> tp.id
+					AND (other.status = 'active' OR other.created_at > tp.created_at)
+			),
+			(w.explanation ? 'adaptation' OR w.explanation ? 'pre_session_recovery')
+		FROM workouts w
+		JOIN training_plans tp ON tp.id = w.training_plan_id
+		JOIN athlete_profiles ap ON ap.id = tp.athlete_profile_id
+		WHERE ap.user_id = $1 AND w.id = $2
+		FOR UPDATE OF w`, userID, workoutID,
+	).Scan(&planID, &planStatus, &profileID, &workoutStatus, &latestPlan, &hasAdaptation)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return planning.ErrWorkoutMissing
+	}
+	if err != nil {
+		return err
+	}
+	if planStatus != "active" && !(planStatus == "completed" && latestPlan) {
+		return planning.ErrWorkoutMissing
+	}
+	if workoutStatus != "completed" && workoutStatus != "skipped" && workoutStatus != "in_progress" {
+		return planning.ErrInvalidTransition
+	}
+
+	if _, err := tx.Exec(ctx, `DELETE FROM workout_sessions WHERE workout_id = $1`, workoutID); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(ctx, `
+		UPDATE workouts w SET
+			duration_minutes = COALESCE((w.explanation #>> '{adaptation,previous_duration_minutes}')::integer, w.duration_minutes),
+			target_rpe = COALESCE((w.explanation #>> '{adaptation,previous_target_rpe}')::numeric, w.target_rpe),
+			explanation = jsonb_set(
+				w.explanation - 'adaptation',
+				'{rules}',
+				COALESCE((
+					SELECT jsonb_agg(rule)
+					FROM jsonb_array_elements(COALESCE(w.explanation->'rules', '[]'::jsonb)) AS rule
+					WHERE rule <> to_jsonb(w.explanation #>> '{adaptation,reason}')
+				), '[]'::jsonb),
+				true),
+			status = 'planned'
+		WHERE w.training_plan_id = $1
+			AND w.status IN ('planned', 'adapted')
+			AND w.explanation #>> '{adaptation,source_workout_id}' = $2
+			AND NOT (w.explanation ? 'pre_session_recovery')`, planID, workoutID); err != nil {
+		return err
+	}
+	restoredStatus := "planned"
+	if hasAdaptation {
+		restoredStatus = "adapted"
+	}
+	if _, err := tx.Exec(ctx, `UPDATE workouts SET status = $2 WHERE id = $1`, workoutID, restoredStatus); err != nil {
+		return err
+	}
+	if planStatus == "completed" {
+		if _, err := tx.Exec(ctx, `UPDATE training_plans SET status = 'active' WHERE id = $1`, planID); err != nil {
+			return err
+		}
 	}
 	return tx.Commit(ctx)
 }

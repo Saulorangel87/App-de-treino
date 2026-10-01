@@ -85,7 +85,11 @@ func (s *httpTestPlanStore) ActivatePlanByUserID(context.Context, string, string
 	return errHTTPTestUnused
 }
 
-func (s *httpTestPlanStore) StartWorkoutByUserID(context.Context, string, string) error {
+func (s *httpTestPlanStore) StartWorkoutByUserID(context.Context, string, string, string) error {
+	return errHTTPTestUnused
+}
+
+func (s *httpTestPlanStore) UndoWorkoutByUserID(context.Context, string, string) error {
 	return errHTTPTestUnused
 }
 

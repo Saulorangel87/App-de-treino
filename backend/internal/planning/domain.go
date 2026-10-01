@@ -19,6 +19,7 @@ var (
 	ErrWorkoutCorrection    = errors.New("workout correction not allowed")
 	ErrWorkoutSafetyBlocked = errors.New("workout blocked by active safety limitation")
 	ErrProtectionDisabled   = errors.New("protection levels are not enabled")
+	ErrWorkoutInFuture      = errors.New("workout is scheduled for a future date")
 )
 
 var planIDPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
