@@ -73,7 +73,7 @@ Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o cicl
 - Plano novo gerado pelo dono do produto em produção: a proteção graduada passou a valer nele (30/09/2026). Ainda não foi exercitado em produção o botão "Estou recuperado".
 - Atalho de compartilhar no Android: o app XOSS não mostra o Cadência na lista; manifesto e Chrome auditados sem erro em 30/09/2026. Decisão do dono do produto: deixar como está (Atividades → Importar funciona).
 - Etapa 2 da fase de dados reais: melhorias no motor de treino usando os dados importados (ainda não desenhada em detalhe; ver [`proxima-fase-dados-reais.md`](proxima-fase-dados-reais.md)).
-- LGPD, o que falta: registrar o aceite dos termos no cadastro (hoje só há links e aviso; o aceite não é gravado) e confirmar o prazo da cópia de segurança externa, citado de forma genérica na política.
+- LGPD, o que falta: registrar o aceite dos termos no cadastro (hoje só há links e aviso; o aceite não é gravado).
 - Depois: painel interno dos shadows, resumo semanal com IA.
 - Hardening da VPS e limpeza gradual do que restar de dívida técnica.
 - Coleta longitudinal de dados reais antes de dar autoridade adicional aos shadows.

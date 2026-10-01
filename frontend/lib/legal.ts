@@ -75,7 +75,7 @@ export const PRIVACY_POLICY: LegalDocument = {
       items: [
         'Hospedagem: servidor virtual em nuvem, onde ficam o aplicativo e o banco de dados, e a Cloudflare, que transporta o tráfego entre o seu aparelho e o servidor.',
         'E-mail transacional (Resend): recebe seu e-mail e o texto das mensagens de confirmação de e-mail e de redefinição de senha.',
-        'Cópia de segurança: cópias criptografadas do banco de dados, em armazenamento externo.',
+        'Cópia de segurança: cópias criptografadas do banco de dados, em armazenamento externo da Oracle.',
         'Explicação do treino por IA: quando você pede a explicação de uma sessão, um modelo de linguagem, acessado por um serviço na Cloudflare, recebe apenas o nome do treino, o objetivo, a duração, o esforço-alvo e as regras de planejamento aplicadas. Ele não recebe seu nome, e-mail, dados de saúde, histórico ou atividades importadas.',
       ],
       after: [
@@ -89,7 +89,7 @@ export const PRIVACY_POLICY: LegalDocument = {
       items: [
         'Seus dados ficam guardados enquanto a conta existir.',
         'Ao encerrar a conta em Configurações, apagamos todos os seus dados do banco de dados na hora, sem intervenção de ninguém.',
-        'Cópias de segurança anteriores ao encerramento permanecem por um prazo limitado e são descartadas: no servidor, por até 14 dias. As cópias externas são criptografadas e seguem a regra de retenção do armazenamento.',
+        'Cópias de segurança anteriores ao encerramento permanecem por um prazo limitado e são descartadas: no servidor, por até 14 dias, e na cópia externa criptografada, guardada em armazenamento da Oracle, por até 60 dias. Depois desses prazos, seus dados não existem mais em nenhuma cópia.',
         'Registros técnicos de acesso ficam pelo tempo necessário para segurança.',
       ],
     },
