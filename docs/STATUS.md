@@ -68,12 +68,13 @@ Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o cicl
 
 ## Pendências operacionais (fora do código)
 
-- **Na `master`, não publicado (deploy combinado para junto da integração com o Strava):** migração `000034` (auditoria das 27 referências contra o PubMed; troca da fonte do "Limiar controlado") e a primeira parte da etapa 2 da fase de dados reais (bloco observacional `imported_execution` no plano; ver [`proxima-fase-dados-reais.md`](proxima-fase-dados-reais.md)).
+- **Na `master`, não publicado (deploy combinado para junto da integração com o Strava):** migração `000034` (auditoria das 27 referências contra o PubMed; troca da fonte do "Limiar controlado") a primeira parte da etapa 2 da fase de dados reais (bloco observacional `imported_execution` no plano; ver [`proxima-fase-dados-reais.md`](proxima-fase-dados-reais.md)) e a LGPD: exportação dos dados (`GET /v1/auth/account/export`, botão em Configurações), Política de Privacidade (`/privacidade`) e Termos de Uso (`/termos`). Os textos estão em `frontend/lib/legal.ts`; o dono do produto precisa revisá-los antes do deploy (prazos de resposta e de aviso são compromissos dele).
 
-- Gerar um plano novo na conta do dono do produto em produção, para a proteção graduada passar a valer nela. O aviso de novidades foi conferido no celular pelo dono do produto em 30/09/2026.
+- Plano novo gerado pelo dono do produto em produção: a proteção graduada passou a valer nele (30/09/2026). Ainda não foi exercitado em produção o botão "Estou recuperado".
 - Atalho de compartilhar no Android: o app XOSS não mostra o Cadência na lista; manifesto e Chrome auditados sem erro em 30/09/2026. Decisão do dono do produto: deixar como está (Atividades → Importar funciona).
 - Etapa 2 da fase de dados reais: melhorias no motor de treino usando os dados importados (ainda não desenhada em detalhe; ver [`proxima-fase-dados-reais.md`](proxima-fase-dados-reais.md)).
-- Depois: LGPD (exportar/apagar dados), painel interno dos shadows, resumo semanal com IA.
+- LGPD, o que falta: registrar o aceite dos termos no cadastro (hoje só há links e aviso; o aceite não é gravado).
+- Depois: painel interno dos shadows, resumo semanal com IA.
 - Hardening da VPS e limpeza gradual do que restar de dívida técnica.
 - Coleta longitudinal de dados reais antes de dar autoridade adicional aos shadows.
 - Decisão de produto: a hospedagem do frontend usa `vinext` (beta) com dependências herdadas do ambiente de criação (`wrangler`, `@openai/sites-vite-plugin`); avaliar migração para uma base mais estável.

@@ -1,0 +1,121 @@
+/* Política de Privacidade e Termos de Uso: páginas públicas de leitura. */
+
+.legal-shell {
+  min-height: 100vh;
+  padding: 0 16px 48px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.legal-top {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 18px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: var(--hairline);
+}
+
+.legal-back {
+  font-size: 0.9rem;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.legal-content {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  line-height: 1.65;
+}
+
+.legal-kicker {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  color: var(--ink-2);
+}
+
+.legal-content h1 {
+  margin: 0;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(1.9rem, 6vw, 2.6rem);
+  line-height: 1.1;
+}
+
+.legal-meta {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-2);
+}
+
+.legal-intro {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.legal-index {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 18px;
+  border: var(--hairline);
+  background: var(--sheet);
+  font-size: 0.92rem;
+}
+
+.legal-index a {
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.legal-section {
+  padding-top: 10px;
+  scroll-margin-top: 16px;
+}
+
+.legal-section h2 {
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+}
+
+.legal-section p,
+.legal-section ul {
+  margin: 0 0 10px;
+}
+
+.legal-section ul {
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legal-cross {
+  margin: 12px 0 0;
+  padding-top: 16px;
+  border-top: var(--hairline);
+}
+
+.legal-cross a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.legal-links {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.legal-links a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

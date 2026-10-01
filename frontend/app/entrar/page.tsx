@@ -81,7 +81,7 @@ export default function SignInPage() {
           {mode === 'login' && <Link className="form-link" href="/esqueci-minha-senha">Esqueci minha senha</Link>}
           {developmentVerificationURL && <a className="form-link" href={developmentVerificationURL}>Abrir confirmação local</a>}
           {notice && mode === 'register' && <Link className="form-link" href="/perfil">Já confirmei meu e-mail</Link>}
-          <p className="form-legal">Ao continuar, você concorda em fornecer dados de treino para personalização. O Cadência não realiza diagnóstico clínico.</p>
+          <p className="form-legal">Ao continuar, você concorda em fornecer dados de treino para personalização. O Cadência não realiza diagnóstico clínico. Leia a <Link href="/privacidade">Política de Privacidade</Link> e os <Link href="/termos">Termos de Uso</Link>.</p>
         </div>
       </section>
     </main>

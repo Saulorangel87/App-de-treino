@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Code2, ContactRound, Download, Mail } from 'lucide-react';
 import { APP_VERSION } from '@/lib/release';
 
@@ -85,6 +86,10 @@ export function AppFooter() {
         © 2026 <span className="footer-credit">DESENVOLVIDO POR </span>SAULO RANGEL{' '}
         <span className="footer-version">— V{APP_VERSION}</span>
       </p>
+      <nav className="legal-links" aria-label="Documentos legais">
+        <Link href="/privacidade">Privacidade</Link>
+        <Link href="/termos">Termos de uso</Link>
+      </nav>
       <div className="footer-actions">
         {installPrompt && !installed && <button type="button" className="install-app" onClick={installApp}><Download size={14} />Instalar app</button>}
         {installed && <span className="installed-label"><span />App instalado</span>}

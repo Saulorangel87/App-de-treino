@@ -42,6 +42,7 @@ type Server struct {
 	appBaseURL     string
 	emailTokenTTL  time.Duration
 	development    bool
+	exporter       DataExporter
 	// loginFailures counts failed logins per e-mail address, complementing the
 	// per-IP limit against distributed guessing of a single account.
 	loginFailures *requestRateLimiter
