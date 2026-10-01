@@ -899,3 +899,5 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 **Mudança.** `x-hardening` no Compose (`cap_drop: ALL`, `no-new-privileges`, `read_only` com `/tmp` em memória, `pids_limit`) aplicado à API, ao frontend, ao túnel e ao `account-export`. O PostgreSQL e os demais aplicativos da VPS não foram alterados. Validado localmente com as imagens de produção (API e frontend saudáveis; cadastro, plano, importação, planilha e cópia completa funcionando; túnel iniciando).
 
 **Pendências (decisão do dono do produto):** reinício da VPS para o kernel novo, ajustes opcionais do SSH, Samba/rpcbind, revisão da Cloudflare. Detalhes em `infrastructure/cadencia/README.md`.
+
+**Aplicado em 01/10/2026:** deploy `65214a4` (contêineres confirmados na VPS com `ReadonlyRootfs`, `CapDrop=[ALL]`, `no-new-privileges` e `pids=256`, sem erros de escrita nos logs) e reinício da VPS com o kernel novo (`7.0.0-1012-oracle`): 19 contêineres e todos os serviços voltaram, a API respondeu `/ready` e o frontend 200. TLS visto de fora: 1.3, TLS 1.0/1.1 recusados, HTTP redireciona para HTTPS e há HSTS.
