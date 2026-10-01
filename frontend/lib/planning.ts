@@ -551,6 +551,8 @@ export type TrainingPlan = {
       training_status?: 'not_informed' | 'regular' | 'returning_after_break';
       uses_heart_rate?: boolean;
       uses_power?: boolean;
+      max_heart_rate?: number;
+      ftp?: number;
     };
   };
   workouts: Workout[];

@@ -1,11 +1,15 @@
 // Escala de intensidade do app inteiro, emprestada da sinalização de trilhas:
 // círculo verde (leve), quadrado azul (moderado) e losango preto (intenso).
 
+import { zoneForRpe } from '@/lib/zones';
+
 export type Intensity = 'easy' | 'moderate' | 'hard';
 
+// Leve: zonas 1 e 2; moderado: zona 3; intenso: zonas 4 e 5.
 export function intensityOf(rpe: number): Intensity {
-  if (rpe <= 3) return 'easy';
-  if (rpe <= 6) return 'moderate';
+  const zone = zoneForRpe(rpe).number;
+  if (zone <= 2) return 'easy';
+  if (zone === 3) return 'moderate';
   return 'hard';
 }
 
@@ -16,9 +20,9 @@ export const intensityLabels: Record<Intensity, string> = {
 };
 
 export const intensityRanges: Record<Intensity, string> = {
-  easy: 'RPE 1–3',
-  moderate: 'RPE 4–6',
-  hard: 'RPE 7+',
+  easy: 'Zonas 1–2',
+  moderate: 'Zona 3',
+  hard: 'Zonas 4–5',
 };
 
 export function TrailSymbol({

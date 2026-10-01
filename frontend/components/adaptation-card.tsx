@@ -5,6 +5,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import type { Workout } from '@/lib/planning';
+import { zoneForRpe, zoneLabel } from '@/lib/zones';
 import styles from './adaptation-card.module.css';
 
 type AdaptationCardProps = {
@@ -58,11 +59,14 @@ export function AdaptationCard({
           <s>{adaptation.previous_duration_minutes} min</s>
           <b>{workout.duration_minutes} min</b>
         </span>
-        <span>
-          <small>ESFORÇO</small>
-          <s>RPE {adaptation.previous_target_rpe}</s>
-          <b>RPE {workout.target_rpe}</b>
-        </span>
+        {zoneForRpe(adaptation.previous_target_rpe).number !==
+          zoneForRpe(workout.target_rpe).number && (
+          <span>
+            <small>ZONA</small>
+            <s>{zoneLabel(adaptation.previous_target_rpe)}</s>
+            <b>{zoneLabel(workout.target_rpe)}</b>
+          </span>
+        )}
       </div>
       {adaptation.safety_notice && (
         <div className={styles.warning} role="note">

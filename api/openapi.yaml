@@ -747,6 +747,11 @@ components:
         bike_type: { type: string, enum: ['', road, mtb, gravel, indoor] }
         terrain: { type: string, enum: ['', flat, rolling, hilly] }
         uses_heart_rate: { type: boolean }
+        max_heart_rate:
+          type: integer
+          minimum: 100
+          maximum: 230
+          description: Frequência cardíaca máxima em bpm, opcional; só é mantida com uses_heart_rate. Com ela o app mostra cada zona de esforço em batimentos.
         uses_power: { type: boolean }
         uses_gps: { type: boolean }
         uses_sports_watch: { type: boolean }
@@ -1626,10 +1631,15 @@ components:
         notes: { type: string, maxLength: 1000 }
     CompleteWorkoutRequest:
       type: object
-      required: [completion_status, actual_rpe, difficulty, pain_reported, fatigue_after]
+      description: >
+        O esforço vai em actual_zone (zona 1 a 5, como o app envia) ou em actual_rpe (1 a 10, para clientes
+        antigos). Com as duas, vale a zona. A zona é gravada como o RPE que a representa (Z1=3, Z2=4,5, Z3=6, Z4=7,
+        Z5=8,5), porque o motor continua prescrevendo e adaptando em RPE.
+      required: [completion_status, difficulty, pain_reported, fatigue_after]
       properties:
         completion_status: { type: string, enum: [complete, partial] }
         partial_reason: { type: string, enum: [time_available_changed, fatigue_or_recovery, pain_or_discomfort, equipment_or_conditions, other] }
+        actual_zone: { type: integer, minimum: 1, maximum: 5 }
         actual_rpe: { type: number, minimum: 1, maximum: 10 }
         difficulty: { type: string, enum: [very_easy, easy, moderate, hard, very_hard] }
         pain_reported: { type: boolean }

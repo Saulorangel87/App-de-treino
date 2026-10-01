@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Saulorangel87/App-de-treino/backend/internal/xlsx"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/zones"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -61,14 +62,14 @@ const importedActivitiesSheetQuery = `
 	ORDER BY ia.started_at`
 
 var completedWorkoutsHeader = []string{
-	"Data planejada", "Treino", "Objetivo do treino", "Duração planejada (min)", "Esforço-alvo (RPE)",
-	"Início (horário de Brasília)", "Fim (horário de Brasília)", "Duração real (min)", "Esforço percebido (RPE)",
+	"Data planejada", "Treino", "Objetivo do treino", "Duração planejada (min)", "Zona-alvo",
+	"Início (horário de Brasília)", "Fim (horário de Brasília)", "Duração real (min)", "Zona percebida",
 	"Distância (km)", "Altimetria (m)", "Potência média (W)", "FC média (bpm)", "Cadência média (rpm)",
 }
 
 var completedWorkoutsKinds = []xlsx.Kind{
-	xlsx.KindCenter, xlsx.KindText, xlsx.KindWrap, xlsx.KindInt, xlsx.KindDecimal,
-	xlsx.KindCenter, xlsx.KindCenter, xlsx.KindInt, xlsx.KindDecimal,
+	xlsx.KindCenter, xlsx.KindText, xlsx.KindWrap, xlsx.KindInt, xlsx.KindCenter,
+	xlsx.KindCenter, xlsx.KindCenter, xlsx.KindInt, xlsx.KindCenter,
 	xlsx.KindDecimal, xlsx.KindInt, xlsx.KindInt, xlsx.KindInt, xlsx.KindInt,
 }
 
@@ -114,6 +115,11 @@ func (s *Store) ExportAccountSpreadsheet(ctx context.Context, userID string) ([]
 	if err != nil {
 		return nil, fmt.Errorf("export completed workouts: %w", err)
 	}
+	for _, row := range workouts {
+		// The engine stores effort as RPE; the athlete reads it as a zone.
+		row[4] = zoneLabelOf(row[4])
+		row[8] = zoneLabelOf(row[8])
+	}
 	imported, err := queryRows(ctx, tx, importedActivitiesSheetQuery, userID)
 	if err != nil {
 		return nil, fmt.Errorf("export imported activities: %w", err)
@@ -143,4 +149,13 @@ func queryRows(ctx context.Context, tx pgx.Tx, query, userID string) ([][]any, e
 		result = append(result, values)
 	}
 	return result, rows.Err()
+}
+
+// zoneLabelOf turns a stored RPE (a float, or nil when not recorded) into "Z2 · Resistência".
+func zoneLabelOf(value any) any {
+	rpe, ok := value.(float64)
+	if !ok {
+		return nil
+	}
+	return zones.Label(rpe)
 }

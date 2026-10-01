@@ -76,7 +76,7 @@ func TestAccountSpreadsheetHasTheEssentialsAndNoHealthData(t *testing.T) {
 		}
 	}
 	text := dump.String()
-	for _, want := range []string{email, "Atleta de Teste", "Intermediário", "01/10/2026", "01/01/2099", "Giro de teste", "32.5", "180", "141", "33.1", "65"} {
+	for _, want := range []string{email, "Atleta de Teste", "Intermediário", "01/10/2026", "01/01/2099", "Giro de teste", "Z2 · Resistência", "32.5", "180", "141", "33.1", "65"} {
 		if !strings.Contains(text, want) {
 			t.Errorf("the spreadsheet is missing %q:\n%s", want, text)
 		}

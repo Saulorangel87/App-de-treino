@@ -913,3 +913,13 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - **Tela:** aviso "Disponível no dia planejado" no treino futuro; botão "Desfazer registro" no concluído e "Reabrir treino" no não realizado, com confirmação.
 - **Validação:** testes de banco (a reversão do ajuste, plano reaberto, treino de plano antigo ou de outra conta recusado, treino não realizado reaberto, início futuro, de hoje e do passado, e a data local à noite), testes do serviço e da rota, testes do frontend, um fluxo de 27 verificações contra a API local e 14 no navegador. Sem migração.
 - **Achado no caminho:** o tempo planejado não é exigido em nenhum ponto. A duração é o cronômetro entre Iniciar e Concluir; sessões com menos de 1 minuto (duração 0) ficam gravadas, mas como dado `incomplete` e fora do histórico elegível, da evolução e da adaptação. Isso motivou o modo tarefa.
+
+## Zonas de esforço no lugar do RPE (01/10/2026, não publicado)
+
+**Motivo.** O RPE é pouco amigável para o ciclista, principalmente para quem usa sensor de frequência cardíaca. Zonas (Z1 a Z5) são a linguagem comum do ciclismo e ainda funcionam sem sensor, pelo teste da conversa.
+
+- **Decisão de desenho:** zonas como camada de apresentação. O motor, o banco, a API e as evidências continuam em RPE; `backend/internal/zones` e `frontend/lib/zones.ts` guardam a mesma tabela (um teste do backend confere) e a ligam ao RPE. Detalhes em [`zonas-de-esforco.md`](zonas-de-esforco.md).
+- **Feedback:** o formulário pergunta a zona (cinco cartões, com a planejada marcada). `POST /v1/workouts/{id}/complete` aceita `actual_zone`; clientes antigos com `actual_rpe` continuam funcionando, e a zona vence se vierem os dois.
+- **Perfil:** campo opcional `max_heart_rate` (100 a 230 bpm, só com sensor de frequência) para mostrar cada zona em batimentos; com o FTP, também em watts.
+- **Telas:** Plano, Hoje, estrutura do treino, cartão de adaptação, Atividades, Evolução, Recuperação e a planilha de dados falam em zona; os símbolos de trilha seguem as zonas (verde Z1 e Z2, azul Z3, preto Z4 e Z5), o que muda a cor de treinos de RPE 4 a 5 (de azul para verde) e de RPE 6,5 (de preto para azul). A aba Avaliação não mudou.
+- **Validação:** testes das zonas no backend e no frontend (inclusive a tabela igual nos dois), da validação da frequência máxima, do feedback por zona e da planilha com banco; 17 verificações no navegador (plano, faixas em bpm e watts, formulário, atividades, Hoje, Evolução e perfil).

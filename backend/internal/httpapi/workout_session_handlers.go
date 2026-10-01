@@ -6,12 +6,16 @@ import (
 	"strings"
 
 	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/zones"
 )
 
 type completeWorkoutInput struct {
-	CompletionStatus   string   `json:"completion_status"`
-	PartialReason      string   `json:"partial_reason"`
-	ActualRPE          float64  `json:"actual_rpe"`
+	CompletionStatus string  `json:"completion_status"`
+	PartialReason    string  `json:"partial_reason"`
+	ActualRPE        float64 `json:"actual_rpe"`
+	// ActualZone (1 to 5) is the zone the athlete rode in; the app sends it instead
+	// of actual_rpe. It is stored as the RPE that represents the zone.
+	ActualZone         int      `json:"actual_zone"`
 	Difficulty         string   `json:"difficulty"`
 	PainReported       bool     `json:"pain_reported"`
 	FatigueAfter       int      `json:"fatigue_after"`
@@ -61,6 +65,14 @@ func (s *Server) completeWorkout(w http.ResponseWriter, r *http.Request) {
 	if input.CompletionStatus == "" {
 		writeWorkoutError(w, planning.ErrInvalidFeedback)
 		return
+	}
+	if input.ActualZone != 0 {
+		rpe, ok := zones.RPEForZone(input.ActualZone)
+		if !ok {
+			writeWorkoutError(w, planning.ErrInvalidFeedback)
+			return
+		}
+		input.ActualRPE = rpe
 	}
 	plan, err := s.planning.CompleteWorkout(r.Context(), user.ID, r.PathValue("workoutID"), planning.CompletionInput{
 		CompletionStatus: input.CompletionStatus, PartialReason: strings.TrimSpace(input.PartialReason),
@@ -142,7 +154,7 @@ func writeWorkoutError(w http.ResponseWriter, err error) bool {
 	case errors.Is(err, planning.ErrInvalidWorkoutID):
 		writeError(w, http.StatusBadRequest, "invalid_workout_id", "O identificador do treino é inválido.")
 	case errors.Is(err, planning.ErrInvalidFeedback):
-		writeError(w, http.StatusBadRequest, "invalid_feedback", "Informe conclusão completa ou parcial, motivo quando parcial, RPE de 1 a 10, fadiga de 1 a 5 e uma dificuldade válida.")
+		writeError(w, http.StatusBadRequest, "invalid_feedback", "Informe conclusão completa ou parcial, motivo quando parcial, a zona de esforço (1 a 5), fadiga de 1 a 5 e uma dificuldade válida.")
 	case errors.Is(err, planning.ErrInvalidCorrection):
 		writeError(w, http.StatusBadRequest, "invalid_workout_correction", "Informe métricas do pedal válidas ou remova o valor que não deseja manter.")
 	case errors.Is(err, planning.ErrWorkoutCorrection):

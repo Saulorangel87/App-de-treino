@@ -7,6 +7,7 @@ import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { AppHeader } from '@/components/app-header';
 import { ApiErrorState } from '@/components/api-error-state';
 import { parseTrainingDate, type Activity as TrainingActivity } from '@/lib/planning';
+import { zoneLabel } from '@/lib/zones';
 
 type User = { display_name: string };
 
@@ -95,7 +96,7 @@ export default function ActivitiesPage() {
                   <time><CalendarDays size={14} />{terminalAt ? dateFormatter.format(new Date(terminalAt)) : parseTrainingDate(item.scheduled_on).toLocaleDateString('pt-BR')}</time>
                   <div className="activity-metrics">
                     <span><Clock3 size={14} /><b>{item.duration_minutes ?? '—'}</b> {item.duration_minutes === undefined ? 'duração' : 'min'}</span>
-                    <span><Gauge size={14} /><b>{item.actual_rpe ? `RPE ${item.actual_rpe}` : '—'}</b></span>
+                    <span><Gauge size={14} /><b>{item.actual_rpe ? zoneLabel(item.actual_rpe) : '—'}</b></span>
                     {item.distance_km !== undefined && <span><MapPinned size={14} /><b>{item.distance_km} km</b></span>}
                     {item.elevation_gain_m !== undefined && <span><MapPinned size={14} /><b>{item.elevation_gain_m} m+</b></span>}
                     {item.average_heart_rate !== undefined && <span><HeartPulse size={14} /><b>{item.average_heart_rate} bpm</b></span>}

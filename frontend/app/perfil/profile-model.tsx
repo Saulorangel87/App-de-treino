@@ -64,6 +64,7 @@ export type CyclingContext = {
   terrain: string;
   uses_heart_rate: boolean;
   uses_power: boolean;
+  max_heart_rate?: number;
   uses_gps: boolean;
   uses_sports_watch: boolean;
   uses_smart_trainer: boolean;

@@ -19,6 +19,15 @@ import {
   type TrainingPlan,
   type Workout,
 } from '@/lib/planning';
+import {
+  ZONES,
+  formatHeartRateRange,
+  formatPowerRange,
+  zoneForRpe,
+  zoneLabel,
+  zoneRanges,
+  type ZoneReference,
+} from '@/lib/zones';
 
 export type PrefillMetrics = {
   distance_km?: number;
@@ -33,6 +42,8 @@ type Props = {
   planStatus: TrainingPlan['status'];
   usesHeartRate?: boolean;
   usesPower?: boolean;
+  /** Frequência máxima e FTP do atleta, para mostrar cada zona em bpm e watts. */
+  zoneReference?: ZoneReference;
   onPlanUpdated: (plan: TrainingPlan, workoutID: string) => void;
   /**
    * Preenche o formulário de conclusão (ou de correção, se a sessão já
@@ -96,6 +107,7 @@ export function WorkoutSessionActions({
   planStatus,
   usesHeartRate = false,
   usesPower = false,
+  zoneReference = {},
   onPlanUpdated,
   prefillMetrics,
 }: Props) {
@@ -104,9 +116,8 @@ export function WorkoutSessionActions({
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [completionStatus, setCompletionStatus] = useState<'complete' | 'partial'>('complete');
   const [partialReason, setPartialReason] = useState<keyof typeof partialReasonLabels | ''>('');
-  const [actualRPE, setActualRPE] = useState(
-    Math.max(1, Math.round(workout.target_rpe)),
-  );
+  const plannedZone = zoneForRpe(workout.target_rpe).number;
+  const [actualZone, setActualZone] = useState<number>(plannedZone);
   const [difficulty, setDifficulty] =
     useState<keyof typeof difficultyLabels>('moderate');
   const [fatigueAfter, setFatigueAfter] = useState(3);
@@ -188,7 +199,7 @@ export function WorkoutSessionActions({
     await mutate('complete', {
       completion_status: completionStatus,
       partial_reason: completionStatus === 'partial' ? partialReason : undefined,
-      actual_rpe: actualRPE,
+      actual_zone: actualZone,
       difficulty,
       fatigue_after: fatigueAfter,
       recovery_after: recoveryAfter,
@@ -452,23 +463,42 @@ export function WorkoutSessionActions({
             )}
           </fieldset>
 
-          <label htmlFor={`rpe-${workout.id}`}>
-            RPE realizado
-            <output>{actualRPE}</output>
-          </label>
-          <input
-            id={`rpe-${workout.id}`}
-            type="range"
-            min="1"
-            max="10"
-            step="1"
-            value={actualRPE}
-            onChange={(event) => setActualRPE(Number(event.target.value))}
-          />
-          <div className="feedback-scale">
-            <span>1 · muito leve</span>
-            <span>10 · máximo</span>
-          </div>
+          <fieldset className="zone-choice">
+            <legend>Em que zona você pedalou?</legend>
+            <small>
+              Pense na parte principal do treino. Sem sensor, use o teste da
+              conversa: ele diz qual zona combina com o que você sentiu.
+            </small>
+            <div className="zone-cards">
+              {ZONES.map((zone) => {
+                const ranges = zoneRanges(zone, zoneReference);
+                return (
+                  <label
+                    key={zone.number}
+                    className={[
+                      'zone-card',
+                      actualZone === zone.number ? 'selected' : '',
+                      plannedZone === zone.number ? 'planned' : '',
+                    ].filter(Boolean).join(' ')}
+                  >
+                    <input
+                      type="radio"
+                      name={`zone-${workout.id}`}
+                      checked={actualZone === zone.number}
+                      onChange={() => setActualZone(zone.number)}
+                    />
+                    <strong>
+                      Z{zone.number} · {zone.name}
+                      {ranges.heartRate && <small>{formatHeartRateRange(ranges.heartRate)}</small>}
+                      {ranges.power && <small>{formatPowerRange(ranges.power)}</small>}
+                      {plannedZone === zone.number && <em className="zone-planned">planejada</em>}
+                    </strong>
+                    <span>{zone.talk}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
 
           <div className="feedback-grid">
             <label>
@@ -653,7 +683,7 @@ export function WorkoutSessionActions({
         <div className="session-result">
           <CheckCircle2 />
           <div>
-            <strong>Treino concluído · RPE {session?.actual_rpe}</strong>
+            <strong>Treino concluído · {session?.actual_rpe !== undefined ? zoneLabel(session.actual_rpe) : 'zona não informada'}</strong>
             <span>
               {feedback.completion_status === 'partial'
                 ? `Conclusão parcial · ${feedback.partial_reason ? partialReasonLabels[feedback.partial_reason] : 'motivo não informado'}`
@@ -712,7 +742,7 @@ export function WorkoutSessionActions({
           <div className="feedback-heading">
             <div>
               <strong>Corrigir dados do pedal</strong>
-              <small>Apague um campo para removê-lo. Duração, RPE e feedback não serão alterados.</small>
+              <small>Apague um campo para removê-lo. Duração, zona e feedback não serão alterados.</small>
             </div>
             <button type="button" onClick={() => setCorrectionOpen(false)} aria-label="Cancelar correção">
               <RotateCcw />
