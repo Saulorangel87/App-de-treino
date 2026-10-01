@@ -16,6 +16,7 @@ import {
 import { AppHeader } from '@/components/app-header';
 import { ApiError, apiDownload, apiErrorMessage, apiRequest } from '@/lib/api';
 import { ApiErrorState } from '@/components/api-error-state';
+import { LEGAL_CONTACT_EMAIL } from '@/lib/legal';
 
 type User = {
   display_name: string;
@@ -120,7 +121,7 @@ export default function SettingsPage() {
     setExporting(true);
     try {
       const today = new Date().toISOString().slice(0, 10);
-      await apiDownload('/v1/auth/account/export', `cadencia-dados-${today}.json`);
+      await apiDownload('/v1/auth/account/export', `cadencia-dados-${today}.xlsx`);
     } catch (caught) {
       setExportError(
         apiErrorMessage(caught, 'Não foi possível exportar seus dados agora.'),
@@ -320,10 +321,10 @@ export default function SettingsPage() {
               </span>
               <h2>Seus dados</h2>
               <p className="settings-card-intro">
-                Baixe uma cópia de tudo o que o Cadência guarda sobre você:
-                conta, perfil, limitações, check-ins, planos, treinos, sessões,
-                feedbacks e atividades importadas. Senhas e códigos de sessão
-                não fazem parte do arquivo.
+                Baixe uma planilha (.xlsx) com os dados da sua conta, os treinos
+                que você realizou e as atividades que importou. Ela não traz
+                dados de saúde nem de acesso. Para uma cópia completa, escreva
+                para {LEGAL_CONTACT_EMAIL}.
               </p>
               {exportError && (
                 <p className="form-error" role="alert">
@@ -342,7 +343,7 @@ export default function SettingsPage() {
                   </>
                 ) : (
                   <>
-                    <Download size={16} /> Exportar meus dados
+                    <Download size={16} /> Baixar minha planilha
                   </>
                 )}
               </button>

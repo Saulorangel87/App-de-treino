@@ -119,3 +119,69 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* Aceite dos termos: caixa de seleção no cadastro e aviso que bloqueia o app. */
+
+.terms-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.terms-check input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  accent-color: var(--trail);
+}
+
+.terms-check a,
+.terms-gate-links a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.terms-gate-backdrop {
+  z-index: 70;
+}
+
+.terms-gate-links {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.terms-gate-leave {
+  min-height: 46px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+.terms-gate .update-notice-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* No celular o rodapé compacto ganha uma segunda linha só para os documentos. */
+@media (max-width: 599px) {
+  .site-footer {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .site-footer .legal-links {
+    order: 3;
+    flex: 1 1 100%;
+    justify-content: center;
+    padding-bottom: 4px;
+    font-size: 12px;
+  }
+}

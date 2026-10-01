@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Anybody, Schibsted_Grotesk } from 'next/font/google';
 import { AppFooter } from '@/components/app-footer';
+import { TermsGate } from '@/components/terms-gate';
 import { UpdateNotice } from '@/components/update-notice';
 import './globals.css';
 import './styles/base.css';
@@ -110,6 +111,7 @@ export default function RootLayout({
       <body className={`${display.variable} ${body.variable}`}>
         {children}
         <UpdateNotice />
+        <TermsGate />
         <AppFooter />
       </body>
     </html>

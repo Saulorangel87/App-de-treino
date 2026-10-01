@@ -29,9 +29,9 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/RegisterRequest' }
       responses:
-        '201': { description: Conta criada }
-        '400': { description: Dados inválidos }
-        '409': { description: E-mail já cadastrado }
+        '201': { description: Conta criada, com o aceite dos termos registrado }
+        '400': { description: Dados inválidos ou aceite dos termos ausente (terms_required) }
+        '409': { description: Versão dos termos desatualizada (terms_outdated) }
   /v1/auth/login:
     post:
       summary: Autentica por e-mail e senha
@@ -75,27 +75,37 @@ paths:
         '500': { description: Falha sem alteração dos dados }
   /v1/auth/account/export:
     get:
-      summary: Baixa uma cópia de todos os dados do usuário autenticado (LGPD, art. 18)
+      summary: Baixa uma planilha com os dados essenciais do usuário autenticado (LGPD, art. 18)
       description: >
-        Arquivo JSON com conta, perfil, metas, disponibilidade, limitações, check-ins,
-        avaliações, planos, treinos, sessões, feedbacks, atividades importadas e
-        mensagens de feedback. Não inclui senha nem códigos de sessão.
+        Arquivo .xlsx com três abas: Conta, Treinos realizados e Atividades importadas.
+        Não inclui dados de saúde (limitações, dor, check-ins, medidas corporais) nem
+        senha e códigos de sessão; a cópia completa é entregue por solicitação ao contato
+        da Política de Privacidade.
       responses:
         '200':
-          description: Arquivo JSON para download (Content-Disposition attachment)
+          description: Planilha para download (Content-Disposition attachment)
           content:
-            application/json:
-              schema:
-                type: object
-                required: [format_version, exported_at, account]
-                properties:
-                  format_version: { type: integer }
-                  exported_at: { type: string, format: date-time }
-                  account: { type: object }
-                additionalProperties: true
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema: { type: string, format: binary }
         '401': { description: Sessão ausente ou expirada }
         '429': { description: Muitas exportações em pouco tempo }
         '500': { description: Falha ao montar o arquivo }
+  /v1/auth/accept-terms:
+    post:
+      summary: Registra que o usuário aceitou a versão vigente dos Termos de Uso e da Política de Privacidade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [terms_version]
+              properties:
+                terms_version: { type: string, example: '2026-10-01' }
+      responses:
+        '204': { description: Aceite registrado }
+        '401': { description: Sessão ausente ou expirada }
+        '409': { description: Versão dos termos desatualizada (terms_outdated) }
   /v1/auth/change-password:
     post:
       summary: Altera a senha do usuário autenticado e desconecta as demais sessões
@@ -175,9 +185,21 @@ paths:
         '400': { description: Senha ou token inválido }
   /v1/me:
     get:
-      summary: Retorna o usuário da sessão
+      summary: Retorna o usuário da sessão e se ele aceitou a versão vigente dos termos
       responses:
-        '200': { description: Usuário autenticado }
+        '200':
+          description: Usuário autenticado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { type: object }
+                  legal:
+                    type: object
+                    properties:
+                      terms_version: { type: string, example: '2026-10-01' }
+                      accepted: { type: boolean }
         '401': { description: Sessão ausente ou expirada }
   /v1/profile:
     get:
@@ -556,11 +578,18 @@ components:
   schemas:
     RegisterRequest:
       type: object
-      required: [email, password, display_name]
+      required: [email, password, display_name, accept_terms, terms_version]
       properties:
         email: { type: string, format: email }
         password: { type: string, minLength: 10, maxLength: 72 }
         display_name: { type: string, minLength: 2, maxLength: 100 }
+        accept_terms:
+          type: boolean
+          description: Deve ser true; o cadastro é recusado sem o aceite dos Termos de Uso e da Política de Privacidade
+        terms_version:
+          type: string
+          description: Versão dos textos que o usuário viu (AAAA-MM-DD); precisa ser a versão vigente
+          example: '2026-10-01'
     LoginRequest:
       type: object
       required: [email, password]

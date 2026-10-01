@@ -66,12 +66,16 @@ BEGIN
     INSERT INTO user_feedback (user_id, category, rating, message)
     VALUES (test_user_id, 'suggestion', 5, 'Teste de exclusão da conta');
 
+    INSERT INTO legal_acceptances (user_id, terms_version)
+    VALUES (test_user_id, '2026-09-30');
+
     DELETE FROM users WHERE id = test_user_id;
 
     IF EXISTS (SELECT 1 FROM athlete_profiles WHERE user_id = test_user_id)
        OR EXISTS (SELECT 1 FROM auth_sessions WHERE user_id = test_user_id)
        OR EXISTS (SELECT 1 FROM auth_email_tokens WHERE user_id = test_user_id)
        OR EXISTS (SELECT 1 FROM user_feedback WHERE user_id = test_user_id)
+       OR EXISTS (SELECT 1 FROM legal_acceptances WHERE user_id = test_user_id)
        OR EXISTS (SELECT 1 FROM goals WHERE athlete_profile_id = test_profile_id)
        OR EXISTS (SELECT 1 FROM availability WHERE athlete_profile_id = test_profile_id)
        OR EXISTS (SELECT 1 FROM recovery_data WHERE athlete_profile_id = test_profile_id)

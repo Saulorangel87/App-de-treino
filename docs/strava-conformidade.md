@@ -126,4 +126,4 @@ A Política de Privacidade (`/privacidade`, texto em `frontend/lib/legal.ts`) de
 - pedir consentimento novo ao atleta (a política promete isso em "Mudanças nesta política");
 - atualizar `LEGAL_VERSION` e a data.
 
-A exclusão da conta já apaga tudo na hora (prazo do Strava: 30 dias), e a exportação de dados cobre o pedido de acesso (Policy 2.2). Falta a confirmação por escrito da exclusão, que o Strava exige (Policy 2.5).
+A exclusão da conta já apaga tudo na hora (prazo do Strava: 30 dias). O aceite dos termos agora é registrado com a versão (`legal_acceptances`), e uma versão nova exige novo aceite. A planilha exportada não inclui dados do Strava e deve continuar assim se a integração vier; o pedido de acesso do atleta aos dados do Strava (Policy 2.2) precisa ser atendido por outro caminho. Falta a confirmação por escrito da exclusão, que o Strava exige (Policy 2.5).

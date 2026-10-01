@@ -42,6 +42,7 @@ test('cadastro, confirmação de e-mail, troca de senha e novo login', async ({ 
     await page.getByLabel('Como podemos chamar você?').fill('Atleta E2E');
     await page.getByLabel('E-mail', { exact: true }).fill(email);
     await page.getByLabel('Senha', { exact: true }).fill(password);
+    await page.getByLabel(/Li e aceito os Termos de Uso/).check();
     await page.getByRole('button', { name: 'Criar minha conta' }).click();
     await expect(page.getByRole('status')).toContainText('confirmar seu e-mail');
 

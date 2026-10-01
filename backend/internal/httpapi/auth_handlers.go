@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -20,29 +21,31 @@ import (
 	"github.com/Saulorangel87/App-de-treino/backend/internal/email"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/evolution"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/feedback"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/legal"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
 )
 
 const sessionCookieName = "cadencia_session"
 
 type Server struct {
-	auth           *auth.Service
-	athlete        *athlete.Service
-	onboarding     *athlete.OnboardingService
-	assessments    *athlete.AssessmentService
-	recovery       *athlete.RecoveryService
-	evolution      *evolution.Service
-	feedback       *feedback.Service
-	planning       *planning.Service
-	activityImport *activityimport.Service
-	ai             *ai.Service
-	secureCookies  bool
-	sessionTTL     time.Duration
-	emailSender    email.Sender
-	appBaseURL     string
-	emailTokenTTL  time.Duration
-	development    bool
-	exporter       DataExporter
+	auth             *auth.Service
+	athlete          *athlete.Service
+	onboarding       *athlete.OnboardingService
+	assessments      *athlete.AssessmentService
+	recovery         *athlete.RecoveryService
+	evolution        *evolution.Service
+	feedback         *feedback.Service
+	planning         *planning.Service
+	activityImport   *activityimport.Service
+	ai               *ai.Service
+	secureCookies    bool
+	sessionTTL       time.Duration
+	emailSender      email.Sender
+	appBaseURL       string
+	emailTokenTTL    time.Duration
+	development      bool
+	exporter         DataExporter
+	legalAcceptances LegalAcceptanceStore
 	// loginFailures counts failed logins per e-mail address, complementing the
 	// per-IP limit against distributed guessing of a single account.
 	loginFailures *requestRateLimiter
@@ -80,9 +83,24 @@ type credentialsRequest struct {
 	DisplayName string `json:"display_name"`
 }
 
+type registerRequest struct {
+	credentialsRequest
+	AcceptTerms  bool   `json:"accept_terms"`
+	TermsVersion string `json:"terms_version"`
+}
+
 func (s *Server) register(w http.ResponseWriter, r *http.Request) {
-	var input credentialsRequest
-	if !decodeJSON(w, r, &input) {
+	var request registerRequest
+	if !decodeJSON(w, r, &request) {
+		return
+	}
+	input := request.credentialsRequest
+	if !request.AcceptTerms {
+		writeError(w, http.StatusBadRequest, "terms_required", "Aceite os Termos de Uso e a Política de Privacidade para criar a conta.")
+		return
+	}
+	if request.TermsVersion != legal.TermsVersion {
+		writeError(w, http.StatusConflict, "terms_outdated", "Os termos foram atualizados. Recarregue a página e leia a nova versão.")
 		return
 	}
 	user, token, err := s.auth.Register(r.Context(), input.Email, input.Password, input.DisplayName)
@@ -98,6 +116,13 @@ func (s *Server) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.setSessionCookie(w, token)
+	if s.legalAcceptances != nil {
+		// A failure here is not fatal: the account has no acceptance on record, so
+		// the app asks for it again on the first access.
+		if err := s.legalAcceptances.RecordLegalAcceptance(r.Context(), user.ID, legal.TermsVersion); err != nil {
+			slog.Default().Error("recording terms acceptance at registration failed", "error", err)
+		}
+	}
 	verificationURL, err := s.sendVerification(r.Context(), user)
 	if err != nil {
 		writeError(w, http.StatusServiceUnavailable, "email_unavailable", "Sua conta foi criada, mas não foi possível enviar a confirmação. Entre novamente para reenviar o link.")
@@ -216,7 +241,13 @@ func (s *Server) me(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"user": user})
+	status, err := s.legalStatusFor(r.Context(), user.ID)
+	if err != nil {
+		slog.Default().Error("reading terms acceptance failed", "error", err)
+		writeError(w, http.StatusInternalServerError, "internal_error", "Não foi possível carregar sua conta.")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"user": user, "legal": status})
 }
 
 func (s *Server) resendVerification(w http.ResponseWriter, r *http.Request) {

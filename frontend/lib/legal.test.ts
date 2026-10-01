@@ -25,7 +25,7 @@ describe('textos jurídicos', () => {
       'controlador',
       'Resend',
       'Cloudflare',
-      'Exportar meus dados',
+      'Baixar minha planilha',
       'Encerrar conta',
       'ANPD',
       LEGAL_CONTACT_EMAIL,
