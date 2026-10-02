@@ -39,8 +39,8 @@ Plano, Hoje, estrutura do treino, cartão de adaptação (só mostra a mudança 
 ## O que continua em RPE
 
 - O motor, o banco, a API (`target_rpe`, `actual_rpe`) e as explicações científicas.
-- A aba **Avaliação** (teste submáximo), que será revista à parte.
 - A cópia completa dos dados, que guarda o valor bruto.
+- O banco da Avaliação (`actual_rpe`): a tela pergunta a zona, e a API guarda o RPE correspondente, como nos treinos.
 
 ## Próximas fases
 

@@ -53,7 +53,7 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `PUT /v1/onboarding/goals`: salva até dois objetivos priorizados.
 - `PUT /v1/onboarding/availability`: salva a disponibilidade semanal.
 - `PUT /v1/onboarding/cycling-context`: salva histórico resumido (tempo de prática, horas, pedais, duração e distância recentes), preferências, GPS/relógio/rolo, sensores, FTP opcional com data/protocolo, potência média, terreno e meta opcional de prova com distância e data futura válidas.
-- `GET /v1/assessments/current` e `POST /v1/assessments/submaximal`: consultam e registram o pedal de referência submáximo.
+- `GET /v1/assessments/current`, `GET /v1/assessments` e `POST /v1/assessments/submaximal`: consultam, listam (últimas 10, com eficiência aeróbica e deriva de FC calculadas) e registram o pedal de referência em Z2; a zona (`actual_zone`) vence o RPE e os números opcionais (FC, potência, distância, FC das duas metades) não entram na regra do "apto".
 - `GET /v1/recovery/today` e `PUT /v1/recovery/today`: consultam e salvam o check-in diário de sono, estresse e fadiga percebida.
 - `GET /v1/evolution/summary`: retorna totais observados, oito semanas de duração, carga sessão-RPE, velocidade média calculada de registros e acompanhamento factual dos objetivos nos últimos 28 dias, além de check-ins recentes.
 - `POST /v1/plans/generate`: gera e substitui o rascunho atual de quatro semanas.
