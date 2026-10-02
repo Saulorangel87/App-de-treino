@@ -89,7 +89,7 @@ Este desenho preliminar foi implementado localmente como `short_self_regulated_i
 
 ## Avaliação inicial submáxima
 
-A rota `/avaliacao` apresenta um pedal de referência opcional: aquecimento leve, até 20 minutos de esforço controlado próximo de RPE 5 e desaquecimento. O atleta registra duração, RPE percebido e dor. Não há teste máximo, estimativa de VO₂max nem diagnóstico.
+A rota `/avaliacao` apresenta um pedal de referência opcional: aquecimento leve, de 15 a 30 minutos contínuos em Z2 (RPE até 5; 20 é o ideal) e desaquecimento. O atleta registra duração, a zona em que pedalou (guardada como o RPE da tabela de zonas), dor e, se quiser, números do pedal (FC, potência, distância, FC das duas metades) que geram eficiência aeróbica e deriva de FC, só informativas e fora da regra do "apto" (ver [`avaliacao.md`](avaliacao.md)). Não há teste máximo, estimativa de VO₂max nem diagnóstico.
 
 Uma referência com pelo menos 18 minutos, RPE até 6 e sem dor fica marcada como apta. Para atletas avançados, com objetivo `performance` ou `event`, sem limitação ativa e ao menos 50 minutos disponíveis, ela libera somente duas sessões de **intervalos controlados** nas semanas de construção: 4 blocos de 4 minutos em RPE 7, com 3 minutos leves entre blocos. O plano não usa sprints, não ultrapassa o RPE avançado já existente e não adiciona sessões extras. Dor, tontura, falta de ar incomum, mal-estar ou outro sintoma preocupante são motivos para interromper a atividade e buscar orientação profissional quando necessário.
 
