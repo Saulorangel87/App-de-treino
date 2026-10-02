@@ -320,9 +320,15 @@ paths:
       responses:
         '200': { description: Avaliação encontrada ou nula }
         '401': { description: Sessão ausente ou expirada }
+  /v1/assessments:
+    get:
+      summary: Lista as últimas avaliações (até 10), da mais recente para a mais antiga, com a eficiência aeróbica e a deriva de frequência cardíaca calculadas
+      responses:
+        '200': { description: 'Lista em `assessments`; cada item traz `efficiency` e `heart_rate_drift_percent` quando os números permitem' }
+        '401': { description: Sessão ausente ou expirada }
   /v1/assessments/submaximal:
     post:
-      summary: Registra uma avaliação submáxima de ciclismo orientada por RPE
+      summary: Registra uma avaliação submáxima de ciclismo (pedal contínuo em Z2); a zona vence o RPE
       requestBody:
         required: true
         content:
@@ -791,12 +797,19 @@ components:
         event_date: { type: [string, 'null'], format: date }
     SubmaxAssessmentRequest:
       type: object
-      required: [duration_minutes, actual_rpe, pain_reported]
+      required: [duration_minutes, pain_reported]
+      description: Informe `actual_zone` (a tela envia a zona) ou `actual_rpe` (clientes antigos); com os dois, a zona vence. O "apto a progredir" depende só de dor, duração (18 minutos ou mais) e esforço até RPE 6 (Z3); os números opcionais não entram na regra.
       properties:
         duration_minutes: { type: integer, minimum: 15, maximum: 30 }
+        actual_zone: { type: integer, minimum: 1, maximum: 5 }
         actual_rpe: { type: number, minimum: 1, maximum: 10 }
         pain_reported: { type: boolean }
         notes: { type: string, maxLength: 1000 }
+        average_heart_rate: { type: integer, minimum: 30, maximum: 250 }
+        average_power_w: { type: integer, minimum: 0, maximum: 2000 }
+        distance_km: { type: number, minimum: 0, maximum: 500, description: Precisa caber na duração (até 80 km/h) }
+        heart_rate_first_half: { type: integer, minimum: 30, maximum: 250, description: Informe junto com a segunda metade }
+        heart_rate_second_half: { type: integer, minimum: 30, maximum: 250, description: Informe junto com a primeira metade }
     RecoveryRequest:
       type: object
       required: [recorded_on, sleep_minutes, sleep_quality, stress_level, fatigue_level]

@@ -933,3 +933,13 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - **Tela:** botão **Marcar como feito** ao lado de **Iniciar treino**; formulário com duração (pré-preenchida com o planejado) e dia, limitado pelo intervalo permitido; o treino concluído mostra a duração e a origem; a planilha de dados ganhou a coluna **Origem da duração**.
 - **Achado no caminho:** a tela calculava o intervalo de datas na primeira renderização, quando a data local ainda é vazia, e quebrava com `RangeError: Invalid time value`; o teste no navegador pegou e as funções ficaram seguras para data vazia.
 - **Validação:** testes do serviço (janela de 7 dias, limites de duração, feedback, reavaliação só após sucesso) e da rota; testes com banco (registro pela mesma via do cronômetro, dia anterior, recusas, regra dos 80%, fluxo do cronômetro ainda como `timer`, desfazer de um registro "feito"); 22 verificações no navegador.
+
+## Avaliação com zona e números (02/10/2026, não publicado)
+
+**Motivo.** Revisão da aba `/avaliacao` a pedido do dono do produto, que não entendia como ela funcionava. Achados: o teste era circular (pedia RPE 5 e aprovava quem reportasse 6 ou menos, então só reprovava quem relatava dor ou pedalava menos de 18 minutos), não guardava nenhum número, ainda falava em RPE e não dizia o que o "apto" libera nem quando refazer.
+
+- **Regra do "apto" preservada** por decisão do dono do produto: sem dor, 18 minutos ou mais e esforço até RPE 6 (Z3). Teste confere que números ótimos não salvam um esforço forte e números ruins não derrubam um pedal certo.
+- **Zona no lugar do RPE** na tela (`actual_zone`, que vence o `actual_rpe`; clientes antigos seguem funcionando).
+- **Números opcionais** (migração `000037`): FC média, potência, distância e FC das duas metades. O servidor deriva (sem gravar) a eficiência aeróbica (W por bpm, ou km/h a cada 100 bpm) e a deriva de FC. A tela compara com a avaliação anterior do mesmo tipo.
+- **Tela:** explica o que o "apto" libera, mostra a data para refazer (a partir de 4 semanas), lista as últimas 10 avaliações e oferece preencher com um pedal importado de 15 a 30 minutos. Rota nova `GET /v1/assessments`.
+- Ver [`avaliacao.md`](../avaliacao.md). Testes guiados de FC máxima, LTHR e FTP (Fase B) ficam para depois.

@@ -404,4 +404,128 @@
 .feedback-message small {
   color: var(--muted);
   font-size: 13px;
+}
+
+/* ---------- Avaliação: finalidade, números e histórico ---------- */
+.assessment-purpose,
+.assessment-history {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  border: var(--hairline);
+  background: var(--sheet);
+}
+
+.assessment-purpose h2,
+.assessment-history h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.assessment-purpose ul,
+.assessment-history ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.assessment-purpose li strong {
+  color: var(--ink);
+}
+
+.assessment-number {
+  font-size: 14px;
+}
+
+.assessment-number.drift-high {
+  color: var(--warn);
+}
+
+.assessment-next {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.assessment-tip {
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+.assessment-numbers {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: var(--hairline);
+  background: var(--paper);
+}
+
+.assessment-numbers legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+.assessment-numbers legend small,
+.assessment-numbers > small {
+  color: var(--muted);
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.assessment-numbers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 14px;
+}
+
+.assessment-numbers-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.assessment-numbers-grid label > input {
+  margin-top: auto;
+}
+
+.assessment-history li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  padding: 8px 0;
+  border-top: var(--hairline);
+}
+
+.assessment-history li:first-child {
+  border-top: 0;
+}
+
+.assessment-history li strong {
+  color: var(--ink);
+}
+
+.assessment-apt {
+  color: var(--ok);
+  font-weight: 700;
+}
+
+.assessment-notapt {
+  color: var(--warn);
+  font-weight: 700;
 }
