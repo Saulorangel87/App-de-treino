@@ -934,7 +934,7 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - **Achado no caminho:** a tela calculava o intervalo de datas na primeira renderização, quando a data local ainda é vazia, e quebrava com `RangeError: Invalid time value`; o teste no navegador pegou e as funções ficaram seguras para data vazia.
 - **Validação:** testes do serviço (janela de 7 dias, limites de duração, feedback, reavaliação só após sucesso) e da rota; testes com banco (registro pela mesma via do cronômetro, dia anterior, recusas, regra dos 80%, fluxo do cronômetro ainda como `timer`, desfazer de um registro "feito"); 22 verificações no navegador.
 
-## Avaliação com zona e números (02/10/2026, não publicado)
+## Avaliação com zona e números (02/10/2026, publicado em 05a7a5c)
 
 **Motivo.** Revisão da aba `/avaliacao` a pedido do dono do produto, que não entendia como ela funcionava. Achados: o teste era circular (pedia RPE 5 e aprovava quem reportasse 6 ou menos, então só reprovava quem relatava dor ou pedalava menos de 18 minutos), não guardava nenhum número, ainda falava em RPE e não dizia o que o "apto" libera nem quando refazer.
 
