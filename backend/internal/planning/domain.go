@@ -117,6 +117,9 @@ type Context struct {
 	TrainingHistoryPeriods []TrainingHistoryPeriod
 	BaselineEligible       bool
 	RotationIndex          int
+	// DoneDates are recent days that already hold a completed or in-progress
+	// workout in any plan of the athlete. A new plan must not schedule them again.
+	DoneDates []string
 	// RecentSignals are dated records of the last 14 days, used only to assess
 	// Protection. Protection stays nil until protection levels are enabled, and
 	// prescription then keeps the legacy Observed.RequiresRecovery() behavior.

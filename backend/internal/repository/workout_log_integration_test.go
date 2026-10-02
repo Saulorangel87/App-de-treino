@@ -186,3 +186,31 @@ func TestTheStopwatchFlowStillRecordsATimerSession(t *testing.T) {
 		t.Errorf("workout is %q, want completed", r.status)
 	}
 }
+
+func TestPlanningContextListsDaysThatAlreadyHoldACompletedWorkout(t *testing.T) {
+	f := newUndoFixture(t)
+	plan := f.plan("active")
+	done := f.workout(plan, 0, "planned")
+	f.workout(plan, 1, "planned")
+	f.exec(`INSERT INTO goals (athlete_profile_id, goal_type, priority) VALUES ($1, 'performance', 1)`, f.profileID)
+	f.exec(`INSERT INTO availability (athlete_profile_id, weekday, available_minutes) VALUES ($1, 1, 60)`, f.profileID)
+	if err := f.store.LogWorkoutByUserID(f.ctx, f.userID, done, planning.LogWorkoutInput{
+		CompletionInput: easyFeedback(), DurationMinutes: 60, PerformedOn: today(),
+	}, today()); err != nil {
+		t.Fatalf("log: %v", err)
+	}
+	input, err := f.store.PlanningContextByUserID(f.ctx, f.userID)
+	if err != nil {
+		t.Fatalf("context: %v", err)
+	}
+	if len(input.DoneDates) != 1 || input.DoneDates[0] != today() {
+		t.Fatalf("DoneDates = %v, want only %s", input.DoneDates, today())
+	}
+	if err := f.store.UndoWorkoutByUserID(f.ctx, f.userID, done); err != nil {
+		t.Fatalf("undo: %v", err)
+	}
+	input, _ = f.store.PlanningContextByUserID(f.ctx, f.userID)
+	if len(input.DoneDates) != 0 {
+		t.Fatalf("an undone workout must free its day, got %v", input.DoneDates)
+	}
+}

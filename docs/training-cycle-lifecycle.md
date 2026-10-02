@@ -42,6 +42,10 @@ Treinos futuros não podem ser marcados dessa forma. Cancelar uma sessão já in
 
 Limites: vale para o plano ativo ou para o último plano, quando ele foi concluído e não há outro ativo; um treino de plano antigo não pode ser desfeito. Treinos ajustados por um check-in antes da sessão (`pre_session_recovery`) não têm o ajuste revertido, porque os valores "anteriores" gravados descartariam também aquele ajuste. A atividade importada vinculada ao treino continua vinculada. O gatilho só ajusta treinos ainda `planned` e não ajusta de novo um que já foi ajustado, então cada treino tem no máximo um dono de ajuste, e desfazer uma sessão que não causou ajuste não toca nos ajustes de outra.
 
+## Plano novo não repete um dia já feito
+
+Ao gerar um plano, os dias da semana atual que já têm um treino concluído ou em andamento (em qualquer plano do atleta) não recebem treino de novo. Sem isso, gerar outro plano no mesmo dia devolvia o treino de hoje e dava para concluir vários treinos na mesma data. Desfazer o registro libera o dia.
+
 ## Modo tarefa: marcar como feito
 
 Além do cronômetro (**Iniciar treino**), o treino planejado ou adaptado de hoje ou de um dia passado tem **Marcar como feito**. É para quem pedala e registra depois, ou não quer abrir o app no pedal. O formulário é o mesmo da conclusão (zona, dificuldade, fadiga, dor e métricas opcionais), com dois campos a mais: a **duração** em minutos (já preenchida com o tempo planejado) e o **dia do treino**.

@@ -292,6 +292,27 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 		return planning.Context{}, err
 	}
 	input.Observed.CompletedSessions = int(completedSessions)
+	doneRows, err := s.pool.Query(ctx, `
+		SELECT DISTINCT w.scheduled_on::text
+		FROM workouts w
+		JOIN training_plans tp ON tp.id = w.training_plan_id
+		WHERE tp.athlete_profile_id = $1
+		  AND w.status IN ('completed', 'in_progress')
+		  AND w.scheduled_on >= CURRENT_DATE - 7`, input.ProfileID)
+	if err != nil {
+		return planning.Context{}, err
+	}
+	defer doneRows.Close()
+	for doneRows.Next() {
+		var day string
+		if err := doneRows.Scan(&day); err != nil {
+			return planning.Context{}, err
+		}
+		input.DoneDates = append(input.DoneDates, day)
+	}
+	if err := doneRows.Err(); err != nil {
+		return planning.Context{}, err
+	}
 	var recoveryCheckins int64
 	if err := s.pool.QueryRow(ctx, `
 		SELECT COUNT(*), COALESCE(AVG(fatigue_level), 0)::double precision,

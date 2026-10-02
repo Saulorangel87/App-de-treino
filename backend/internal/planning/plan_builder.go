@@ -31,6 +31,10 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 	eventTaper := assessEventTaper(input, now, restricted)
 	postEventRecovery := assessPostEventRecovery(input, now)
 	lowObservedAdherence := hasLowObservedAdherence(input.TrainingHistory)
+	done := make(map[string]bool, len(input.DoneDates))
+	for _, day := range input.DoneDates {
+		done[day] = true
+	}
 	for week := 0; week < 4; week++ {
 		longIndex := longestSlot(slots)
 		intensityIndex := intensitySlot(slots, longIndex)
@@ -38,6 +42,9 @@ func buildPlan(input Context, now time.Time) (Plan, error) {
 		for index, slot := range slots {
 			scheduledOn := start.AddDate(0, 0, week*7+weekdayOffset(slot.Weekday))
 			if week == 0 && scheduledOn.Before(today) {
+				continue
+			}
+			if done[scheduledOn.Format("2006-01-02")] {
 				continue
 			}
 			kind := "base"
