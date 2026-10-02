@@ -21,7 +21,7 @@ O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Spr
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000001`–`000035`; a produção está sincronizada até `000035`.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000001`–`000037`; a produção está sincronizada até `000037`.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -86,7 +86,7 @@ Quando uma sessão concluída é marcada para revisão por dados incompatíveis,
 
 A camada de IA explicativa é opcional e fica desligada por padrão. Em produção, o backend usa temporariamente a rota protegida `/cadencia/explanation` do Worker Cloudflare, que foi validada com o modelo Groq `openai/gpt-oss-20b`, para preservar a capacidade da VPS. O Ollama local permanece instalado, mas parado após uma medição de capacidade; a chamada ocorre somente no backend, nunca diretamente pelo navegador. Se os provedores não responderem, o usuário continua recebendo a explicação determinística do motor.
 
-A rota `/avaliacao` permite registrar opcionalmente um pedal de referência submáximo, sem teste máximo ou diagnóstico. Para atletas avançados com objetivo de desempenho/prova, sem limitação ativa e com tempo suficiente, uma referência apta libera apenas intervalos controlados nas semanas de construção; não libera sprints nem esforço máximo.
+A rota `/avaliacao` permite registrar opcionalmente um pedal de referência submáximo em Z2, com números opcionais do pedal, comparação com a avaliação anterior e histórico, sem teste máximo ou diagnóstico (ver `docs/avaliacao.md`). Para atletas avançados com objetivo de desempenho/prova, sem limitação ativa e com tempo suficiente, uma referência apta libera apenas intervalos controlados nas semanas de construção; não libera sprints nem esforço máximo.
 
 A rota `/recuperacao` registra o check-in diário. Um sinal desfavorável gera cautela; fadiga máxima ou a combinação de dois sinais desfavoráveis indica necessidade de recuperação. Nesses casos, somente a próxima sessão futura do plano ativo pode ter duração e RPE reduzidos. Um check-in favorável mantém o plano e nunca aumenta a carga por si só. A decisão fica registrada no treino para não aplicar a mesma redução duas vezes.
 
@@ -103,7 +103,7 @@ O MVP de ciclismo está publicado e validado em produção:
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
 - Código publicado na linha de versão `0.37.0`, incluindo a proteção graduada do motor (ligada em produção) e a importação de atividades por arquivo `.fit`/`.gpx` (desde a `0.34.0`).
-- Versão visível: `0.37.0`; migrações de banco aplicadas até `000035`.
+- Versão visível: `0.37.0`; migrações de banco aplicadas até `000037`.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, onboarding, plano, treino, feedback, adaptação, atividades, evolução, configurações, importação de atividades, novidades e logout foram validados em produção.
 - `rules-v1` continua sendo a única fonte prescritiva. Os shadows permanecem observacionais.
