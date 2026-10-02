@@ -61,6 +61,8 @@ A configuração local deste projeto usa a porta `5433` no `.env`, pois a `5432`
 - `POST /v1/plans/{planID}/activate`: aprova um rascunho e mantém somente um plano ativo por atleta.
 - `POST /v1/workouts/{workoutID}/start`: inicia uma sessão planejada ou adaptada do plano ativo.
 - `POST /v1/workouts/{workoutID}/complete`: conclui a sessão e registra RPE, dificuldade, fadiga, dor e, opcionalmente, distância, elevação, frequência cardíaca, potência, cadência média e equipamento utilizado; também registra `completion_status`, o `partial_reason` controlado quando necessário, recuperação percebida e confiança para repetir.
+- `POST /v1/workouts/{workoutID}/log`: marca um treino planejado de hoje ou do passado como feito, sem cronômetro (modo tarefa): o atleta informa a duração (1 a 720 minutos) e o dia (até 7 dias atrás) com o mesmo feedback da conclusão; a sessão fica com `duration_source = reported`.
+- `POST /v1/workouts/{workoutID}/undo`: desfaz o registro de um treino concluído, não realizado ou em andamento, devolve o treino ao plano e reverte os ajustes que ele causou nos seguintes.
 - `POST /v1/workouts/{workoutID}/correct`: corrige somente métricas opcionais de pedal de uma sessão concluída marcada como inconsistente ou incompleta; duração, RPE, feedback, plano e prescrição não são alterados, e os valores originais ficam no histórico de auditoria.
 - `POST /v1/workouts/{workoutID}/explanation`: solicita uma explicação em linguagem simples; quando a IA está desligada ou indisponível, retorna o resumo validado pelo motor.
 - `POST /v1/workouts/{workoutID}/cancel`: cancela uma sessão em andamento e mantém esse histórico.

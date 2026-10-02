@@ -292,6 +292,27 @@ func (s *Store) PlanningContextByUserID(ctx context.Context, userID string) (pla
 		return planning.Context{}, err
 	}
 	input.Observed.CompletedSessions = int(completedSessions)
+	doneRows, err := s.pool.Query(ctx, `
+		SELECT DISTINCT w.scheduled_on::text
+		FROM workouts w
+		JOIN training_plans tp ON tp.id = w.training_plan_id
+		WHERE tp.athlete_profile_id = $1
+		  AND w.status IN ('completed', 'in_progress')
+		  AND w.scheduled_on >= CURRENT_DATE - 7`, input.ProfileID)
+	if err != nil {
+		return planning.Context{}, err
+	}
+	defer doneRows.Close()
+	for doneRows.Next() {
+		var day string
+		if err := doneRows.Scan(&day); err != nil {
+			return planning.Context{}, err
+		}
+		input.DoneDates = append(input.DoneDates, day)
+	}
+	if err := doneRows.Err(); err != nil {
+		return planning.Context{}, err
+	}
 	var recoveryCheckins int64
 	if err := s.pool.QueryRow(ctx, `
 		SELECT COUNT(*), COALESCE(AVG(fatigue_level), 0)::double precision,
@@ -556,7 +577,7 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 			w.target_rpe::double precision, w.structure, w.explanation, w.status,
 			ws.id::text, ws.status, ws.started_at, ws.completed_at, ws.cancelled_at,
 			ws.duration_minutes, ws.actual_rpe::double precision, ws.distance_km::double precision, ws.elevation_gain_m,
-			ws.average_power_watts, ws.average_heart_rate, ws.average_cadence_rpm,
+			ws.average_power_watts, ws.average_heart_rate, ws.average_cadence_rpm, ws.duration_source,
 			f.completion_status, f.partial_reason, f.difficulty, f.pain_reported, f.fatigue_after,
 			f.recovery_after, f.repeat_confidence, f.satisfaction, f.terrain, f.external_conditions, f.equipment_used, f.notes
 		FROM workouts w
@@ -577,6 +598,7 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 	for rows.Next() {
 		var workout planning.Workout
 		var structure, explanation []byte
+		var durationSource *string
 		var sessionID, sessionStatus, completionStatus, partialReason, difficulty, terrain, externalConditions, equipmentUsed, notes *string
 		var startedAt, completedAt, cancelledAt *time.Time
 		var durationMinutes, fatigueAfter, recoveryAfter, repeatConfidence, satisfaction, elevationGainM, averagePowerW, averageHeartRate, averageCadenceRPM *int
@@ -586,7 +608,7 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 			&workout.ID, &workout.ScheduledOn, &workout.Name, &workout.Objective,
 			&workout.DurationMinutes, &workout.TargetRPE, &structure, &explanation, &workout.Status,
 			&sessionID, &sessionStatus, &startedAt, &completedAt, &cancelledAt,
-			&durationMinutes, &actualRPE, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate, &averageCadenceRPM,
+			&durationMinutes, &actualRPE, &distanceKM, &elevationGainM, &averagePowerW, &averageHeartRate, &averageCadenceRPM, &durationSource,
 			&completionStatus, &partialReason, &difficulty, &painReported, &fatigueAfter, &recoveryAfter, &repeatConfidence, &satisfaction, &terrain, &externalConditions, &equipmentUsed, &notes,
 		); err != nil {
 			return planning.Plan{}, err
@@ -603,6 +625,9 @@ func (s *Store) CurrentPlanByUserID(ctx context.Context, userID string) (plannin
 				CompletedAt: completedAt, CancelledAt: cancelledAt,
 				DurationMinutes: durationMinutes, ActualRPE: actualRPE, DistanceKM: distanceKM,
 				ElevationGainM: elevationGainM, AveragePowerW: averagePowerW, AverageHeartRate: averageHeartRate, AverageCadenceRPM: averageCadenceRPM,
+			}
+			if durationSource != nil {
+				workout.Session.DurationSource = *durationSource
 			}
 			if difficulty != nil && painReported != nil && fatigueAfter != nil {
 				workout.Session.Feedback = &planning.Feedback{

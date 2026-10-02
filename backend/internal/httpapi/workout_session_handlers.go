@@ -33,6 +33,14 @@ type completeWorkoutInput struct {
 	AverageCadenceRPM  *int     `json:"average_cadence_rpm"`
 }
 
+// logWorkoutInput is the feedback of a ride the athlete did without the
+// stopwatch, plus how long it took and on which day.
+type logWorkoutInput struct {
+	completeWorkoutInput
+	DurationMinutes int    `json:"duration_minutes"`
+	PerformedOn     string `json:"performed_on"`
+}
+
 type correctWorkoutInput struct {
 	DistanceKM        *float64 `json:"distance_km"`
 	ElevationGainM    *int     `json:"elevation_gain_m"`
@@ -62,19 +70,34 @@ func (s *Server) completeWorkout(w http.ResponseWriter, r *http.Request) {
 	if !decodeJSON(w, r, &input) {
 		return
 	}
+	completion, ok := completionInputFrom(w, input)
+	if !ok {
+		return
+	}
+	plan, err := s.planning.CompleteWorkout(r.Context(), user.ID, r.PathValue("workoutID"), completion)
+	if writeWorkoutError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"plan": plan})
+}
+
+// completionInputFrom checks the feedback fields shared by completing a session
+// and logging a ride, turns a reported zone into its RPE and trims the free text.
+// It writes the error response and returns false when the input is invalid.
+func completionInputFrom(w http.ResponseWriter, input completeWorkoutInput) (planning.CompletionInput, bool) {
 	if input.CompletionStatus == "" {
 		writeWorkoutError(w, planning.ErrInvalidFeedback)
-		return
+		return planning.CompletionInput{}, false
 	}
 	if input.ActualZone != 0 {
 		rpe, ok := zones.RPEForZone(input.ActualZone)
 		if !ok {
 			writeWorkoutError(w, planning.ErrInvalidFeedback)
-			return
+			return planning.CompletionInput{}, false
 		}
 		input.ActualRPE = rpe
 	}
-	plan, err := s.planning.CompleteWorkout(r.Context(), user.ID, r.PathValue("workoutID"), planning.CompletionInput{
+	return planning.CompletionInput{
 		CompletionStatus: input.CompletionStatus, PartialReason: strings.TrimSpace(input.PartialReason),
 		ActualRPE: input.ActualRPE, Difficulty: input.Difficulty,
 		PainReported: input.PainReported, FatigueAfter: input.FatigueAfter,
@@ -85,7 +108,26 @@ func (s *Server) completeWorkout(w http.ResponseWriter, r *http.Request) {
 		Notes:              strings.TrimSpace(input.Notes),
 		DistanceKM:         input.DistanceKM, ElevationGainM: input.ElevationGainM,
 		AveragePowerW: input.AveragePowerW, AverageHeartRate: input.AverageHeartRate, AverageCadenceRPM: input.AverageCadenceRPM,
-	})
+	}, true
+}
+
+// logWorkout marks a planned workout as done without the stopwatch ("task mode").
+func (s *Server) logWorkout(w http.ResponseWriter, r *http.Request) {
+	user, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	var input logWorkoutInput
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+	completion, ok := completionInputFrom(w, input.completeWorkoutInput)
+	if !ok {
+		return
+	}
+	plan, err := s.planning.LogWorkout(r.Context(), user.ID, r.PathValue("workoutID"), planning.LogWorkoutInput{
+		CompletionInput: completion, DurationMinutes: input.DurationMinutes, PerformedOn: strings.TrimSpace(input.PerformedOn),
+	}, r.URL.Query().Get("date"))
 	if writeWorkoutError(w, err) {
 		return
 	}
@@ -165,6 +207,8 @@ func writeWorkoutError(w http.ResponseWriter, err error) bool {
 		writeError(w, http.StatusNotFound, "workout_not_found", "O treino não pertence ao seu plano ativo.")
 	case errors.Is(err, planning.ErrInvalidTransition):
 		writeError(w, http.StatusConflict, "invalid_workout_transition", "O treino não está no estado necessário para esta ação.")
+	case errors.Is(err, planning.ErrInvalidLog):
+		writeError(w, http.StatusBadRequest, "invalid_workout_log", "Informe a duração entre 1 e 720 minutos e um dia entre hoje e os últimos 7 dias, sem ser anterior ao dia planejado do treino.")
 	case errors.Is(err, planning.ErrWorkoutInFuture):
 		writeError(w, http.StatusConflict, "workout_in_future", "Este treino é de uma data futura. Ele fica disponível no dia planejado.")
 	case errors.Is(err, planning.ErrWorkoutNotPast):

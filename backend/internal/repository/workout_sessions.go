@@ -182,6 +182,18 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 		RETURNING duration_minutes`, sessionID, input.ActualRPE, input.DistanceKM, input.ElevationGainM, input.AveragePowerW, input.AverageHeartRate, input.AverageCadenceRPM).Scan(&durationMinutes); err != nil {
 		return err
 	}
+	if err := recordCompletion(ctx, tx, workoutID, sessionID, profileID, plannedDurationMinutes, sourceTargetRPE, durationMinutes, input); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
+}
+
+// recordCompletion stores the feedback of a session that was just completed in tx,
+// assesses the integrity of its data, records the planned-versus-actual comparison
+// and the shadow evaluation, and marks the workout as completed. The caller
+// commits. It is shared by the stopwatch flow (CompleteWorkoutByUserID) and the
+// task mode (LogWorkoutByUserID), so both end with the same record.
+func recordCompletion(ctx context.Context, tx pgx.Tx, workoutID, sessionID, profileID string, plannedDurationMinutes int, sourceTargetRPE float64, durationMinutes int, input planning.CompletionInput) error {
 	actualRPE := input.ActualRPE
 	fatigueAfter := input.FatigueAfter
 	integrityAssessedAt := time.Now()
@@ -275,6 +287,84 @@ func (s *Store) CompleteWorkoutByUserID(ctx context.Context, userID, workoutID s
 		return err
 	}
 	if _, err := tx.Exec(ctx, `UPDATE workouts SET status = 'completed' WHERE id = $1`, workoutID); err != nil {
+		return err
+	}
+	return nil
+}
+
+// LogWorkoutByUserID marks a planned workout as done without the stopwatch: the
+// athlete reports the duration and the day. The session is stored as completed
+// with duration_source = 'reported' and then goes through the same integrity,
+// shadow and adaptation path as a session finished on the stopwatch.
+func (s *Store) LogWorkoutByUserID(ctx context.Context, userID, workoutID string, input planning.LogWorkoutInput, today string) error {
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	var profileID, status string
+	var plannedDurationMinutes int
+	var targetRPE float64
+	var hasActiveLimitation, scheduledInFuture, performedBeforeScheduled bool
+	err = tx.QueryRow(ctx, `
+		SELECT ap.id::text, w.status, w.duration_minutes, COALESCE(w.target_rpe, 0)::double precision,
+			EXISTS (
+				SELECT 1 FROM injuries_or_limitations il
+				WHERE il.athlete_profile_id = ap.id AND il.is_active = true
+			),
+			w.scheduled_on > $3::date,
+			$4::date < w.scheduled_on
+		FROM workouts w
+		JOIN training_plans tp ON tp.id = w.training_plan_id
+		JOIN athlete_profiles ap ON ap.id = tp.athlete_profile_id
+		WHERE ap.user_id = $1 AND w.id = $2 AND tp.status = 'active'
+		FOR UPDATE OF w`, userID, workoutID, today, input.PerformedOn,
+	).Scan(&profileID, &status, &plannedDurationMinutes, &targetRPE, &hasActiveLimitation, &scheduledInFuture, &performedBeforeScheduled)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return planning.ErrWorkoutMissing
+	}
+	if err != nil {
+		return err
+	}
+	if !isStartableWorkoutStatus(status) {
+		return planning.ErrInvalidTransition
+	}
+	if scheduledInFuture {
+		return planning.ErrWorkoutInFuture
+	}
+	if performedBeforeScheduled {
+		return planning.ErrInvalidLog
+	}
+	if planning.WorkoutRequiresSafetyBlock(targetRPE, hasActiveLimitation) {
+		return planning.ErrWorkoutSafetyBlocked
+	}
+
+	// Today's ride ends now; an earlier day is placed at midday in Brasília (15:00 UTC),
+	// so the date reads the same in the athlete's time zone and in UTC.
+	completedAt := time.Now().UTC()
+	if input.PerformedOn != today {
+		day, err := time.Parse("2006-01-02", input.PerformedOn)
+		if err != nil {
+			return planning.ErrInvalidLog
+		}
+		completedAt = day.Add(15 * time.Hour)
+	}
+	var sessionID string
+	if err := tx.QueryRow(ctx, `
+		INSERT INTO workout_sessions (
+			workout_id, athlete_profile_id, started_at, completed_at, status,
+			duration_minutes, duration_source, actual_rpe, distance_km, elevation_gain_m,
+			average_power_watts, average_heart_rate, average_cadence_rpm)
+		VALUES ($1, $2, $3::timestamptz - make_interval(mins => $4::int), $3, 'completed',
+			$4, 'reported', $5, $6, $7, $8, $9, $10)
+		RETURNING id::text`,
+		workoutID, profileID, completedAt, input.DurationMinutes, input.ActualRPE, input.DistanceKM, input.ElevationGainM,
+		input.AveragePowerW, input.AverageHeartRate, input.AverageCadenceRPM,
+	).Scan(&sessionID); err != nil {
+		return err
+	}
+	if err := recordCompletion(ctx, tx, workoutID, sessionID, profileID, plannedDurationMinutes, targetRPE, input.DurationMinutes, input.CompletionInput); err != nil {
 		return err
 	}
 	return tx.Commit(ctx)
