@@ -18,7 +18,8 @@ import { Button } from '@/components/ui/button';
 import { AppHeader } from '@/components/app-header';
 import { AdaptationCard } from '@/components/adaptation-card';
 import { ProtectionNotice } from '@/components/protection-notice';
-import { RpeHelp } from '@/components/rpe-help';
+import { ZoneHelp, ZoneSummary } from '@/components/zone-help';
+import { zoneForRpe, zoneLabel, zoneReferenceFrom } from '@/lib/zones';
 import { WorkoutSessionActions, type PrefillMetrics } from '@/components/workout-session-actions';
 import { WorkoutStructure } from '@/components/workout-structure';
 import { RouteMap, stepsForWorkout } from '@/components/route-map';
@@ -505,7 +506,7 @@ export default function PlanPage() {
                           </span>
                           <em>
                             <TrailSymbol rpe={workout.target_rpe} />
-                            {workout.duration_minutes} min · RPE {workout.target_rpe}
+                            {workout.duration_minutes} min · Z{zoneForRpe(workout.target_rpe).number}
                           </em>
                         </button>
                       ))}
@@ -586,16 +587,21 @@ export default function PlanPage() {
                     </div>
                     <div>
                       <Gauge size={15} />
-                      <strong>RPE {selected.target_rpe}</strong>
-                      <RpeHelp compact />
+                      <strong>{zoneLabel(selected.target_rpe)}</strong>
+                      <ZoneHelp compact />
                     </div>
                   </div>
+                  <ZoneSummary
+                    rpe={selected.target_rpe}
+                    reference={zoneReferenceFrom(plan.prescription_snapshot.cycling_context)}
+                  />
                   <AdaptationCard workout={selected} />
                   <WorkoutSessionActions
                     workout={selected}
                     planStatus={plan.status}
                     usesHeartRate={Boolean(plan.prescription_snapshot.cycling_context?.uses_heart_rate)}
                     usesPower={Boolean(plan.prescription_snapshot.cycling_context?.uses_power)}
+                    zoneReference={zoneReferenceFrom(plan.prescription_snapshot.cycling_context)}
                     onPlanUpdated={updateSessionPlan}
                     prefillMetrics={prefillMetrics}
                   />
@@ -764,7 +770,7 @@ function ObservedTrainingCard({ observed }: { observed?: TrainingPlan['prescript
       <div className="plan-observed-metrics">
         {completedSessions > 0 && <span><strong>{completedSessions}</strong> {completedSessions === 1 ? 'sessão concluída' : 'sessões concluídas'}</span>}
         {completedMinutes > 0 && <span><strong>{formatObservedMinutes(completedMinutes)}</strong> realizados</span>}
-        {averageRPE > 0 && <span><strong>RPE {averageRPE.toFixed(1)}</strong> médio</span>}
+        {averageRPE > 0 && <span><strong>{zoneLabel(averageRPE)}</strong> em média</span>}
         {recoveryCheckins > 0 && <span><strong>{recoveryCheckins}</strong> {recoveryCheckins === 1 ? 'check-in de recuperação' : 'check-ins de recuperação'}</span>}
       </div>
       {needsRecovery && (

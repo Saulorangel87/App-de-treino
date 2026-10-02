@@ -17,6 +17,7 @@ import './styles/profile.css';
 import './styles/settings.css';
 import './styles/auth.css';
 import './styles/legal.css';
+import './styles/zones.css';
 
 // Anybody tem eixo de largura variável: títulos largos de carta topográfica e
 // números estreitos usam a mesma família.

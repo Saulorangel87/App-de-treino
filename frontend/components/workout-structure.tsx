@@ -1,14 +1,11 @@
 import type { Workout } from '@/lib/planning';
+import { zoneLabel } from '@/lib/zones';
 import { intensityOf } from './trail-symbol';
 
 type WorkoutStructureProps = {
   structure: Workout['structure'];
   durationMinutes?: number;
 };
-
-function formatRPE(value: number) {
-  return Number.isInteger(value) ? String(value) : value.toFixed(1);
-}
 
 export function WorkoutStructure({ structure, durationMinutes }: WorkoutStructureProps) {
   const steps = structure.steps;
@@ -54,7 +51,7 @@ export function WorkoutStructure({ structure, durationMinutes }: WorkoutStructur
           <span className="structured-workout-index">{String(step.order).padStart(2, '0')}</span>
           <div className="structured-workout-content">
             <strong>{step.title}</strong>
-            <small>{step.duration_minutes} min · RPE {formatRPE(step.target_rpe)}</small>
+            <small>{step.duration_minutes} min · {zoneLabel(step.target_rpe)}</small>
             <p>{step.instruction}</p>
           </div>
         </li>

@@ -14,7 +14,8 @@ import {
 import { AdaptationCard } from '@/components/adaptation-card';
 import { AppHeader } from '@/components/app-header';
 import { RouteMap, RouteScale, stepsForWorkout } from '@/components/route-map';
-import { RpeHelp } from '@/components/rpe-help';
+import { ZoneHelp, ZoneSummary } from '@/components/zone-help';
+import { zoneLabel, zoneReferenceFrom } from '@/lib/zones';
 import { useScrollLock } from '@/components/use-scroll-lock';
 import { TrailLegend, TrailSymbol, intensityLabels, intensityOf } from '@/components/trail-symbol';
 import { WorkoutSessionActions } from '@/components/workout-session-actions';
@@ -264,9 +265,9 @@ export default function HomePage() {
               </div>
               <div>
                 <dt>
-                  RPE <RpeHelp compact />
+                  Zona <ZoneHelp compact />
                 </dt>
-                <dd>{focusWorkout.target_rpe}</dd>
+                <dd>{zoneLabel(focusWorkout.target_rpe)}</dd>
               </div>
               <div>
                 <dt>Nível</dt>
@@ -444,11 +445,15 @@ export default function HomePage() {
               <X size={20} />
             </button>
             <p className="kicker">
-              Sessão planejada · {selected.duration_minutes} min · RPE {selected.target_rpe}
+              Sessão planejada · {selected.duration_minutes} min · {zoneLabel(selected.target_rpe)}
             </p>
             <h2 id="workout-title">{selected.name}</h2>
             <p className="workout-modal-summary">{selected.explanation.summary}</p>
             <AdaptationCard workout={selected} />
+            <ZoneSummary
+              rpe={selected.target_rpe}
+              reference={zoneReferenceFrom(activePlan.prescription_snapshot.cycling_context)}
+            />
             <div className="workout-modal-map">
               <RouteMap
                 steps={stepsForWorkout(selected)}
@@ -461,6 +466,7 @@ export default function HomePage() {
               planStatus={activePlan.status}
               usesHeartRate={Boolean(activePlan.prescription_snapshot.cycling_context?.uses_heart_rate)}
               usesPower={Boolean(activePlan.prescription_snapshot.cycling_context?.uses_power)}
+              zoneReference={zoneReferenceFrom(activePlan.prescription_snapshot.cycling_context)}
               onPlanUpdated={updateSessionPlan}
             />
             <Link className="modal-plan-link" href="/plano">

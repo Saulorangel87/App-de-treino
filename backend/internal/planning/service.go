@@ -13,6 +13,9 @@ type Store interface {
 	// StartWorkoutByUserID starts the session; today is the athlete's local date
 	// (YYYY-MM-DD) and a workout scheduled after it cannot be started.
 	StartWorkoutByUserID(ctx context.Context, userID, workoutID, today string) error
+	// LogWorkoutByUserID records a planned workout as done with the duration the
+	// athlete reported (no stopwatch). today is the athlete's local date.
+	LogWorkoutByUserID(ctx context.Context, userID, workoutID string, input LogWorkoutInput, today string) error
 	// UndoWorkoutByUserID erases a completed, skipped or in-progress record and
 	// returns the workout to the plan, reverting the adaptations it caused.
 	UndoWorkoutByUserID(ctx context.Context, userID, workoutID string) error
@@ -126,6 +129,40 @@ func (s *Service) StartWorkout(ctx context.Context, userID, workoutID, localDate
 	if err := s.store.StartWorkoutByUserID(ctx, userID, workoutID, NormalizeLocalDate(localDate, s.now())); err != nil {
 		return Plan{}, err
 	}
+	return s.store.CurrentPlanByUserID(ctx, userID)
+}
+
+// LogWorkout marks a planned workout as done ("task mode"): the athlete reports
+// the duration and the day instead of using the stopwatch. The session is kept
+// with the duration source "reported", so calibration can tell it from a measured
+// one. The workout must be scheduled for today or earlier, and the ride cannot be
+// dated before it or more than MaxLogBackdateDays ago.
+func (s *Service) LogWorkout(ctx context.Context, userID, workoutID string, input LogWorkoutInput, localDate string) (Plan, error) {
+	if !planIDPattern.MatchString(workoutID) {
+		return Plan{}, ErrInvalidWorkoutID
+	}
+	if !validCompletion(input.CompletionInput) {
+		return Plan{}, ErrInvalidFeedback
+	}
+	if input.DurationMinutes < 1 || input.DurationMinutes > MaxLoggedDurationMinutes {
+		return Plan{}, ErrInvalidLog
+	}
+	today := NormalizeLocalDate(localDate, s.now())
+	if input.PerformedOn == "" {
+		input.PerformedOn = today
+	}
+	performed, err := time.Parse(localDateLayout, input.PerformedOn)
+	if err != nil || performed.Format(localDateLayout) != input.PerformedOn {
+		return Plan{}, ErrInvalidLog
+	}
+	todayDate, _ := time.Parse(localDateLayout, today)
+	if performed.After(todayDate) || performed.Before(todayDate.AddDate(0, 0, -MaxLogBackdateDays)) {
+		return Plan{}, ErrInvalidLog
+	}
+	if err := s.store.LogWorkoutByUserID(ctx, userID, workoutID, input, today); err != nil {
+		return Plan{}, err
+	}
+	s.reevaluateBestEffort(ctx, userID)
 	return s.store.CurrentPlanByUserID(ctx, userID)
 }
 

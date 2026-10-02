@@ -244,6 +244,8 @@ export type WorkoutSession = {
   average_power_watts?: number;
   average_heart_rate?: number;
   average_cadence_rpm?: number;
+  /** De onde vem a duração: cronômetro do app, informada pelo atleta ou arquivo importado. */
+  duration_source?: 'timer' | 'reported' | 'imported';
   feedback?: WorkoutFeedback;
 };
 
@@ -551,6 +553,8 @@ export type TrainingPlan = {
       training_status?: 'not_informed' | 'regular' | 'returning_after_break';
       uses_heart_rate?: boolean;
       uses_power?: boolean;
+      max_heart_rate?: number;
+      ftp?: number;
     };
   };
   workouts: Workout[];
@@ -640,4 +644,40 @@ export function undoConfirmation(status: Workout['status']): string {
     return 'Reabrir este treino? Ele volta para o plano como planejado.';
   }
   return 'Desfazer o registro deste treino? A sessão e o feedback serão apagados, o treino volta para o plano e os ajustes que ele causou nos próximos treinos serão revertidos. Isso não pode ser desfeito.';
+}
+
+/** Prazo, em dias, para registrar um treino que já foi feito. */
+export const LOG_BACKDATE_DAYS = 7;
+export const MAX_LOGGED_DURATION_MINUTES = 720;
+
+/**
+ * Soma dias a uma data AAAA-MM-DD sem passar por fuso horário. Uma data inválida
+ * (a tela ainda não sabe a data local na primeira renderização) volta como veio.
+ */
+export function addDays(dateKey: string, days: number): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return dateKey;
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day + days));
+  return Number.isNaN(date.getTime()) ? dateKey : date.toISOString().slice(0, 10);
+}
+
+/**
+ * Datas que o atleta pode escolher ao marcar um treino como feito: de hoje até 7
+ * dias atrás, sem ser anterior ao dia planejado do treino.
+ */
+export function loggableDateRange(scheduledOn: string, todayKey: string): { min: string; max: string } {
+  if (todayKey === '') return { min: '', max: '' };
+  const earliest = addDays(todayKey, -LOG_BACKDATE_DAYS);
+  return { min: scheduledOn > earliest ? scheduledOn : earliest, max: todayKey };
+}
+
+export function durationSourceLabel(source?: WorkoutSession['duration_source']): string {
+  switch (source) {
+    case 'reported':
+      return 'informada por você';
+    case 'imported':
+      return 'de um arquivo importado';
+    default:
+      return 'medida pelo cronômetro';
+  }
 }

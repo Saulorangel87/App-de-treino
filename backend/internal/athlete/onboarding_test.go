@@ -272,3 +272,39 @@ func TestSaveCyclingContextRejectsUnknownTrainingStatus(t *testing.T) {
 }
 
 func errorsIs(err, target error) bool { return err == target }
+
+func TestSaveCyclingContextKeepsMaxHeartRateOnlyForHeartRateUsers(t *testing.T) {
+	service := NewOnboardingService(onboardingStore{})
+	max := 188
+
+	kept, err := service.SaveCyclingContext(context.Background(), "user-1", CyclingContext{UsesHeartRate: true, MaxHeartRate: &max})
+	if err != nil || kept.MaxHeartRate == nil || *kept.MaxHeartRate != 188 {
+		t.Fatalf("a heart rate user must keep the maximum, got %#v, %v", kept, err)
+	}
+
+	cleared, err := service.SaveCyclingContext(context.Background(), "user-1", CyclingContext{UsesHeartRate: false, MaxHeartRate: &max})
+	if err != nil || cleared.MaxHeartRate != nil {
+		t.Fatalf("without a sensor the maximum must be dropped, got %#v, %v", cleared, err)
+	}
+
+	empty, err := service.SaveCyclingContext(context.Background(), "user-1", CyclingContext{UsesHeartRate: true})
+	if err != nil || empty.MaxHeartRate != nil {
+		t.Fatalf("the maximum is optional, got %#v, %v", empty, err)
+	}
+}
+
+func TestSaveCyclingContextRejectsImplausibleMaxHeartRate(t *testing.T) {
+	service := NewOnboardingService(onboardingStore{})
+	for _, value := range []int{0, 60, 99, 231, 400} {
+		bpm := value
+		if _, err := service.SaveCyclingContext(context.Background(), "user-1", CyclingContext{UsesHeartRate: true, MaxHeartRate: &bpm}); err != ErrInvalidOnboarding {
+			t.Errorf("%d bpm returned %v, want ErrInvalidOnboarding", value, err)
+		}
+	}
+	for _, value := range []int{100, 190, 230} {
+		bpm := value
+		if _, err := service.SaveCyclingContext(context.Background(), "user-1", CyclingContext{UsesHeartRate: true, MaxHeartRate: &bpm}); err != nil {
+			t.Errorf("%d bpm must be accepted, got %v", value, err)
+		}
+	}
+}

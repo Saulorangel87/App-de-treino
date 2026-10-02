@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Saulorangel87/App-de-treino/backend/internal/xlsx"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/zones"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -42,7 +43,9 @@ const completedWorkoutsSheetQuery = `
 		w.duration_minutes, w.target_rpe::float8,
 		to_char(ws.started_at AT TIME ZONE 'America/Sao_Paulo', ` + brasiliaTime + `),
 		to_char(ws.completed_at AT TIME ZONE 'America/Sao_Paulo', ` + brasiliaTime + `),
-		ws.duration_minutes, ws.actual_rpe::float8, ws.distance_km::float8, ws.elevation_gain_m,
+		ws.duration_minutes,
+		CASE ws.duration_source WHEN 'reported' THEN 'Informada por você' WHEN 'imported' THEN 'Arquivo importado' ELSE 'Cronômetro' END,
+		ws.actual_rpe::float8, ws.distance_km::float8, ws.elevation_gain_m,
 		ws.average_power_watts, ws.average_heart_rate, ws.average_cadence_rpm
 	FROM workout_sessions ws
 	JOIN workouts w ON w.id = ws.workout_id
@@ -61,14 +64,14 @@ const importedActivitiesSheetQuery = `
 	ORDER BY ia.started_at`
 
 var completedWorkoutsHeader = []string{
-	"Data planejada", "Treino", "Objetivo do treino", "Duração planejada (min)", "Esforço-alvo (RPE)",
-	"Início (horário de Brasília)", "Fim (horário de Brasília)", "Duração real (min)", "Esforço percebido (RPE)",
+	"Data planejada", "Treino", "Objetivo do treino", "Duração planejada (min)", "Zona-alvo",
+	"Início (horário de Brasília)", "Fim (horário de Brasília)", "Duração real (min)", "Origem da duração", "Zona percebida",
 	"Distância (km)", "Altimetria (m)", "Potência média (W)", "FC média (bpm)", "Cadência média (rpm)",
 }
 
 var completedWorkoutsKinds = []xlsx.Kind{
-	xlsx.KindCenter, xlsx.KindText, xlsx.KindWrap, xlsx.KindInt, xlsx.KindDecimal,
-	xlsx.KindCenter, xlsx.KindCenter, xlsx.KindInt, xlsx.KindDecimal,
+	xlsx.KindCenter, xlsx.KindText, xlsx.KindWrap, xlsx.KindInt, xlsx.KindCenter,
+	xlsx.KindCenter, xlsx.KindCenter, xlsx.KindInt, xlsx.KindCenter, xlsx.KindCenter,
 	xlsx.KindDecimal, xlsx.KindInt, xlsx.KindInt, xlsx.KindInt, xlsx.KindInt,
 }
 
@@ -114,6 +117,11 @@ func (s *Store) ExportAccountSpreadsheet(ctx context.Context, userID string) ([]
 	if err != nil {
 		return nil, fmt.Errorf("export completed workouts: %w", err)
 	}
+	for _, row := range workouts {
+		// The engine stores effort as RPE; the athlete reads it as a zone.
+		row[4] = zoneLabelOf(row[4])
+		row[9] = zoneLabelOf(row[9])
+	}
 	imported, err := queryRows(ctx, tx, importedActivitiesSheetQuery, userID)
 	if err != nil {
 		return nil, fmt.Errorf("export imported activities: %w", err)
@@ -143,4 +151,13 @@ func queryRows(ctx context.Context, tx pgx.Tx, query, userID string) ([][]any, e
 		result = append(result, values)
 	}
 	return result, rows.Err()
+}
+
+// zoneLabelOf turns a stored RPE (a float, or nil when not recorded) into "Z2 · Resistência".
+func zoneLabelOf(value any) any {
+	rpe, ok := value.(float64)
+	if !ok {
+		return nil
+	}
+	return zones.Label(rpe)
 }

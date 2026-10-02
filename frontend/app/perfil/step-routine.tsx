@@ -281,6 +281,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
                 setCyclingContext((c) => ({
                   ...c,
                   uses_heart_rate: e.target.checked,
+                  max_heart_rate: e.target.checked ? c.max_heart_rate : undefined,
                 }))
               }
             />
@@ -379,6 +380,36 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
             </span>
           </label>
         </div>
+        {cyclingContext.uses_heart_rate &&
+          questionIsVisible(questionnaire, 'max_heart_rate', {
+            uses_heart_rate: cyclingContext.uses_heart_rate,
+          }) && (
+            <div className="max-heart-rate-field">
+              <Label htmlFor="max_heart_rate">
+                Frequência cardíaca máxima (bpm)
+              </Label>
+              <Input
+                id="max_heart_rate"
+                type="number"
+                min="100"
+                max="230"
+                value={cyclingContext.max_heart_rate || ''}
+                onChange={(e) =>
+                  setCyclingContext((c) => ({
+                    ...c,
+                    max_heart_rate: Number(e.target.value) || undefined,
+                  }))
+                }
+              />
+              <small>
+                Opcional. Com ela, mostramos cada zona de esforço em batimentos.
+                Se você não sabe, deixe em branco: as zonas aparecem pela
+                sensação (teste da conversa). A fórmula 220 menos a idade erra
+                bastante; o melhor é o maior valor visto em um esforço máximo
+                ou em um teste.
+              </small>
+            </div>
+          )}
         {questionIsVisible(questionnaire, 'ftp', {
           uses_power: cyclingContext.uses_power,
         }) && (

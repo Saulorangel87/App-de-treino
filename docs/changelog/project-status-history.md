@@ -913,3 +913,23 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - **Tela:** aviso "Disponível no dia planejado" no treino futuro; botão "Desfazer registro" no concluído e "Reabrir treino" no não realizado, com confirmação.
 - **Validação:** testes de banco (a reversão do ajuste, plano reaberto, treino de plano antigo ou de outra conta recusado, treino não realizado reaberto, início futuro, de hoje e do passado, e a data local à noite), testes do serviço e da rota, testes do frontend, um fluxo de 27 verificações contra a API local e 14 no navegador. Sem migração.
 - **Achado no caminho:** o tempo planejado não é exigido em nenhum ponto. A duração é o cronômetro entre Iniciar e Concluir; sessões com menos de 1 minuto (duração 0) ficam gravadas, mas como dado `incomplete` e fora do histórico elegível, da evolução e da adaptação. Isso motivou o modo tarefa.
+
+## Zonas de esforço no lugar do RPE (01/10/2026, não publicado)
+
+**Motivo.** O RPE é pouco amigável para o ciclista, principalmente para quem usa sensor de frequência cardíaca. Zonas (Z1 a Z5) são a linguagem comum do ciclismo e ainda funcionam sem sensor, pelo teste da conversa.
+
+- **Decisão de desenho:** zonas como camada de apresentação. O motor, o banco, a API e as evidências continuam em RPE; `backend/internal/zones` e `frontend/lib/zones.ts` guardam a mesma tabela (um teste do backend confere) e a ligam ao RPE. Detalhes em [`zonas-de-esforco.md`](zonas-de-esforco.md).
+- **Feedback:** o formulário pergunta a zona (cinco cartões, com a planejada marcada). `POST /v1/workouts/{id}/complete` aceita `actual_zone`; clientes antigos com `actual_rpe` continuam funcionando, e a zona vence se vierem os dois.
+- **Perfil:** campo opcional `max_heart_rate` (100 a 230 bpm, só com sensor de frequência) para mostrar cada zona em batimentos; com o FTP, também em watts.
+- **Telas:** Plano, Hoje, estrutura do treino, cartão de adaptação, Atividades, Evolução, Recuperação e a planilha de dados falam em zona; os símbolos de trilha seguem as zonas (verde Z1 e Z2, azul Z3, preto Z4 e Z5), o que muda a cor de treinos de RPE 4 a 5 (de azul para verde) e de RPE 6,5 (de preto para azul). A aba Avaliação não mudou.
+- **Validação:** testes das zonas no backend e no frontend (inclusive a tabela igual nos dois), da validação da frequência máxima, do feedback por zona e da planilha com banco; 17 verificações no navegador (plano, faixas em bpm e watts, formulário, atividades, Hoje, Evolução e perfil).
+
+## Modo tarefa e origem da duração (01/10/2026, não publicado)
+
+**Motivo.** Achado de leitura do código: o tempo planejado não é exigido em lugar nenhum. A duração era o cronômetro entre Iniciar e Concluir, e uma sessão iniciada e concluída em seguida (menos de 1 minuto, duração 0) ficava gravada, com métricas e feedback, mas como dado `incomplete` e fora do histórico elegível, da evolução e da adaptação. Quem pedala e registra depois não conseguia dar uma duração correta.
+
+- **`POST /v1/workouts/{id}/log`** ("Marcar como feito"): duração (1 a 720 minutos) e dia (hoje ou até 7 dias atrás, nunca antes do dia planejado) informados pelo atleta; sessão concluída com `duration_source = reported`. A conclusão pelo cronômetro e o registro "feito" compartilham `recordCompletion` (integridade, planejado e realizado, shadow, status do treino).
+- **Migração `000036_task_mode`:** coluna `workout_sessions.duration_source` (`timer`, `reported`, `imported`; sessões antigas são `timer`) e uma nova versão do gatilho de adaptação, igual à da `000027`, em que a progressão exige pelo menos 80% do tempo planejado (`actual_duration >= planned_duration * 0.8`). Fixture `000036_task_mode.sql` (origem padrão e valores aceitos; 33% e 78,9% não progridem; 80% e 100% progridem), que falha antes da migração e passa depois; `down` e `up` repetidos sem problema.
+- **Tela:** botão **Marcar como feito** ao lado de **Iniciar treino**; formulário com duração (pré-preenchida com o planejado) e dia, limitado pelo intervalo permitido; o treino concluído mostra a duração e a origem; a planilha de dados ganhou a coluna **Origem da duração**.
+- **Achado no caminho:** a tela calculava o intervalo de datas na primeira renderização, quando a data local ainda é vazia, e quebrava com `RangeError: Invalid time value`; o teste no navegador pegou e as funções ficaram seguras para data vazia.
+- **Validação:** testes do serviço (janela de 7 dias, limites de duração, feedback, reavaliação só após sucesso) e da rota; testes com banco (registro pela mesma via do cronômetro, dia anterior, recusas, regra dos 80%, fluxo do cronômetro ainda como `timer`, desfazer de um registro "feito"); 22 verificações no navegador.

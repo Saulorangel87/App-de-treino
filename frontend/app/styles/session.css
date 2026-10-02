@@ -267,13 +267,18 @@
   gap: 14px;
 }
 
-@media (min-width: 520px) {
-  .feedback-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+/* Colunas pela largura do painel, não da janela: o painel é mais estreito que a tela. */
+.feedback-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+
+/* Rótulos de uma ou duas linhas: o campo fica sempre na base da célula. */
+.feedback-grid > label > :is(input, select) {
+  margin-top: auto;
 }
 
 .completion-context,
+.log-fields,
 .session-metrics {
   display: flex;
   flex-direction: column;
@@ -284,6 +289,7 @@
 }
 
 .completion-context legend,
+.log-fields legend,
 .session-metrics legend {
   float: left;
   width: 100%;
@@ -370,4 +376,10 @@
 
 .session-data-warning > svg {
   color: var(--warn);
+}
+
+.duration-source {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
 }

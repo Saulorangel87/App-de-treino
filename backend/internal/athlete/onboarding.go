@@ -46,6 +46,12 @@ type Onboarding struct {
 	CyclingContext CyclingContext `json:"cycling_context"`
 }
 
+// Plausible range for a person's maximum heart rate, in beats per minute.
+const (
+	minMaxHeartRate = 100
+	maxMaxHeartRate = 230
+)
+
 type CyclingContext struct {
 	WeeklyHours            float64  `json:"weekly_hours"`
 	PracticeDurationMonths int      `json:"practice_duration_months"`
@@ -69,9 +75,12 @@ type CyclingContext struct {
 	FTPTestDate            *string  `json:"ftp_test_date,omitempty"`
 	FTPProtocol            string   `json:"ftp_protocol,omitempty"`
 	AveragePowerWatts      *int     `json:"average_power_watts,omitempty"`
-	EventGoal              bool     `json:"event_goal"`
-	EventDistanceKM        *int     `json:"event_distance_km,omitempty"`
-	EventDate              *string  `json:"event_date,omitempty"`
+	// MaxHeartRate (bpm) is optional and only kept when the athlete uses a heart
+	// rate sensor; with it the app shows each zone as a range of beats.
+	MaxHeartRate    *int    `json:"max_heart_rate,omitempty"`
+	EventGoal       bool    `json:"event_goal"`
+	EventDistanceKM *int    `json:"event_distance_km,omitempty"`
+	EventDate       *string `json:"event_date,omitempty"`
 }
 
 type OnboardingStore interface {
@@ -111,6 +120,11 @@ func (s *OnboardingService) SaveCyclingContext(ctx context.Context, userID strin
 		}
 		value.PreferredSessionTypes[index] = preference
 		seenPreferences[preference] = true
+	}
+	if !value.UsesHeartRate {
+		value.MaxHeartRate = nil
+	} else if value.MaxHeartRate != nil && (*value.MaxHeartRate < minMaxHeartRate || *value.MaxHeartRate > maxMaxHeartRate) {
+		return CyclingContext{}, ErrInvalidOnboarding
 	}
 	if !value.UsesPower {
 		value.FTP, value.FTPTestDate, value.FTPProtocol, value.AveragePowerWatts = nil, nil, "", nil
