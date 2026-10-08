@@ -138,7 +138,7 @@
 .today-facts {
   margin: 0;
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 0.8fr) minmax(0, 1.25fr);
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.2fr) minmax(0, 1fr);
   border-top: var(--stroke);
   border-bottom: var(--hairline);
 }
@@ -176,6 +176,24 @@
   font-variation-settings: 'wdth' 80;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+}
+
+.today-facts dd.today-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* O nome da zona vai abaixo do número, em tamanho de texto: "Recuperação" e
+   "High intensity" não cabem no tamanho dos números. */
+.today-facts dd.today-zone span {
+  font-family: var(--font-sans);
+  font-size: clamp(14px, 3.6vw, 17px);
+  font-weight: 700;
+  font-variation-settings: normal;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 
 .today-facts dd.today-level {

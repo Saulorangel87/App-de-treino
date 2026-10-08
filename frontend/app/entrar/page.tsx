@@ -127,6 +127,7 @@ export default function SignInPage() {
 
   return (
     <main className="account-shell">
+      <LanguageSwitcher compact className="account-language" />
       <section className="account-story topo-surface">
         <Brand />
         <div className="story-copy">
@@ -141,7 +142,6 @@ export default function SignInPage() {
       </section>
       <section className="account-form-panel">
         <div className="account-form-wrap">
-          <LanguageSwitcher className="account-language" />
           <div className="mode-switch" aria-label={t.modeLabel}>
             <button className={mode === 'register' ? 'active' : ''} onClick={() => { setMode('register'); setError(''); setNotice(''); }}>{t.register}</button>
             <button className={mode === 'login' ? 'active' : ''} onClick={() => { setMode('login'); setError(''); setNotice(''); }}>{t.login}</button>

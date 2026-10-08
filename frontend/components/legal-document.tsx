@@ -34,9 +34,12 @@ export function LegalPage({
     <main className="legal-shell">
       <header className="legal-top">
         <Brand />
-        <Link href="/" className="legal-back">
-          {t.back}
-        </Link>
+        <div className="legal-top-end">
+          <LanguageSwitcher compact className="legal-language" />
+          <Link href="/" className="legal-back">
+            {t.back}
+          </Link>
+        </div>
       </header>
       <article className="legal-content">
         <p className="legal-kicker">{document.kicker}</p>
@@ -48,7 +51,6 @@ export function LegalPage({
             legally applies and prevails in case of any difference between them.
           </p>
         )}
-        <LanguageSwitcher className="legal-language" />
         <p className="legal-intro">{document.intro}</p>
         <nav className="legal-index" aria-label={t.index}>
           {document.sections.map((section) => (

@@ -32,7 +32,7 @@ export const PRIVACY_POLICY_EN: LegalDocument = {
         'Activities imported from the .fit, .gpx or .tcx files you upload: date and time, duration, distance, elevation and average heart rate, power and cadence. The route (GPS coordinates) is read to calculate these numbers and is not stored.',
         'Messages you send through the in-app feedback form.',
         'Record of acceptance: the date and version of the Terms of Use and Privacy Policy you accepted.',
-        'Technical data: a session cookie and server and network access logs, such as IP address and time, used for security.',
+        'Technical data: a session cookie, a cookie with the language you chose and server and network access logs, such as IP address and time, used for security.',
       ],
     },
     {
@@ -112,7 +112,7 @@ export const PRIVACY_POLICY_EN: LegalDocument = {
       id: 'cookies',
       title: 'Cookies and storage on your device',
       paragraphs: [
-        'We use one essential cookie, which keeps you signed in, and we only store interface preferences in the browser, such as whether the app was installed. We do not use advertising cookies or third-party analytics tools.',
+        'We use one essential cookie, which keeps you signed in, and a simple cookie that stores the language you chose (Portuguese or English) and holds no personal data. We only store interface preferences in the browser, such as whether the app was installed. We do not use advertising cookies or third-party analytics tools.',
       ],
     },
     {

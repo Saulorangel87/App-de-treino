@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Code2, ContactRound, Download, Mail } from 'lucide-react';
 import { APP_VERSION } from '@/lib/release';
 import { defineMessages } from '@/lib/i18n';
-import { LanguageSwitcher } from './language-switcher';
 import { useMessages } from './locale-provider';
 
 const messages = defineMessages({
@@ -119,7 +118,6 @@ export function AppFooter() {
         <Link href="/privacidade">{t.privacy}</Link>
         <Link href="/termos">{t.terms}</Link>
       </nav>
-      <LanguageSwitcher className="footer-language" compact />
       <div className="footer-actions">
         {installPrompt && !installed && <button type="button" className="install-app" onClick={installApp}><Download size={14} />{t.install}</button>}
         {installed && <span className="installed-label"><span />{t.installed}</span>}

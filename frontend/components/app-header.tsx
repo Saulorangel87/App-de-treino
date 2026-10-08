@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { defineMessages } from '@/lib/i18n';
 import { Brand } from './brand';
+import { LanguageSwitcher } from './language-switcher';
 import { LogoutButton } from './account-actions';
 import { useMessages } from './locale-provider';
 
@@ -128,6 +129,8 @@ export function AppHeader({ name }: { name?: string }) {
             </Link>
           ))}
         </nav>
+        <div className="app-header-end">
+        <LanguageSwitcher compact className="header-language" />
         <div className="app-menu" ref={menuRef}>
           <button
             type="button"
@@ -169,6 +172,7 @@ export function AppHeader({ name }: { name?: string }) {
               <LogoutButton />
             </div>
           )}
+        </div>
         </div>
       </header>
       <nav className="tab-bar" aria-label={t.sections}>

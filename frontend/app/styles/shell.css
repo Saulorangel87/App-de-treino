@@ -460,3 +460,35 @@ body:has(.tab-bar) {
 .legal-language {
   margin: 4px 0 16px;
 }
+
+/* Seletor de idioma no topo: ao lado do menu da conta (telas do app), no canto
+   do login e junto de "Voltar ao app" (documentos legais). */
+.app-header-end {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-language button,
+.legal-language button,
+.account-language button {
+  min-height: 34px;
+  padding: 0 10px;
+}
+
+.legal-top-end {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+@media (max-width: 420px) {
+  .legal-top-end {
+    gap: 8px;
+  }
+
+  .legal-back {
+    font-size: 0.8rem;
+  }
+}

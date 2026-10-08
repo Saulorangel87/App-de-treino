@@ -4,6 +4,12 @@ import type { UpdateNote } from './release';
 // versão de cada posição). Ao publicar uma versão nova, escreva as duas.
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
   {
+    version: '0.38.0',
+    title: 'Cadência now speaks English too',
+    description:
+      'At the top of every screen, and in Settings, you can choose between Portuguese and English. Your choice applies to the screens, the workouts and their explanations, the notices and the emails. The Terms of Use and the Privacy Policy also got a translation; the Portuguese version is still the one that legally applies. The language is remembered on the device where you chose it.',
+  },
+  {
     version: '0.37.0',
     title: 'Workouts that follow your recovery',
     description:

@@ -15,7 +15,7 @@ import { AdaptationCard } from '@/components/adaptation-card';
 import { AppHeader } from '@/components/app-header';
 import { RouteMap, RouteScale, stepsForWorkout } from '@/components/route-map';
 import { ZoneHelp, ZoneSummary } from '@/components/zone-help';
-import { zoneLabel, zoneReferenceFrom } from '@/lib/zones';
+import { zoneForRpe, zoneLabel, zoneName, zoneReferenceFrom } from '@/lib/zones';
 import { useScrollLock } from '@/components/use-scroll-lock';
 import { TrailLegend, TrailSymbol, intensityMessages, intensityOf } from '@/components/trail-symbol';
 import { useLocale, useMessages } from '@/components/locale-provider';
@@ -358,7 +358,10 @@ export default function HomePage() {
                 <dt>
                   {t.zone} <ZoneHelp compact />
                 </dt>
-                <dd>{zoneLabel(focusWorkout.target_rpe, locale)}</dd>
+                <dd className="today-zone">
+                  <b>Z{zoneForRpe(focusWorkout.target_rpe).number}</b>
+                  <span>{zoneName(zoneForRpe(focusWorkout.target_rpe), locale)}</span>
+                </dd>
               </div>
               <div>
                 <dt>{t.level}</dt>
