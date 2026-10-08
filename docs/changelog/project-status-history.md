@@ -956,3 +956,9 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - **Deploy:** smoke test autenticado = 200; sem migração.
 - Ver [`idiomas.md`](../idiomas.md).
 
+## IA em inglês no Worker (08/10/2026, publicado em ac2ee08)
+
+- Worker da Cloudflare (`flat-rice-6724`) editado no painel: campo `language` permitido e validado, prompt do usuário em inglês e mensagem de sistema em inglês por sobreposição. O código do Worker não está no repositório; as mudanças ficaram descritas em `idiomas.md`.
+- `WorkerClient` envia `language` só em inglês e `SupportsLanguage` aceita `pt` e `en` (PR #83). Ordem de publicação: Worker, depois backend.
+- Validação: explicação em inglês gerada pela IA em produção, pelo app.
+
