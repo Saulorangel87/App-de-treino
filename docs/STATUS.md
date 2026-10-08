@@ -1,6 +1,6 @@
 # Estado atual do Cadência
 
-Última atualização: 2 de outubro de 2026.
+Última atualização: 8 de outubro de 2026.
 
 Este é o documento de continuidade: curto e sempre atual. O diário cronológico das fatias de trabalho (com datas, validações e decisões) está em [`changelog/project-status-history.md`](changelog/project-status-history.md). Não inclua senhas, tokens, chaves de API nem conteúdo de `.env`.
 
@@ -10,8 +10,8 @@ Este é o documento de continuidade: curto e sempre atual. O diário cronológic
 | --- | --- |
 | Frontend | <https://cadencia.devsaulo.com.br> |
 | API | <https://cadencia-api.devsaulo.com.br> |
-| Versão publicada | `0.37.0`, commit `05a7a5c` (deploys de 30/09 a 02/10/2026: `8786881`, proteção graduada do motor e "Estou recuperado"; `0ba6efa`, correção das referências; `6b9134d`, auditoria das 27 referências, comparação com a atividade importada, Política de Privacidade e Termos de Uso; `2a64b4f`, planilha de dados e registro do aceite dos termos; `395ea86`, comando administrativo da cópia completa; `40898f8`, rodapé compacto no celular; `6b2ffc9`, treino futuro bloqueado e desfazer registro; `e64effb`, zonas de esforço, modo tarefa e plano sem dia repetido; `05a7a5c`, Avaliação com zona e números; a versão visível não mudou desde a `0.37.0`) |
-| Migrações aplicadas | `000001` a `000037` |
+| Versão publicada | `0.38.0`, commit `ef1dc4c` (08/10/2026: app em português e inglês e atualização de dependências; antes, deploys de 30/09 a 02/10/2026: `8786881`, proteção graduada do motor e "Estou recuperado"; `0ba6efa`, correção das referências; `6b9134d`, auditoria das 27 referências, comparação com a atividade importada, Política de Privacidade e Termos de Uso; `2a64b4f`, planilha de dados e registro do aceite dos termos; `395ea86`, comando administrativo da cópia completa; `40898f8`, rodapé compacto no celular; `6b2ffc9`, treino futuro bloqueado e desfazer registro; `e64effb`, zonas de esforço, modo tarefa e plano sem dia repetido; `05a7a5c`, Avaliação com zona e números; a versão visível não mudou desde a `0.37.0`) |
+| Migrações aplicadas | `000001` a `000037` (a `0.38.0` não traz migração) |
 | Motor prescritivo | `rules-v1` (único); `rules-v2` e demais shadows são somente observacionais. Proteção graduada ligada (`PROTECTION_LEVELS_ENABLED=true` no `.env.production` da VPS) |
 | Último backup preventivo | `cadencia-20261002T102850Z.dump` (cópia externa criptografada no bucket da Oracle, com regra "excluir após 60 dias"; no servidor, 14 dias) |
 | Validação pós-deploy | `/health`, `/ready`, frontend e `GET /v1/plans/current` autenticado = 200 com a conta de smoke test; `/ready` verifica o schema; `recovery_self_reports` criada; chave `true` confirmada dentro do contêiner da API; `POST /v1/protection/recovered` sem sessão = 401 |
@@ -73,7 +73,7 @@ Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o cicl
 
 - **Strava, aguardando resposta** (ticket ZLJ55R-JPPP1; só houve resposta automática): as três perguntas enviadas a developers@strava.com em 30/09/2026 definem se dá para guardar o treino concluído a partir de uma atividade do Strava. Até lá, nenhum código grava dados do Strava. Quando a resposta chegar: registrá-la em [`strava-conformidade.md`](strava-conformidade.md), ajustar o desenho e, antes de liberar a conexão, incluir a seção do Strava na política de privacidade (checklist no mesmo documento).
 - **Conferido pelo dono do produto no celular (01/10/2026):** aviso de aceite dos termos e planilha de dados. Falta apenas exercitar em produção o botão "Estou recuperado".
-- **Sem release nova:** a versão visível continua `0.37.0` desde o deploy das novidades de 30/09/2026; as entregas de LGPD e o rodapé foram publicadas sem aviso de novidades, por decisão do dono do produto.
+- **Release `0.38.0` (08/10/2026):** app em português e inglês. Ver a seção abaixo.
 - Plano novo gerado pelo dono do produto em produção: a proteção graduada passou a valer nele (30/09/2026). Ainda não foi exercitado em produção o botão "Estou recuperado".
 - Atalho de compartilhar no Android: o app XOSS não mostra o Cadência na lista; manifesto e Chrome auditados sem erro em 30/09/2026. Decisão do dono do produto: deixar como está (Atividades → Importar funciona).
 - Etapa 2 da fase de dados reais: melhorias no motor de treino usando os dados importados (ainda não desenhada em detalhe; ver [`proxima-fase-dados-reais.md`](proxima-fase-dados-reais.md)).
@@ -83,3 +83,13 @@ Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o cicl
 - **Hardening da VPS:** auditoria de 01/10/2026, contêineres do Cadência sem privilégios (deploy `65214a4`), VPS reiniciada com o kernel novo e Cloudflare conferida em parte (TLS mínimo subido para 1.2 pelo dono do produto), tudo registrado em [`infrastructure/cadencia/README.md`](../infrastructure/cadencia/README.md) (seção "Auditoria de segurança da VPS"). Cloudflare concluída em 01/10/2026 (TLS mínimo 1.2, limite de requisições em `/v1/auth/` testado, monitoramento de certificado ativo; Bot Fight Mode deixado desligado de propósito, motivo no README de infraestrutura). Restam: ajustes opcionais do SSH; `guest ok = No` na pasta do Samba, pelo painel do CasaOS, se quiser (o Samba já aceita só a Tailscale e o próprio host). Limpeza gradual de dívida técnica continua.
 - Coleta longitudinal de dados reais antes de dar autoridade adicional aos shadows.
 - Decisão de produto: a hospedagem do frontend usa `vinext` (beta) com dependências herdadas do ambiente de criação (`wrangler`, `@openai/sites-vite-plugin`); avaliar migração para uma base mais estável.
+
+## Português e inglês — publicado na `0.38.0` (commit `ef1dc4c`)
+
+- Seletor PT | EN no topo (cabeçalho, login e documentos legais) e em Configurações; a escolha fica no cookie `cadencia_lang`, por aparelho. Português é o padrão. Detalhes em [`idiomas.md`](idiomas.md).
+- O app envia `Accept-Language`; a API traduz mensagens, nome, objetivo, etapas, regras e base científica dos treinos, e-mails de conta e a planilha de dados. Motor e banco seguem em português.
+- Termos e Privacidade têm tradução (o português prevalece). A Privacidade cita o cookie de idioma; `LEGAL_VERSION` não mudou, então não houve novo aceite.
+- **Limite:** a explicação por IA via Worker da Cloudflare só existe em português; em inglês a API devolve a explicação das regras. Falta o Worker aceitar um campo de idioma.
+- **Dependências:** PRs do Dependabot #74 a #79 mergeados; o `oxlint` novo exigiu tirar `new Date()` da renderização.
+- **Alertas do GitHub em aberto:** `braces` (alto, runtime, sem versão corrigida; o CI trata como exceção da auditoria) e `sharp` (alto, só desenvolvimento; fixado em 0.35.4 pelo `miniflare` do `@cloudflare/vite-plugin`, correção na 0.35.5).
+- **Pendências:** conferir em produção o seletor e a nota da `0.38.0` no primeiro acesso; Fase B das zonas; resumo semanal com IA; resposta do Strava (ZLJ55R-JPPP1).

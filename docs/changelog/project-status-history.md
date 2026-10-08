@@ -943,3 +943,16 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - **Números opcionais** (migração `000037`): FC média, potência, distância e FC das duas metades. O servidor deriva (sem gravar) a eficiência aeróbica (W por bpm, ou km/h a cada 100 bpm) e a deriva de FC. A tela compara com a avaliação anterior do mesmo tipo.
 - **Tela:** explica o que o "apto" libera, mostra a data para refazer (a partir de 4 semanas), lista as últimas 10 avaliações e oferece preencher com um pedal importado de 15 a 30 minutos. Rota nova `GET /v1/assessments`.
 - Ver [`avaliacao.md`](../avaliacao.md). Testes guiados de FC máxima, LTHR e FTP (Fase B) ficam para depois.
+
+## Português e inglês (07 e 08/10/2026, publicado em ef1dc4c, versão 0.38.0)
+
+**Motivo.** Deixar o app mais profissional, com opção de idioma (português padrão e inglês).
+
+- **Frontend:** idioma no cookie `cadencia_lang`, lido no servidor para renderizar sem piscar; textos por componente com `defineMessages`; seletor no topo, no login, nos documentos legais e em Configurações; página offline bilíngue; cache do service worker na versão 5.
+- **API:** middleware `Accept-Language` e catálogo `internal/i18n` (tradução na saída; códigos e chaves intactos). Testes exigem tradução de toda mensagem de `writeError` e de todo texto de treino gerado por uma matriz de perfis. Encerramento de conta aceita `DELETE ACCOUNT`. Ollama responde em inglês; o Worker só em português.
+- **Legal:** tradução com aviso de prevalência do português; frase do cookie de idioma sem mudar `LEGAL_VERSION`.
+- **Ajustes de layout:** nome da zona no cartão do dia, login sem rolagem em notebook, seletor no topo.
+- **CI e dependências:** `source-map-js` 1.2.2 e exceção upstream do `braces` na auditoria; PRs do Dependabot #74 a #79; `oxlint` novo reprovou `new Date()` na renderização (corrigido); `proxy-addr` 2.0.8 e SDK do MCP atualizados no lockfile (#80).
+- **Deploy:** smoke test autenticado = 200; sem migração.
+- Ver [`idiomas.md`](../idiomas.md).
+
