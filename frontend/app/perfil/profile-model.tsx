@@ -326,3 +326,8 @@ export const profileText = defineMessages({
     resendFailed: 'The confirmation could not be resent.',
   },
 });
+
+/** Hoje no formato AAAA-MM-DD, para limites de campos de data. */
+export function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
