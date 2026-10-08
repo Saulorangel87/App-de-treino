@@ -6,6 +6,7 @@ import { Bike, CalendarCheck2, CircleAlert, Clock3, HeartPulse, LineChart, Loade
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { AppHeader } from '@/components/app-header';
 import { ApiErrorState } from '@/components/api-error-state';
+import { WeeklySummaryCard } from '@/components/weekly-summary-card';
 import { useLocale, useMessages } from '@/components/locale-provider';
 import { defineMessages, formatDecimal, INTL_LOCALE, type Locale } from '@/lib/i18n';
 import { zoneLabel } from '@/lib/zones';
@@ -181,6 +182,7 @@ export default function EvolutionPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [today] = useState(() => new Date());
 
   useEffect(() => {
     Promise.all([apiRequest<{ user: User }>('/v1/me'), apiRequest<{ summary: Summary }>('/v1/evolution/summary')])
@@ -218,6 +220,7 @@ export default function EvolutionPage() {
     <section className="evolution-content">
       <header className="evolution-heading"><p>{t.kicker}</p><h1>{t.title}</h1><span>{t.intro}</span></header>
       {!hasActivities ? <section className="evolution-empty"><LineChart size={28} /><h2>{t.emptyTitle}</h2><p>{t.emptyText}</p><Link href="/plano">{t.seePlan}</Link></section> : <>
+        <WeeklySummaryCard summary={summary} today={today} />
         <section className="evolution-metrics" aria-label={t.summaryLabel}><Metric icon={<CalendarCheck2 size={19} />} value={String(summary.completed_sessions)} label={t.completedSessions} /><Metric icon={<Clock3 size={19} />} value={minutesLabel(summary.total_minutes)} label={t.recordedTime} /><Metric icon={<Target size={19} />} value={`${Math.round(summary.completion_rate)}%`} label={t.completionRate} /><Metric icon={<CircleAlert size={19} />} value={summary.average_rpe ? zoneLabel(summary.average_rpe, locale) : '—'} label={t.averageZone} /></section>
         <section className="evolution-grid">
           <section className="evolution-card volume-card"><div className="evolution-card-title"><div><span>{t.last8Weeks}</span><h2>{t.completedTime}</h2></div><small>{t.sessionsInHistory(summary.completed_sessions)}</small></div><div className="volume-chart" aria-label={t.minutesPerWeek}>{summary.weeks.map((week) => <div className="volume-column" key={week.week_start}><strong>{week.total_minutes ? minutesLabel(week.total_minutes) : '—'}</strong><i style={{ height: `${Math.max(4, week.total_minutes / maxMinutes * 100)}%` }} /><span className="week-range-label" title={t.weekOf(weekRangeLabel(week.week_start))}>{weekRangeLabel(week.week_start)}</span></div>)}</div><p className="chart-caption">{t.volumeCaption}</p>{summary.total_distance_km > 0 && <><div className="cycling-chart-title"><span>{t.distancePerWeek}</span><strong>{t.inHistory(distance(summary.total_distance_km))}</strong></div><div className="distance-chart" aria-label={t.distanceChart}>{summary.weeks.map((week) => <div className="volume-column" key={week.week_start}><strong>{week.total_distance_km ? distance(week.total_distance_km) : '—'}</strong><i style={{ height: `${Math.max(4, week.total_distance_km / maxDistance * 100)}%` }} /><span className="week-range-label" title={t.weekOf(weekRangeLabel(week.week_start))}>{weekRangeLabel(week.week_start)}</span></div>)}</div></>}</section>
