@@ -1,3 +1,5 @@
+import type { Locale } from './i18n';
+
 export type Workout = {
   id: string;
   scheduled_on: string;
@@ -632,18 +634,27 @@ export function isFutureTrainingDate(scheduledOn: string, todayKey: string): boo
   return todayKey !== '' && scheduledOn > todayKey;
 }
 
-/** Dia e mês de um treino ("03/10"), sem passar por fuso horário. */
-export function formatTrainingDay(scheduledOn: string): string {
+/** Dia e mês de um treino ("03/10"; em inglês, "10/03"), sem passar por fuso horário. */
+export function formatTrainingDay(scheduledOn: string, locale: Locale): string {
   const [, month, day] = scheduledOn.split('-');
-  return month && day ? `${day}/${month}` : scheduledOn;
+  if (!month || !day) return scheduledOn;
+  return locale === 'en' ? `${month}/${day}` : `${day}/${month}`;
 }
 
+const undoText = {
+  pt: {
+    reopen: 'Reabrir este treino? Ele volta para o plano como planejado.',
+    undo: 'Desfazer o registro deste treino? A sessão e o feedback serão apagados, o treino volta para o plano e os ajustes que ele causou nos próximos treinos serão revertidos. Isso não pode ser desfeito.',
+  },
+  en: {
+    reopen: 'Reopen this workout? It goes back to the plan as planned.',
+    undo: 'Undo the log for this workout? The session and feedback will be deleted, the workout goes back to the plan and the adjustments it caused to your next workouts will be reverted. This cannot be undone.',
+  },
+};
+
 /** Texto do aviso antes de desfazer o registro de um treino. */
-export function undoConfirmation(status: Workout['status']): string {
-  if (status === 'skipped') {
-    return 'Reabrir este treino? Ele volta para o plano como planejado.';
-  }
-  return 'Desfazer o registro deste treino? A sessão e o feedback serão apagados, o treino volta para o plano e os ajustes que ele causou nos próximos treinos serão revertidos. Isso não pode ser desfeito.';
+export function undoConfirmation(status: Workout['status'], locale: Locale): string {
+  return status === 'skipped' ? undoText[locale].reopen : undoText[locale].undo;
 }
 
 /** Prazo, em dias, para registrar um treino que já foi feito. */
@@ -671,13 +682,11 @@ export function loggableDateRange(scheduledOn: string, todayKey: string): { min:
   return { min: scheduledOn > earliest ? scheduledOn : earliest, max: todayKey };
 }
 
-export function durationSourceLabel(source?: WorkoutSession['duration_source']): string {
-  switch (source) {
-    case 'reported':
-      return 'informada por você';
-    case 'imported':
-      return 'de um arquivo importado';
-    default:
-      return 'medida pelo cronômetro';
-  }
+const durationSourceText = {
+  pt: { reported: 'informada por você', imported: 'de um arquivo importado', timer: 'medida pelo cronômetro' },
+  en: { reported: 'entered by you', imported: 'from an imported file', timer: 'measured by the timer' },
+};
+
+export function durationSourceLabel(source: WorkoutSession['duration_source'] | undefined, locale: Locale): string {
+  return durationSourceText[locale][source === 'reported' || source === 'imported' ? source : 'timer'];
 }

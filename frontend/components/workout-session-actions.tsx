@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { apiRequest } from '@/lib/api';
+import { defineMessages, formatDecimal, INTL_LOCALE } from '@/lib/i18n';
 import {
   MAX_LOGGED_DURATION_MINUTES,
   durationSourceLabel,
@@ -28,9 +29,12 @@ import {
   formatPowerRange,
   zoneForRpe,
   zoneLabel,
+  zoneName,
   zoneRanges,
+  zoneTalk,
   type ZoneReference,
 } from '@/lib/zones';
+import { useLocale, useMessages } from './locale-provider';
 
 export type PrefillMetrics = {
   distance_km?: number;
@@ -57,52 +61,222 @@ type Props = {
   prefillMetrics?: PrefillMetrics;
 };
 
-const difficultyLabels = {
-  very_easy: 'Muito fácil',
-  easy: 'Fácil',
-  moderate: 'Moderado',
-  hard: 'Difícil',
-  very_hard: 'Muito difícil',
-} as const;
+type Difficulty = 'very_easy' | 'easy' | 'moderate' | 'hard' | 'very_hard';
+type PartialReason = 'time_available_changed' | 'fatigue_or_recovery' | 'pain_or_discomfort' | 'equipment_or_conditions' | 'other';
+type Terrain = 'flat' | 'rolling' | 'hilly' | 'mixed' | 'technical' | 'indoor';
+type ExternalCondition = 'normal' | 'heat' | 'cold' | 'wind' | 'rain' | 'poor_visibility' | 'other';
 
-const statusLabels = {
-  planned: 'Planejado',
-  in_progress: 'Em andamento',
-  completed: 'Concluído',
-  skipped: 'Não realizado',
-  adapted: 'Adaptado',
-} as const;
-
-const partialReasonLabels = {
-  time_available_changed: 'Fiquei sem tempo',
-  fatigue_or_recovery: 'Fadiga ou recuperação',
-  pain_or_discomfort: 'Dor ou desconforto',
-  equipment_or_conditions: 'Equipamento, clima ou terreno',
-  other: 'Outro motivo',
-} as const;
-
-const terrainLabels = {
-  flat: 'Plano',
-  rolling: 'Ondulado',
-  hilly: 'Montanhoso',
-  mixed: 'Misto',
-  technical: 'Técnico',
-  indoor: 'Indoor',
-} as const;
-
-const externalConditionLabels = {
-  normal: 'Condições normais',
-  heat: 'Calor',
-  cold: 'Frio',
-  wind: 'Vento',
-  rain: 'Chuva',
-  poor_visibility: 'Baixa visibilidade',
-  other: 'Outra condição',
-} as const;
-
-const timeFormatter = new Intl.DateTimeFormat('pt-BR', {
-  hour: '2-digit',
-  minute: '2-digit',
+const messages = defineMessages({
+  pt: {
+    difficulty: { very_easy: 'Muito fácil', easy: 'Fácil', moderate: 'Moderado', hard: 'Difícil', very_hard: 'Muito difícil' } as Record<Difficulty, string>,
+    status: { planned: 'Planejado', in_progress: 'Em andamento', completed: 'Concluído', skipped: 'Não realizado', adapted: 'Adaptado' } as Record<Workout['status'], string>,
+    partialReasons: {
+      time_available_changed: 'Fiquei sem tempo',
+      fatigue_or_recovery: 'Fadiga ou recuperação',
+      pain_or_discomfort: 'Dor ou desconforto',
+      equipment_or_conditions: 'Equipamento, clima ou terreno',
+      other: 'Outro motivo',
+    } as Record<PartialReason, string>,
+    terrain: { flat: 'Plano', rolling: 'Ondulado', hilly: 'Montanhoso', mixed: 'Misto', technical: 'Técnico', indoor: 'Indoor' } as Record<Terrain, string>,
+    conditions: {
+      normal: 'Condições normais', heat: 'Calor', cold: 'Frio', wind: 'Vento', rain: 'Chuva', poor_visibility: 'Baixa visibilidade', other: 'Outra condição',
+    } as Record<ExternalCondition, string>,
+    updateFailed: 'Não foi possível atualizar a sessão.',
+    durationRange: (max: number) => `Informe a duração em minutos, de 1 a ${max}.`,
+    correctionSaved: 'Correção salva. O registro foi reavaliado sem recalcular o plano.',
+    correctionFailed: 'Não foi possível corrigir os dados do treino.',
+    startAdapted: 'Iniciar treino adaptado',
+    start: 'Iniciar treino',
+    label: 'Acompanhamento da sessão',
+    startedAt: (time: string) => `Iniciado às ${time}`,
+    acceptFirst: 'Aceite o plano antes de iniciar esta sessão.',
+    futureWorkout: (day: string) => `Este treino é de ${day}. Ele fica disponível no dia planejado.`,
+    starting: 'Iniciando…',
+    markDone: 'Marcar como feito',
+    confirmMissed: 'Marcar este treino como não realizado? Ele ficará registrado como perdido, sem criar uma sessão substituta ou aumentar a carga seguinte.',
+    recording: 'Registrando…',
+    missed: 'Não realizei',
+    complete: 'Concluir treino',
+    confirmCancel: 'Cancelar esta sessão? O treino será marcado como não realizado.',
+    cancel: 'Cancelar',
+    logTitle: 'Registrar treino feito',
+    howWasIt: 'Como foi o treino?',
+    usedForAdaptation: 'Seu relato será usado na adaptação futura.',
+    backToActions: 'Voltar para as ações da sessão',
+    howLongWhen: 'Quanto tempo e quando?',
+    durationMin: 'Duração (min)',
+    workoutDay: 'Dia do treino',
+    logHelp: (minutes: number) =>
+      `Planejado: ${minutes} min. Você pode registrar até 7 dias depois. Para o próximo treino subir de carga, o app considera pelo menos 80% do tempo planejado.`,
+    howMuch: 'Quanto do treino você realizou?',
+    completion: 'Conclusão',
+    fullWorkout: 'Treino completo',
+    partOnly: 'Fiz apenas parte',
+    reason: 'Motivo',
+    selectReason: 'Selecione o motivo',
+    partialHelp: 'Esse contexto evita interpretar a sessão como tolerância ao treino completo.',
+    zoneQuestion: 'Em que zona você pedalou?',
+    zoneHelp: 'Pense na parte principal do treino. Sem sensor, use o teste da conversa: ele diz qual zona combina com o que você sentiu.',
+    planned: 'planejada',
+    difficultyLabel: 'Dificuldade',
+    fatigueAfter: 'Fadiga depois',
+    outOf5: (value: number) => `${value} de 5`,
+    satisfaction: 'Satisfação com a sessão',
+    satisfactionOptions: ['Muito baixa', 'Baixa', 'Neutra', 'Boa', 'Muito boa'],
+    terrainLabel: 'Terreno',
+    notInformed: 'Não informado',
+    conditionsLabel: 'Condições externas',
+    equipment: 'Equipamento utilizado',
+    optional: 'opcional',
+    equipmentPlaceholder: 'Ex.: bike de estrada, rolo ou sensor',
+    recoveryAfter: 'Recuperação percebida',
+    repeatConfidence: 'Confiança para repetir',
+    rideData: 'Dados do pedal',
+    optionals: 'opcionais',
+    distance: 'Distância (km)',
+    elevation: 'Ganho de elevação (m)',
+    averageHr: 'FC média (bpm)',
+    averagePower: 'Potência média (W)',
+    averageCadence: 'Cadência média (rpm)',
+    example: (value: string) => `Ex.: ${value}`,
+    pain: 'Senti dor durante ou depois do treino',
+    painWarning: 'Dor será tratada como sinal de segurança nas próximas adaptações.',
+    notes: 'Observações opcionais',
+    notesPlaceholder: 'Terreno, clima, desconforto ou algo que influenciou o esforço.',
+    saving: 'Salvando…',
+    saveLog: 'Salvar treino feito',
+    saveComplete: 'Salvar e concluir',
+    completed: 'Treino concluído',
+    noZone: 'zona não informada',
+    durationSource: (minutes: number, source: string) => `${minutes} min · duração ${source}`,
+    partialSummary: (reason: string) => `Conclusão parcial · ${reason}`,
+    noReason: 'motivo não informado',
+    fatigue: 'fadiga',
+    recovery: 'recuperação',
+    confidence: 'confiança',
+    satisfactionShort: 'satisfação',
+    equipmentShort: 'equipamento',
+    painReported: 'dor relatada',
+    noPain: 'sem dor',
+    hr: 'FC',
+    reviewTitle: 'Registro salvo para revisão',
+    inconsistent: 'Há dados incompatíveis no registro. Ele foi preservado, mas não entra na observação do histórico.',
+    incomplete: 'Faltam dados mínimos no registro. Ele foi preservado, mas não entra na observação do histórico.',
+    correct: 'Corrigir dados do pedal',
+    correctHelp: 'Apague um campo para removê-lo. Duração, zona e feedback não serão alterados.',
+    cancelCorrection: 'Cancelar correção',
+    savingCorrection: 'Salvando correção…',
+    saveCorrection: 'Salvar correção',
+    skipped: 'Esta sessão não foi realizada e ficou registrada no histórico.',
+    undoing: 'Desfazendo…',
+    undo: 'Desfazer registro',
+    reopen: 'Reabrir treino',
+  },
+  en: {
+    difficulty: { very_easy: 'Very easy', easy: 'Easy', moderate: 'Moderate', hard: 'Hard', very_hard: 'Very hard' },
+    status: { planned: 'Planned', in_progress: 'In progress', completed: 'Completed', skipped: 'Missed', adapted: 'Adapted' },
+    partialReasons: {
+      time_available_changed: 'I ran out of time',
+      fatigue_or_recovery: 'Fatigue or recovery',
+      pain_or_discomfort: 'Pain or discomfort',
+      equipment_or_conditions: 'Equipment, weather or terrain',
+      other: 'Other reason',
+    },
+    terrain: { flat: 'Flat', rolling: 'Rolling', hilly: 'Hilly', mixed: 'Mixed', technical: 'Technical', indoor: 'Indoor' },
+    conditions: {
+      normal: 'Normal conditions', heat: 'Heat', cold: 'Cold', wind: 'Wind', rain: 'Rain', poor_visibility: 'Poor visibility', other: 'Other condition',
+    },
+    updateFailed: 'The session could not be updated.',
+    durationRange: (max: number) => `Enter the duration in minutes, from 1 to ${max}.`,
+    correctionSaved: 'Correction saved. The log was reassessed without recalculating the plan.',
+    correctionFailed: 'The workout data could not be corrected.',
+    startAdapted: 'Start adapted workout',
+    start: 'Start workout',
+    label: 'Session tracking',
+    startedAt: (time: string) => `Started at ${time}`,
+    acceptFirst: 'Accept the plan before starting this session.',
+    futureWorkout: (day: string) => `This workout is for ${day}. It becomes available on the planned day.`,
+    starting: 'Starting…',
+    markDone: 'Mark as done',
+    confirmMissed: 'Mark this workout as missed? It will be logged as missed, without creating a make-up session or increasing the next load.',
+    recording: 'Saving…',
+    missed: "I didn't do it",
+    complete: 'Complete workout',
+    confirmCancel: 'Cancel this session? The workout will be marked as missed.',
+    cancel: 'Cancel',
+    logTitle: 'Log a completed workout',
+    howWasIt: 'How was the workout?',
+    usedForAdaptation: 'Your report will be used for future adaptation.',
+    backToActions: 'Back to the session actions',
+    howLongWhen: 'How long and when?',
+    durationMin: 'Duration (min)',
+    workoutDay: 'Workout day',
+    logHelp: (minutes: number) =>
+      `Planned: ${minutes} min. You can log it up to 7 days later. For the next workout to increase the load, the app needs at least 80% of the planned time.`,
+    howMuch: 'How much of the workout did you do?',
+    completion: 'Completion',
+    fullWorkout: 'Full workout',
+    partOnly: 'Only part of it',
+    reason: 'Reason',
+    selectReason: 'Select the reason',
+    partialHelp: 'This context keeps the session from being read as tolerance to the full workout.',
+    zoneQuestion: 'Which zone did you ride in?',
+    zoneHelp: 'Think about the main set. Without a sensor, use the talk test: it tells you which zone matches what you felt.',
+    planned: 'planned',
+    difficultyLabel: 'Difficulty',
+    fatigueAfter: 'Fatigue afterward',
+    outOf5: (value: number) => `${value} out of 5`,
+    satisfaction: 'Satisfaction with the session',
+    satisfactionOptions: ['Very low', 'Low', 'Neutral', 'Good', 'Very good'],
+    terrainLabel: 'Terrain',
+    notInformed: 'Not entered',
+    conditionsLabel: 'Outside conditions',
+    equipment: 'Equipment used',
+    optional: 'optional',
+    equipmentPlaceholder: 'E.g.: road bike, trainer or sensor',
+    recoveryAfter: 'Perceived recovery',
+    repeatConfidence: 'Confidence to repeat',
+    rideData: 'Ride data',
+    optionals: 'optional',
+    distance: 'Distance (km)',
+    elevation: 'Elevation gain (m)',
+    averageHr: 'Average HR (bpm)',
+    averagePower: 'Average power (W)',
+    averageCadence: 'Average cadence (rpm)',
+    example: (value: string) => `E.g.: ${value}`,
+    pain: 'I felt pain during or after the workout',
+    painWarning: 'Pain will be treated as a safety sign in the next adaptations.',
+    notes: 'Optional notes',
+    notesPlaceholder: 'Terrain, weather, discomfort or anything that affected the effort.',
+    saving: 'Saving…',
+    saveLog: 'Save completed workout',
+    saveComplete: 'Save and complete',
+    completed: 'Workout completed',
+    noZone: 'zone not entered',
+    durationSource: (minutes: number, source: string) => `${minutes} min · duration ${source}`,
+    partialSummary: (reason: string) => `Partial completion · ${reason}`,
+    noReason: 'no reason given',
+    fatigue: 'fatigue',
+    recovery: 'recovery',
+    confidence: 'confidence',
+    satisfactionShort: 'satisfaction',
+    equipmentShort: 'equipment',
+    painReported: 'pain reported',
+    noPain: 'no pain',
+    hr: 'HR',
+    reviewTitle: 'Log saved for review',
+    inconsistent: 'The log has data that does not match. It was kept, but it does not count toward your history.',
+    incomplete: 'The log is missing minimum data. It was kept, but it does not count toward your history.',
+    correct: 'Correct ride data',
+    correctHelp: 'Clear a field to remove it. Duration, zone and feedback will not change.',
+    cancelCorrection: 'Cancel correction',
+    savingCorrection: 'Saving correction…',
+    saveCorrection: 'Save correction',
+    skipped: 'This session was not done and is recorded in your history.',
+    undoing: 'Undoing…',
+    undo: 'Undo log',
+    reopen: 'Reopen workout',
+  },
 });
 
 export function WorkoutSessionActions({
@@ -114,6 +288,8 @@ export function WorkoutSessionActions({
   onPlanUpdated,
   prefillMetrics,
 }: Props) {
+  const locale = useLocale();
+  const t = useMessages(messages);
   const [action, setAction] = useState('');
   const [todayKey, setTodayKey] = useState('');
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -121,17 +297,16 @@ export function WorkoutSessionActions({
   const [logDuration, setLogDuration] = useState('');
   const [logDate, setLogDate] = useState('');
   const [completionStatus, setCompletionStatus] = useState<'complete' | 'partial'>('complete');
-  const [partialReason, setPartialReason] = useState<keyof typeof partialReasonLabels | ''>('');
+  const [partialReason, setPartialReason] = useState<PartialReason | ''>('');
   const plannedZone = zoneForRpe(workout.target_rpe).number;
   const [actualZone, setActualZone] = useState<number>(plannedZone);
-  const [difficulty, setDifficulty] =
-    useState<keyof typeof difficultyLabels>('moderate');
+  const [difficulty, setDifficulty] = useState<Difficulty>('moderate');
   const [fatigueAfter, setFatigueAfter] = useState(3);
   const [recoveryAfter, setRecoveryAfter] = useState(3);
   const [repeatConfidence, setRepeatConfidence] = useState(3);
   const [satisfaction, setSatisfaction] = useState(3);
-  const [terrain, setTerrain] = useState<keyof typeof terrainLabels | ''>('');
-  const [externalConditions, setExternalConditions] = useState<keyof typeof externalConditionLabels | ''>('');
+  const [terrain, setTerrain] = useState<Terrain | ''>('');
+  const [externalConditions, setExternalConditions] = useState<ExternalCondition | ''>('');
   const [equipmentUsed, setEquipmentUsed] = useState('');
   const [painReported, setPainReported] = useState(false);
   const [notes, setNotes] = useState('');
@@ -195,7 +370,7 @@ export function WorkoutSessionActions({
       setError(
         caught instanceof Error
           ? caught.message
-          : 'Não foi possível atualizar a sessão.',
+          : t.updateFailed,
       );
       return false;
     } finally {
@@ -241,7 +416,7 @@ export function WorkoutSessionActions({
   async function logDone() {
     const minutes = Number(logDuration);
     if (!Number.isInteger(minutes) || minutes < 1 || minutes > MAX_LOGGED_DURATION_MINUTES) {
-      setError(`Informe a duração em minutos, de 1 a ${MAX_LOGGED_DURATION_MINUTES}.`);
+      setError(t.durationRange(MAX_LOGGED_DURATION_MINUTES));
       return;
     }
     const saved = await mutate(
@@ -288,12 +463,12 @@ export function WorkoutSessionActions({
       );
       onPlanUpdated(result.plan, workout.id);
       setCorrectionOpen(false);
-      setCorrectionNotice('Correção salva. O registro foi reavaliado sem recalcular o plano.');
+      setCorrectionNotice(t.correctionSaved);
     } catch (caught) {
       setError(
         caught instanceof Error
           ? caught.message
-          : 'Não foi possível corrigir os dados do treino.',
+          : t.correctionFailed,
       );
     } finally {
       setAction('');
@@ -319,8 +494,8 @@ export function WorkoutSessionActions({
   const canUndo =
     (planStatus === 'active' || planStatus === 'completed') &&
     (workout.status === 'completed' || workout.status === 'skipped');
-  const startLabel =
-    workout.status === 'adapted' ? 'Iniciar treino adaptado' : 'Iniciar treino';
+  const startLabel = workout.status === 'adapted' ? t.startAdapted : t.start;
+  const timeFormatter = new Intl.DateTimeFormat(INTL_LOCALE[locale], { hour: '2-digit', minute: '2-digit' });
   const dataIntegrityIssue =
     workout.status === 'completed' &&
     workout.explanation.data_integrity &&
@@ -331,28 +506,22 @@ export function WorkoutSessionActions({
     usesPower || workout.session?.average_power_watts !== undefined;
 
   return (
-    <section className="session-actions" aria-label="Acompanhamento da sessão">
+    <section className="session-actions" aria-label={t.label}>
       <header>
         <span className={`session-status ${workout.status}`}>
-          {statusLabels[workout.status]}
+          {t.status[workout.status]}
         </span>
         {session?.started_at && workout.status === 'in_progress' && todayKey !== '' && (
-          <small>
-            Iniciado às {timeFormatter.format(new Date(session.started_at))}
-          </small>
+          <small>{t.startedAt(timeFormatter.format(new Date(session.started_at)))}</small>
         )}
       </header>
 
       {planStatus === 'draft' && (
-        <p className="session-guidance">
-          Aceite o plano antes de iniciar esta sessão.
-        </p>
+        <p className="session-guidance">{t.acceptFirst}</p>
       )}
 
       {awaitingStart && isFutureWorkout && (
-        <p className="session-guidance">
-          Este treino é de {formatTrainingDay(workout.scheduled_on)}. Ele fica disponível no dia planejado.
-        </p>
+        <p className="session-guidance">{t.futureWorkout(formatTrainingDay(workout.scheduled_on, locale))}</p>
       )}
 
       {canStart && !logOpen && (
@@ -368,11 +537,11 @@ export function WorkoutSessionActions({
             ) : (
               <Play />
             )}
-            {action === 'start' ? 'Iniciando…' : startLabel}
+            {action === 'start' ? t.starting : startLabel}
           </Button>
           <Button type="button" variant="outline" disabled={busy} onClick={openLog}>
             <CheckCircle2 />
-            Marcar como feito
+            {t.markDone}
           </Button>
           {canMarkMissed && (
             <Button
@@ -381,9 +550,7 @@ export function WorkoutSessionActions({
               disabled={busy}
               onClick={() => {
                 if (
-                  window.confirm(
-                    'Marcar este treino como não realizado? Ele ficará registrado como perdido, sem criar uma sessão substituta ou aumentar a carga seguinte.',
-                  )
+                  window.confirm(t.confirmMissed)
                 ) {
                   void mutate('missed');
                 }
@@ -394,7 +561,7 @@ export function WorkoutSessionActions({
               ) : (
                 <CircleStop />
               )}
-              {action === 'missed' ? 'Registrando…' : 'Não realizei'}
+              {action === 'missed' ? t.recording : t.missed}
             </Button>
           )}
         </div>
@@ -409,7 +576,7 @@ export function WorkoutSessionActions({
             onClick={() => setFeedbackOpen(true)}
           >
             <CheckCircle2 />
-            Concluir treino
+            {t.complete}
           </Button>
           <Button
             type="button"
@@ -417,9 +584,7 @@ export function WorkoutSessionActions({
             disabled={busy}
             onClick={() => {
               if (
-                window.confirm(
-                  'Cancelar esta sessão? O treino será marcado como não realizado.',
-                )
+                window.confirm(t.confirmCancel)
               ) {
                 void mutate('cancel');
               }
@@ -430,7 +595,7 @@ export function WorkoutSessionActions({
             ) : (
               <CircleStop />
             )}
-            Cancelar
+            {t.cancel}
           </Button>
         </div>
       )}
@@ -446,13 +611,13 @@ export function WorkoutSessionActions({
         >
           <div className="feedback-heading">
             <div>
-              <strong>{logOpen ? 'Registrar treino feito' : 'Como foi o treino?'}</strong>
-              <small>Seu relato será usado na adaptação futura.</small>
+              <strong>{logOpen ? t.logTitle : t.howWasIt}</strong>
+              <small>{t.usedForAdaptation}</small>
             </div>
             <button
               type="button"
               onClick={closeForm}
-              aria-label="Voltar para as ações da sessão"
+              aria-label={t.backToActions}
             >
               <RotateCcw />
             </button>
@@ -460,10 +625,10 @@ export function WorkoutSessionActions({
 
           {logOpen && (
             <fieldset className="log-fields">
-              <legend>Quanto tempo e quando?</legend>
+              <legend>{t.howLongWhen}</legend>
               <div className="feedback-grid">
                 <label>
-                  Duração (min)
+                  {t.durationMin}
                   <input
                     type="number"
                     required
@@ -476,7 +641,7 @@ export function WorkoutSessionActions({
                   />
                 </label>
                 <label>
-                  Dia do treino
+                  {t.workoutDay}
                   <input
                     type="date"
                     required
@@ -487,19 +652,15 @@ export function WorkoutSessionActions({
                   />
                 </label>
               </div>
-              <small className="completion-help">
-                Planejado: {workout.duration_minutes} min. Você pode registrar até
-                7 dias depois. Para o próximo treino subir de carga, o app
-                considera pelo menos 80% do tempo planejado.
-              </small>
+              <small className="completion-help">{t.logHelp(workout.duration_minutes)}</small>
             </fieldset>
           )}
 
           <fieldset className="completion-context">
-            <legend>Quanto do treino você realizou?</legend>
+            <legend>{t.howMuch}</legend>
             <div className="feedback-grid">
               <label>
-                Conclusão
+                {t.completion}
                 <select
                   value={completionStatus}
                   onChange={(event) => {
@@ -510,26 +671,24 @@ export function WorkoutSessionActions({
                     }
                   }}
                 >
-                  <option value="complete">Treino completo</option>
-                  <option value="partial">Fiz apenas parte</option>
+                  <option value="complete">{t.fullWorkout}</option>
+                  <option value="partial">{t.partOnly}</option>
                 </select>
               </label>
               {completionStatus === 'partial' && (
                 <label>
-                  Motivo
+                  {t.reason}
                   <select
                     required
                     value={partialReason}
                     onChange={(event) =>
                       setPartialReason(
-                        event.target.value as keyof typeof partialReasonLabels,
+                        event.target.value as PartialReason,
                       )
                     }
                   >
-                    <option value="">
-                      Selecione o motivo
-                    </option>
-                    {Object.entries(partialReasonLabels).map(([value, label]) => (
+                    <option value="">{t.selectReason}</option>
+                    {Object.entries(t.partialReasons).map(([value, label]) => (
                       <option value={value} key={value}>
                         {label}
                       </option>
@@ -539,18 +698,13 @@ export function WorkoutSessionActions({
               )}
             </div>
             {completionStatus === 'partial' && (
-              <small className="completion-help">
-                Esse contexto evita interpretar a sessão como tolerância ao treino completo.
-              </small>
+              <small className="completion-help">{t.partialHelp}</small>
             )}
           </fieldset>
 
           <fieldset className="zone-choice">
-            <legend>Em que zona você pedalou?</legend>
-            <small>
-              Pense na parte principal do treino. Sem sensor, use o teste da
-              conversa: ele diz qual zona combina com o que você sentiu.
-            </small>
+            <legend>{t.zoneQuestion}</legend>
+            <small>{t.zoneHelp}</small>
             <div className="zone-cards">
               {ZONES.map((zone) => {
                 const ranges = zoneRanges(zone, zoneReference);
@@ -570,12 +724,12 @@ export function WorkoutSessionActions({
                       onChange={() => setActualZone(zone.number)}
                     />
                     <strong>
-                      Z{zone.number} · {zone.name}
+                      Z{zone.number} · {zoneName(zone, locale)}
                       {ranges.heartRate && <small>{formatHeartRateRange(ranges.heartRate)}</small>}
-                      {ranges.power && <small>{formatPowerRange(ranges.power)}</small>}
-                      {plannedZone === zone.number && <em className="zone-planned">planejada</em>}
+                      {ranges.power && <small>{formatPowerRange(ranges.power, locale)}</small>}
+                      {plannedZone === zone.number && <em className="zone-planned">{t.planned}</em>}
                     </strong>
-                    <span>{zone.talk}</span>
+                    <span>{zoneTalk(zone, locale)}</span>
                   </label>
                 );
               })}
@@ -584,16 +738,12 @@ export function WorkoutSessionActions({
 
           <div className="feedback-grid">
             <label>
-              Dificuldade
+              {t.difficultyLabel}
               <select
                 value={difficulty}
-                onChange={(event) =>
-                  setDifficulty(
-                    event.target.value as keyof typeof difficultyLabels,
-                  )
-                }
+                onChange={(event) => setDifficulty(event.target.value as Difficulty)}
               >
-                {Object.entries(difficultyLabels).map(([value, label]) => (
+                {Object.entries(t.difficulty).map(([value, label]) => (
                   <option value={value} key={value}>
                     {label}
                   </option>
@@ -601,7 +751,7 @@ export function WorkoutSessionActions({
               </select>
             </label>
             <label>
-              Fadiga depois
+              {t.fatigueAfter}
               <select
                 value={fatigueAfter}
                 onChange={(event) =>
@@ -610,7 +760,7 @@ export function WorkoutSessionActions({
               >
                 {[1, 2, 3, 4, 5].map((value) => (
                   <option value={value} key={value}>
-                    {value} de 5
+                    {t.outOf5(value)}
                   </option>
                 ))}
               </select>
@@ -619,26 +769,26 @@ export function WorkoutSessionActions({
 
           <div className="feedback-grid">
             <label>
-              Satisfação com a sessão
+              {t.satisfaction}
               <select
                 value={satisfaction}
                 onChange={(event) => setSatisfaction(Number(event.target.value))}
               >
-                <option value="1">1 de 5 · Muito baixa</option>
-                <option value="2">2 de 5 · Baixa</option>
-                <option value="3">3 de 5 · Neutra</option>
-                <option value="4">4 de 5 · Boa</option>
-                <option value="5">5 de 5 · Muito boa</option>
+                {t.satisfactionOptions.map((label, index) => (
+                  <option value={index + 1} key={label}>
+                    {t.outOf5(index + 1)} · {label}
+                  </option>
+                ))}
               </select>
             </label>
             <label>
-              Terreno
+              {t.terrainLabel}
               <select
                 value={terrain}
-                onChange={(event) => setTerrain(event.target.value as keyof typeof terrainLabels | '')}
+                onChange={(event) => setTerrain(event.target.value as Terrain | '')}
               >
-                <option value="">Não informado</option>
-                {Object.entries(terrainLabels).map(([value, label]) => (
+                <option value="">{t.notInformed}</option>
+                {Object.entries(t.terrain).map(([value, label]) => (
                   <option value={value} key={value}>{label}</option>
                 ))}
               </select>
@@ -646,52 +796,52 @@ export function WorkoutSessionActions({
           </div>
 
           <label>
-            Condições externas
+            {t.conditionsLabel}
             <select
               value={externalConditions}
-              onChange={(event) => setExternalConditions(event.target.value as keyof typeof externalConditionLabels | '')}
+              onChange={(event) => setExternalConditions(event.target.value as ExternalCondition | '')}
             >
-              <option value="">Não informado</option>
-              {Object.entries(externalConditionLabels).map(([value, label]) => (
+              <option value="">{t.notInformed}</option>
+              {Object.entries(t.conditions).map(([value, label]) => (
                 <option value={value} key={value}>{label}</option>
               ))}
             </select>
           </label>
 
           <label>
-            Equipamento utilizado <small>opcional</small>
+            {t.equipment} <small>{t.optional}</small>
             <input
               type="text"
               maxLength={120}
               value={equipmentUsed}
               onChange={(event) => setEquipmentUsed(event.target.value)}
-              placeholder="Ex.: bike de estrada, rolo ou sensor"
+              placeholder={t.equipmentPlaceholder}
             />
           </label>
 
           <div className="feedback-grid">
             <label>
-              Recuperação percebida
+              {t.recoveryAfter}
               <select
                 value={recoveryAfter}
                 onChange={(event) => setRecoveryAfter(Number(event.target.value))}
               >
                 {[1, 2, 3, 4, 5].map((value) => (
                   <option value={value} key={value}>
-                    {value} de 5
+                    {t.outOf5(value)}
                   </option>
                 ))}
               </select>
             </label>
             <label>
-              Confiança para repetir
+              {t.repeatConfidence}
               <select
                 value={repeatConfidence}
                 onChange={(event) => setRepeatConfidence(Number(event.target.value))}
               >
                 {[1, 2, 3, 4, 5].map((value) => (
                   <option value={value} key={value}>
-                    {value} de 5
+                    {t.outOf5(value)}
                   </option>
                 ))}
               </select>
@@ -699,27 +849,27 @@ export function WorkoutSessionActions({
           </div>
 
           <fieldset className="session-metrics">
-            <legend>Dados do pedal <small>opcionais</small></legend>
+            <legend>{t.rideData} <small>{t.optionals}</small></legend>
             <div className="feedback-grid">
               <label>
-                Distância (km)
-                <input type="number" min="0" max="2000" step="0.1" inputMode="decimal" value={distanceKM} onChange={(event) => setDistanceKM(event.target.value)} placeholder="Ex.: 32,5" />
+                {t.distance}
+                <input type="number" min="0" max="2000" step="0.1" inputMode="decimal" value={distanceKM} onChange={(event) => setDistanceKM(event.target.value)} placeholder={t.example(formatDecimal(32.5, 1, locale))} />
               </label>
               <label>
-                Ganho de elevação (m)
-                <input type="number" min="0" max="20000" step="1" inputMode="numeric" value={elevationGainM} onChange={(event) => setElevationGainM(event.target.value)} placeholder="Ex.: 420" />
+                {t.elevation}
+                <input type="number" min="0" max="20000" step="1" inputMode="numeric" value={elevationGainM} onChange={(event) => setElevationGainM(event.target.value)} placeholder={t.example('420')} />
               </label>
               {usesHeartRate && <label>
-                FC média (bpm)
-                <input type="number" min="30" max="250" step="1" inputMode="numeric" value={averageHeartRate} onChange={(event) => setAverageHeartRate(event.target.value)} placeholder="Ex.: 142" />
+                {t.averageHr}
+                <input type="number" min="30" max="250" step="1" inputMode="numeric" value={averageHeartRate} onChange={(event) => setAverageHeartRate(event.target.value)} placeholder={t.example('142')} />
               </label>}
               {usesPower && <label>
-                Potência média (W)
-                <input type="number" min="0" max="2000" step="1" inputMode="numeric" value={averagePowerW} onChange={(event) => setAveragePowerW(event.target.value)} placeholder="Ex.: 185" />
+                {t.averagePower}
+                <input type="number" min="0" max="2000" step="1" inputMode="numeric" value={averagePowerW} onChange={(event) => setAveragePowerW(event.target.value)} placeholder={t.example('185')} />
               </label>}
               <label>
-                Cadência média (rpm)
-                <input type="number" min="1" max="300" step="1" inputMode="numeric" value={averageCadenceRPM} onChange={(event) => setAverageCadenceRPM(event.target.value)} placeholder="Ex.: 88" />
+                {t.averageCadence}
+                <input type="number" min="1" max="300" step="1" inputMode="numeric" value={averageCadenceRPM} onChange={(event) => setAverageCadenceRPM(event.target.value)} placeholder={t.example('88')} />
               </label>
             </div>
           </fieldset>
@@ -730,22 +880,22 @@ export function WorkoutSessionActions({
               checked={painReported}
               onChange={(event) => setPainReported(event.target.checked)}
             />
-            Senti dor durante ou depois do treino
+            {t.pain}
           </label>
           {painReported && (
             <p className="pain-warning">
               <TriangleAlert />
-              Dor será tratada como sinal de segurança nas próximas adaptações.
+              {t.painWarning}
             </p>
           )}
 
-          <label htmlFor={`notes-${workout.id}`}>Observações opcionais</label>
+          <label htmlFor={`notes-${workout.id}`}>{t.notes}</label>
           <Textarea
             id={`notes-${workout.id}`}
             maxLength={1000}
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
-            placeholder="Terreno, clima, desconforto ou algo que influenciou o esforço."
+            placeholder={t.notesPlaceholder}
           />
 
           <Button type="submit" className="session-primary" disabled={busy}>
@@ -754,11 +904,7 @@ export function WorkoutSessionActions({
             ) : (
               <CheckCircle2 />
             )}
-            {action === (logOpen ? 'log' : 'complete')
-              ? 'Salvando…'
-              : logOpen
-                ? 'Salvar treino feito'
-                : 'Salvar e concluir'}
+            {action === (logOpen ? 'log' : 'complete') ? t.saving : logOpen ? t.saveLog : t.saveComplete}
           </Button>
         </form>
       )}
@@ -767,29 +913,29 @@ export function WorkoutSessionActions({
         <div className="session-result">
           <CheckCircle2 />
           <div>
-            <strong>Treino concluído · {session?.actual_rpe !== undefined ? zoneLabel(session.actual_rpe) : 'zona não informada'}</strong>
+            <strong>{t.completed} · {session?.actual_rpe !== undefined ? zoneLabel(session.actual_rpe, locale) : t.noZone}</strong>
             {session?.duration_minutes !== undefined && (
               <small className="duration-source">
-                {session.duration_minutes} min · duração {durationSourceLabel(session.duration_source)}
+                {t.durationSource(session.duration_minutes, durationSourceLabel(session.duration_source, locale))}
               </small>
             )}
             <span>
               {feedback.completion_status === 'partial'
-                ? `Conclusão parcial · ${feedback.partial_reason ? partialReasonLabels[feedback.partial_reason] : 'motivo não informado'}`
-                : 'Treino completo'}{' '}
+                ? t.partialSummary(feedback.partial_reason ? t.partialReasons[feedback.partial_reason] : t.noReason)
+                : t.fullWorkout}{' '}
               ·{' '}
-              {difficultyLabels[feedback.difficulty]} · fadiga{' '}
+              {t.difficulty[feedback.difficulty]} · {t.fatigue}{' '}
               {feedback.fatigue_after}/5
-              {feedback.recovery_after !== undefined && ` · recuperação ${feedback.recovery_after}/5`}
-              {feedback.repeat_confidence !== undefined && ` · confiança ${feedback.repeat_confidence}/5`}
-              {feedback.satisfaction !== undefined && ` · satisfação ${feedback.satisfaction}/5`}
-              {feedback.terrain && ` · ${terrainLabels[feedback.terrain]}`}
-              {feedback.external_conditions && ` · ${externalConditionLabels[feedback.external_conditions]}`}
-              {feedback.equipment_used && ` · equipamento: ${feedback.equipment_used}`}
-              {feedback.pain_reported ? ' · dor relatada' : ' · sem dor'}
+              {feedback.recovery_after !== undefined && ` · ${t.recovery} ${feedback.recovery_after}/5`}
+              {feedback.repeat_confidence !== undefined && ` · ${t.confidence} ${feedback.repeat_confidence}/5`}
+              {feedback.satisfaction !== undefined && ` · ${t.satisfactionShort} ${feedback.satisfaction}/5`}
+              {feedback.terrain && ` · ${t.terrain[feedback.terrain]}`}
+              {feedback.external_conditions && ` · ${t.conditions[feedback.external_conditions]}`}
+              {feedback.equipment_used && ` · ${t.equipmentShort}: ${feedback.equipment_used}`}
+              {feedback.pain_reported ? ` · ${t.painReported}` : ` · ${t.noPain}`}
             </span>
             {feedback.notes && <p>{feedback.notes}</p>}
-            {(session?.distance_km !== undefined || session?.elevation_gain_m !== undefined || session?.average_heart_rate !== undefined || session?.average_power_watts !== undefined || session?.average_cadence_rpm !== undefined) && <p className="session-metric-result">{session?.distance_km !== undefined && `${session.distance_km} km`}{session?.elevation_gain_m !== undefined && ` · ${session.elevation_gain_m} m+`}{session?.average_heart_rate !== undefined && ` · FC ${session.average_heart_rate} bpm`}{session?.average_power_watts !== undefined && ` · ${session.average_power_watts} W`}{session?.average_cadence_rpm !== undefined && ` · ${session.average_cadence_rpm} rpm`}</p>}
+            {(session?.distance_km !== undefined || session?.elevation_gain_m !== undefined || session?.average_heart_rate !== undefined || session?.average_power_watts !== undefined || session?.average_cadence_rpm !== undefined) && <p className="session-metric-result">{session?.distance_km !== undefined && `${session.distance_km} km`}{session?.elevation_gain_m !== undefined && ` · ${session.elevation_gain_m} m+`}{session?.average_heart_rate !== undefined && ` · ${t.hr} ${session.average_heart_rate} bpm`}{session?.average_power_watts !== undefined && ` · ${session.average_power_watts} W`}{session?.average_cadence_rpm !== undefined && ` · ${session.average_cadence_rpm} rpm`}</p>}
           </div>
         </div>
       )}
@@ -798,12 +944,8 @@ export function WorkoutSessionActions({
         <div className="session-data-warning" aria-live="polite">
           <TriangleAlert />
           <div>
-            <strong>Registro salvo para revisão</strong>
-            <p>
-              {workout.explanation.data_integrity.status === 'inconsistent'
-                ? 'Há dados incompatíveis no registro. Ele foi preservado, mas não entra na observação do histórico.'
-                : 'Faltam dados mínimos no registro. Ele foi preservado, mas não entra na observação do histórico.'}
-            </p>
+            <strong>{t.reviewTitle}</strong>
+            <p>{workout.explanation.data_integrity.status === 'inconsistent' ? t.inconsistent : t.incomplete}</p>
           </div>
         </div>
       )}
@@ -816,7 +958,7 @@ export function WorkoutSessionActions({
 
       {dataIntegrityIssue && !correctionOpen && (
         <Button type="button" variant="outline" disabled={busy} onClick={openCorrection}>
-          Corrigir dados do pedal
+          {t.correct}
         </Button>
       )}
 
@@ -830,46 +972,44 @@ export function WorkoutSessionActions({
         >
           <div className="feedback-heading">
             <div>
-              <strong>Corrigir dados do pedal</strong>
-              <small>Apague um campo para removê-lo. Duração, zona e feedback não serão alterados.</small>
+              <strong>{t.correct}</strong>
+              <small>{t.correctHelp}</small>
             </div>
-            <button type="button" onClick={() => setCorrectionOpen(false)} aria-label="Cancelar correção">
+            <button type="button" onClick={() => setCorrectionOpen(false)} aria-label={t.cancelCorrection}>
               <RotateCcw />
             </button>
           </div>
           <div className="feedback-grid">
             <label>
-              Distância (km)
+              {t.distance}
               <input type="number" min="0" max="2000" step="0.1" inputMode="decimal" value={correctionDistanceKM} onChange={(event) => setCorrectionDistanceKM(event.target.value)} />
             </label>
             <label>
-              Ganho de elevação (m)
+              {t.elevation}
               <input type="number" min="0" max="20000" step="1" inputMode="numeric" value={correctionElevationGainM} onChange={(event) => setCorrectionElevationGainM(event.target.value)} />
             </label>
             {correctionHeartRateVisible && <label>
-              FC média (bpm)
+              {t.averageHr}
               <input type="number" min="30" max="250" step="1" inputMode="numeric" value={correctionAverageHeartRate} onChange={(event) => setCorrectionAverageHeartRate(event.target.value)} />
             </label>}
             {correctionPowerVisible && <label>
-              Potência média (W)
+              {t.averagePower}
               <input type="number" min="0" max="2000" step="1" inputMode="numeric" value={correctionAveragePowerW} onChange={(event) => setCorrectionAveragePowerW(event.target.value)} />
             </label>}
             <label>
-              Cadência média (rpm)
+              {t.averageCadence}
               <input type="number" min="1" max="300" step="1" inputMode="numeric" value={correctionAverageCadenceRPM} onChange={(event) => setCorrectionAverageCadenceRPM(event.target.value)} />
             </label>
           </div>
           <Button type="submit" className="session-primary" disabled={busy}>
             {action === 'correct' ? <LoaderCircle className="spin" /> : <CheckCircle2 />}
-            {action === 'correct' ? 'Salvando correção…' : 'Salvar correção'}
+            {action === 'correct' ? t.savingCorrection : t.saveCorrection}
           </Button>
         </form>
       )}
 
       {workout.status === 'skipped' && (
-        <p className="session-guidance">
-          Esta sessão não foi realizada e ficou registrada no histórico.
-        </p>
+        <p className="session-guidance">{t.skipped}</p>
       )}
 
       {canUndo && (
@@ -878,17 +1018,13 @@ export function WorkoutSessionActions({
           variant="outline"
           disabled={busy}
           onClick={() => {
-            if (window.confirm(undoConfirmation(workout.status))) {
+            if (window.confirm(undoConfirmation(workout.status, locale))) {
               void mutate('undo');
             }
           }}
         >
           {action === 'undo' ? <LoaderCircle className="spin" /> : <RotateCcw />}
-          {action === 'undo'
-            ? 'Desfazendo…'
-            : workout.status === 'completed'
-              ? 'Desfazer registro'
-              : 'Reabrir treino'}
+          {action === 'undo' ? t.undoing : workout.status === 'completed' ? t.undo : t.reopen}
         </Button>
       )}
 

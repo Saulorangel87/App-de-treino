@@ -5,6 +5,8 @@ import { CheckCircle2, HeartPulse, LoaderCircle, MoonStar, ShieldAlert } from 'l
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { AppHeader } from '@/components/app-header';
 import { ApiErrorState } from '@/components/api-error-state';
+import { useLocale, useMessages } from '@/components/locale-provider';
+import { defineMessages } from '@/lib/i18n';
 import { zoneLabel } from '@/lib/zones';
 
 type User = { display_name: string };
@@ -20,13 +22,90 @@ function localDateKey() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
-const readinessCopy = {
-  ready: ['Recuperação dentro do esperado', 'Seu check-in foi salvo. O plano não recebeu aumento automático de carga.'],
-  caution: ['Hoje pede atenção', 'Um sinal ficou abaixo do habitual e o próximo treino foi ajustado com cautela, quando havia uma sessão futura.'],
-  recovery_needed: ['Priorize recuperação', 'A combinação dos sinais indicou necessidade de reduzir a próxima carga, quando havia uma sessão futura.'],
-};
+const messages = defineMessages({
+  pt: {
+    readiness: {
+      ready: ['Recuperação dentro do esperado', 'Seu check-in foi salvo. O plano não recebeu aumento automático de carga.'],
+      caution: ['Hoje pede atenção', 'Um sinal ficou abaixo do habitual e o próximo treino foi ajustado com cautela, quando havia uma sessão futura.'],
+      recovery_needed: ['Priorize recuperação', 'A combinação dos sinais indicou necessidade de reduzir a próxima carga, quando havia uma sessão futura.'],
+    } as Record<Recovery['readiness'], [string, string]>,
+    loadFailed: 'Não foi possível carregar sua recuperação.',
+    saveFailed: 'Não foi possível salvar o check-in.',
+    loading: 'Carregando sua recuperação…',
+    kicker: 'CHECK-IN DIÁRIO',
+    title: 'Como você chega para hoje?',
+    intro: 'Registre sono, estresse e fadiga percebida. O app usa esses sinais apenas para manter ou reduzir a próxima carga — nunca para aumentá-la automaticamente.',
+    adaptedNote: 'Por segurança, editar o check-in depois não aumenta novamente essa sessão.',
+    guideTitle: 'Uma leitura simples',
+    guideText: 'Responda como você realmente se sente. Um único sinal ruim gera cautela; fadiga máxima ou uma combinação de sinais reduz a próxima sessão ainda não iniciada.',
+    sleep: 'Sono',
+    sleepText: 'Duração e qualidade percebida da última noite.',
+    stressFatigue: 'Estresse e fadiga',
+    stressFatigueText: 'Escalas subjetivas de 1 a 5, considerando o momento atual.',
+    warning: 'Este check-in não diagnostica condições de saúde. Dor, tontura, falta de ar incomum ou mal-estar são motivos para não iniciar o treino e buscar orientação profissional quando necessário.',
+    reference: 'Referência:',
+    referenceText: ', consenso sobre monitoramento de carga e resposta do atleta.',
+    formTitle: 'Registro de hoje',
+    slept: 'Quanto você dormiu?',
+    sleepQuality: 'Qualidade do sono',
+    veryBadF: 'Muito ruim',
+    veryGoodF: 'Muito boa',
+    stress: 'Nível de estresse',
+    veryLow: 'Muito baixo',
+    veryHigh: 'Muito alto',
+    fatigue: 'Fadiga percebida',
+    veryLowF: 'Muito baixa',
+    veryHighF: 'Muito alta',
+    notes: 'Observações opcionais',
+    notesPlaceholder: 'Ex.: dormi interrompido, dia mais exigente…',
+    saving: 'Salvando…',
+    update: 'Atualizar check-in',
+    save: 'Salvar check-in',
+  },
+  en: {
+    readiness: {
+      ready: ['Recovery as expected', 'Your check-in was saved. The plan got no automatic load increase.'],
+      caution: ['Take it easy today', 'One sign was below your usual and the next workout was adjusted carefully, if there was an upcoming session.'],
+      recovery_needed: ['Prioritize recovery', 'The combination of signs called for reducing the next load, if there was an upcoming session.'],
+    },
+    loadFailed: 'Your recovery could not be loaded.',
+    saveFailed: 'The check-in could not be saved.',
+    loading: 'Loading your recovery…',
+    kicker: 'DAILY CHECK-IN',
+    title: 'How are you feeling today?',
+    intro: 'Record sleep, stress and perceived fatigue. The app only uses these signs to keep or reduce the next load — never to increase it automatically.',
+    adaptedNote: 'For safety, editing the check-in later does not increase this session again.',
+    guideTitle: 'A simple reading',
+    guideText: 'Answer how you really feel. A single bad sign calls for caution; maximum fatigue or a combination of signs reduces the next session that has not started yet.',
+    sleep: 'Sleep',
+    sleepText: "Duration and perceived quality of last night's sleep.",
+    stressFatigue: 'Stress and fatigue',
+    stressFatigueText: 'Subjective scales from 1 to 5, based on how you feel right now.',
+    warning: 'This check-in does not diagnose health conditions. Pain, dizziness, unusual shortness of breath or feeling unwell are reasons not to start the workout and to seek professional advice when needed.',
+    reference: 'Reference:',
+    referenceText: ', consensus statement on monitoring athlete training loads and responses.',
+    formTitle: "Today's log",
+    slept: 'How long did you sleep?',
+    sleepQuality: 'Sleep quality',
+    veryBadF: 'Very poor',
+    veryGoodF: 'Very good',
+    stress: 'Stress level',
+    veryLow: 'Very low',
+    veryHigh: 'Very high',
+    fatigue: 'Perceived fatigue',
+    veryLowF: 'Very low',
+    veryHighF: 'Very high',
+    notes: 'Optional notes',
+    notesPlaceholder: 'E.g.: broken sleep, a more demanding day…',
+    saving: 'Saving…',
+    update: 'Update check-in',
+    save: 'Save check-in',
+  },
+});
 
 export default function RecoveryPage() {
+  const locale = useLocale();
+  const t = useMessages(messages);
   const today = useMemo(() => localDateKey(), []);
   const [user, setUser] = useState<User | null>(null);
   const [recovery, setRecovery] = useState<Recovery | null>(null);
@@ -58,9 +137,9 @@ export default function RecoveryPage() {
         window.location.href = '/entrar';
         return;
       }
-      setError(apiErrorMessage(caught, 'Não foi possível carregar sua recuperação.'));
+      setError(apiErrorMessage(caught, t.loadFailed));
     }).finally(() => setLoading(false));
-  }, [today]);
+  }, [today, t]);
 
   async function submit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault(); setSaving(true); setError('');
@@ -70,21 +149,21 @@ export default function RecoveryPage() {
       });
       setRecovery(result.recovery);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Não foi possível salvar o check-in.');
+      setError(caught instanceof Error ? caught.message : t.saveFailed);
     } finally { setSaving(false); }
   }
 
-  if (loading) return <main className="profile-loading"><LoaderCircle className="spin" />Carregando sua recuperação…</main>;
-  if (!user) return <ApiErrorState message={error || 'Não foi possível carregar sua recuperação.'} />;
-  const resultCopy = recovery ? readinessCopy[recovery.readiness] : null;
+  if (loading) return <main className="profile-loading"><LoaderCircle className="spin" />{t.loading}</main>;
+  if (!user) return <ApiErrorState message={error || t.loadFailed} />;
+  const resultCopy = recovery ? t.readiness[recovery.readiness] : null;
   return <main className="recovery-shell">
     <AppHeader name={user.display_name} />
     <section className="recovery-content">
-      <header className="recovery-heading"><p>CHECK-IN DIÁRIO</p><h1>Como você chega para hoje?</h1><span>Registre sono, estresse e fadiga percebida. O app usa esses sinais apenas para manter ou reduzir a próxima carga — nunca para aumentá-la automaticamente.</span></header>
-      {recovery && resultCopy && <section className={`recovery-result ${recovery.readiness}`}><CheckCircle2 size={22} /><div><strong>{resultCopy[0]}</strong><p>{resultCopy[1]}</p>{recovery.adapted_workout && <p className="adapted-recovery-workout"><b>{recovery.adapted_workout.name}</b>: {recovery.adapted_workout.duration_minutes} min · {zoneLabel(recovery.adapted_workout.target_rpe)}. Por segurança, editar o check-in depois não aumenta novamente essa sessão.</p>}</div></section>}
+      <header className="recovery-heading"><p>{t.kicker}</p><h1>{t.title}</h1><span>{t.intro}</span></header>
+      {recovery && resultCopy && <section className={`recovery-result ${recovery.readiness}`}><CheckCircle2 size={22} /><div><strong>{resultCopy[0]}</strong><p>{resultCopy[1]}</p>{recovery.adapted_workout && <p className="adapted-recovery-workout"><b>{recovery.adapted_workout.name}</b>: {recovery.adapted_workout.duration_minutes} min · {zoneLabel(recovery.adapted_workout.target_rpe, locale)}. {t.adaptedNote}</p>}</div></section>}
       <div className="recovery-layout">
-        <section className="recovery-guide"><span className="recovery-icon"><HeartPulse size={23} /></span><h2>Uma leitura simples</h2><p>Responda como você realmente se sente. Um único sinal ruim gera cautela; fadiga máxima ou uma combinação de sinais reduz a próxima sessão ainda não iniciada.</p><ul><li><MoonStar size={17} /><span><strong>Sono</strong>Duração e qualidade percebida da última noite.</span></li><li><HeartPulse size={17} /><span><strong>Estresse e fadiga</strong>Escalas subjetivas de 1 a 5, considerando o momento atual.</span></li></ul><div className="recovery-warning"><ShieldAlert size={18} /><p>Este check-in não diagnostica condições de saúde. Dor, tontura, falta de ar incomum ou mal-estar são motivos para não iniciar o treino e buscar orientação profissional quando necessário.</p></div><p className="recovery-evidence">Referência: <a href="https://pubmed.ncbi.nlm.nih.gov/28253038/" target="_blank" rel="noreferrer">Bourdon et al. (2017)</a>, consenso sobre monitoramento de carga e resposta do atleta.</p></section>
-        <form className="recovery-form" onSubmit={submit}><h2>Registro de hoje</h2><label><span>Quanto você dormiu?</span><select value={sleepMinutes} onChange={(event) => setSleepMinutes(Number(event.target.value))}>{Array.from({ length: 13 }, (_, index) => 240 + index * 30).map((minutes) => <option key={minutes} value={minutes}>{Math.floor(minutes / 60)}h{minutes % 60 ? '30' : ''}</option>)}</select></label><Scale label="Qualidade do sono" value={sleepQuality} onChange={setSleepQuality} low="Muito ruim" high="Muito boa" /><Scale label="Nível de estresse" value={stressLevel} onChange={setStressLevel} low="Muito baixo" high="Muito alto" /><Scale label="Fadiga percebida" value={fatigueLevel} onChange={setFatigueLevel} low="Muito baixa" high="Muito alta" /><label><span>Observações opcionais</span><textarea maxLength={1000} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Ex.: dormi interrompido, dia mais exigente…" /></label>{error && <p className="form-error" role="alert">{error}</p>}<button type="submit" disabled={saving}>{saving ? <LoaderCircle className="spin" size={17} /> : <HeartPulse size={17} />}{saving ? 'Salvando…' : recovery ? 'Atualizar check-in' : 'Salvar check-in'}</button></form>
+        <section className="recovery-guide"><span className="recovery-icon"><HeartPulse size={23} /></span><h2>{t.guideTitle}</h2><p>{t.guideText}</p><ul><li><MoonStar size={17} /><span><strong>{t.sleep}</strong>{t.sleepText}</span></li><li><HeartPulse size={17} /><span><strong>{t.stressFatigue}</strong>{t.stressFatigueText}</span></li></ul><div className="recovery-warning"><ShieldAlert size={18} /><p>{t.warning}</p></div><p className="recovery-evidence">{t.reference} <a href="https://pubmed.ncbi.nlm.nih.gov/28253038/" target="_blank" rel="noreferrer">Bourdon et al. (2017)</a>{t.referenceText}</p></section>
+        <form className="recovery-form" onSubmit={submit}><h2>{t.formTitle}</h2><label><span>{t.slept}</span><select value={sleepMinutes} onChange={(event) => setSleepMinutes(Number(event.target.value))}>{Array.from({ length: 13 }, (_, index) => 240 + index * 30).map((minutes) => <option key={minutes} value={minutes}>{Math.floor(minutes / 60)}h{minutes % 60 ? '30' : ''}</option>)}</select></label><Scale label={t.sleepQuality} value={sleepQuality} onChange={setSleepQuality} low={t.veryBadF} high={t.veryGoodF} /><Scale label={t.stress} value={stressLevel} onChange={setStressLevel} low={t.veryLow} high={t.veryHigh} /><Scale label={t.fatigue} value={fatigueLevel} onChange={setFatigueLevel} low={t.veryLowF} high={t.veryHighF} /><label><span>{t.notes}</span><textarea maxLength={1000} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder={t.notesPlaceholder} /></label>{error && <p className="form-error" role="alert">{error}</p>}<button type="submit" disabled={saving}>{saving ? <LoaderCircle className="spin" size={17} /> : <HeartPulse size={17} />}{saving ? t.saving : recovery ? t.update : t.save}</button></form>
       </div>
     </section>
   </main>;

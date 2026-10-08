@@ -27,6 +27,17 @@ describe('apiRequest', () => {
     expect(fetchMock.mock.calls[0][1]).toMatchObject({ credentials: 'include' });
   });
 
+  it('sends the app language, not the browser one, so the API answers in it', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, {}));
+    await apiRequest('/v1/me');
+    expect((fetchMock.mock.calls[0][1].headers as Headers).get('Accept-Language')).toBe('pt-BR');
+
+    vi.stubGlobal('document', { cookie: 'cadencia_lang=en' });
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, {}));
+    await apiRequest('/v1/me');
+    expect((fetchMock.mock.calls[1][1].headers as Headers).get('Accept-Language')).toBe('en');
+  });
+
   it('returns undefined for 204 responses', async () => {
     fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
     await expect(apiRequest('/v1/auth/logout', { method: 'POST' })).resolves.toBeUndefined();

@@ -26,6 +26,8 @@ import { RouteMap, stepsForWorkout } from '@/components/route-map';
 import { TrailSymbol } from '@/components/trail-symbol';
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { ApiErrorState } from '@/components/api-error-state';
+import { useLocale, useMessages } from '@/components/locale-provider';
+import { currentLocale, defineMessages, formatDecimal, INTL_LOCALE } from '@/lib/i18n';
 import {
   activeProtection,
   parseTrainingDate,
@@ -36,15 +38,236 @@ import {
 
 type User = { display_name: string; email: string };
 
-const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
-  day: '2-digit',
-  month: 'short',
+const messages = defineMessages({
+  pt: {
+    startToPrefill: 'Inicie este treino para ver os dados importados preenchidos no formulário de conclusão.',
+    loadFailed: 'Não foi possível carregar seu plano.',
+    explanationFailed: 'Não foi possível carregar a explicação.',
+    confirmUpdate: 'Criar um novo rascunho com sua disponibilidade atual? O plano ativo continuará preservado até você revisar e aceitar o novo plano.',
+    confirmReplace: 'Substituir o rascunho atual por um novo plano calculado com seus dados mais recentes?',
+    generateFailed: 'Não foi possível gerar o plano.',
+    activated: 'Plano ativado. Seus próximos treinos já estão disponíveis no painel.',
+    activateFailed: 'Não foi possível ativar o plano.',
+    reassessed: 'Reavaliamos seus próximos treinos com a sua declaração.',
+    recoveredFailed: 'Não foi possível registrar sua recuperação.',
+    loading: 'Carregando seu plano…',
+    emptyKicker: 'PLANEJAMENTO · REGRAS V1',
+    emptyTitle: 'Seu contexto já pode virar um plano.',
+    emptyText: 'O Cadência usará sua experiência, objetivo, limitações e disponibilidade para criar quatro semanas explicáveis.',
+    calculating: 'Calculando…',
+    generateFirst: 'Gerar meu primeiro plano',
+    draftNote: 'O resultado será um rascunho. Nenhum treino substitui avaliação profissional.',
+    kicker: 'MEU PLANO · 4 SEMANAS',
+    title: 'Uma progressão que cabe na sua rotina.',
+    until: 'até',
+    statusActive: 'PLANO ATIVO',
+    statusCompleted: 'CICLO CONCLUÍDO',
+    statusDraft: 'RASCUNHO',
+    activating: 'Ativando…',
+    accept: 'Aceitar plano',
+    generateAnother: 'Gerar outro',
+    update: 'Atualizar plano',
+    nextCycle: 'Gerar próximo ciclo',
+    cycleDone: 'Ciclo concluído',
+    cycleDoneText: 'Seu histórico foi preservado. O próximo plano começará depois deste ciclo.',
+    safetyMode: 'Modo de segurança ativo',
+    safetyModeText: 'As sessões foram limitadas a esforço leve por causa da condição informada no perfil.',
+    seeDashboard: 'Ver painel',
+    sessions: 'sessões',
+    totalVolume: 'volume total',
+    daysPerWeek: 'dias por semana',
+    rulesV1: 'Regras V1',
+    engineUsed: 'motor utilizado',
+    week: (week: number) => `SEMANA ${week}`,
+    phases: ['PROGRESSÃO', 'PROGRESSÃO', 'MAIOR CARGA', 'RECUPERAÇÃO'],
+    workoutDone: 'Treino concluído',
+    adjusted: 'Ajustado pelo feedback',
+    protection: { light: 'Proteção leve', moderate: 'Proteção moderada', strong: 'Proteção forte' } as Record<string, string>,
+    closeDetail: 'Fechar detalhes do treino',
+    selected: 'Sessão selecionada',
+    preparing: 'Preparando explicação…',
+    explain: 'Explicar a escolha',
+    localAssistant: 'Explicação do assistente local',
+    rulesExplanation: 'Explicação das regras do plano',
+    structure: 'Estrutura',
+    routeOf: (name: string) => `Percurso da sessão ${name}`,
+    why: 'Por que este treino?',
+    auditDetails: 'Ver detalhes da decisão',
+    auditIntro: 'Esta sessão foi definida pelo motor de regras. A confiança ainda não é calibrada com dados longitudinais individuais.',
+    dataUsed: 'Dados considerados',
+    constraints: 'Restrições aplicadas',
+    noConstraints: 'Nenhuma restrição adicional foi aplicada.',
+    rejected: 'Alternativas descartadas',
+    noRejected: 'Nenhuma alternativa adicional foi descartada.',
+    missing: 'Informações ausentes',
+    noMissing: 'Não há lacunas registradas para esta decisão.',
+    changes: 'O que pode mudar este treino',
+    evidence: 'Base científica',
+    auditLabels: {
+      availability_minutes: 'Tempo disponível',
+      experience_level: 'Experiência declarada',
+      primary_goal: 'Objetivo principal',
+      secondary_goal: 'Objetivo secundário',
+      current_activity_level: 'Rotina de atividade atual',
+      cycling_context: 'Contexto de ciclismo informado',
+      availability_preferred_time: 'Horário preferido',
+      availability_location: 'Local disponível',
+      observed_training_28d: 'Histórico observado dos últimos 28 dias',
+      event_goal: 'Objetivo de prova',
+      event_date: 'Data do evento',
+      heart_rate_sensor: 'Sensor de frequência cardíaca',
+      power_meter: 'Medidor de potência',
+      ftp: 'FTP informado',
+      event_goal_or_date: 'Objetivo ou data de prova',
+      power_meter_or_ftp: 'Medidor de potência ou FTP',
+      eligible_submaximal_assessment: 'Avaliação submáxima apta',
+      active_safety_limitation: 'Limitação de segurança ativa',
+      recent_recovery_or_pain_signal: 'Sinal recente de recuperação ou dor',
+      return_after_break: 'Retorno após pausa',
+      recovery_week: 'Semana de recuperação',
+      low_observed_adherence: 'Baixa aderência observada',
+      low_current_activity: 'Rotina atual com baixa atividade',
+      event_taper: 'Taper pré-prova',
+      post_event_recovery: 'Recuperação pós-prova',
+      higher_intensity_protocols: 'Protocolos de maior intensidade',
+      quality_session: 'Sessão de qualidade',
+      long_session_above_45_minutes: 'Sessão longa acima de 45 minutos',
+      additional_quality_session: 'Sessão adicional de qualidade',
+      volume_progression: 'Progressão de volume',
+      long_session: 'Pedal longo',
+      novo_feedback_valido: 'Novo feedback válido do treino',
+      mudanca_de_disponibilidade: 'Mudança de disponibilidade',
+      novo_sinal_de_seguranca: 'Novo sinal de segurança',
+      mudanca_no_contexto_do_evento: 'Mudança no contexto do evento',
+    } as Record<string, string>,
+    observedKicker: 'CONTEXTO OBSERVADO',
+    observedTitle: 'O plano considerou seus registros recentes.',
+    lastDays: (days: number) => `Últimos ${days} dias`,
+    observedText: 'Esses dados ajudam a manter a progressão compatível com o que você vem conseguindo realizar. Eles descrevem registros do app e não são um diagnóstico.',
+    completedSessions: (count: number): string => (count === 1 ? 'sessão concluída' : 'sessões concluídas'),
+    done: 'realizados',
+    onAverage: 'em média',
+    checkins: (count: number): string => (count === 1 ? 'check-in de recuperação' : 'check-ins de recuperação'),
+    needsRecovery: (pain: boolean) =>
+      `O motor identificou sinais de recuperação insuficiente${pain ? ' ou dor relatada' : ''} e manteve as próximas sessões mais conservadoras.`,
+    averageFatigue: (value: string) => `Fadiga média registrada: ${value}/5.`,
+  },
+  en: {
+    startToPrefill: 'Start this workout to see the imported data filled in on the completion form.',
+    loadFailed: 'Your plan could not be loaded.',
+    explanationFailed: 'The explanation could not be loaded.',
+    confirmUpdate: 'Create a new draft with your current availability? The active plan stays in place until you review and accept the new plan.',
+    confirmReplace: 'Replace the current draft with a new plan calculated from your latest data?',
+    generateFailed: 'The plan could not be generated.',
+    activated: 'Plan activated. Your next workouts are now on the dashboard.',
+    activateFailed: 'The plan could not be activated.',
+    reassessed: 'We reassessed your next workouts with what you told us.',
+    recoveredFailed: 'Your recovery could not be recorded.',
+    loading: 'Loading your plan…',
+    emptyKicker: 'PLANNING · RULES V1',
+    emptyTitle: 'Your context is ready to become a plan.',
+    emptyText: 'Cadência will use your experience, goal, limitations and availability to build four explainable weeks.',
+    calculating: 'Calculating…',
+    generateFirst: 'Generate my first plan',
+    draftNote: 'The result will be a draft. No workout replaces a professional assessment.',
+    kicker: 'MY PLAN · 4 WEEKS',
+    title: 'A progression that fits your routine.',
+    until: 'to',
+    statusActive: 'ACTIVE PLAN',
+    statusCompleted: 'CYCLE COMPLETE',
+    statusDraft: 'DRAFT',
+    activating: 'Activating…',
+    accept: 'Accept plan',
+    generateAnother: 'Generate another',
+    update: 'Update plan',
+    nextCycle: 'Generate next cycle',
+    cycleDone: 'Cycle complete',
+    cycleDoneText: 'Your history was kept. The next plan will start after this cycle.',
+    safetyMode: 'Safety mode on',
+    safetyModeText: 'Sessions were limited to easy effort because of the condition entered in your profile.',
+    seeDashboard: 'See dashboard',
+    sessions: 'sessions',
+    totalVolume: 'total volume',
+    daysPerWeek: 'days per week',
+    rulesV1: 'Rules V1',
+    engineUsed: 'engine used',
+    week: (week: number) => `WEEK ${week}`,
+    phases: ['BUILD', 'BUILD', 'PEAK LOAD', 'RECOVERY'],
+    workoutDone: 'Workout completed',
+    adjusted: 'Adjusted from feedback',
+    protection: { light: 'Light protection', moderate: 'Moderate protection', strong: 'Strong protection' },
+    closeDetail: 'Close workout details',
+    selected: 'Selected session',
+    preparing: 'Preparing explanation…',
+    explain: 'Explain the choice',
+    localAssistant: 'Explanation from the local assistant',
+    rulesExplanation: "Explanation from the plan's rules",
+    structure: 'Structure',
+    routeOf: (name: string) => `Route for the ${name} session`,
+    why: 'Why this workout?',
+    auditDetails: 'See decision details',
+    auditIntro: 'This session was set by the rules engine. Its confidence is not yet calibrated with individual long-term data.',
+    dataUsed: 'Data considered',
+    constraints: 'Constraints applied',
+    noConstraints: 'No additional constraint was applied.',
+    rejected: 'Alternatives ruled out',
+    noRejected: 'No additional alternative was ruled out.',
+    missing: 'Missing information',
+    noMissing: 'There are no recorded gaps for this decision.',
+    changes: 'What can change this workout',
+    evidence: 'Scientific basis',
+    auditLabels: {
+      availability_minutes: 'Available time',
+      experience_level: 'Stated experience',
+      primary_goal: 'Main goal',
+      secondary_goal: 'Secondary goal',
+      current_activity_level: 'Current activity routine',
+      cycling_context: 'Cycling context entered',
+      availability_preferred_time: 'Preferred time',
+      availability_location: 'Available location',
+      observed_training_28d: 'History observed over the last 28 days',
+      event_goal: 'Race goal',
+      event_date: 'Event date',
+      heart_rate_sensor: 'Heart rate sensor',
+      power_meter: 'Power meter',
+      ftp: 'FTP entered',
+      event_goal_or_date: 'Race goal or date',
+      power_meter_or_ftp: 'Power meter or FTP',
+      eligible_submaximal_assessment: 'Passed submaximal assessment',
+      active_safety_limitation: 'Active safety limitation',
+      recent_recovery_or_pain_signal: 'Recent recovery or pain sign',
+      return_after_break: 'Return after a break',
+      recovery_week: 'Recovery week',
+      low_observed_adherence: 'Low observed adherence',
+      low_current_activity: 'Low current activity',
+      event_taper: 'Pre-race taper',
+      post_event_recovery: 'Post-race recovery',
+      higher_intensity_protocols: 'Higher-intensity protocols',
+      quality_session: 'Quality session',
+      long_session_above_45_minutes: 'Long session over 45 minutes',
+      additional_quality_session: 'Additional quality session',
+      volume_progression: 'Volume progression',
+      long_session: 'Long ride',
+      novo_feedback_valido: 'New valid workout feedback',
+      mudanca_de_disponibilidade: 'Change in availability',
+      novo_sinal_de_seguranca: 'New safety sign',
+      mudanca_no_contexto_do_evento: 'Change in event context',
+    },
+    observedKicker: 'OBSERVED CONTEXT',
+    observedTitle: 'The plan took your recent records into account.',
+    lastDays: (days: number) => `Last ${days} days`,
+    observedText: "This data helps keep the progression in line with what you have been able to do. It describes the app's records and is not a diagnosis.",
+    completedSessions: (count: number) => (count === 1 ? 'completed session' : 'completed sessions'),
+    done: 'done',
+    onAverage: 'on average',
+    checkins: (count: number) => (count === 1 ? 'recovery check-in' : 'recovery check-ins'),
+    needsRecovery: (pain: boolean) =>
+      `The engine found signs of insufficient recovery${pain ? ' or reported pain' : ''} and kept your next sessions more conservative.`,
+    averageFatigue: (value: string) => `Average fatigue recorded: ${value}/5.`,
+  },
 });
-const fullDateFormatter = new Intl.DateTimeFormat('pt-BR', {
-  day: '2-digit',
-  month: 'long',
-  year: 'numeric',
-});
+
+type PlanMessages = (typeof messages)['pt'];
 
 function numberParam(params: URLSearchParams, key: string): number | undefined {
   const raw = params.get(key);
@@ -54,6 +277,8 @@ function numberParam(params: URLSearchParams, key: string): number | undefined {
 }
 
 export default function PlanPage() {
+  const locale = useLocale();
+  const t = useMessages(messages);
   const [user, setUser] = useState<User | null>(null);
   const [plan, setPlan] = useState<TrainingPlan | null>(null);
   const [selected, setSelected] = useState<Workout | null>(null);
@@ -89,7 +314,7 @@ export default function PlanPage() {
             average_cadence_rpm: numberParam(params, 'average_cadence_rpm'),
           });
           if (target.status !== 'in_progress' && target.status !== 'completed') {
-            setMessage('Inicie este treino para ver os dados importados preenchidos no formulário de conclusão.');
+            setMessage(messages[currentLocale()].startToPrefill);
           }
           window.history.replaceState(null, '', window.location.pathname);
         } else if (current.plan?.workouts.length) {
@@ -101,7 +326,7 @@ export default function PlanPage() {
           window.location.href = '/entrar';
           return;
         }
-        setError(apiErrorMessage(caught, 'Não foi possível carregar seu plano.'));
+        setError(apiErrorMessage(caught, messages[currentLocale()].loadFailed));
       })
       .finally(() => setLoading(false));
   }, []);
@@ -173,7 +398,7 @@ export default function PlanPage() {
       setExplanationError(
         caught instanceof Error
           ? caught.message
-          : 'Não foi possível carregar a explicação.',
+          : t.explanationFailed,
       );
     } finally {
       setExplainingWorkout(false);
@@ -184,8 +409,8 @@ export default function PlanPage() {
     if (replace) {
       const confirmation =
         plan?.status === 'active'
-          ? 'Criar um novo rascunho com sua disponibilidade atual? O plano ativo continuará preservado até você revisar e aceitar o novo plano.'
-          : 'Substituir o rascunho atual por um novo plano calculado com seus dados mais recentes?';
+          ? t.confirmUpdate
+          : t.confirmReplace;
       if (!window.confirm(confirmation)) return;
     }
     setGenerating(true);
@@ -204,7 +429,7 @@ export default function PlanPage() {
       setError(
         caught instanceof Error
           ? caught.message
-          : 'Não foi possível gerar o plano.',
+          : t.generateFailed,
       );
     } finally {
       setGenerating(false);
@@ -230,14 +455,12 @@ export default function PlanPage() {
       );
       setWorkoutExplanation(null);
       setExplanationError('');
-      setMessage(
-        'Plano ativado. Seus próximos treinos já estão disponíveis no painel.',
-      );
+      setMessage(t.activated);
     } catch (caught) {
       setError(
         caught instanceof Error
           ? caught.message
-          : 'Não foi possível ativar o plano.',
+          : t.activateFailed,
       );
     } finally {
       setActivating(false);
@@ -260,9 +483,9 @@ export default function PlanPage() {
       );
       setWorkoutExplanation(null);
       setExplanationError('');
-      setMessage('Reavaliamos seus próximos treinos com a sua declaração.');
+      setMessage(t.reassessed);
     } catch (caught) {
-      setError(apiErrorMessage(caught, 'Não foi possível registrar sua recuperação.'));
+      setError(apiErrorMessage(caught, t.recoveredFailed));
     } finally {
       setRecovering(false);
     }
@@ -274,10 +497,13 @@ export default function PlanPage() {
     return (
       <main className="profile-loading">
         <LoaderCircle className="spin" />
-        Carregando seu plano…
+        {t.loading}
       </main>
     );
-  if (!user) return <ApiErrorState message={error || 'Não foi possível carregar seu plano.'} />;
+  if (!user) return <ApiErrorState message={error || t.loadFailed} />;
+
+  const dateFormatter = new Intl.DateTimeFormat(INTL_LOCALE[locale], { day: '2-digit', month: 'short' });
+  const fullDateFormatter = new Intl.DateTimeFormat(INTL_LOCALE[locale], { day: '2-digit', month: 'long', year: 'numeric' });
 
   return (
     <main className="plan-shell">
@@ -288,12 +514,9 @@ export default function PlanPage() {
             <span>
               <Sparkles size={24} />
             </span>
-            <p>PLANEJAMENTO · REGRAS V1</p>
-            <h1>Seu contexto já pode virar um plano.</h1>
-            <div>
-              O Cadência usará sua experiência, objetivo, limitações e
-              disponibilidade para criar quatro semanas explicáveis.
-            </div>
+            <p>{t.emptyKicker}</p>
+            <h1>{t.emptyTitle}</h1>
+            <div>{t.emptyText}</div>
             {error && (
               <p className="form-error" role="alert">
                 {error}
@@ -309,22 +532,19 @@ export default function PlanPage() {
               ) : (
                 <Sparkles size={16} />
               )}
-              {generating ? 'Calculando…' : 'Gerar meu primeiro plano'}
+              {generating ? t.calculating : t.generateFirst}
             </Button>
-            <small>
-              O resultado será um rascunho. Nenhum treino substitui avaliação
-              profissional.
-            </small>
+            <small>{t.draftNote}</small>
           </section>
         ) : (
           <>
             <header className="plan-heading">
               <div>
-                <p>MEU PLANO · 4 SEMANAS</p>
-                <h1>Uma progressão que cabe na sua rotina.</h1>
+                <p>{t.kicker}</p>
+                <h1>{t.title}</h1>
                 <span>
                   {fullDateFormatter.format(parseTrainingDate(plan.starts_on))}{' '}
-                  até{' '}
+                  {t.until}{' '}
                   {fullDateFormatter.format(parseTrainingDate(plan.ends_on))}
                 </span>
               </div>
@@ -336,11 +556,7 @@ export default function PlanPage() {
                       : 'draft-pill'
                   }
                 >
-                  {plan.status === 'active'
-                    ? 'PLANO ATIVO'
-                    : plan.status === 'completed'
-                      ? 'CICLO CONCLUÍDO'
-                      : 'RASCUNHO'}
+                  {plan.status === 'active' ? t.statusActive : plan.status === 'completed' ? t.statusCompleted : t.statusDraft}
                 </span>
                 {plan.status === 'draft' && (
                   <>
@@ -354,7 +570,7 @@ export default function PlanPage() {
                       ) : (
                         <CheckCircle2 size={14} />
                       )}
-                      {activating ? 'Ativando…' : 'Aceitar plano'}
+                      {activating ? t.activating : t.accept}
                     </Button>
                     <Button
                       variant="outline"
@@ -365,7 +581,7 @@ export default function PlanPage() {
                         className={generating ? 'spin' : ''}
                         size={14}
                       />{' '}
-                      Gerar outro
+                      {t.generateAnother}
                     </Button>
                   </>
                 )}
@@ -380,7 +596,7 @@ export default function PlanPage() {
                     ) : (
                       <RefreshCw size={14} />
                     )}
-                    {generating ? 'Calculando…' : 'Atualizar plano'}
+                    {generating ? t.calculating : t.update}
                   </Button>
                 )}
                 {plan.status === 'completed' && (
@@ -394,7 +610,7 @@ export default function PlanPage() {
                     ) : (
                       <Sparkles size={14} />
                     )}
-                    {generating ? 'Calculando…' : 'Gerar próximo ciclo'}
+                    {generating ? t.calculating : t.nextCycle}
                   </Button>
                 )}
               </div>
@@ -403,11 +619,8 @@ export default function PlanPage() {
               <div className="plan-safety">
                 <CheckCircle2 size={18} />
                 <div>
-                  <strong>Ciclo concluído</strong>
-                  <p>
-                    Seu histórico foi preservado. O próximo plano começará
-                    depois deste ciclo.
-                  </p>
+                  <strong>{t.cycleDone}</strong>
+                  <p>{t.cycleDoneText}</p>
                 </div>
               </div>
             )}
@@ -415,11 +628,8 @@ export default function PlanPage() {
               <div className="plan-safety">
                 <ShieldAlert size={18} />
                 <div>
-                  <strong>Modo de segurança ativo</strong>
-                  <p>
-                    As sessões foram limitadas a esforço leve por causa da
-                    condição informada no perfil.
-                  </p>
+                  <strong>{t.safetyMode}</strong>
+                  <p>{t.safetyModeText}</p>
                 </div>
               </div>
             )}
@@ -433,28 +643,28 @@ export default function PlanPage() {
               <output className="plan-message">
                 <Check size={14} />
                 {message}
-                <Link href="/">Ver painel</Link>
+                <Link href="/">{t.seeDashboard}</Link>
               </output>
             )}
-            <ObservedTrainingCard observed={plan.prescription_snapshot.observed_training} />
+            <ObservedTrainingCard observed={plan.prescription_snapshot.observed_training} t={t} />
             <div className="plan-stats">
               <div>
                 <strong>{plan.workouts.length}</strong>
-                <span>sessões</span>
+                <span>{t.sessions}</span>
               </div>
               <div>
                 <strong>
                   {Math.floor(totalMinutes / 60)}h {totalMinutes % 60}min
                 </strong>
-                <span>volume total</span>
+                <span>{t.totalVolume}</span>
               </div>
               <div>
                 <strong>{plan.prescription_snapshot.sessions_per_week}</strong>
-                <span>dias por semana</span>
+                <span>{t.daysPerWeek}</span>
               </div>
               <div>
-                <strong>Regras V1</strong>
-                <span>motor utilizado</span>
+                <strong>{t.rulesV1}</strong>
+                <span>{t.engineUsed}</span>
               </div>
             </div>
             <div className="plan-layout">
@@ -462,14 +672,8 @@ export default function PlanPage() {
                 {weeks.map((workouts, index) => (
                   <section className="plan-week" key={index}>
                     <header>
-                      <span>SEMANA {index + 1}</span>
-                      <small>
-                        {index === 3
-                          ? 'RECUPERAÇÃO'
-                          : index === 2
-                            ? 'MAIOR CARGA'
-                            : 'PROGRESSÃO'}
-                      </small>
+                      <span>{t.week(index + 1)}</span>
+                      <small>{t.phases[index]}</small>
                     </header>
                     <div>
                       {workouts.map((workout) => (
@@ -488,19 +692,18 @@ export default function PlanPage() {
                             )}
                           </time>
                           <span>
-                            <strong className="workout-name"><span>{workout.name}</span>{workout.status === 'completed' && <span className="workout-completion"><Check size={11} aria-label="Treino concluído" /></span>}</strong>
+                            <strong className="workout-name"><span>{workout.name}</span>{workout.status === 'completed' && <span className="workout-completion"><Check size={11} aria-label={t.workoutDone} /></span>}</strong>
                             <small>{workout.objective}</small>
                             {workout.explanation.adaptation && (
                               <small>
-                                <Sparkles size={10} /> Ajustado pelo feedback
+                                <Sparkles size={10} /> {t.adjusted}
                               </small>
                             )}
                             {workout.status === 'planned' &&
                               workout.explanation.protection &&
                               workout.explanation.protection.level !== 'none' && (
                                 <small>
-                                  <Shield size={10} /> Proteção{' '}
-                                  {{ light: 'leve', moderate: 'moderada', strong: 'forte' }[workout.explanation.protection.level]}
+                                  <Shield size={10} /> {t.protection[workout.explanation.protection.level]}
                                 </small>
                               )}
                           </span>
@@ -526,19 +729,19 @@ export default function PlanPage() {
                   <button
                     type="button"
                     className="workout-detail-backdrop"
-                    aria-label="Fechar detalhes do treino"
+                    aria-label={t.closeDetail}
                     onClick={() => setMobileDetailOpen(false)}
                   />
                   <aside className="workout-detail">
                   <button
                     type="button"
                     className="workout-detail-close"
-                    aria-label="Fechar detalhes do treino"
+                    aria-label={t.closeDetail}
                     onClick={() => setMobileDetailOpen(false)}
                   >
                     <X size={19} />
                   </button>
-                  <span className="kicker">Sessão selecionada</span>
+                  <span className="kicker">{t.selected}</span>
                   <h2 id="selected-workout-title">{selected.name}</h2>
                   <p>{selected.explanation.summary}</p>
                   <div className="workout-ai-explanation">
@@ -554,18 +757,14 @@ export default function PlanPage() {
                         ) : (
                           <Sparkles size={15} />
                         )}
-                        {explainingWorkout
-                          ? 'Preparando explicação…'
-                          : 'Explicar a escolha'}
+                        {explainingWorkout ? t.preparing : t.explain}
                       </button>
                     ) : (
                       <output className="workout-ai-result">
                         <div className="workout-ai-result-heading">
                           <Sparkles size={15} />
                           <strong>
-                            {workoutExplanation.source === 'ollama'
-                              ? 'Explicação do assistente local'
-                              : 'Explicação das regras do plano'}
+                            {workoutExplanation.source === 'ollama' ? t.localAssistant : t.rulesExplanation}
                           </strong>
                         </div>
                         <p>{workoutExplanation.explanation}</p>
@@ -587,7 +786,7 @@ export default function PlanPage() {
                     </div>
                     <div>
                       <Gauge size={15} />
-                      <strong>{zoneLabel(selected.target_rpe)}</strong>
+                      <strong>{zoneLabel(selected.target_rpe, locale)}</strong>
                       <ZoneHelp compact />
                     </div>
                   </div>
@@ -605,12 +804,12 @@ export default function PlanPage() {
                     onPlanUpdated={updateSessionPlan}
                     prefillMetrics={prefillMetrics}
                   />
-                  <h3>Estrutura</h3>
+                  <h3>{t.structure}</h3>
                   <div className="workout-detail-map">
-                    <RouteMap steps={stepsForWorkout(selected)} label={`Percurso da sessão ${selected.name}`} />
+                    <RouteMap steps={stepsForWorkout(selected, locale)} label={t.routeOf(selected.name)} />
                   </div>
                   <WorkoutStructure structure={selected.structure} durationMinutes={selected.duration_minutes} />
-                  <h3>Por que este treino?</h3>
+                  <h3>{t.why}</h3>
                   <ul>
                     {selected.explanation.rules?.map((rule) => (
                       <li key={rule}>
@@ -621,39 +820,41 @@ export default function PlanPage() {
                   </ul>
                   {selected.explanation.decision_audit && (
                     <details className="workout-decision-audit">
-                      <summary>Ver detalhes da decisão</summary>
-                      <p>
-                        Esta sessão foi definida pelo motor de regras. A confiança
-                        ainda não é calibrada com dados longitudinais individuais.
-                      </p>
+                      <summary>{t.auditDetails}</summary>
+                      <p>{t.auditIntro}</p>
                       <DecisionAuditList
-                        title="Dados considerados"
+                        title={t.dataUsed}
                         values={selected.explanation.decision_audit.data_used}
+                        labels={t.auditLabels}
                       />
                       <DecisionAuditList
-                        title="Restrições aplicadas"
+                        title={t.constraints}
                         values={selected.explanation.decision_audit.constraints_applied}
-                        emptyLabel="Nenhuma restrição adicional foi aplicada."
+                        labels={t.auditLabels}
+                        emptyLabel={t.noConstraints}
                       />
                       <DecisionAuditList
-                        title="Alternativas descartadas"
+                        title={t.rejected}
                         values={selected.explanation.decision_audit.alternatives_rejected}
-                        emptyLabel="Nenhuma alternativa adicional foi descartada."
+                        labels={t.auditLabels}
+                        emptyLabel={t.noRejected}
                       />
                       <DecisionAuditList
-                        title="Informações ausentes"
+                        title={t.missing}
                         values={selected.explanation.decision_audit.missing_data}
-                        emptyLabel="Não há lacunas registradas para esta decisão."
+                        labels={t.auditLabels}
+                        emptyLabel={t.noMissing}
                       />
                       <DecisionAuditList
-                        title="O que pode mudar este treino"
+                        title={t.changes}
                         values={selected.explanation.decision_audit.conditions_for_change}
+                        labels={t.auditLabels}
                       />
                     </details>
                   )}
                   {selected.explanation.evidence_keys?.length ? (
                     <>
-                      <h3>Base científica</h3>
+                      <h3>{t.evidence}</h3>
                       <ul>
                         {selected.explanation.evidence_keys.map((key) => {
                           const source = evidenceByKey.get(key);
@@ -679,10 +880,12 @@ export default function PlanPage() {
 function DecisionAuditList({
   title,
   values,
+  labels,
   emptyLabel,
 }: {
   title: string;
   values: string[];
+  labels: Record<string, string>;
   emptyLabel?: string;
 }) {
   return (
@@ -691,7 +894,7 @@ function DecisionAuditList({
       {values.length ? (
         <ul>
           {values.map((value) => (
-            <li key={value}>{formatDecisionAuditValue(value)}</li>
+            <li key={value}>{labels[value] ?? value}</li>
           ))}
         </ul>
       ) : (
@@ -701,48 +904,8 @@ function DecisionAuditList({
   );
 }
 
-function formatDecisionAuditValue(value: string) {
-  const labels: Record<string, string> = {
-    availability_minutes: 'Tempo disponível',
-    experience_level: 'Experiência declarada',
-    primary_goal: 'Objetivo principal',
-    secondary_goal: 'Objetivo secundário',
-    current_activity_level: 'Rotina de atividade atual',
-    cycling_context: 'Contexto de ciclismo informado',
-    availability_preferred_time: 'Horário preferido',
-    availability_location: 'Local disponível',
-    observed_training_28d: 'Histórico observado dos últimos 28 dias',
-    event_goal: 'Objetivo de prova',
-    event_date: 'Data do evento',
-    heart_rate_sensor: 'Sensor de frequência cardíaca',
-    power_meter: 'Medidor de potência',
-    ftp: 'FTP informado',
-    event_goal_or_date: 'Objetivo ou data de prova',
-    power_meter_or_ftp: 'Medidor de potência ou FTP',
-    eligible_submaximal_assessment: 'Avaliação submáxima apta',
-    active_safety_limitation: 'Limitação de segurança ativa',
-    recent_recovery_or_pain_signal: 'Sinal recente de recuperação ou dor',
-    return_after_break: 'Retorno após pausa',
-    recovery_week: 'Semana de recuperação',
-    low_observed_adherence: 'Baixa aderência observada',
-    low_current_activity: 'Rotina atual com baixa atividade',
-    event_taper: 'Taper pré-prova',
-    post_event_recovery: 'Recuperação pós-prova',
-    higher_intensity_protocols: 'Protocolos de maior intensidade',
-    quality_session: 'Sessão de qualidade',
-    long_session_above_45_minutes: 'Sessão longa acima de 45 minutos',
-    additional_quality_session: 'Sessão adicional de qualidade',
-    volume_progression: 'Progressão de volume',
-    long_session: 'Pedal longo',
-    novo_feedback_valido: 'Novo feedback válido do treino',
-    mudanca_de_disponibilidade: 'Mudança de disponibilidade',
-    novo_sinal_de_seguranca: 'Novo sinal de segurança',
-    mudanca_no_contexto_do_evento: 'Mudança no contexto do evento',
-  };
-  return labels[value] ?? value;
-}
-
-function ObservedTrainingCard({ observed }: { observed?: TrainingPlan['prescription_snapshot']['observed_training'] }) {
+function ObservedTrainingCard({ observed, t }: { observed?: TrainingPlan['prescription_snapshot']['observed_training']; t: PlanMessages }) {
+  const locale = useLocale();
   if (!observed || (!observed.completed_sessions && !observed.recovery_checkins)) {
     return null;
   }
@@ -759,31 +922,27 @@ function ObservedTrainingCard({ observed }: { observed?: TrainingPlan['prescript
     <section className="plan-observed" aria-labelledby="plan-observed-title">
       <div className="plan-observed-heading">
         <div>
-          <span>CONTEXTO OBSERVADO</span>
-          <h2 id="plan-observed-title">O plano considerou seus registros recentes.</h2>
+          <span>{t.observedKicker}</span>
+          <h2 id="plan-observed-title">{t.observedTitle}</h2>
         </div>
-        <small>Últimos {observed.window_days || 28} dias</small>
+        <small>{t.lastDays(observed.window_days || 28)}</small>
       </div>
-      <p>
-        Esses dados ajudam a manter a progressão compatível com o que você vem conseguindo realizar. Eles descrevem registros do app e não são um diagnóstico.
-      </p>
+      <p>{t.observedText}</p>
       <div className="plan-observed-metrics">
-        {completedSessions > 0 && <span><strong>{completedSessions}</strong> {completedSessions === 1 ? 'sessão concluída' : 'sessões concluídas'}</span>}
-        {completedMinutes > 0 && <span><strong>{formatObservedMinutes(completedMinutes)}</strong> realizados</span>}
-        {averageRPE > 0 && <span><strong>{zoneLabel(averageRPE)}</strong> em média</span>}
-        {recoveryCheckins > 0 && <span><strong>{recoveryCheckins}</strong> {recoveryCheckins === 1 ? 'check-in de recuperação' : 'check-ins de recuperação'}</span>}
+        {completedSessions > 0 && <span><strong>{completedSessions}</strong> {t.completedSessions(completedSessions)}</span>}
+        {completedMinutes > 0 && <span><strong>{formatObservedMinutes(completedMinutes)}</strong> {t.done}</span>}
+        {averageRPE > 0 && <span><strong>{zoneLabel(averageRPE, locale)}</strong> {t.onAverage}</span>}
+        {recoveryCheckins > 0 && <span><strong>{recoveryCheckins}</strong> {t.checkins(recoveryCheckins)}</span>}
       </div>
       {needsRecovery && (
         <div className="plan-observed-alert">
           <ShieldAlert size={15} />
-          <span>
-            O motor identificou sinais de recuperação insuficiente{observed.pain_reported ? ' ou dor relatada' : ''} e manteve as próximas sessões mais conservadoras.
-          </span>
+          <span>{t.needsRecovery(Boolean(observed.pain_reported))}</span>
         </div>
       )}
       {!needsRecovery && (averageFatigue > 0 || recoveryFatigue > 0) && (
         <small className="plan-observed-note">
-          Fadiga média registrada: {(averageFatigue || recoveryFatigue).toFixed(1)}/5.
+          {t.averageFatigue(formatDecimal(averageFatigue || recoveryFatigue, 1, locale))}
         </small>
       )}
     </section>

@@ -1,3 +1,6 @@
+import type { Locale } from './i18n';
+import { UPDATE_NOTES_EN } from './release.en';
+
 export const APP_VERSION = '0.37.0';
 
 export type UpdateNote = Readonly<{
@@ -236,3 +239,8 @@ export const UPDATE_NOTES: readonly UpdateNote[] = [
       'Cada sessão continua mostrando sua estrutura, o motivo da escolha e os cuidados importantes para executar o treino.',
   },
 ] as const;
+
+/** Notas de versão no idioma pedido (o inglês fica em release.en.ts, na mesma ordem). */
+export function updateNotes(locale: Locale): readonly UpdateNote[] {
+  return locale === 'en' ? UPDATE_NOTES_EN : UPDATE_NOTES;
+}

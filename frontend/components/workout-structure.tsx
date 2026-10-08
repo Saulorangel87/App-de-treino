@@ -1,6 +1,27 @@
+'use client';
+
+import { defineMessages } from '@/lib/i18n';
 import type { Workout } from '@/lib/planning';
 import { zoneLabel } from '@/lib/zones';
+import { useLocale, useMessages } from './locale-provider';
 import { intensityOf } from './trail-symbol';
+
+const messages = defineMessages({
+  pt: {
+    warmup: 'Aquecimento',
+    warmupEffort: 'esforço progressivo',
+    main: 'Parte principal',
+    cooldown: 'Desaquecimento',
+    cooldownEffort: 'esforço leve',
+  },
+  en: {
+    warmup: 'Warm-up',
+    warmupEffort: 'progressive effort',
+    main: 'Main set',
+    cooldown: 'Cool-down',
+    cooldownEffort: 'easy effort',
+  },
+});
 
 type WorkoutStructureProps = {
   structure: Workout['structure'];
@@ -8,6 +29,8 @@ type WorkoutStructureProps = {
 };
 
 export function WorkoutStructure({ structure, durationMinutes }: WorkoutStructureProps) {
+  const locale = useLocale();
+  const t = useMessages(messages);
   const steps = structure.steps;
 
   if (!steps?.length) {
@@ -16,22 +39,22 @@ export function WorkoutStructure({ structure, durationMinutes }: WorkoutStructur
         <li>
           <span className="structured-workout-index">01</span>
           <div>
-            <strong>Aquecimento</strong>
-            <small>{structure.warmup_minutes} min · esforço progressivo</small>
+            <strong>{t.warmup}</strong>
+            <small>{structure.warmup_minutes} min · {t.warmupEffort}</small>
           </div>
         </li>
         <li>
           <span className="structured-workout-index">02</span>
           <div>
-            <strong>Parte principal</strong>
+            <strong>{t.main}</strong>
             <small>{structure.main}</small>
           </div>
         </li>
         <li>
           <span className="structured-workout-index">03</span>
           <div>
-            <strong>Desaquecimento</strong>
-            <small>{structure.cooldown_minutes} min · esforço leve</small>
+            <strong>{t.cooldown}</strong>
+            <small>{structure.cooldown_minutes} min · {t.cooldownEffort}</small>
           </div>
         </li>
       </ol>
@@ -51,7 +74,7 @@ export function WorkoutStructure({ structure, durationMinutes }: WorkoutStructur
           <span className="structured-workout-index">{String(step.order).padStart(2, '0')}</span>
           <div className="structured-workout-content">
             <strong>{step.title}</strong>
-            <small>{step.duration_minutes} min · {zoneLabel(step.target_rpe)}</small>
+            <small>{step.duration_minutes} min · {zoneLabel(step.target_rpe, locale)}</small>
             <p>{step.instruction}</p>
           </div>
         </li>

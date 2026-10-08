@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useLocale } from './locale-provider';
 
 // Marca do Cadência: curvas de nível abertas formando um "C" em volta de um
 // cume, o ponto de chegada marcado em vermelho como nas cartas de trilha.
@@ -32,8 +35,9 @@ export function BrandMark({ size = 28 }: { size?: number }) {
 }
 
 export function Brand({ href = '/' }: { href?: string }) {
+  const label = useLocale() === 'en' ? 'Cadência, go to the dashboard' : 'Cadência, ir para o painel';
   return (
-    <Link href={href} className="brand" aria-label="Cadência, ir para o painel">
+    <Link href={href} className="brand" aria-label={label}>
       <BrandMark />
       <span className="brand-name">Cadência</span>
     </Link>

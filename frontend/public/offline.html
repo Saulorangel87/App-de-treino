@@ -12,9 +12,19 @@
   <body>
     <main class="card">
       <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M23.78 8.22A11 11 0 1 0 23.78 23.78" fill="none" stroke="#1f231c" stroke-width="2.6" stroke-linecap="round"/><path d="M20.18 11.02A6.5 6.5 0 1 0 20.18 20.98" fill="none" stroke="#1f231c" stroke-width="1.7" stroke-linecap="round"/><circle cx="16" cy="16" r="2.6" fill="#c3321f"/></svg>
-      <h1>Você está sem conexão.</h1>
-      <p>Assim que a internet voltar, abra novamente o Cadência para acessar seus dados e seu plano com segurança.</p>
-      <button type="button" onclick="location.reload()">Tentar novamente</button>
+      <h1 id="title">Você está sem conexão.</h1>
+      <p id="text">Assim que a internet voltar, abra novamente o Cadência para acessar seus dados e seu plano com segurança.</p>
+      <button id="retry" type="button" onclick="location.reload()">Tentar novamente</button>
     </main>
+    <script>
+      // Mesmo cookie de idioma do app (cadencia_lang); sem ele, fica em português.
+      if (/(?:^|;\s*)cadencia_lang=en(?:;|$)/.test(document.cookie)) {
+        document.documentElement.lang = 'en';
+        document.title = 'Cadência — Offline';
+        document.getElementById('title').textContent = "You're offline.";
+        document.getElementById('text').textContent = 'As soon as the internet is back, open Cadência again to access your data and your plan safely.';
+        document.getElementById('retry').textContent = 'Try again';
+      }
+    </script>
   </body>
 </html>

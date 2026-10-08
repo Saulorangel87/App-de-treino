@@ -17,11 +17,13 @@ import { RouteMap, RouteScale, stepsForWorkout } from '@/components/route-map';
 import { ZoneHelp, ZoneSummary } from '@/components/zone-help';
 import { zoneLabel, zoneReferenceFrom } from '@/lib/zones';
 import { useScrollLock } from '@/components/use-scroll-lock';
-import { TrailLegend, TrailSymbol, intensityLabels, intensityOf } from '@/components/trail-symbol';
+import { TrailLegend, TrailSymbol, intensityMessages, intensityOf } from '@/components/trail-symbol';
+import { useLocale, useMessages } from '@/components/locale-provider';
 import { WorkoutSessionActions } from '@/components/workout-session-actions';
 import { WorkoutStructure } from '@/components/workout-structure';
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { ApiErrorState } from '@/components/api-error-state';
+import { defineMessages, INTL_LOCALE } from '@/lib/i18n';
 import {
   parseTrainingDate,
   type TrainingPlan,
@@ -31,24 +33,126 @@ import {
 type User = { display_name: string; email: string };
 type Recovery = { readiness: 'ready' | 'caution' | 'recovery_needed' };
 
-const dayFormatter = new Intl.DateTimeFormat('pt-BR', { weekday: 'short' });
-const fullDateFormatter = new Intl.DateTimeFormat('pt-BR', {
-  day: '2-digit',
-  month: 'long',
-  year: 'numeric',
+const messages = defineMessages({
+  pt: {
+    weekPhases: ['Progressão', 'Progressão', 'Maior carga', 'Recuperação'],
+    recovery: { ready: 'Recuperação ok', caution: 'Atenção à recuperação', recovery_needed: 'Priorize recuperação' } as Record<Recovery['readiness'], string>,
+    loadFailed: 'Não foi possível carregar seu painel.',
+    loading: 'Carregando seu painel…',
+    checkin: 'Fazer check-in de hoje',
+    yourPace: 'Seu treino, no seu ritmo',
+    hello: (name: string) => `Olá, ${name}.`,
+    cycleDone: 'Ciclo concluído',
+    draftReady: 'Plano pronto para revisão',
+    planning: 'Planejamento',
+    cycleDoneTitle: 'Pronto para suas próximas quatro semanas.',
+    draftTitle: 'Seu rascunho está esperando aprovação.',
+    firstTitle: 'Crie seu primeiro ciclo de treinos.',
+    cycleDoneText: 'Seu histórico foi preservado. Gere o próximo ciclo com seu perfil e sua disponibilidade atuais.',
+    draftText: 'Revise as quatro semanas e aceite o plano para mostrar as sessões reais neste painel.',
+    firstText: 'Conclua seu perfil para gerar um plano compatível com sua experiência e disponibilidade.',
+    nextCycle: 'Gerar próximo ciclo',
+    reviewDraft: 'Revisar e aceitar plano',
+    createPlan: 'Criar meu plano',
+    today: 'Hoje',
+    nextSession: 'Próxima sessão',
+    time: 'Tempo',
+    zone: 'Zona',
+    level: 'Nível',
+    seeStructure: 'Ver estrutura',
+    fullPlan: 'Plano completo',
+    route: 'Percurso da sessão',
+    routeLabel: (name: string, steps: number, minutes: number) => `Percurso da sessão ${name}: ${steps} etapas em ${minutes} minutos`,
+    why: 'Por que este treino?',
+    weekOf: (week: number, phase: string) => `Semana ${week} de 4 · ${phase}`,
+    weekSheets: 'Folhas da semana',
+    of: (done: number, total: number) => `${done} de ${total}`,
+    sessionsDone: 'sessões concluídas',
+    completed: 'Concluído',
+    rest: 'Descanso',
+    plannedVolume: 'Volume planejado',
+    sessions: (count: number) => `${count} sessões`,
+    activePlan: 'Plano ativo',
+    currentCycle: 'Seu ciclo atual',
+    weekLabel: (week: number) => `Semana ${week} de 4`,
+    weekShort: (week: number) => `S${week}`,
+    sessionsLabel: 'Sessões',
+    in4Weeks: (count: number) => `${count} em 4 semanas`,
+    start: 'Início',
+    end: 'Término',
+    reviewPlan: 'Revisar plano',
+    explainable: 'Decisão explicável',
+    explainableTitle: 'O plano mostra por que cada sessão foi escolhida.',
+    rulesNote: 'As regras foram calculadas com os dados preenchidos no seu perfil.',
+    understand: 'Entender a decisão',
+    basedOn: 'Baseado em',
+    rulesCount: (count: number) => `${count} regras do seu perfil`,
+    engine: (engine: string) => `Motor ${engine}`,
+    close: 'Fechar',
+    plannedSession: 'Sessão planejada',
+    routeOf: (name: string) => `Percurso da sessão ${name}`,
+    openPlan: 'Abrir plano completo',
+  },
+  en: {
+    weekPhases: ['Build', 'Build', 'Peak load', 'Recovery'],
+    recovery: { ready: 'Recovery OK', caution: 'Watch your recovery', recovery_needed: 'Prioritize recovery' },
+    loadFailed: 'Your dashboard could not be loaded.',
+    loading: 'Loading your dashboard…',
+    checkin: "Do today's check-in",
+    yourPace: 'Your training, at your pace',
+    hello: (name: string) => `Hi, ${name}.`,
+    cycleDone: 'Cycle complete',
+    draftReady: 'Plan ready for review',
+    planning: 'Planning',
+    cycleDoneTitle: 'Ready for your next four weeks.',
+    draftTitle: 'Your draft is waiting for approval.',
+    firstTitle: 'Create your first training cycle.',
+    cycleDoneText: 'Your history was kept. Generate the next cycle with your current profile and availability.',
+    draftText: 'Review the four weeks and accept the plan to show the real sessions on this dashboard.',
+    firstText: 'Finish your profile to generate a plan that fits your experience and availability.',
+    nextCycle: 'Generate next cycle',
+    reviewDraft: 'Review and accept plan',
+    createPlan: 'Create my plan',
+    today: 'Today',
+    nextSession: 'Next session',
+    time: 'Time',
+    zone: 'Zone',
+    level: 'Level',
+    seeStructure: 'See structure',
+    fullPlan: 'Full plan',
+    route: 'Session route',
+    routeLabel: (name: string, steps: number, minutes: number) => `Route for the ${name} session: ${steps} steps in ${minutes} minutes`,
+    why: 'Why this workout?',
+    weekOf: (week: number, phase: string) => `Week ${week} of 4 · ${phase}`,
+    weekSheets: "This week's sheets",
+    of: (done: number, total: number) => `${done} of ${total}`,
+    sessionsDone: 'sessions completed',
+    completed: 'Completed',
+    rest: 'Rest',
+    plannedVolume: 'Planned volume',
+    sessions: (count: number) => `${count} sessions`,
+    activePlan: 'Active plan',
+    currentCycle: 'Your current cycle',
+    weekLabel: (week: number) => `Week ${week} of 4`,
+    weekShort: (week: number) => `W${week}`,
+    sessionsLabel: 'Sessions',
+    in4Weeks: (count: number) => `${count} over 4 weeks`,
+    start: 'Start',
+    end: 'End',
+    reviewPlan: 'Review plan',
+    explainable: 'Explainable decision',
+    explainableTitle: 'The plan shows why each session was chosen.',
+    rulesNote: 'The rules were calculated from the data in your profile.',
+    understand: 'Understand the decision',
+    basedOn: 'Based on',
+    rulesCount: (count: number) => `${count} rules from your profile`,
+    engine: (engine: string) => `Engine ${engine}`,
+    close: 'Close',
+    plannedSession: 'Planned session',
+    routeOf: (name: string) => `Route for the ${name} session`,
+    openPlan: 'Open full plan',
+  },
 });
-const sessionDateFormatter = new Intl.DateTimeFormat('pt-BR', {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'short',
-});
-const headerFormatter = new Intl.DateTimeFormat('pt-BR', {
-  weekday: 'long',
-  day: '2-digit',
-  month: 'long',
-});
-
-const weekPhases = ['Progressão', 'Progressão', 'Maior carga', 'Recuperação'];
 
 function dateKey(date: Date) {
   const year = date.getFullYear();
@@ -64,13 +168,10 @@ function formatMinutes(total: number) {
   return minutes ? `${hours}h${String(minutes).padStart(2, '0')}` : `${hours}h`;
 }
 
-const recoveryCopy = {
-  ready: 'Recuperação ok',
-  caution: 'Atenção à recuperação',
-  recovery_needed: 'Priorize recuperação',
-} as const;
-
 export default function HomePage() {
+  const locale = useLocale();
+  const t = useMessages(messages);
+  const intensityText = useMessages(intensityMessages);
   const [user, setUser] = useState<User | null>(null);
   const [plan, setPlan] = useState<TrainingPlan | null>(null);
   const [selected, setSelected] = useState<Workout | null>(null);
@@ -95,10 +196,10 @@ export default function HomePage() {
           window.location.href = '/entrar';
           return;
         }
-        setError(apiErrorMessage(caught, 'Não foi possível carregar seu painel.'));
+        setError(apiErrorMessage(caught, t.loadFailed));
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   useScrollLock(Boolean(selected));
 
@@ -147,17 +248,23 @@ export default function HomePage() {
     return (
       <main className="profile-loading">
         <LoaderCircle className="spin" />
-        Carregando seu painel…
+        {t.loading}
       </main>
     );
   }
-  if (!user) return <ApiErrorState message={error || 'Não foi possível carregar seu painel.'} />;
+  if (!user) return <ApiErrorState message={error || t.loadFailed} />;
+
+  const intl = INTL_LOCALE[locale];
+  const dayFormatter = new Intl.DateTimeFormat(intl, { weekday: 'short' });
+  const fullDateFormatter = new Intl.DateTimeFormat(intl, { day: '2-digit', month: 'long', year: 'numeric' });
+  const sessionDateFormatter = new Intl.DateTimeFormat(intl, { weekday: 'long', day: 'numeric', month: 'short' });
+  const headerFormatter = new Intl.DateTimeFormat(intl, { weekday: 'long', day: '2-digit', month: 'long' });
 
   const firstName = user.display_name.split(' ')[0];
   const recoveryLink = (
     <Link className={`recovery-pill ${recovery?.readiness || 'pending'}`} href="/recuperacao">
       <HeartPulse size={16} aria-hidden="true" />
-      {recovery ? recoveryCopy[recovery.readiness] : 'Fazer check-in de hoje'}
+      {recovery ? t.recovery[recovery.readiness] : t.checkin}
     </Link>
   );
 
@@ -169,8 +276,8 @@ export default function HomePage() {
         <section className="workspace">
           <header className="topbar">
             <div>
-              <p className="kicker">Seu treino, no seu ritmo</p>
-              <h1>Olá, {firstName}.</h1>
+              <p className="kicker">{t.yourPace}</p>
+              <h1>{t.hello(firstName)}</h1>
             </div>
             {recoveryLink}
           </header>
@@ -179,32 +286,16 @@ export default function HomePage() {
               <CalendarDays size={24} aria-hidden="true" />
             </span>
             <p className="kicker">
-              {completedCycle
-                ? 'Ciclo concluído'
-                : plan?.status === 'draft'
-                  ? 'Plano pronto para revisão'
-                  : 'Planejamento'}
+              {completedCycle ? t.cycleDone : plan?.status === 'draft' ? t.draftReady : t.planning}
             </p>
             <h2>
-              {completedCycle
-                ? 'Pronto para suas próximas quatro semanas.'
-                : plan?.status === 'draft'
-                  ? 'Seu rascunho está esperando aprovação.'
-                  : 'Crie seu primeiro ciclo de treinos.'}
+              {completedCycle ? t.cycleDoneTitle : plan?.status === 'draft' ? t.draftTitle : t.firstTitle}
             </h2>
             <p className="dashboard-empty-copy">
-              {completedCycle
-                ? 'Seu histórico foi preservado. Gere o próximo ciclo com seu perfil e sua disponibilidade atuais.'
-                : plan?.status === 'draft'
-                  ? 'Revise as quatro semanas e aceite o plano para mostrar as sessões reais neste painel.'
-                  : 'Conclua seu perfil para gerar um plano compatível com sua experiência e disponibilidade.'}
+              {completedCycle ? t.cycleDoneText : plan?.status === 'draft' ? t.draftText : t.firstText}
             </p>
             <Link className="btn btn-primary" href="/plano">
-              {completedCycle
-                ? 'Gerar próximo ciclo'
-                : plan?.status === 'draft'
-                  ? 'Revisar e aceitar plano'
-                  : 'Criar meu plano'}
+              {completedCycle ? t.nextCycle : plan?.status === 'draft' ? t.reviewDraft : t.createPlan}
               <ArrowRight size={16} aria-hidden="true" />
             </Link>
           </section>
@@ -234,7 +325,7 @@ export default function HomePage() {
     ),
   );
   const rules = focusWorkout.explanation.rules || [];
-  const steps = stepsForWorkout(focusWorkout);
+  const steps = stepsForWorkout(focusWorkout, locale);
   const intensity = intensityOf(focusWorkout.target_rpe);
   const engine = activePlan.prescription_snapshot.engine_version || 'rules-v1';
 
@@ -245,7 +336,7 @@ export default function HomePage() {
         <header className="topbar">
           <div>
             <p className="kicker">{headerFormatter.format(today)}</p>
-            <h1>Olá, {firstName}.</h1>
+            <h1>{t.hello(firstName)}</h1>
           </div>
           {recoveryLink}
         </header>
@@ -253,27 +344,27 @@ export default function HomePage() {
         <div className="dashboard-grid">
           <section className="today-card sheet" aria-labelledby="today-title">
             <p className="section-label">
-              <span>{isToday ? 'Hoje' : 'Próxima sessão'}</span>
+              <span>{isToday ? t.today : t.nextSession}</span>
               {sessionDateFormatter.format(parseTrainingDate(focusWorkout.scheduled_on))}
             </p>
             <h2 id="today-title">{focusWorkout.name}</h2>
             <p className="today-objective">{focusWorkout.objective}</p>
             <dl className="today-facts">
               <div>
-                <dt>Tempo</dt>
+                <dt>{t.time}</dt>
                 <dd>{focusWorkout.duration_minutes}&prime;</dd>
               </div>
               <div>
                 <dt>
-                  Zona <ZoneHelp compact />
+                  {t.zone} <ZoneHelp compact />
                 </dt>
-                <dd>{zoneLabel(focusWorkout.target_rpe)}</dd>
+                <dd>{zoneLabel(focusWorkout.target_rpe, locale)}</dd>
               </div>
               <div>
-                <dt>Nível</dt>
+                <dt>{t.level}</dt>
                 <dd className="today-level">
                   <TrailSymbol intensity={intensity} label="" />
-                  {intensityLabels[intensity]}
+                  {intensityText.labels[intensity]}
                 </dd>
               </div>
             </dl>
@@ -285,10 +376,10 @@ export default function HomePage() {
                 onClick={() => setSelected(focusWorkout)}
               >
                 <ListTree aria-hidden="true" />
-                Ver estrutura
+                {t.seeStructure}
               </button>
               <Link className="details-button" href="/plano">
-                Plano completo <ArrowRight size={16} aria-hidden="true" />
+                {t.fullPlan} <ArrowRight size={16} aria-hidden="true" />
               </Link>
             </div>
           </section>
@@ -296,18 +387,18 @@ export default function HomePage() {
           <section className="today-map panel" aria-labelledby="today-map-title">
             <div className="today-map-head">
               <h3 id="today-map-title" className="kicker">
-                Percurso da sessão
+                {t.route}
               </h3>
               <TrailLegend />
             </div>
             <RouteMap
               steps={steps}
-              label={`Percurso da sessão ${focusWorkout.name}: ${steps.length} etapas em ${focusWorkout.duration_minutes} minutos`}
+              label={t.routeLabel(focusWorkout.name, steps.length, focusWorkout.duration_minutes)}
             />
             <div className="today-map-foot">
               <RouteScale minutes={focusWorkout.duration_minutes} />
               <p className="coach-tip">
-                <strong>Por que este treino?</strong>
+                <strong>{t.why}</strong>
                 {focusWorkout.explanation.summary}
               </p>
             </div>
@@ -317,15 +408,13 @@ export default function HomePage() {
             <div className="week-header">
               <div>
                 <p className="kicker">
-                  Semana {weekIndex + 1} de 4 · {weekPhases[weekIndex]}
+                  {t.weekOf(weekIndex + 1, t.weekPhases[weekIndex])}
                 </p>
-                <h3 id="week-title">Folhas da semana</h3>
+                <h3 id="week-title">{t.weekSheets}</h3>
               </div>
               <p className="week-progress">
-                <strong>
-                  {completedInWeek} de {sessionsInWeek}
-                </strong>
-                sessões concluídas
+                <strong>{t.of(completedInWeek, sessionsInWeek)}</strong>
+                {t.sessionsDone}
               </p>
             </div>
             <ol className="week-days">
@@ -351,7 +440,7 @@ export default function HomePage() {
                       {String(item.date.getDate()).padStart(2, '0')}
                     </strong>
                     {done ? (
-                      <span className="day-done" role="img" aria-label="Concluído">
+                      <span className="day-done" role="img" aria-label={t.completed}>
                         <Check size={13} strokeWidth={3} />
                       </span>
                     ) : (
@@ -360,74 +449,73 @@ export default function HomePage() {
                     <span className="day-minutes">
                       {workout ? `${workout.duration_minutes}′` : '—'}
                     </span>
-                    <span className="day-title">{workout?.name || 'Descanso'}</span>
+                    <span className="day-title">{workout?.name || t.rest}</span>
                   </li>
                 );
               })}
             </ol>
             <div className="load-summary">
-              <span className="kicker">Volume planejado</span>
+              <span className="kicker">{t.plannedVolume}</span>
               <div className="load-track" aria-hidden="true">
                 <i style={{ width: `${Math.min(100, (weekMinutes / 360) * 100)}%` }} />
               </div>
               <strong>{formatMinutes(weekMinutes)}</strong>
-              <em>{sessionsInWeek} sessões</em>
+              <em>{t.sessions(sessionsInWeek)}</em>
             </div>
           </section>
 
           <aside className="plan-summary-card panel" aria-labelledby="cycle-title">
-            <p className="kicker">Plano ativo</p>
-            <h3 id="cycle-title">Seu ciclo atual</h3>
-            <ol className="cycle-track" aria-label={`Semana ${weekIndex + 1} de 4`}>
-              {weekPhases.map((phase, index) => (
+            <p className="kicker">{t.activePlan}</p>
+            <h3 id="cycle-title">{t.currentCycle}</h3>
+            <ol className="cycle-track" aria-label={t.weekLabel(weekIndex + 1)}>
+              {t.weekPhases.map((phase, index) => (
                 <li
                   key={index}
                   className={index < weekIndex ? 'past' : index === weekIndex ? 'current' : ''}
                 >
-                  <span>S{index + 1}</span>
+                  <span>{t.weekShort(index + 1)}</span>
                   <small>{phase}</small>
                 </li>
               ))}
             </ol>
             <dl className="readiness-list">
               <div>
-                <dt>Sessões</dt>
-                <dd>{activePlan.workouts.length} em 4 semanas</dd>
+                <dt>{t.sessionsLabel}</dt>
+                <dd>{t.in4Weeks(activePlan.workouts.length)}</dd>
               </div>
               <div>
-                <dt>Início</dt>
+                <dt>{t.start}</dt>
                 <dd>{fullDateFormatter.format(parseTrainingDate(activePlan.starts_on))}</dd>
               </div>
               <div>
-                <dt>Término</dt>
+                <dt>{t.end}</dt>
                 <dd>{fullDateFormatter.format(parseTrainingDate(activePlan.ends_on))}</dd>
               </div>
             </dl>
             <Link className="checkin-button" href="/plano">
-              Revisar plano <ArrowRight size={16} aria-hidden="true" />
+              {t.reviewPlan} <ArrowRight size={16} aria-hidden="true" />
             </Link>
           </aside>
 
           <section className="insight-card panel" aria-labelledby="insight-title">
             <div>
-              <p className="kicker">Decisão explicável</p>
-              <h3 id="insight-title">O plano mostra por que cada sessão foi escolhida.</h3>
+              <p className="kicker">{t.explainable}</p>
+              <h3 id="insight-title">{t.explainableTitle}</h3>
               <p>
-                {focusWorkout.explanation.summary} As regras foram calculadas
-                com os dados preenchidos no seu perfil.
+                {focusWorkout.explanation.summary} {t.rulesNote}
               </p>
               <button
                 type="button"
                 className="details-button"
                 onClick={() => setSelected(focusWorkout)}
               >
-                Entender a decisão <ArrowRight size={16} aria-hidden="true" />
+                {t.understand} <ArrowRight size={16} aria-hidden="true" />
               </button>
             </div>
             <div className="evidence-tag">
-              <span className="kicker">Baseado em</span>
-              <strong>{rules.length} regras do seu perfil</strong>
-              <small>Motor {engine}</small>
+              <span className="kicker">{t.basedOn}</span>
+              <strong>{t.rulesCount(rules.length)}</strong>
+              <small>{t.engine(engine)}</small>
             </div>
           </section>
         </div>
@@ -440,12 +528,12 @@ export default function HomePage() {
               type="button"
               className="modal-close"
               onClick={() => setSelected(null)}
-              aria-label="Fechar"
+              aria-label={t.close}
             >
               <X size={20} />
             </button>
             <p className="kicker">
-              Sessão planejada · {selected.duration_minutes} min · {zoneLabel(selected.target_rpe)}
+              {t.plannedSession} · {selected.duration_minutes} min · {zoneLabel(selected.target_rpe, locale)}
             </p>
             <h2 id="workout-title">{selected.name}</h2>
             <p className="workout-modal-summary">{selected.explanation.summary}</p>
@@ -456,8 +544,8 @@ export default function HomePage() {
             />
             <div className="workout-modal-map">
               <RouteMap
-                steps={stepsForWorkout(selected)}
-                label={`Percurso da sessão ${selected.name}`}
+                steps={stepsForWorkout(selected, locale)}
+                label={t.routeOf(selected.name)}
               />
             </div>
             <WorkoutStructure structure={selected.structure} durationMinutes={selected.duration_minutes} />
@@ -470,7 +558,7 @@ export default function HomePage() {
               onPlanUpdated={updateSessionPlan}
             />
             <Link className="modal-plan-link" href="/plano">
-              Abrir plano completo <ArrowRight size={16} aria-hidden="true" />
+              {t.openPlan} <ArrowRight size={16} aria-hidden="true" />
             </Link>
           </section>
         </dialog>

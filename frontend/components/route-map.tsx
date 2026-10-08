@@ -1,3 +1,4 @@
+import type { Locale } from '@/lib/i18n';
 import type { Workout, WorkoutStep } from '@/lib/planning';
 import { intensityOf } from './trail-symbol';
 
@@ -79,16 +80,22 @@ const contours = hills.flatMap(([cx, cy, rx, ry, seed, count]) =>
   })),
 );
 
-export function stepsForWorkout(workout: Pick<Workout, 'structure' | 'duration_minutes' | 'target_rpe'>): WorkoutStep[] {
+const fallbackTitles = {
+  pt: { warmup: 'Aquecimento', main: 'Parte principal', cooldown: 'Volta à calma' },
+  en: { warmup: 'Warm-up', main: 'Main set', cooldown: 'Cool-down' },
+};
+
+export function stepsForWorkout(workout: Pick<Workout, 'structure' | 'duration_minutes' | 'target_rpe'>, locale: Locale): WorkoutStep[] {
   const steps = workout.structure.steps;
+  const titles = fallbackTitles[locale];
   if (steps?.length) return steps;
   const warmup = workout.structure.warmup_minutes || 0;
   const cooldown = workout.structure.cooldown_minutes || 0;
   const main = Math.max(1, workout.duration_minutes - warmup - cooldown);
   return [
-    warmup && { order: 1, kind: 'warmup', title: 'Aquecimento', duration_minutes: warmup, target_rpe: Math.min(3, workout.target_rpe), instruction: '' },
-    { order: 2, kind: 'main', title: 'Parte principal', duration_minutes: main, target_rpe: workout.target_rpe, instruction: '' },
-    cooldown && { order: 3, kind: 'cooldown', title: 'Volta à calma', duration_minutes: cooldown, target_rpe: 2, instruction: '' },
+    warmup && { order: 1, kind: 'warmup', title: titles.warmup, duration_minutes: warmup, target_rpe: Math.min(3, workout.target_rpe), instruction: '' },
+    { order: 2, kind: 'main', title: titles.main, duration_minutes: main, target_rpe: workout.target_rpe, instruction: '' },
+    cooldown && { order: 3, kind: 'cooldown', title: titles.cooldown, duration_minutes: cooldown, target_rpe: 2, instruction: '' },
   ].filter(Boolean) as WorkoutStep[];
 }
 

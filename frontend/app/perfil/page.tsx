@@ -3,14 +3,40 @@
 import { Check, LoaderCircle, MailCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AppHeader } from '@/components/app-header';
-import { stepCopy } from './profile-model';
+import { useMessages } from '@/components/locale-provider';
+import { defineMessages } from '@/lib/i18n';
+import { STEP_ICONS } from './profile-model';
 import { useProfileForm } from './use-profile-form';
 import { ProfileStep1 } from './step-basics';
 import { ProfileStep2 } from './step-safety';
 import { ProfileStep3 } from './step-goals';
 import { ProfileStep4 } from './step-routine';
 
+const messages = defineMessages({
+  pt: {
+    loading: 'Carregando seu perfil…',
+    confirmEmail: 'Confirme seu e-mail antes de gerar ou ativar um plano.',
+    sentTo: (email: string) => `Enviamos um link para ${email}.`,
+    sending: 'Enviando…',
+    resend: 'Reenviar link',
+    progress: 'Progresso do perfil',
+    of: 'de 04',
+    reviewLater: 'Você poderá revisar todas essas informações quando sua rotina mudar.',
+  },
+  en: {
+    loading: 'Loading your profile…',
+    confirmEmail: 'Confirm your email before generating or activating a plan.',
+    sentTo: (email: string) => `We sent a link to ${email}.`,
+    sending: 'Sending…',
+    resend: 'Resend link',
+    progress: 'Profile progress',
+    of: 'of 04',
+    reviewLater: 'You can review all of this information whenever your routine changes.',
+  },
+});
+
 export default function ProfilePage() {
+  const t = useMessages(messages);
   const form = useProfileForm();
   const {
     AsideIcon,
@@ -28,7 +54,7 @@ export default function ProfilePage() {
     return (
       <main className="profile-loading">
         <LoaderCircle className="spin" />
-        Carregando seu perfil…
+        {t.loading}
       </main>
     );
 
@@ -40,12 +66,8 @@ export default function ProfilePage() {
           <section className="email-verification-banner">
             <MailCheck size={19} />
             <div>
-              <strong>
-                Confirme seu e-mail antes de gerar ou ativar um plano.
-              </strong>
-              <p>
-                {verificationMessage || `Enviamos um link para ${user.email}.`}
-              </p>
+              <strong>{t.confirmEmail}</strong>
+              <p>{verificationMessage || t.sentTo(user.email)}</p>
             </div>
             <Button
               type="button"
@@ -53,12 +75,12 @@ export default function ProfilePage() {
               disabled={sendingVerification}
               onClick={resendVerification}
             >
-              {sendingVerification ? 'Enviando…' : 'Reenviar link'}
+              {sendingVerification ? t.sending : t.resend}
             </Button>
           </section>
         )}
-        <nav className="onboarding-progress" aria-label="Progresso do perfil">
-          {stepCopy.map((_, index) => (
+        <nav className="onboarding-progress" aria-label={t.progress}>
+          {STEP_ICONS.map((_, index) => (
             <span key={index} className={index + 1 <= step ? 'active' : ''}>
               <i>
                 {index + 1 < step || completed ? (
@@ -78,7 +100,7 @@ export default function ProfilePage() {
           </div>
           <div className="step-indicator">
             <strong>0{step}</strong>
-            <span>de 04</span>
+            <span>{t.of}</span>
           </div>
         </div>
         <div className="profile-layout">
@@ -97,10 +119,7 @@ export default function ProfilePage() {
             <h2>{copy.asideTitle}</h2>
             <p>{copy.aside}</p>
             <hr />
-            <span>
-              Você poderá revisar todas essas informações quando sua rotina
-              mudar.
-            </span>
+            <span>{t.reviewLater}</span>
           </aside>
         </div>
       </section>

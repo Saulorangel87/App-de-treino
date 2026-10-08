@@ -1,11 +1,45 @@
 import type { ProfileFormController } from './use-profile-form';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { useMessages } from '@/components/locale-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { defineMessages } from '@/lib/i18n';
 import { FormFeedback, GoalOptions } from './profile-fields';
 
+const messages = defineMessages({
+  pt: {
+    primary: 'Objetivo principal',
+    mainly: 'Quero principalmente',
+    targetDate: 'Data-alvo (opcional)',
+    details: 'Conte um pouco mais (opcional)',
+    detailsPlaceholder: 'Ex.: completar meu primeiro pedal de 100 km com segurança…',
+    secondary: 'Objetivo secundário',
+    otherPriority: 'Outra prioridade (opcional)',
+    none: 'Nenhuma por enquanto',
+    secondaryNote: 'Ela só desempata estímulos já elegíveis. Segurança e objetivo principal sempre têm prioridade.',
+    back: 'Voltar',
+    saving: 'Salvando…',
+    save: 'Salvar e continuar',
+  },
+  en: {
+    primary: 'Main goal',
+    mainly: 'Mainly, I want to',
+    targetDate: 'Target date (optional)',
+    details: 'Tell us a bit more (optional)',
+    detailsPlaceholder: 'E.g.: finish my first 100 km ride safely…',
+    secondary: 'Secondary goal',
+    otherPriority: 'Another priority (optional)',
+    none: 'None for now',
+    secondaryNote: 'It only breaks ties between stimuli that are already eligible. Safety and the main goal always come first.',
+    back: 'Back',
+    saving: 'Saving…',
+    save: 'Save and continue',
+  },
+});
+
 export function ProfileStep3({ form }: { form: ProfileFormController }) {
+  const t = useMessages(messages);
   const {
     error,
     goToStep,
@@ -21,10 +55,10 @@ export function ProfileStep3({ form }: { form: ProfileFormController }) {
   return (
     <form onSubmit={saveGoals} className="profile-form">
       <fieldset>
-        <legend>Objetivo principal</legend>
+        <legend>{t.primary}</legend>
         <div className="form-grid">
           <div>
-            <Label htmlFor="primary_goal">Quero principalmente</Label>
+            <Label htmlFor="primary_goal">{t.mainly}</Label>
             <select
               id="primary_goal"
               value={primaryGoal.goal_type}
@@ -39,7 +73,7 @@ export function ProfileStep3({ form }: { form: ProfileFormController }) {
             </select>
           </div>
           <div>
-            <Label htmlFor="target_date">Data-alvo (opcional)</Label>
+            <Label htmlFor="target_date">{t.targetDate}</Label>
             <Input
               id="target_date"
               type="date"
@@ -55,7 +89,7 @@ export function ProfileStep3({ form }: { form: ProfileFormController }) {
           </div>
         </div>
         <div className="textarea-field">
-          <Label htmlFor="goal_details">Conte um pouco mais (opcional)</Label>
+          <Label htmlFor="goal_details">{t.details}</Label>
           <textarea
             id="goal_details"
             maxLength={500}
@@ -66,35 +100,32 @@ export function ProfileStep3({ form }: { form: ProfileFormController }) {
                 details: event.target.value,
               }))
             }
-            placeholder="Ex.: completar meu primeiro pedal de 100 km com segurança…"
+            placeholder={t.detailsPlaceholder}
           />
         </div>
       </fieldset>
       <fieldset>
-        <legend>Objetivo secundário</legend>
+        <legend>{t.secondary}</legend>
         <div className="activity-field">
-          <Label htmlFor="secondary_goal">Outra prioridade (opcional)</Label>
+          <Label htmlFor="secondary_goal">{t.otherPriority}</Label>
           <select
             id="secondary_goal"
             value={secondaryGoal}
             onChange={(event) => setSecondaryGoal(event.target.value)}
           >
-            <option value="">Nenhuma por enquanto</option>
+            <option value="">{t.none}</option>
             <GoalOptions exclude={primaryGoal.goal_type} />
           </select>
-          <small className="profile-field-note">
-            Ela só desempata estímulos já elegíveis. Segurança e objetivo
-            principal sempre têm prioridade.
-          </small>
+          <small className="profile-field-note">{t.secondaryNote}</small>
         </div>
       </fieldset>
       <FormFeedback error={error} message={message} />
       <div className="form-actions">
         <Button type="button" variant="outline" onClick={() => goToStep(2)}>
-          <ArrowLeft size={15} /> Voltar
+          <ArrowLeft size={15} /> {t.back}
         </Button>
         <Button type="submit" disabled={saving} className="profile-submit">
-          {saving ? 'Salvando…' : 'Salvar e continuar'}
+          {saving ? t.saving : t.save}
           <ArrowRight size={16} />
         </Button>
       </div>

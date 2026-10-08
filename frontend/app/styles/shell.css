@@ -398,3 +398,65 @@ body:has(.tab-bar) {
   font-weight: 600;
   cursor: pointer;
 }
+
+/* Seletor de idioma: no rodapé, a forma curta (PT | EN); no login, nas
+   configurações e nos documentos legais, o nome completo. */
+.language-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+}
+
+.language-switcher button {
+  min-height: 32px;
+  padding: 2px 10px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.language-switcher button.active {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--sheet);
+  cursor: default;
+}
+
+.language-switcher button:focus-visible {
+  outline: 2px solid var(--trail);
+  outline-offset: 2px;
+}
+
+.language-switcher.compact {
+  flex: 0 0 auto;
+  gap: 0;
+}
+
+.language-switcher.compact button {
+  min-height: 28px;
+  padding: 0 7px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+.language-switcher.compact button + button {
+  border-left: 0;
+}
+
+.legal-translation-note {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--water);
+  background: var(--water-tint);
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.legal-language {
+  margin: 4px 0 16px;
+}

@@ -1,3 +1,5 @@
+import { currentLocale, HTML_LANG } from './i18n';
+
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const DEFAULT_TIMEOUT_MS = 20_000;
@@ -31,12 +33,37 @@ export function isTimeout(error: unknown): boolean {
   return error instanceof ApiError && error.status === 0;
 }
 
+const text = {
+  pt: {
+    offline: 'Não foi possível conectar à API. Verifique sua conexão e tente novamente.',
+    timeout: 'A solicitação demorou demais para responder. Tente novamente.',
+    failed: 'Não foi possível concluir a solicitação.',
+    downloadFailed: 'Não foi possível baixar o arquivo.',
+  },
+  en: {
+    offline: 'Could not reach the server. Check your connection and try again.',
+    timeout: 'The request took too long to respond. Please try again.',
+    failed: 'The request could not be completed.',
+    downloadFailed: 'The file could not be downloaded.',
+  },
+};
+
+function messages() {
+  return text[currentLocale()];
+}
+
+/** A API responde mensagens e conteúdo dos treinos no idioma escolhido no app, não no do navegador. */
+function withLanguage(headers: Headers): Headers {
+  headers.set('Accept-Language', HTML_LANG[currentLocale()]);
+  return headers;
+}
+
 export function apiErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) return error.message;
   // Cada navegador usa uma mensagem diferente ("Failed to fetch", "Load failed",
   // "NetworkError..."); toda falha de rede do fetch é um TypeError.
   if (error instanceof TypeError) {
-    return 'Não foi possível conectar à API. Verifique sua conexão e tente novamente.';
+    return messages().offline;
   }
   if (error instanceof Error) return error.message;
   return fallback;
@@ -72,7 +99,7 @@ async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: numbe
     return await fetch(url, { ...init, signal: controller.signal });
   } catch (error) {
     if (timedOut) {
-      throw new ApiError('A solicitação demorou demais para responder. Tente novamente.', 0);
+      throw new ApiError(messages().timeout, 0);
     }
     throw error;
   } finally {
@@ -87,7 +114,7 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   // Só requisições idempotentes são repetidas; um POST repetido poderia duplicar efeitos.
   const maxRetries = method === 'GET' ? (retries ?? DEFAULT_GET_RETRIES) : 0;
 
-  const headers = new Headers(init.headers);
+  const headers = withLanguage(new Headers(init.headers));
   // Um corpo FormData (upload de arquivo) precisa que o navegador defina o
   // Content-Type sozinho, com o boundary do multipart; forçar application/json
   // quebraria o envio.
@@ -108,7 +135,7 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
       if (!response.ok) {
         const body = (await response.json().catch(() => null)) as { error?: { message?: string } } | null;
         if (response.status === 401) redirectToLoginOnExpiredSession(path);
-        throw new ApiError(body?.error?.message || 'Não foi possível concluir a solicitação.', response.status);
+        throw new ApiError(body?.error?.message || messages().failed, response.status);
       }
       if (response.status === 204) return undefined as T;
       return (await response.json()) as T;
@@ -128,11 +155,11 @@ const DOWNLOAD_TIMEOUT_MS = 60_000;
 
 /** Baixa um arquivo gerado pela API (por exemplo, a exportação de dados) e o salva no aparelho. */
 export async function apiDownload(path: string, filename: string): Promise<void> {
-  const response = await fetchWithTimeout(`${API_URL}${path}`, { credentials: 'include' }, DOWNLOAD_TIMEOUT_MS);
+  const response = await fetchWithTimeout(`${API_URL}${path}`, { credentials: 'include', headers: withLanguage(new Headers()) }, DOWNLOAD_TIMEOUT_MS);
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as { error?: { message?: string } } | null;
     if (response.status === 401) redirectToLoginOnExpiredSession(path);
-    throw new ApiError(body?.error?.message || 'Não foi possível baixar o arquivo.', response.status);
+    throw new ApiError(body?.error?.message || messages().downloadFailed, response.status);
   }
   const url = URL.createObjectURL(await response.blob());
   const link = document.createElement('a');

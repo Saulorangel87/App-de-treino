@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useMessages } from '@/components/locale-provider';
 import { apiErrorMessage, isUnauthorized, apiRequest } from '@/lib/api';
+import { currentLocale } from '@/lib/i18n';
 import {
   EXCLUDED_DISCIPLINES,
+  STEP_ICONS,
   TRAINING_STATUSES,
   initialAvailability,
   initialCyclingContext,
   initialProfile,
-  stepCopy,
+  profileText,
   type Availability,
   type CyclingContext,
   type Goal,
@@ -19,6 +22,7 @@ import {
 } from './profile-model';
 
 export function useProfileForm() {
+  const t = useMessages(profileText);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<ProfileForm>(initialProfile);
   const [step, setStep] = useState(1);
@@ -162,7 +166,7 @@ export function useProfileForm() {
         setError(
           apiErrorMessage(
             caught,
-            'Não foi possível carregar seu perfil. Verifique se a API está em execução e tente novamente.',
+            profileText[currentLocale()].loadFailed,
           ),
         );
       } finally {
@@ -191,14 +195,14 @@ export function useProfileForm() {
     () => availability.filter((day) => day.available_minutes > 0).length,
     [availability],
   );
-  const staticCopy = stepCopy[step - 1];
+  const staticCopy = t.steps[step - 1];
   const contractStep = questionnaire?.steps[step - 1];
   const copy = {
     ...staticCopy,
     title: contractStep?.title || staticCopy.title,
     description: contractStep?.description || staticCopy.description,
   };
-  const AsideIcon = copy.icon;
+  const AsideIcon = STEP_ICONS[step - 1];
 
   function updateProfile(field: keyof ProfileForm, value: string) {
     setProfile((current) => ({ ...current, [field]: value }));
@@ -325,8 +329,8 @@ export function useProfileForm() {
       setCompleted(true);
       setMessage(
         updatingCompletedProfile
-          ? 'Disponibilidade salva. Abra Meu plano e escolha Atualizar plano para gerar um rascunho com esta nova rotina.'
-          : 'Perfil concluído. Seu contexto inicial está salvo com segurança.',
+          ? t.availabilitySaved
+          : t.profileDone,
       );
     });
   }
@@ -341,7 +345,7 @@ export function useProfileForm() {
       setError(
         caught instanceof Error
           ? caught.message
-          : 'Não foi possível salvar esta etapa.',
+          : t.saveFailed,
       );
     } finally {
       setSaving(false);
@@ -358,7 +362,7 @@ export function useProfileForm() {
       }>('/v1/auth/resend-verification', { method: 'POST' });
       setVerificationMessage(
         result.development_verification_url
-          ? `${result.message} Abra o link local abaixo.`
+          ? `${result.message} ${t.openLocalLink}`
           : result.message,
       );
       if (result.development_verification_url)
@@ -371,7 +375,7 @@ export function useProfileForm() {
       setVerificationMessage(
         caught instanceof Error
           ? caught.message
-          : 'Não foi possível reenviar a confirmação.',
+          : t.resendFailed,
       );
     } finally {
       setSendingVerification(false);
