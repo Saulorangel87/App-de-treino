@@ -2,7 +2,15 @@ openapi: 3.1.0
 info:
   title: Cadência API
   version: 0.34.0
-  description: API do MVP de planejamento adaptativo de ciclismo.
+  description: |
+    API do MVP de planejamento adaptativo de ciclismo.
+
+    Idioma: as mensagens (`error.message`, `message`) e o texto dos treinos
+    (nome, objetivo, etapas, explicação) seguem o cabeçalho `Accept-Language`.
+    Só `en` (ou `en-*`) muda para inglês; sem cabeçalho, ou com qualquer outro
+    valor, a resposta é em português. Códigos (`error.code`, `status`, chaves)
+    nunca mudam. Os e-mails de confirmação e de redefinição de senha saem no
+    idioma da requisição que os pediu.
 servers:
   - url: http://localhost:8080
     description: Desenvolvimento local

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Saulorangel87/App-de-treino/backend/internal/ai"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/i18n"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
 )
 
@@ -30,13 +31,21 @@ func (s *Server) explainWorkout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fallback := workoutExplanationSummary(workout)
-	input := ai.ExplanationInput{
-		WorkoutName: workout.Name, Objective: workout.Objective,
-		DurationMinutes: workout.DurationMinutes, TargetRPE: workout.TargetRPE,
-		Rules:         workoutExplanationRules(workout),
-		EvidenceScope: workoutExplanationEvidenceScope(workout),
+	language := i18n.FromContext(r.Context())
+	rules := workoutExplanationRules(workout)
+	for index, rule := range rules {
+		rules[index] = i18n.T(language, rule)
 	}
-	if s.ai == nil || !s.ai.Enabled() {
+	input := ai.ExplanationInput{
+		Language:    string(language),
+		WorkoutName: i18n.T(language, workout.Name), Objective: i18n.T(language, workout.Objective),
+		DurationMinutes: workout.DurationMinutes, TargetRPE: workout.TargetRPE,
+		Rules:         rules,
+		EvidenceScope: i18n.T(language, workoutExplanationEvidenceScope(workout)),
+	}
+	// Without a provider that answers in this language, the engine's own
+	// explanation (translated on the way out) is the honest answer.
+	if s.ai == nil || !s.ai.Enabled() || !s.ai.Supports(string(language)) {
 		writeJSON(w, http.StatusOK, map[string]any{
 			"explanation": fallback, "source": "rules", "ai_enabled": false,
 		})

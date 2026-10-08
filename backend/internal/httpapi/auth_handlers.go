@@ -4,12 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"html"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -21,6 +20,7 @@ import (
 	"github.com/Saulorangel87/App-de-treino/backend/internal/email"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/evolution"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/feedback"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/i18n"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/legal"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
 )
@@ -182,7 +182,9 @@ func (s *Server) deleteAccount(w http.ResponseWriter, r *http.Request) {
 	if !decodeJSON(w, r, &input) {
 		return
 	}
-	if !strings.EqualFold(strings.TrimSpace(input.Confirmation), "ENCERRAR CONTA") {
+	if !slices.ContainsFunc(deleteConfirmations, func(phrase string) bool {
+		return strings.EqualFold(strings.TrimSpace(input.Confirmation), phrase)
+	}) {
 		writeError(w, http.StatusBadRequest, "account_confirmation_required", "Digite ENCERRAR CONTA para confirmar o encerramento.")
 		return
 	}
@@ -293,7 +295,7 @@ func (s *Server) forgotPassword(w http.ResponseWriter, r *http.Request) {
 	resetURL := ""
 	if err == nil && token != "" {
 		resetURL = s.actionURL("/redefinir-senha", token)
-		err = s.emailSender.Send(r.Context(), email.Message{To: user.Email, Subject: "Redefina sua senha no Cadência", HTML: passwordResetHTML(user.DisplayName, resetURL), Text: "Redefina sua senha: " + resetURL})
+		err = s.emailSender.Send(r.Context(), passwordResetMessage(i18n.FromContext(r.Context()), user.Email, user.DisplayName, resetURL))
 	}
 	if err != nil {
 		writeError(w, http.StatusServiceUnavailable, "email_unavailable", "Não foi possível enviar o e-mail agora. Tente novamente em instantes.")
@@ -393,7 +395,7 @@ func (s *Server) sendVerification(ctx context.Context, user auth.User) (string, 
 		return "", err
 	}
 	verificationURL := s.actionURL("/verificar-email", token)
-	err = s.emailSender.Send(ctx, email.Message{To: user.Email, Subject: "Confirme seu e-mail no Cadência", HTML: verificationHTML(user.DisplayName, verificationURL), Text: "Confirme seu e-mail: " + verificationURL})
+	err = s.emailSender.Send(ctx, verificationMessage(i18n.FromContext(ctx), user.Email, user.DisplayName, verificationURL))
 	return verificationURL, err
 }
 
@@ -407,14 +409,6 @@ func (s *Server) actionURL(path, token string) string {
 	query.Set("token", token)
 	base.RawQuery = query.Encode()
 	return base.String()
-}
-
-func verificationHTML(name, actionURL string) string {
-	return fmt.Sprintf("<p>Olá, %s.</p><p>Confirme seu e-mail para começar a usar o Cadência.</p><p><a href=\"%s\">Confirmar e-mail</a></p><p>Este link expira em 24 horas.</p>", html.EscapeString(name), html.EscapeString(actionURL))
-}
-
-func passwordResetHTML(name, actionURL string) string {
-	return fmt.Sprintf("<p>Olá, %s.</p><p>Recebemos um pedido para redefinir sua senha no Cadência.</p><p><a href=\"%s\">Redefinir senha</a></p><p>Se não foi você, ignore esta mensagem. O link expira em 24 horas.</p>", html.EscapeString(name), html.EscapeString(actionURL))
 }
 
 func decodeJSON(w http.ResponseWriter, r *http.Request, target any) bool {

@@ -13,6 +13,7 @@ Este índice organiza as fontes de referência do projeto e separa visão de pro
 - [`cycling-evidence-catalog.md`](cycling-evidence-catalog.md): catálogo de evidências e critérios de elegibilidade dos protocolos específicos de ciclismo.
 - [`zonas-de-esforco.md`](zonas-de-esforco.md): as cinco zonas (Z1 a Z5) que o atleta vê, a tabela que as liga ao RPE do motor, as faixas em batimentos e watts e o feedback por zona.
 - [`avaliacao.md`](avaliacao.md): o pedal de referência em Z2, o que o "apto a progredir" libera, os números opcionais, a eficiência aeróbica, a deriva de FC e quando refazer.
+- [`idiomas.md`](idiomas.md): português e inglês, como o idioma chega à API, o catálogo de traduções do backend e o que fazer ao mudar um texto.
 - [`proxima-fase-dados-reais.md`](proxima-fase-dados-reais.md): desenho da próxima fase (dados reais de execução): importação de atividades por arquivo `.fit`/`.gpx` com atalho no Android, melhorias no motor a partir desses dados, e a ordem das etapas seguintes; a integração com o Strava fica preservada em anexo, adiada por custo.
 - [`roadmap-acceptance.md`](roadmap-acceptance.md): matriz histórica de aceitação técnica; não é um segundo roadmap e não substitui o `planejamento.md`.
 - [`README.md`](../README.md): visão geral, instalação local, rotas e fluxo funcional.
