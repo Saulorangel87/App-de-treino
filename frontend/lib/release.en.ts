@@ -4,6 +4,12 @@ import type { UpdateNote } from './release';
 // versão de cada posição). Ao publicar uma versão nova, escreva as duas.
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
   {
+    version: '0.39.0',
+    title: 'Your weekly summary',
+    description:
+      "On the Progress screen, a new card tells how your last full week went: how many workouts you completed, riding time compared with the previous week, the average zone, fatigue and whether there was any pain. The text is built by the app's rules from your records, sends nothing out, and is not a diagnosis.",
+  },
+  {
     version: '0.38.0',
     title: 'Cadência now speaks English too',
     description:

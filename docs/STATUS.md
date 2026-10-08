@@ -1,6 +1,6 @@
 # Estado atual do Cadência
 
-Última atualização: 8 de outubro de 2026.
+Última atualização: 9 de outubro de 2026.
 
 Este é o documento de continuidade: curto e sempre atual. O diário cronológico das fatias de trabalho (com datas, validações e decisões) está em [`changelog/project-status-history.md`](changelog/project-status-history.md). Não inclua senhas, tokens, chaves de API nem conteúdo de `.env`.
 
@@ -92,4 +92,6 @@ Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o cicl
 - **IA em inglês (08/10/2026, commit `ac2ee08`):** o Worker da Cloudflare passou a aceitar o campo `language` (alterado no painel: `allowedKeys`, `validateCadenciaPayload`, prompt e mensagem de sistema em inglês) e a API o envia só em inglês. Testado em produção: a explicação sai em inglês.
 - **Dependências:** PRs do Dependabot #74 a #79 mergeados; o `oxlint` novo exigiu tirar `new Date()` da renderização.
 - **Alertas do GitHub em aberto:** `braces` (alto, runtime, sem versão corrigida; o CI trata como exceção da auditoria) e `sharp` (alto, só desenvolvimento; fixado em 0.35.4 pelo `miniflare` do `@cloudflare/vite-plugin`, correção na 0.35.5).
+- **Resumo semanal por regras (`0.39.0`, ainda não publicado):** cartão "Sua semana" no topo de Evolução, sobre a última semana completa (segunda a domingo): treinos concluídos e cancelados, tempo comparado com a semana anterior, zona média, treinos com esforço acima do previsto, fadiga média, dor e uma frase sobre a próxima carga. Feito no frontend a partir de `/v1/evolution/summary` (`lib/weekly-summary.ts`), sem IA, sem dado novo e sem e-mail; o texto sai nos dois idiomas. A IA fica para uma evolução futura.
+- **Decisão de provedor para a IA do resumo (pendente):** reaproveitar o Worker/Groq exige atualizar a política de privacidade e pedir consentimento, porque o resumo leva dados de saúde; o Ollama em lote noturno na VPS mantém os dados na VPS; uma API paga tem melhor qualidade e custo por uso. Nunca com dados do Strava.
 - **Pendências:** Fase B das zonas; resumo semanal com IA; Strava adiado (a equipe do Strava não responde dúvidas de API por e-mail e pediu que se releia a documentação, ver `strava-conformidade.md`).

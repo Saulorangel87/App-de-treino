@@ -962,3 +962,8 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - `WorkerClient` envia `language` só em inglês e `SupportsLanguage` aceita `pt` e `en` (PR #83). Ordem de publicação: Worker, depois backend.
 - Validação: explicação em inglês gerada pela IA em produção, pelo app.
 
+## Resumo semanal por regras (09/10/2026, versão 0.39.0, ainda não publicada)
+
+- Cartão "Sua semana" na Evolução, montado no frontend com `buildWeeklySummary` a partir dos dados que a tela já recebe. Escolhe a última semana completa; sem treino nela, não aparece. Regras: consistência, comparação de tempo (5% de tolerância), zona média, esforço acima do previsto (`rpe_delta >= 2`), fadiga média (treinos e check-ins; alta a partir de 4), dor e uma frase de próxima carga (cuidado se houve dor, fadiga alta ou esforço acima do previsto).
+- Testes cobrem semana vazia, cancelamentos, singular, dor, fadiga, janela de datas e inglês. Também saiu o rótulo "Explicação por IA" (PR #85).
+

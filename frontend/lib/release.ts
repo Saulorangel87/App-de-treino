@@ -1,7 +1,7 @@
 import type { Locale } from './i18n';
 import { UPDATE_NOTES_EN } from './release.en';
 
-export const APP_VERSION = '0.38.0';
+export const APP_VERSION = '0.39.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -10,6 +10,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.39.0',
+    title: 'O resumo da sua semana',
+    description:
+      'Na tela de Evolução, um cartão novo conta como foi a sua última semana completa: quantos treinos você concluiu, o tempo de pedal comparado com a semana anterior, a zona média, a fadiga e se houve dor. O texto é montado pelas regras do app a partir dos seus registros, sem enviar nada para fora, e não é diagnóstico.',
+  },
   {
     version: '0.38.0',
     title: 'O Cadência agora também fala inglês',
