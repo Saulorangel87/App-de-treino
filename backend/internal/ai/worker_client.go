@@ -44,10 +44,26 @@ type workerExplanationRequest struct {
 	TargetRPE     float64  `json:"target_rpe"`
 	Rules         []string `json:"rules,omitempty"`
 	EvidenceScope string   `json:"evidence_scope,omitempty"`
+	// Language is only sent for English. Portuguese requests keep the original
+	// contract, so a Worker that does not know the field yet keeps working.
+	Language string `json:"language,omitempty"`
 }
 
 type workerExplanationResponse struct {
 	Explanation string `json:"explanation"`
+}
+
+// SupportsLanguage reports that the Worker (since the version that accepts the
+// language field) answers in Portuguese and in English.
+func (c *WorkerClient) SupportsLanguage(language string) bool {
+	return language == "pt" || language == "en"
+}
+
+func workerLanguage(language string) string {
+	if language == "en" {
+		return "en"
+	}
+	return ""
 }
 
 func (c *WorkerClient) Explain(ctx context.Context, input ExplanationInput) (string, error) {
@@ -74,6 +90,7 @@ func (c *WorkerClient) Explain(ctx context.Context, input ExplanationInput) (str
 		TargetRPE:     input.TargetRPE,
 		Rules:         input.Rules,
 		EvidenceScope: input.EvidenceScope,
+		Language:      workerLanguage(input.Language),
 	})
 	if err != nil {
 		resultErr = err
