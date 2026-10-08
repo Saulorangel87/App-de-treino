@@ -18,8 +18,11 @@ func TestOnlyProvidersThatSayItAnswerInEnglish(t *testing.T) {
 	if !NewService(ollama).Supports("en") || !NewService(ollama).Supports("pt") {
 		t.Fatal("the local model answers in both languages")
 	}
-	if NewService(worker).Supports("en") || !NewService(worker).Supports("pt") {
-		t.Fatal("the Worker prompt is Portuguese only until it learns the language field")
+	if !NewService(worker).Supports("en") || !NewService(worker).Supports("pt") {
+		t.Fatal("the Worker answers in both languages once it accepts the language field")
+	}
+	if NewService(worker).Supports("fr") {
+		t.Fatal("only Portuguese and English are supported")
 	}
 	if NewService(nil).Supports("en") {
 		t.Fatal("without a provider there is nothing to answer in English")
@@ -37,5 +40,11 @@ func TestPromptFollowsTheLanguage(t *testing.T) {
 	input.Language = ""
 	if !strings.HasPrefix(explanationPrompt(input), "Explique a escolha") {
 		t.Fatal("Portuguese stays the default")
+	}
+}
+
+func TestWorkerGetsTheLanguageOnlyForEnglish(t *testing.T) {
+	if workerLanguage("en") != "en" || workerLanguage("pt") != "" || workerLanguage("") != "" {
+		t.Fatal("Portuguese must keep the original Worker contract (no language field)")
 	}
 }
