@@ -89,7 +89,7 @@ Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o cicl
 - Seletor PT | EN no topo (cabeçalho, login e documentos legais) e em Configurações; a escolha fica no cookie `cadencia_lang`, por aparelho. Português é o padrão. Detalhes em [`idiomas.md`](idiomas.md).
 - O app envia `Accept-Language`; a API traduz mensagens, nome, objetivo, etapas, regras e base científica dos treinos, e-mails de conta e a planilha de dados. Motor e banco seguem em português.
 - Termos e Privacidade têm tradução (o português prevalece). A Privacidade cita o cookie de idioma; `LEGAL_VERSION` não mudou, então não houve novo aceite.
-- **Limite:** a explicação por IA via Worker da Cloudflare só existe em português; em inglês a API devolve a explicação das regras. Falta o Worker aceitar um campo de idioma.
+- **IA em inglês (08/10/2026, commit `ac2ee08`):** o Worker da Cloudflare passou a aceitar o campo `language` (alterado no painel: `allowedKeys`, `validateCadenciaPayload`, prompt e mensagem de sistema em inglês) e a API o envia só em inglês. Testado em produção: a explicação sai em inglês.
 - **Dependências:** PRs do Dependabot #74 a #79 mergeados; o `oxlint` novo exigiu tirar `new Date()` da renderização.
 - **Alertas do GitHub em aberto:** `braces` (alto, runtime, sem versão corrigida; o CI trata como exceção da auditoria) e `sharp` (alto, só desenvolvimento; fixado em 0.35.4 pelo `miniflare` do `@cloudflare/vite-plugin`, correção na 0.35.5).
-- **Pendências:** conferir em produção o seletor e a nota da `0.38.0` no primeiro acesso; Fase B das zonas; resumo semanal com IA; resposta do Strava (ZLJ55R-JPPP1).
+- **Pendências:** Fase B das zonas; resumo semanal com IA; Strava adiado (a equipe do Strava não responde dúvidas de API por e-mail e pediu que se releia a documentação, ver `strava-conformidade.md`).

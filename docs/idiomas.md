@@ -20,7 +20,7 @@ Texto sem entrada fica como está: anotações do atleta e planos gerados por ve
 
 **Planilha de dados.** Abas, cabeçalhos e rótulos fixos saem traduzidos; datas continuam no formato brasileiro, como o cabeçalho avisa.
 
-**Explicação por IA.** O Ollama local responde no idioma pedido. O Worker da Cloudflare, cujo prompt fica fora deste repositório e só aceita uma lista fixa de campos, responde apenas em português; em inglês a API devolve a explicação das próprias regras, traduzida. Para o Worker responder em inglês, ele precisa aceitar um campo de idioma.
+**Explicação por IA.** O Ollama local e o Worker da Cloudflare respondem no idioma pedido. O código do Worker não está neste repositório (fica no painel da Cloudflare, Worker `flat-rice-6724`); desde 08/10/2026 ele aceita o campo `language`, que a API só envia em inglês, então o contrato em português não mudou. Se o Worker for recriado, ele precisa manter esse campo, a mensagem de sistema em inglês e `buildCadenciaPromptEn`; sem isso, em inglês ele recusa e a API devolve a explicação das próprias regras, traduzida.
 
 **Documentos legais.** Termos e Política de Privacidade têm tradução em `frontend/lib/legal.en.ts`, com aviso de que a versão em português é a que vale juridicamente. Um teste confere que as seções têm os mesmos ids, na mesma ordem e com o mesmo número de parágrafos.
 
