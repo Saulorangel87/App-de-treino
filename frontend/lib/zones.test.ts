@@ -44,8 +44,10 @@ describe('rpeForZone', () => {
 
 describe('zoneLabel', () => {
   it('junta número e nome', () => {
-    expect(zoneLabel(4.5)).toBe('Z2 · Resistência');
-    expect(zoneLabel(7)).toBe('Z4 · Limiar');
+    expect(zoneLabel(4.5, 'pt')).toBe('Z2 · Resistência');
+    expect(zoneLabel(7, 'pt')).toBe('Z4 · Limiar');
+    expect(zoneLabel(4.5, 'en')).toBe('Z2 · Endurance');
+    expect(zoneLabel(7, 'en')).toBe('Z4 · Threshold');
   });
 });
 
@@ -75,9 +77,11 @@ describe('zoneRanges', () => {
     expect(z3).toEqual({ low: 151, high: 180 });
     expect(z4).toEqual({ low: 181, high: 210 });
     expect(z5).toEqual({ low: 211, high: undefined });
-    expect(formatPowerRange(z1)).toBe('até 110 W');
-    expect(formatPowerRange(z2)).toBe('111–150 W');
-    expect(formatPowerRange(z5)).toBe('acima de 210 W');
+    expect(formatPowerRange(z1, 'pt')).toBe('até 110 W');
+    expect(formatPowerRange(z2, 'pt')).toBe('111–150 W');
+    expect(formatPowerRange(z5, 'pt')).toBe('acima de 210 W');
+    expect(formatPowerRange(z1, 'en')).toBe('up to 110 W');
+    expect(formatPowerRange(z5, 'en')).toBe('above 210 W');
   });
 });
 

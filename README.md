@@ -86,6 +86,8 @@ Quando uma sessão concluída é marcada para revisão por dados incompatíveis,
 
 A camada de IA explicativa é opcional e fica desligada por padrão. Em produção, o backend usa temporariamente a rota protegida `/cadencia/explanation` do Worker Cloudflare, que foi validada com o modelo Groq `openai/gpt-oss-20b`, para preservar a capacidade da VPS. O Ollama local permanece instalado, mas parado após uma medição de capacidade; a chamada ocorre somente no backend, nunca diretamente pelo navegador. Se os provedores não responderem, o usuário continua recebendo a explicação determinística do motor.
 
+O app funciona em português (padrão) e em inglês; o idioma é escolhido no login, em Configurações ou no rodapé e vale também para as mensagens da API, o texto dos treinos e os e-mails (ver `docs/idiomas.md`).
+
 A rota `/avaliacao` permite registrar opcionalmente um pedal de referência submáximo em Z2, com números opcionais do pedal, comparação com a avaliação anterior e histórico, sem teste máximo ou diagnóstico (ver `docs/avaliacao.md`). Para atletas avançados com objetivo de desempenho/prova, sem limitação ativa e com tempo suficiente, uma referência apta libera apenas intervalos controlados nas semanas de construção; não libera sprints nem esforço máximo.
 
 A rota `/recuperacao` registra o check-in diário. Um sinal desfavorável gera cautela; fadiga máxima ou a combinação de dois sinais desfavoráveis indica necessidade de recuperação. Nesses casos, somente a próxima sessão futura do plano ativo pode ter duração e RPE reduzidos. Um check-in favorável mantém o plano e nunca aumenta a carga por si só. A decisão fica registrada no treino para não aplicar a mesma redução duas vezes.

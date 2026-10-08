@@ -1,17 +1,226 @@
 import type { ProfileFormController } from './use-profile-form';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { useMessages } from '@/components/locale-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { defineMessages } from '@/lib/i18n';
 import { FormFeedback } from './profile-fields';
 import {
-  DAYS,
-  SESSION_PREFERENCES,
+  SESSION_PREFERENCE_VALUES,
+  profileText,
   questionIsVisible,
   type TrainingStatus,
 } from './profile-model';
 
+const messages = defineMessages({
+  pt: {
+    cycling: 'Seu ciclismo hoje',
+    cyclingIntro: 'Essas perguntas são opcionais e ajudam a tornar os próximos treinos mais específicos.',
+    discipline: 'Modalidade principal',
+    disciplines: [
+      ['', 'Não informar'],
+      ['road', 'Estrada (speed)'],
+      ['mtb_xco', 'MTB cross-country (XCO)'],
+      ['mtb_xcm', 'MTB maratona (XCM)'],
+      ['gravel', 'Gravel'],
+      ['indoor', 'Indoor/rolo'],
+    ],
+    weeklyHours: 'Horas por semana',
+    practiceMonths: 'Há quanto tempo pedala? (meses)',
+    weeklyRides: 'Pedais por semana',
+    weeklyDistance: 'Distância semanal recente (km)',
+    trainingStatus: 'Situação atual do treino',
+    trainingStatuses: [
+      ['not_informed', 'Não informar'],
+      ['regular', 'Estou treinando regularmente'],
+      ['returning_after_break', 'Estou retornando após uma pausa'],
+    ],
+    trainingStatusHint: 'Esse contexto separa falta de informação, treino regular e retomada.',
+    trainingWeeks: 'Semanas treinando com regularidade',
+    bestDistance: 'Maior distância recente (km)',
+    longestRide: 'Maior pedal recente (min)',
+    averageRide: 'Duração média do pedal (min)',
+    bikeType: 'Tipo de bicicleta',
+    bikeTypes: [
+      ['', 'Não informar'],
+      ['road', 'Estrada'],
+      ['mtb', 'MTB'],
+      ['gravel', 'Gravel'],
+      ['indoor', 'Indoor/rolo'],
+    ],
+    terrain: 'Terreno predominante',
+    terrains: [
+      ['', 'Não informar'],
+      ['flat', 'Plano'],
+      ['rolling', 'Misto'],
+      ['hilly', 'Com subidas'],
+    ],
+    preferences: 'Que tipos de treino você gostaria de fazer?',
+    preferencesHint: 'Opcional. Isso orienta futuras escolhas sem substituir os critérios de segurança.',
+    usesHeartRate: 'Uso frequência cardíaca',
+    usesPower: 'Uso medidor de potência',
+    eventGoal: 'Estou me preparando para uma prova',
+    usesGps: 'Uso GPS no pedal',
+    usesGpsHint: 'Registro percurso, distância ou velocidade.',
+    usesWatch: 'Uso relógio esportivo',
+    usesWatchHint: 'Posso acompanhar as métricas durante o pedal.',
+    usesTrainer: 'Uso rolo inteligente',
+    usesTrainerHint: 'Tenho sessões indoor com carga controlada.',
+    maxHeartRate: 'Frequência cardíaca máxima (bpm)',
+    maxHeartRateHint:
+      'Opcional. Com ela, mostramos cada zona de esforço em batimentos. Se você não sabe, deixe em branco: as zonas aparecem pela sensação (teste da conversa). A fórmula 220 menos a idade erra bastante; o melhor é o maior valor visto em um esforço máximo ou em um teste.',
+    ftp: 'FTP (watts)',
+    averagePower: 'Potência média recente (watts)',
+    ftpDate: 'Data do teste FTP',
+    ftpProtocol: 'Protocolo do teste',
+    ftpProtocols: [
+      ['', 'Não informar'],
+      ['20_minute', '20 minutos'],
+      ['ramp', 'Ramp test'],
+      ['other', 'Outro protocolo'],
+    ],
+    eventDistance: 'Distância da prova (km)',
+    eventDate: 'Data da prova',
+    days: 'Dias disponíveis',
+    daysIntro: 'Ative um dia e escolha quanto tempo você realmente consegue reservar.',
+    durationOf: (day: string) => `Duração de ${day}`,
+    durations: [
+      ['30', '30 min'],
+      ['45', '45 min'],
+      ['60', '1 hora'],
+      ['90', '1h30'],
+      ['120', '2 horas'],
+      ['180', '3 horas'],
+      ['240', '4 horas'],
+      ['360', '6 horas'],
+      ['480', '8 horas'],
+    ],
+    locationOf: (day: string) => `Local de ${day}`,
+    locations: [
+      ['', 'Qualquer local'],
+      ['outdoor', 'Rua/estrada'],
+      ['indoor', 'Rolo/indoor'],
+      ['gym', 'Academia'],
+    ],
+    timeOf: (day: string) => `Horário preferido de ${day}`,
+    possibleDays: 'dias possíveis',
+    perWeek: 'por semana',
+    summaryNote: 'O plano poderá usar menos tempo conforme sua recuperação e experiência.',
+    doneTitle: 'Perfil inicial concluído',
+    doneText: 'Seus dados estão prontos para orientar a próxima fase: a geração do plano.',
+    back: 'Voltar',
+    toDashboard: 'Ir para o painel',
+    saving: 'Salvando…',
+    saveChanges: 'Salvar alterações',
+    finish: 'Concluir perfil',
+  },
+  en: {
+    cycling: 'Your cycling today',
+    cyclingIntro: 'These questions are optional and help make your next workouts more specific.',
+    discipline: 'Main discipline',
+    disciplines: [
+      ['', "Don't say"],
+      ['road', 'Road'],
+      ['mtb_xco', 'MTB cross-country (XCO)'],
+      ['mtb_xcm', 'MTB marathon (XCM)'],
+      ['gravel', 'Gravel'],
+      ['indoor', 'Indoor/trainer'],
+    ],
+    weeklyHours: 'Hours per week',
+    practiceMonths: 'How long have you been riding? (months)',
+    weeklyRides: 'Rides per week',
+    weeklyDistance: 'Recent weekly distance (km)',
+    trainingStatus: 'Current training status',
+    trainingStatuses: [
+      ['not_informed', "Don't say"],
+      ['regular', "I'm training regularly"],
+      ['returning_after_break', "I'm coming back after a break"],
+    ],
+    trainingStatusHint: 'This context separates missing information, regular training and a comeback.',
+    trainingWeeks: 'Weeks of regular training',
+    bestDistance: 'Longest recent distance (km)',
+    longestRide: 'Longest recent ride (min)',
+    averageRide: 'Average ride duration (min)',
+    bikeType: 'Bike type',
+    bikeTypes: [
+      ['', "Don't say"],
+      ['road', 'Road'],
+      ['mtb', 'MTB'],
+      ['gravel', 'Gravel'],
+      ['indoor', 'Indoor/trainer'],
+    ],
+    terrain: 'Main terrain',
+    terrains: [
+      ['', "Don't say"],
+      ['flat', 'Flat'],
+      ['rolling', 'Mixed'],
+      ['hilly', 'Hilly'],
+    ],
+    preferences: 'What kinds of workouts would you like to do?',
+    preferencesHint: 'Optional. It guides future choices without replacing the safety criteria.',
+    usesHeartRate: 'I use heart rate',
+    usesPower: 'I use a power meter',
+    eventGoal: "I'm preparing for a race",
+    usesGps: 'I use GPS on my rides',
+    usesGpsHint: 'I record route, distance or speed.',
+    usesWatch: 'I use a sports watch',
+    usesWatchHint: 'I can follow metrics during the ride.',
+    usesTrainer: 'I use a smart trainer',
+    usesTrainerHint: 'I do indoor sessions with controlled resistance.',
+    maxHeartRate: 'Maximum heart rate (bpm)',
+    maxHeartRateHint:
+      "Optional. With it, we show each effort zone in beats per minute. If you don't know it, leave it blank: zones are shown by feel (the talk test). The 220-minus-age formula is often far off; the best value is the highest you have seen in a maximal effort or a test.",
+    ftp: 'FTP (watts)',
+    averagePower: 'Recent average power (watts)',
+    ftpDate: 'FTP test date',
+    ftpProtocol: 'Test protocol',
+    ftpProtocols: [
+      ['', "Don't say"],
+      ['20_minute', '20 minutes'],
+      ['ramp', 'Ramp test'],
+      ['other', 'Other protocol'],
+    ],
+    eventDistance: 'Race distance (km)',
+    eventDate: 'Race date',
+    days: 'Available days',
+    daysIntro: 'Turn on a day and choose how much time you can really set aside.',
+    durationOf: (day: string) => `Duration on ${day}`,
+    durations: [
+      ['30', '30 min'],
+      ['45', '45 min'],
+      ['60', '1 hour'],
+      ['90', '1h30'],
+      ['120', '2 hours'],
+      ['180', '3 hours'],
+      ['240', '4 hours'],
+      ['360', '6 hours'],
+      ['480', '8 hours'],
+    ],
+    locationOf: (day: string) => `Location on ${day}`,
+    locations: [
+      ['', 'Anywhere'],
+      ['outdoor', 'Street/road'],
+      ['indoor', 'Trainer/indoor'],
+      ['gym', 'Gym'],
+    ],
+    timeOf: (day: string) => `Preferred time on ${day}`,
+    possibleDays: 'possible days',
+    perWeek: 'per week',
+    summaryNote: 'The plan may use less time depending on your recovery and experience.',
+    doneTitle: 'Starting profile complete',
+    doneText: 'Your data is ready to guide the next phase: generating the plan.',
+    back: 'Back',
+    toDashboard: 'Go to the dashboard',
+    saving: 'Saving…',
+    saveChanges: 'Save changes',
+    finish: 'Finish profile',
+  },
+});
+
 export function ProfileStep4({ form }: { form: ProfileFormController }) {
+  const t = useMessages(messages);
+  const { days, sessionPreferences } = useMessages(profileText);
   const {
     availability,
     completed,
@@ -35,14 +244,11 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
       className="profile-form availability-form"
     >
       <fieldset>
-        <legend>Seu ciclismo hoje</legend>
-        <p className="fieldset-intro">
-          Essas perguntas são opcionais e ajudam a tornar os próximos treinos
-          mais específicos.
-        </p>
+        <legend>{t.cycling}</legend>
+        <p className="fieldset-intro">{t.cyclingIntro}</p>
         <div className="form-grid">
           <div>
-            <Label>Modalidade principal</Label>
+            <Label>{t.discipline}</Label>
             <select
               value={cyclingContext.discipline}
               onChange={(e) =>
@@ -52,16 +258,15 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
                 }))
               }
             >
-              <option value="">Não informar</option>
-              <option value="road">Estrada (speed)</option>
-              <option value="mtb_xco">MTB cross-country (XCO)</option>
-              <option value="mtb_xcm">MTB maratona (XCM)</option>
-              <option value="gravel">Gravel</option>
-              <option value="indoor">Indoor/rolo</option>
+              {t.disciplines.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
             </select>
           </div>
           <div>
-            <Label>Horas por semana</Label>
+            <Label>{t.weeklyHours}</Label>
             <Input
               type="number"
               min="0"
@@ -77,9 +282,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
             />
           </div>
           <div>
-            <Label htmlFor="practice_duration_months">
-              Há quanto tempo pedala? (meses)
-            </Label>
+            <Label htmlFor="practice_duration_months">{t.practiceMonths}</Label>
             <Input
               id="practice_duration_months"
               type="number"
@@ -95,7 +298,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
             />
           </div>
           <div>
-            <Label>Pedais por semana</Label>
+            <Label>{t.weeklyRides}</Label>
             <Input
               type="number"
               min="0"
@@ -110,7 +313,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
             />
           </div>
           <div>
-            <Label>Distância semanal recente (km)</Label>
+            <Label>{t.weeklyDistance}</Label>
             <Input
               type="number"
               min="0"
@@ -126,7 +329,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
             />
           </div>
           <div className="training-status-field">
-            <Label htmlFor="training_status">Situação atual do treino</Label>
+            <Label htmlFor="training_status">{t.trainingStatus}</Label>
             <select
               id="training_status"
               value={cyclingContext.training_status}
@@ -137,21 +340,16 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
                 }))
               }
             >
-              <option value="not_informed">Não informar</option>
-              <option value="regular">Estou treinando regularmente</option>
-              <option value="returning_after_break">
-                Estou retornando após uma pausa
-              </option>
+              {t.trainingStatuses.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
             </select>
-            <small>
-              Esse contexto separa falta de informação, treino regular e
-              retomada.
-            </small>
+            <small>{t.trainingStatusHint}</small>
           </div>
           <div>
-            <Label htmlFor="recent_training_weeks">
-              Semanas treinando com regularidade
-            </Label>
+            <Label htmlFor="recent_training_weeks">{t.trainingWeeks}</Label>
             <Input
               id="recent_training_weeks"
               type="number"
@@ -167,7 +365,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
             />
           </div>
           <div>
-            <Label>Maior distância recente (km)</Label>
+            <Label>{t.bestDistance}</Label>
             <Input
               type="number"
               min="0"
@@ -183,7 +381,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
             />
           </div>
           <div>
-            <Label>Maior pedal recente (min)</Label>
+            <Label>{t.longestRide}</Label>
             <Input
               type="number"
               min="0"
@@ -198,9 +396,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
             />
           </div>
           <div>
-            <Label htmlFor="average_ride_minutes">
-              Duração média do pedal (min)
-            </Label>
+            <Label htmlFor="average_ride_minutes">{t.averageRide}</Label>
             <Input
               id="average_ride_minutes"
               type="number"
@@ -216,7 +412,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
             />
           </div>
           <div>
-            <Label>Tipo de bicicleta</Label>
+            <Label>{t.bikeType}</Label>
             <select
               value={cyclingContext.bike_type}
               onChange={(e) =>
@@ -226,15 +422,15 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
                 }))
               }
             >
-              <option value="">Não informar</option>
-              <option value="road">Estrada</option>
-              <option value="mtb">MTB</option>
-              <option value="gravel">Gravel</option>
-              <option value="indoor">Indoor/rolo</option>
+              {t.bikeTypes.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
             </select>
           </div>
           <div>
-            <Label>Terreno predominante</Label>
+            <Label>{t.terrain}</Label>
             <select
               value={cyclingContext.terrain}
               onChange={(e) =>
@@ -244,36 +440,32 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
                 }))
               }
             >
-              <option value="">Não informar</option>
-              <option value="flat">Plano</option>
-              <option value="rolling">Misto</option>
-              <option value="hilly">Com subidas</option>
+              {t.terrains.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
         <div className="preference-choice">
-          <p>Que tipos de treino você gostaria de fazer?</p>
-          <small>
-            Opcional. Isso orienta futuras escolhas sem substituir os critérios
-            de segurança.
-          </small>
+          <p>{t.preferences}</p>
+          <small>{t.preferencesHint}</small>
           <div>
-            {SESSION_PREFERENCES.map((preference) => (
-              <label key={preference.value}>
+            {SESSION_PREFERENCE_VALUES.map((preference) => (
+              <label key={preference}>
                 <input
                   type="checkbox"
-                  checked={cyclingContext.preferred_session_types.includes(
-                    preference.value,
-                  )}
-                  onChange={() => toggleSessionPreference(preference.value)}
+                  checked={cyclingContext.preferred_session_types.includes(preference)}
+                  onChange={() => toggleSessionPreference(preference)}
                 />
-                <span>{preference.label}</span>
+                <span>{sessionPreferences[preference]}</span>
               </label>
             ))}
           </div>
         </div>
         <div className="binary-choice">
-          <label aria-label="Uso frequência cardíaca">
+          <label aria-label={t.usesHeartRate}>
             <input
               type="checkbox"
               checked={cyclingContext.uses_heart_rate}
@@ -286,10 +478,10 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
               }
             />
             <span>
-              <strong>Uso frequência cardíaca</strong>
+              <strong>{t.usesHeartRate}</strong>
             </span>
           </label>
-          <label aria-label="Uso medidor de potência">
+          <label aria-label={t.usesPower}>
             <input
               type="checkbox"
               checked={cyclingContext.uses_power}
@@ -307,10 +499,10 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
               }
             />
             <span>
-              <strong>Uso medidor de potência</strong>
+              <strong>{t.usesPower}</strong>
             </span>
           </label>
-          <label aria-label="Estou me preparando para uma prova">
+          <label aria-label={t.eventGoal}>
             <input
               type="checkbox"
               checked={cyclingContext.event_goal}
@@ -326,12 +518,12 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
               }
             />
             <span>
-              <strong>Estou me preparando para uma prova</strong>
+              <strong>{t.eventGoal}</strong>
             </span>
           </label>
         </div>
         <div className="binary-choice equipment-choice">
-          <label aria-label="Uso GPS no pedal">
+          <label aria-label={t.usesGps}>
             <input
               type="checkbox"
               checked={cyclingContext.uses_gps}
@@ -343,11 +535,11 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
               }
             />
             <span>
-              <strong>Uso GPS no pedal</strong>
-              <small>Registro percurso, distância ou velocidade.</small>
+              <strong>{t.usesGps}</strong>
+              <small>{t.usesGpsHint}</small>
             </span>
           </label>
-          <label aria-label="Uso relógio esportivo">
+          <label aria-label={t.usesWatch}>
             <input
               type="checkbox"
               checked={cyclingContext.uses_sports_watch}
@@ -359,11 +551,11 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
               }
             />
             <span>
-              <strong>Uso relógio esportivo</strong>
-              <small>Posso acompanhar as métricas durante o pedal.</small>
+              <strong>{t.usesWatch}</strong>
+              <small>{t.usesWatchHint}</small>
             </span>
           </label>
-          <label aria-label="Uso rolo inteligente">
+          <label aria-label={t.usesTrainer}>
             <input
               type="checkbox"
               checked={cyclingContext.uses_smart_trainer}
@@ -375,8 +567,8 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
               }
             />
             <span>
-              <strong>Uso rolo inteligente</strong>
-              <small>Tenho sessões indoor com carga controlada.</small>
+              <strong>{t.usesTrainer}</strong>
+              <small>{t.usesTrainerHint}</small>
             </span>
           </label>
         </div>
@@ -385,9 +577,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
             uses_heart_rate: cyclingContext.uses_heart_rate,
           }) && (
             <div className="max-heart-rate-field">
-              <Label htmlFor="max_heart_rate">
-                Frequência cardíaca máxima (bpm)
-              </Label>
+              <Label htmlFor="max_heart_rate">{t.maxHeartRate}</Label>
               <Input
                 id="max_heart_rate"
                 type="number"
@@ -401,13 +591,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
                   }))
                 }
               />
-              <small>
-                Opcional. Com ela, mostramos cada zona de esforço em batimentos.
-                Se você não sabe, deixe em branco: as zonas aparecem pela
-                sensação (teste da conversa). A fórmula 220 menos a idade erra
-                bastante; o melhor é o maior valor visto em um esforço máximo
-                ou em um teste.
-              </small>
+              <small>{t.maxHeartRateHint}</small>
             </div>
           )}
         {questionIsVisible(questionnaire, 'ftp', {
@@ -415,7 +599,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
         }) && (
           <div className="form-grid power-context-fields">
             <div>
-              <Label htmlFor="ftp">FTP (watts)</Label>
+              <Label htmlFor="ftp">{t.ftp}</Label>
               <Input
                 id="ftp"
                 type="number"
@@ -431,9 +615,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
               />
             </div>
             <div>
-              <Label htmlFor="average_power_watts">
-                Potência média recente (watts)
-              </Label>
+              <Label htmlFor="average_power_watts">{t.averagePower}</Label>
               <Input
                 id="average_power_watts"
                 type="number"
@@ -449,7 +631,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
               />
             </div>
             <div>
-              <Label htmlFor="ftp_test_date">Data do teste FTP</Label>
+              <Label htmlFor="ftp_test_date">{t.ftpDate}</Label>
               <Input
                 id="ftp_test_date"
                 type="date"
@@ -464,7 +646,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
               />
             </div>
             <div>
-              <Label htmlFor="ftp_protocol">Protocolo do teste</Label>
+              <Label htmlFor="ftp_protocol">{t.ftpProtocol}</Label>
               <select
                 id="ftp_protocol"
                 value={cyclingContext.ftp_protocol || ''}
@@ -475,10 +657,11 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
                   }))
                 }
               >
-                <option value="">Não informar</option>
-                <option value="20_minute">20 minutos</option>
-                <option value="ramp">Ramp test</option>
-                <option value="other">Outro protocolo</option>
+              {t.ftpProtocols.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
               </select>
             </div>
           </div>
@@ -488,7 +671,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
         }) && (
           <div className="form-grid">
             <div>
-              <Label>Distância da prova (km)</Label>
+              <Label>{t.eventDistance}</Label>
               <Input
                 type="number"
                 min="1"
@@ -504,7 +687,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
               />
             </div>
             <div>
-              <Label>Data da prova</Label>
+              <Label>{t.eventDate}</Label>
               <Input
                 type="date"
                 required
@@ -522,10 +705,8 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
         )}
       </fieldset>
       <fieldset>
-        <legend>Dias disponíveis</legend>
-        <p className="fieldset-intro">
-          Ative um dia e escolha quanto tempo você realmente consegue reservar.
-        </p>
+        <legend>{t.days}</legend>
+        <p className="fieldset-intro">{t.daysIntro}</p>
         <div className="availability-grid">
           {availability.map((day) => {
             const active = day.available_minutes > 0;
@@ -550,13 +731,13 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
                     )
                   }
                 >
-                  <span>{DAYS[day.weekday]}</span>
+                  <span>{days[day.weekday]}</span>
                   <i>{active && <Check size={12} />}</i>
                 </button>
                 {active && (
                   <div>
                     <select
-                      aria-label={`Duração de ${DAYS[day.weekday]}`}
+                      aria-label={t.durationOf(days[day.weekday])}
                       value={day.available_minutes}
                       onChange={(event) =>
                         updateDay(day.weekday, {
@@ -564,18 +745,14 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
                         })
                       }
                     >
-                      <option value="30">30 min</option>
-                      <option value="45">45 min</option>
-                      <option value="60">1 hora</option>
-                      <option value="90">1h30</option>
-                      <option value="120">2 horas</option>
-                      <option value="180">3 horas</option>
-                      <option value="240">4 horas</option>
-                      <option value="360">6 horas</option>
-                      <option value="480">8 horas</option>
+              {t.durations.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
                     </select>
                     <select
-                      aria-label={`Local de ${DAYS[day.weekday]}`}
+                      aria-label={t.locationOf(days[day.weekday])}
                       value={day.location || ''}
                       onChange={(event) =>
                         updateDay(day.weekday, {
@@ -583,13 +760,14 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
                         })
                       }
                     >
-                      <option value="">Qualquer local</option>
-                      <option value="outdoor">Rua/estrada</option>
-                      <option value="indoor">Rolo/indoor</option>
-                      <option value="gym">Academia</option>
+              {t.locations.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
                     </select>
                     <Input
-                      aria-label={`Horário preferido de ${DAYS[day.weekday]}`}
+                      aria-label={t.timeOf(days[day.weekday])}
                       type="time"
                       value={day.preferred_time || ''}
                       onChange={(event) =>
@@ -608,19 +786,16 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
       <div className="availability-summary">
         <div>
           <strong>{trainingDays}</strong>
-          <span>dias possíveis</span>
+          <span>{t.possibleDays}</span>
         </div>
         <div>
           <strong>
             {Math.floor(totalMinutes / 60)}h
             {totalMinutes % 60 ? ` ${totalMinutes % 60}min` : ''}
           </strong>
-          <span>por semana</span>
+          <span>{t.perWeek}</span>
         </div>
-        <p>
-          O plano poderá usar menos tempo conforme sua recuperação e
-          experiência.
-        </p>
+        <p>{t.summaryNote}</p>
       </div>
       {completed && (
         <div className="completion-card">
@@ -628,18 +803,15 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
             <Check size={20} />
           </span>
           <div>
-            <strong>Perfil inicial concluído</strong>
-            <p>
-              Seus dados estão prontos para orientar a próxima fase: a geração
-              do plano.
-            </p>
+            <strong>{t.doneTitle}</strong>
+            <p>{t.doneText}</p>
           </div>
         </div>
       )}
       <FormFeedback error={error} message={message} />
       <div className="form-actions">
         <Button type="button" variant="outline" onClick={() => goToStep(3)}>
-          <ArrowLeft size={15} /> Voltar
+          <ArrowLeft size={15} /> {t.back}
         </Button>
         {completed && (
           <Button
@@ -649,7 +821,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
               window.location.href = '/';
             }}
           >
-            Ir para o painel
+            {t.toDashboard}
             <ArrowRight size={16} />
           </Button>
         )}
@@ -658,11 +830,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
           disabled={saving || totalMinutes === 0}
           className="profile-submit"
         >
-          {saving
-            ? 'Salvando…'
-            : completed
-              ? 'Salvar alterações'
-              : 'Concluir perfil'}
+          {saving ? t.saving : completed ? t.saveChanges : t.finish}
           <Check size={16} />
         </Button>
       </div>

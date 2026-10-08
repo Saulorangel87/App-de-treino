@@ -1,5 +1,6 @@
 // Tipos, constantes e textos da tela de perfil.
 import { CalendarDays, Flag, HeartPulse, ShieldAlert } from 'lucide-react';
+import { defineMessages } from '@/lib/i18n';
 
 export type User = {
   display_name: string;
@@ -123,7 +124,6 @@ export type ProfileForm = {
   activity_level: string;
 };
 
-export const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 export const initialProfile: ProfileForm = {
   birth_date: '',
   sex: '',
@@ -136,7 +136,7 @@ export const initialProfile: ProfileForm = {
   activity_level: '',
 };
 export const initialAvailability = (): Availability[] =>
-  DAYS.map((_, weekday) => ({
+  Array.from({ length: 7 }, (_, weekday) => ({
     weekday,
     available_minutes: 0,
     preferred_time: null,
@@ -169,64 +169,160 @@ export const TRAINING_STATUSES = new Set<TrainingStatus>([
   'returning_after_break',
 ]);
 export const EXCLUDED_DISCIPLINES = new Set(['dh_enduro', 'track_sprint']);
-export const SESSION_PREFERENCES = [
-  { value: 'base', label: 'Giro/base' },
-  { value: 'cadence', label: 'Cadência' },
-  { value: 'hills', label: 'Subidas' },
-  { value: 'intervals', label: 'Intervalos' },
-  { value: 'threshold', label: 'Limiar' },
-  { value: 'sweet_spot', label: 'Sweet spot' },
-  { value: 'vo2max', label: 'VO₂max' },
-  { value: 'short_intervals', label: 'Intervalos curtos' },
-  { value: 'recovery', label: 'Recuperação' },
-];
-export const SAFETY_SYMPTOMS = [
-  { value: 'dizziness', label: 'Tontura' },
-  { value: 'unusual_shortness_of_breath', label: 'Falta de ar incomum' },
-  { value: 'malaise', label: 'Mal-estar' },
-  { value: 'extreme_fatigue', label: 'Fadiga extrema' },
-  { value: 'other', label: 'Outro sintoma' },
-];
+export const SESSION_PREFERENCE_VALUES = [
+  'base',
+  'cadence',
+  'hills',
+  'intervals',
+  'threshold',
+  'sweet_spot',
+  'vo2max',
+  'short_intervals',
+  'recovery',
+] as const;
+export const SAFETY_SYMPTOM_VALUES = [
+  'dizziness',
+  'unusual_shortness_of_breath',
+  'malaise',
+  'extreme_fatigue',
+  'other',
+] as const;
 
-export const stepCopy = [
-  {
-    kicker: 'PERFIL DO ATLETA · ETAPA 1',
-    title: 'Conte-nos onde você está agora.',
-    description:
-      'Esses dados definem os limites iniciais. Você poderá atualizá-los quando quiser.',
-    icon: ShieldAlert,
-    asideTitle: 'Uma base segura',
-    aside:
-      'Experiência e rotina ajudam o Cadência a começar com uma carga compatível com seu momento.',
+export const STEP_ICONS = [ShieldAlert, HeartPulse, Flag, CalendarDays];
+
+type StepCopy = { kicker: string; title: string; description: string; asideTitle: string; aside: string };
+
+// Textos fixos do perfil. Título e descrição de cada etapa podem vir do
+// questionário da API, que já responde no idioma pedido.
+export const profileText = defineMessages({
+  pt: {
+    days: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+    sessionPreferences: {
+      base: 'Giro/base',
+      cadence: 'Cadência',
+      hills: 'Subidas',
+      intervals: 'Intervalos',
+      threshold: 'Limiar',
+      sweet_spot: 'Sweet spot',
+      vo2max: 'VO₂max',
+      short_intervals: 'Intervalos curtos',
+      recovery: 'Recuperação',
+    } as Record<(typeof SESSION_PREFERENCE_VALUES)[number], string>,
+    safetySymptoms: {
+      dizziness: 'Tontura',
+      unusual_shortness_of_breath: 'Falta de ar incomum',
+      malaise: 'Mal-estar',
+      extreme_fatigue: 'Fadiga extrema',
+      other: 'Outro sintoma',
+    } as Record<(typeof SAFETY_SYMPTOM_VALUES)[number], string>,
+    goals: {
+      health: 'Melhorar saúde e bem-estar',
+      fitness: 'Ganhar condicionamento',
+      endurance: 'Pedalar por mais tempo',
+      performance: 'Aumentar meu desempenho',
+      event: 'Preparar para um evento',
+      weight_management: 'Apoiar o controle de peso',
+    } as Record<string, string>,
+    steps: [
+      {
+        kicker: 'PERFIL DO ATLETA · ETAPA 1',
+        title: 'Conte-nos onde você está agora.',
+        description: 'Esses dados definem os limites iniciais. Você poderá atualizá-los quando quiser.',
+        asideTitle: 'Uma base segura',
+        aside: 'Experiência e rotina ajudam o Cadência a começar com uma carga compatível com seu momento.',
+      },
+      {
+        kicker: 'SEGURANÇA · ETAPA 2',
+        title: 'Existe algo que o treino deve respeitar?',
+        description: 'Dor, lesões e limitações sempre têm prioridade sobre desempenho.',
+        asideTitle: 'Segurança em primeiro lugar',
+        aside: 'Uma limitação ativa restringe o que o motor poderá prescrever. O Cadência não realiza diagnóstico médico.',
+      },
+      {
+        kicker: 'DIREÇÃO · ETAPA 3',
+        title: 'Onde você quer chegar?',
+        description: 'Defina um objetivo principal e, se desejar, uma prioridade secundária.',
+        asideTitle: 'Objetivos realistas',
+        aside: 'O plano combinará sua meta com experiência, segurança e tempo disponível — nunca apenas com ambição.',
+      },
+      {
+        kicker: 'ROTINA · ETAPA 4',
+        title: 'Quanto tempo cabe na sua semana?',
+        description: 'Marque os dias possíveis. Descanso também faz parte do plano.',
+        asideTitle: 'Consistência vence excesso',
+        aside: 'Usaremos somente os períodos que você informou e reservaremos espaço suficiente para recuperação.',
+      },
+    ] as StepCopy[],
+    loadFailed: 'Não foi possível carregar seu perfil. Verifique se a API está em execução e tente novamente.',
+    availabilitySaved: 'Disponibilidade salva. Abra Meu plano e escolha Atualizar plano para gerar um rascunho com esta nova rotina.',
+    profileDone: 'Perfil concluído. Seu contexto inicial está salvo com segurança.',
+    saveFailed: 'Não foi possível salvar esta etapa.',
+    openLocalLink: 'Abra o link local abaixo.',
+    resendFailed: 'Não foi possível reenviar a confirmação.',
   },
-  {
-    kicker: 'SEGURANÇA · ETAPA 2',
-    title: 'Existe algo que o treino deve respeitar?',
-    description:
-      'Dor, lesões e limitações sempre têm prioridade sobre desempenho.',
-    icon: HeartPulse,
-    asideTitle: 'Segurança em primeiro lugar',
-    aside:
-      'Uma limitação ativa restringe o que o motor poderá prescrever. O Cadência não realiza diagnóstico médico.',
+  en: {
+    days: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    sessionPreferences: {
+      base: 'Easy/base',
+      cadence: 'Cadence',
+      hills: 'Climbs',
+      intervals: 'Intervals',
+      threshold: 'Threshold',
+      sweet_spot: 'Sweet spot',
+      vo2max: 'VO₂max',
+      short_intervals: 'Short intervals',
+      recovery: 'Recovery',
+    },
+    safetySymptoms: {
+      dizziness: 'Dizziness',
+      unusual_shortness_of_breath: 'Unusual shortness of breath',
+      malaise: 'Feeling unwell',
+      extreme_fatigue: 'Extreme fatigue',
+      other: 'Other symptom',
+    },
+    goals: {
+      health: 'Improve health and well-being',
+      fitness: 'Get fitter',
+      endurance: 'Ride for longer',
+      performance: 'Boost my performance',
+      event: 'Prepare for an event',
+      weight_management: 'Support weight management',
+    },
+    steps: [
+      {
+        kicker: 'ATHLETE PROFILE · STEP 1',
+        title: 'Tell us where you are right now.',
+        description: 'This data sets the starting limits. You can update it whenever you want.',
+        asideTitle: 'A safe base',
+        aside: 'Experience and routine help Cadência start with a load that fits where you are now.',
+      },
+      {
+        kicker: 'SAFETY · STEP 2',
+        title: 'Is there anything your training should respect?',
+        description: 'Pain, injuries and limitations always take priority over performance.',
+        asideTitle: 'Safety first',
+        aside: 'An active limitation restricts what the engine can prescribe. Cadência does not provide medical diagnosis.',
+      },
+      {
+        kicker: 'DIRECTION · STEP 3',
+        title: 'Where do you want to get to?',
+        description: 'Set a main goal and, if you want, a secondary priority.',
+        asideTitle: 'Realistic goals',
+        aside: 'The plan will combine your goal with experience, safety and available time — never with ambition alone.',
+      },
+      {
+        kicker: 'ROUTINE · STEP 4',
+        title: 'How much time fits in your week?',
+        description: 'Mark the days you can ride. Rest is part of the plan too.',
+        asideTitle: 'Consistency beats excess',
+        aside: 'We will only use the times you entered and leave enough room for recovery.',
+      },
+    ],
+    loadFailed: 'Your profile could not be loaded. Check that the API is running and try again.',
+    availabilitySaved: 'Availability saved. Open My plan and choose Update plan to generate a draft with this new routine.',
+    profileDone: 'Profile complete. Your starting context is saved securely.',
+    saveFailed: 'This step could not be saved.',
+    openLocalLink: 'Open the local link below.',
+    resendFailed: 'The confirmation could not be resent.',
   },
-  {
-    kicker: 'DIREÇÃO · ETAPA 3',
-    title: 'Onde você quer chegar?',
-    description:
-      'Defina um objetivo principal e, se desejar, uma prioridade secundária.',
-    icon: Flag,
-    asideTitle: 'Objetivos realistas',
-    aside:
-      'O plano combinará sua meta com experiência, segurança e tempo disponível — nunca apenas com ambição.',
-  },
-  {
-    kicker: 'ROTINA · ETAPA 4',
-    title: 'Quanto tempo cabe na sua semana?',
-    description:
-      'Marque os dias possíveis. Descanso também faz parte do plano.',
-    icon: CalendarDays,
-    asideTitle: 'Consistência vence excesso',
-    aside:
-      'Usaremos somente os períodos que você informou e reservaremos espaço suficiente para recuperação.',
-  },
-];
+});

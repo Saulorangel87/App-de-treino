@@ -1,7 +1,11 @@
+'use client';
+
 // Escala de intensidade do app inteiro, emprestada da sinalização de trilhas:
 // círculo verde (leve), quadrado azul (moderado) e losango preto (intenso).
 
+import { defineMessages } from '@/lib/i18n';
 import { zoneForRpe } from '@/lib/zones';
+import { useMessages } from './locale-provider';
 
 export type Intensity = 'easy' | 'moderate' | 'hard';
 
@@ -13,17 +17,22 @@ export function intensityOf(rpe: number): Intensity {
   return 'hard';
 }
 
-export const intensityLabels: Record<Intensity, string> = {
-  easy: 'Leve',
-  moderate: 'Moderado',
-  hard: 'Intenso',
-};
-
-export const intensityRanges: Record<Intensity, string> = {
-  easy: 'Zonas 1–2',
-  moderate: 'Zona 3',
-  hard: 'Zonas 4–5',
-};
+export const intensityMessages = defineMessages({
+  pt: {
+    labels: { easy: 'Leve', moderate: 'Moderado', hard: 'Intenso' } as Record<Intensity, string>,
+    ranges: { easy: 'Zonas 1–2', moderate: 'Zona 3', hard: 'Zonas 4–5' } as Record<Intensity, string>,
+    rest: 'Descanso',
+    intensity: (label: string) => `Intensidade ${label.toLowerCase()}`,
+    legend: 'Legenda de intensidade',
+  },
+  en: {
+    labels: { easy: 'Easy', moderate: 'Moderate', hard: 'Hard' },
+    ranges: { easy: 'Zones 1–2', moderate: 'Zone 3', hard: 'Zones 4–5' },
+    rest: 'Rest',
+    intensity: (label: string) => `${label} intensity`,
+    legend: 'Intensity legend',
+  },
+});
 
 export function TrailSymbol({
   rpe,
@@ -36,6 +45,7 @@ export function TrailSymbol({
   rest?: boolean;
   label?: string;
 }) {
+  const t = useMessages(intensityMessages);
   const level = rest ? 'rest' : intensity || intensityOf(rpe ?? 1);
   // label="" marca o símbolo como decorativo (o texto ao lado já descreve).
   const a11y =
@@ -44,19 +54,20 @@ export function TrailSymbol({
       : {
           role: 'img',
           'aria-label':
-            label || (level === 'rest' ? 'Descanso' : `Intensidade ${intensityLabels[level].toLowerCase()}`),
+            label || (level === 'rest' ? t.rest : t.intensity(t.labels[level])),
         };
   return <span className={`trail-sym trail-sym-${level}`} {...a11y} />;
 }
 
 export function TrailLegend() {
+  const t = useMessages(intensityMessages);
   return (
-    <ul className="trail-legend" aria-label="Legenda de intensidade">
+    <ul className="trail-legend" aria-label={t.legend}>
       {(['easy', 'moderate', 'hard'] as const).map((level) => (
         <li key={level}>
           <TrailSymbol intensity={level} label="" />
           <span>
-            {intensityLabels[level]} <small>{intensityRanges[level]}</small>
+            {t.labels[level]} <small>{t.ranges[level]}</small>
           </span>
         </li>
       ))}

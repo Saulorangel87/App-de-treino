@@ -16,24 +16,66 @@ import {
   Sparkles,
   UserRound,
 } from 'lucide-react';
+import { defineMessages } from '@/lib/i18n';
 import { Brand } from './brand';
+import { LanguageSwitcher } from './language-switcher';
 import { LogoutButton } from './account-actions';
+import { useMessages } from './locale-provider';
 
 const sections = [
-  { href: '/', label: 'Hoje', icon: MapIcon },
-  { href: '/plano', label: 'Plano', icon: CalendarDays },
-  { href: '/atividades', label: 'Atividades', icon: Activity },
-  { href: '/evolucao', label: 'Evolução', icon: LineChart },
-  { href: '/recuperacao', label: 'Check-in', icon: HeartPulse },
+  { href: '/', key: 'today', icon: MapIcon },
+  { href: '/plano', key: 'plan', icon: CalendarDays },
+  { href: '/atividades', key: 'activities', icon: Activity },
+  { href: '/evolucao', key: 'progress', icon: LineChart },
+  { href: '/recuperacao', key: 'checkin', icon: HeartPulse },
 ] as const;
 
 const accountLinks = [
-  { href: '/perfil', label: 'Perfil do atleta', icon: UserRound },
-  { href: '/avaliacao', label: 'Avaliação', icon: Gauge },
-  { href: '/novidades', label: 'Novidades', icon: Sparkles },
-  { href: '/feedback', label: 'Enviar feedback', icon: MessageSquareHeart },
-  { href: '/configuracoes', label: 'Configurações', icon: Settings },
+  { href: '/perfil', key: 'profile', icon: UserRound },
+  { href: '/avaliacao', key: 'assessment', icon: Gauge },
+  { href: '/novidades', key: 'news', icon: Sparkles },
+  { href: '/feedback', key: 'feedback', icon: MessageSquareHeart },
+  { href: '/configuracoes', key: 'settings', icon: Settings },
 ] as const;
+
+const messages = defineMessages({
+  pt: {
+    links: {
+      today: 'Hoje',
+      plan: 'Plano',
+      activities: 'Atividades',
+      progress: 'Evolução',
+      checkin: 'Check-in',
+      profile: 'Perfil do atleta',
+      assessment: 'Avaliação',
+      news: 'Novidades',
+      feedback: 'Enviar feedback',
+      settings: 'Configurações',
+    },
+    sections: 'Seções',
+    account: 'Conta',
+    openMenu: 'Abrir menu da conta',
+    athlete: 'Atleta',
+  },
+  en: {
+    links: {
+      today: 'Today',
+      plan: 'Plan',
+      activities: 'Activities',
+      progress: 'Progress',
+      checkin: 'Check-in',
+      profile: 'Athlete profile',
+      assessment: 'Assessment',
+      news: "What's new",
+      feedback: 'Send feedback',
+      settings: 'Settings',
+    },
+    sections: 'Sections',
+    account: 'Account',
+    openMenu: 'Open account menu',
+    athlete: 'Athlete',
+  },
+});
 
 function isActive(pathname: string, href: string) {
   return href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
@@ -51,6 +93,7 @@ function initials(name: string) {
 export function AppHeader({ name }: { name?: string }) {
   const pathname = usePathname() || '/';
   const [menuOpen, setMenuOpen] = useState(false);
+  const t = useMessages(messages);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -74,18 +117,20 @@ export function AppHeader({ name }: { name?: string }) {
     <>
       <header className="app-header">
         <Brand />
-        <nav className="app-nav" aria-label="Seções">
-          {sections.map(({ href, label }) => (
+        <nav className="app-nav" aria-label={t.sections}>
+          {sections.map(({ href, key }) => (
             <Link
               key={href}
               href={href}
               className={isActive(pathname, href) ? 'active' : undefined}
               aria-current={isActive(pathname, href) ? 'page' : undefined}
             >
-              {label}
+              {t.links[key]}
             </Link>
           ))}
         </nav>
+        <div className="app-header-end">
+        <LanguageSwitcher compact className="header-language" />
         <div className="app-menu" ref={menuRef}>
           <button
             type="button"
@@ -97,20 +142,20 @@ export function AppHeader({ name }: { name?: string }) {
             <span className="app-menu-avatar" aria-hidden="true">
               {name ? initials(name) : <UserRound size={15} />}
             </span>
-            <span className="app-menu-name">{name?.split(' ')[0] || 'Conta'}</span>
+            <span className="app-menu-name">{name?.split(' ')[0] || t.account}</span>
             <ChevronDown size={15} aria-hidden="true" />
-            <span className="sr-only">Abrir menu da conta</span>
+            <span className="sr-only">{t.openMenu}</span>
           </button>
           {menuOpen && (
             <div className="app-menu-panel" id="app-menu-panel">
               {name && (
                 <p className="app-menu-identity">
-                  <small>Atleta</small>
+                  <small>{t.athlete}</small>
                   <strong>{name}</strong>
                 </p>
               )}
               <ul>
-                {accountLinks.map(({ href, label, icon: Icon }) => (
+                {accountLinks.map(({ href, key, icon: Icon }) => (
                   <li key={href}>
                     <Link
                       href={href}
@@ -119,7 +164,7 @@ export function AppHeader({ name }: { name?: string }) {
                       onClick={() => setMenuOpen(false)}
                     >
                       <Icon size={17} aria-hidden="true" />
-                      {label}
+                      {t.links[key]}
                     </Link>
                   </li>
                 ))}
@@ -128,9 +173,10 @@ export function AppHeader({ name }: { name?: string }) {
             </div>
           )}
         </div>
+        </div>
       </header>
-      <nav className="tab-bar" aria-label="Seções">
-        {sections.map(({ href, label, icon: Icon }) => (
+      <nav className="tab-bar" aria-label={t.sections}>
+        {sections.map(({ href, key, icon: Icon }) => (
           <Link
             key={href}
             href={href}
@@ -138,7 +184,7 @@ export function AppHeader({ name }: { name?: string }) {
             aria-current={isActive(pathname, href) ? 'page' : undefined}
           >
             <Icon size={20} aria-hidden="true" />
-            <span>{label}</span>
+            <span>{t.links[key]}</span>
           </Link>
         ))}
       </nav>

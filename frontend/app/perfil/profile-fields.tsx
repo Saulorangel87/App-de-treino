@@ -1,16 +1,12 @@
 import { Check, CircleAlert } from 'lucide-react';
+import { useMessages } from '@/components/locale-provider';
+import { profileText } from './profile-model';
 
 export function GoalOptions({ exclude = '' }: { exclude?: string }) {
+  const { goals } = useMessages(profileText);
   return (
     <>
-      {[
-        ['health', 'Melhorar saúde e bem-estar'],
-        ['fitness', 'Ganhar condicionamento'],
-        ['endurance', 'Pedalar por mais tempo'],
-        ['performance', 'Aumentar meu desempenho'],
-        ['event', 'Preparar para um evento'],
-        ['weight_management', 'Apoiar o controle de peso'],
-      ]
+      {Object.entries(goals)
         .filter(([value]) => value !== exclude)
         .map(([value, label]) => (
           <option key={value} value={value}>

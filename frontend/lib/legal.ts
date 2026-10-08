@@ -49,7 +49,7 @@ export const PRIVACY_POLICY: LegalDocument = {
         'Atividades importadas de arquivos .fit, .gpx ou .tcx que você envia: data e hora, duração, distância, altimetria e médias de frequência cardíaca, potência e cadência. O trajeto (coordenadas de GPS) é lido para calcular esses números e não é guardado.',
         'Mensagens que você envia pelo formulário de feedback do app.',
         'Registro do aceite: a data e a versão dos Termos de Uso e da Política de Privacidade que você aceitou.',
-        'Dados técnicos: um cookie de sessão e registros de acesso do servidor e da rede, como endereço IP e horário, usados para segurança.',
+        'Dados técnicos: um cookie de sessão, um cookie com o idioma escolhido e registros de acesso do servidor e da rede, como endereço IP e horário, usados para segurança.',
       ],
     },
     {
@@ -129,7 +129,7 @@ export const PRIVACY_POLICY: LegalDocument = {
       id: 'cookies',
       title: 'Cookies e armazenamento no aparelho',
       paragraphs: [
-        'Usamos um cookie essencial, que mantém você conectado, e guardamos no navegador apenas preferências da interface, como saber se o app foi instalado. Não usamos cookies de publicidade nem ferramentas de análise de terceiros.',
+        'Usamos um cookie essencial, que mantém você conectado, e um cookie simples que guarda o idioma escolhido (português ou inglês) e não contém dados pessoais. Guardamos no navegador apenas preferências da interface, como saber se o app foi instalado. Não usamos cookies de publicidade nem ferramentas de análise de terceiros.',
       ],
     },
     {

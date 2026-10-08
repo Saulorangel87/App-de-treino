@@ -19,6 +19,8 @@ import {
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { AppHeader } from '@/components/app-header';
 import { ApiErrorState } from '@/components/api-error-state';
+import { useLocale, useMessages } from '@/components/locale-provider';
+import { currentLocale, defineMessages, formatDecimal, INTL_LOCALE } from '@/lib/i18n';
 import { parseTrainingDate } from '@/lib/planning';
 
 type User = { display_name: string };
@@ -48,15 +50,86 @@ type ImportedActivity = {
   imported_at: string;
 };
 
-const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
-  day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+const messages = defineMessages({
+  pt: {
+    loadFailed: 'Não foi possível carregar suas atividades importadas.',
+    importFailed: 'Não foi possível importar este arquivo.',
+    linkFailed: 'Não foi possível atualizar o vínculo.',
+    candidatesFailed: 'Não foi possível buscar treinos para esta atividade.',
+    deleteFailed: 'Não foi possível remover esta atividade.',
+    pageFailed: 'Não foi possível carregar esta página.',
+    loading: 'Carregando…',
+    back: 'Voltar às atividades',
+    kicker: 'DADOS REAIS DE EXECUÇÃO',
+    title: 'Importar uma atividade.',
+    introBefore: 'Envie o arquivo ',
+    introOr: ' ou ',
+    introAfter:
+      ' exportado do seu relógio ou ciclocomputador (Garmin, Wahoo, XOSS e outros). Isso não muda seu plano nem a prescrição de nenhum treino — os dados ficam disponíveis aqui para você conferir e, se quiser, usar ao concluir o treino do dia correspondente em ',
+    yourPlan: 'seu plano',
+    fileLabel: 'Arquivo da atividade',
+    fileHint: 'Tamanho máximo de 20 MB. O arquivo não é guardado depois de lido; só o resumo da atividade é salvo.',
+    reading: 'Lendo o arquivo…',
+    imported: 'Atividade importada.',
+    found: (count: number) =>
+      `Encontramos ${count === 1 ? 'um treino planejado' : 'treinos planejados'} no mesmo dia. Vincule para guardar a relação. Se abrir no plano, os dados acima já aparecem preenchidos no formulário, e você decide se confirma.`,
+    linked: 'Vinculada',
+    link: 'Vincular',
+    openInPlan: 'Abrir no plano',
+    noneFound: 'Não encontramos um treino planejado nesse dia. Os dados ficam guardados aqui, sem vínculo.',
+    alreadyImported: 'Atividades já importadas',
+    emptyTitle: 'Nenhuma atividade importada ainda.',
+    emptyText: 'Envie um arquivo .fit ou .gpx acima para começar.',
+    file: (source: string) => `Arquivo .${source}`,
+    linkedTo: (name: string) => `Vinculada a ${name}`,
+    aWorkout: 'um treino',
+    notLinked: 'Sem treino vinculado',
+    remove: 'Remover atividade importada',
+    unlink: 'Desvincular',
+    linkToWorkout: 'Vincular a um treino',
+    searching: 'Buscando treinos perto dessa data…',
+    noneNearby: 'Nenhum treino planejado perto dessa data. Você pode gerar ou ajustar o plano e voltar aqui.',
+  },
+  en: {
+    loadFailed: 'Your imported activities could not be loaded.',
+    importFailed: 'This file could not be imported.',
+    linkFailed: 'The link could not be updated.',
+    candidatesFailed: 'Workouts for this activity could not be found.',
+    deleteFailed: 'This activity could not be removed.',
+    pageFailed: 'This page could not be loaded.',
+    loading: 'Loading…',
+    back: 'Back to activities',
+    kicker: 'REAL RIDE DATA',
+    title: 'Import an activity.',
+    introBefore: 'Upload the ',
+    introOr: ' or ',
+    introAfter:
+      ' file exported from your watch or bike computer (Garmin, Wahoo, XOSS and others). This does not change your plan or the prescription of any workout — the data stays here for you to check and, if you want, use when completing the matching day\'s workout in ',
+    yourPlan: 'your plan',
+    fileLabel: 'Activity file',
+    fileHint: 'Maximum size 20 MB. The file is not kept after it is read; only the activity summary is saved.',
+    reading: 'Reading the file…',
+    imported: 'Activity imported.',
+    found: (count: number) =>
+      `We found ${count === 1 ? 'a planned workout' : 'planned workouts'} on the same day. Link it to keep the relationship. If you open it in the plan, the data above is already filled in on the form, and you decide whether to confirm.`,
+    linked: 'Linked',
+    link: 'Link',
+    openInPlan: 'Open in plan',
+    noneFound: "We didn't find a planned workout on that day. The data stays here, unlinked.",
+    alreadyImported: 'Imported activities',
+    emptyTitle: 'No imported activities yet.',
+    emptyText: 'Upload a .fit or .gpx file above to get started.',
+    file: (source: string) => `.${source} file`,
+    linkedTo: (name: string) => `Linked to ${name}`,
+    aWorkout: 'a workout',
+    notLinked: 'No linked workout',
+    remove: 'Remove imported activity',
+    unlink: 'Unlink',
+    linkToWorkout: 'Link to a workout',
+    searching: 'Looking for workouts near that date…',
+    noneNearby: 'No planned workouts near that date. You can generate or adjust the plan and come back here.',
+  },
 });
-
-const shortDateFormatter = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
-
-function shortDate(value: string): string {
-  return shortDateFormatter.format(parseTrainingDate(value)).replace(/\./g, '');
-}
 
 function planLinkFor(workoutID: string, activity: ImportedActivity): string {
   const params = new URLSearchParams({ workoutID });
@@ -75,6 +148,8 @@ function formatDuration(seconds: number): string {
 }
 
 export default function ImportActivityPage() {
+  const locale = useLocale();
+  const t = useMessages(messages);
   const [user, setUser] = useState<User | null>(null);
   const [activities, setActivities] = useState<ImportedActivity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,10 +179,10 @@ export default function ImportActivityPage() {
           window.location.href = '/entrar';
           return;
         }
-        setLoadError(apiErrorMessage(caught, 'Não foi possível carregar suas atividades importadas.'));
+        setLoadError(apiErrorMessage(caught, t.loadFailed));
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   // Valores espelhados de public/sw.js (SHARE_CACHE_NAME / SHARED_FILE_URL):
   // o service worker intercepta o POST do menu "Compartilhar" do Android,
@@ -144,7 +219,7 @@ export default function ImportActivityPage() {
       setCandidates(result.candidate_workouts || []);
       setActivities((current) => [result.activity, ...current]);
     } catch (caught) {
-      setUploadError(apiErrorMessage(caught, 'Não foi possível importar este arquivo.'));
+      setUploadError(apiErrorMessage(caught, messages[currentLocale()].importFailed));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -165,7 +240,7 @@ export default function ImportActivityPage() {
       setPickerFor(null);
       setPickerCandidates(null);
     } catch (caught) {
-      setUploadError(apiErrorMessage(caught, 'Não foi possível atualizar o vínculo.'));
+      setUploadError(apiErrorMessage(caught, t.linkFailed));
     } finally {
       setBusyActivity(null);
     }
@@ -187,7 +262,7 @@ export default function ImportActivityPage() {
       setPickerCandidates(result.candidate_workouts || []);
     } catch (caught) {
       setPickerFor(null);
-      setUploadError(apiErrorMessage(caught, 'Não foi possível buscar treinos para esta atividade.'));
+      setUploadError(apiErrorMessage(caught, t.candidatesFailed));
     }
   }
 
@@ -196,26 +271,30 @@ export default function ImportActivityPage() {
       await apiRequest(`/v1/activities/imported/${activityID}`, { method: 'DELETE' });
       setActivities((current) => current.filter((item) => item.id !== activityID));
     } catch (caught) {
-      setUploadError(apiErrorMessage(caught, 'Não foi possível remover esta atividade.'));
+      setUploadError(apiErrorMessage(caught, t.deleteFailed));
     }
   }
 
-  if (loading) return <main className="profile-loading"><LoaderCircle className="spin" />Carregando…</main>;
-  if (!user) return <ApiErrorState message={loadError || 'Não foi possível carregar esta página.'} />;
+  if (loading) return <main className="profile-loading"><LoaderCircle className="spin" />{t.loading}</main>;
+  if (!user) return <ApiErrorState message={loadError || t.pageFailed} />;
+
+  const dateFormatter = new Intl.DateTimeFormat(INTL_LOCALE[locale], {
+    day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+  const shortDateFormatter = new Intl.DateTimeFormat(INTL_LOCALE[locale], { weekday: 'short', day: '2-digit', month: 'short' });
+  const shortDate = (value: string) => shortDateFormatter.format(parseTrainingDate(value)).replace(/\./g, '');
 
   return (
     <main className="activities-shell">
       <AppHeader name={user?.display_name} />
       <section className="activities-content">
-        <Link href="/atividades" className="back-link"><ArrowLeft size={15} />Voltar às atividades</Link>
+        <Link href="/atividades" className="back-link"><ArrowLeft size={15} />{t.back}</Link>
         <header className="activities-heading">
-          <p>DADOS REAIS DE EXECUÇÃO</p>
-          <h1>Importar uma atividade.</h1>
+          <p>{t.kicker}</p>
+          <h1>{t.title}</h1>
           <span>
-            Envie o arquivo <b>.fit</b> ou <b>.gpx</b> exportado do seu relógio ou ciclocomputador (Garmin, Wahoo,
-            XOSS e outros). Isso não muda seu plano nem a prescrição de nenhum treino — os dados ficam disponíveis
-            aqui para você conferir e, se quiser, usar ao concluir o treino do dia correspondente em{' '}
-            <Link href="/plano">seu plano</Link>.
+            {t.introBefore}<b>.fit</b>{t.introOr}<b>.gpx</b>{t.introAfter}
+            <Link href="/plano">{t.yourPlan}</Link>.
           </span>
         </header>
 
@@ -223,7 +302,7 @@ export default function ImportActivityPage() {
           className="import-form"
           onSubmit={(event) => event.preventDefault()}
         >
-          <label htmlFor="activity-file">Arquivo da atividade</label>
+          <label htmlFor="activity-file">{t.fileLabel}</label>
           <input
             id="activity-file"
             ref={fileInputRef}
@@ -235,10 +314,10 @@ export default function ImportActivityPage() {
               if (file) void handleFileChosen(file);
             }}
           />
-          <small>Tamanho máximo de 20 MB. O arquivo não é guardado depois de lido; só o resumo da atividade é salvo.</small>
+          <small>{t.fileHint}</small>
           {uploading && (
             <p className="form-notice" role="status">
-              <LoaderCircle className="spin" size={14} /> Lendo o arquivo…
+              <LoaderCircle className="spin" size={14} /> {t.reading}
             </p>
           )}
           {uploadError && <p className="form-error" role="alert">{uploadError}</p>}
@@ -246,18 +325,14 @@ export default function ImportActivityPage() {
 
         {lastImported && (
           <section className="import-result" aria-live="polite">
-            <h2>Atividade importada.</h2>
+            <h2>{t.imported}</h2>
             <p>
               {dateFormatter.format(new Date(lastImported.started_at))} · {formatDuration(lastImported.moving_seconds)}
-              {lastImported.distance_km > 0 && ` · ${lastImported.distance_km.toFixed(1)} km`}
+              {lastImported.distance_km > 0 && ` · ${formatDecimal(lastImported.distance_km, 1, locale)} km`}
             </p>
             {candidates.length > 0 ? (
               <>
-                <p>
-                  Encontramos {candidates.length === 1 ? 'um treino planejado' : 'treinos planejados'} no mesmo dia.
-                  Vincule para guardar a relação. Se abrir no plano, os dados acima já aparecem preenchidos no
-                  formulário, e você decide se confirma.
-                </p>
+                <p>{t.found(candidates.length)}</p>
                 <ul className="link-candidates">
                   {candidates.map((candidate) => {
                     const current = activities.find((item) => item.id === lastImported.id);
@@ -270,7 +345,7 @@ export default function ImportActivityPage() {
                         </span>
                         <span className="link-actions">
                           {linkedHere ? (
-                            <span className="link-done"><Link2 size={14} aria-hidden="true" />Vinculada</span>
+                            <span className="link-done"><Link2 size={14} aria-hidden="true" />{t.linked}</span>
                           ) : (
                             <button
                               type="button"
@@ -279,10 +354,10 @@ export default function ImportActivityPage() {
                               onClick={() => void linkActivity(lastImported.id, candidate.id)}
                             >
                               {busyActivity === lastImported.id ? <LoaderCircle className="spin" size={14} /> : <Link2 size={14} />}
-                              Vincular
+                              {t.link}
                             </button>
                           )}
-                          <Link href={planLinkFor(candidate.id, lastImported)}>Abrir no plano</Link>
+                          <Link href={planLinkFor(candidate.id, lastImported)}>{t.openInPlan}</Link>
                         </span>
                       </li>
                     );
@@ -290,17 +365,17 @@ export default function ImportActivityPage() {
                 </ul>
               </>
             ) : (
-              <p>Não encontramos um treino planejado nesse dia. Os dados ficam guardados aqui, sem vínculo.</p>
+              <p>{t.noneFound}</p>
             )}
           </section>
         )}
 
-        <h2 className="activities-subheading">Atividades já importadas</h2>
+        <h2 className="activities-subheading">{t.alreadyImported}</h2>
         {activities.length === 0 && (
           <section className="activities-empty">
             <UploadCloud size={25} />
-            <h2>Nenhuma atividade importada ainda.</h2>
-            <p>Envie um arquivo .fit ou .gpx acima para começar.</p>
+            <h2>{t.emptyTitle}</h2>
+            <p>{t.emptyText}</p>
           </section>
         )}
         <div className="activities-list">
@@ -310,18 +385,18 @@ export default function ImportActivityPage() {
               <div className="activity-main">
                 <div className="activity-title">
                   <div>
-                    <h2>{item.source === 'fit' ? 'Arquivo .fit' : 'Arquivo .gpx'}</h2>
+                    <h2>{t.file(item.source)}</h2>
                     <p>
                       {item.workout_id
-                        ? `Vinculada a ${item.workout_name ?? 'um treino'}${item.workout_scheduled_on ? ` · ${shortDate(item.workout_scheduled_on)}` : ''}`
-                        : 'Sem treino vinculado'}
+                        ? `${t.linkedTo(item.workout_name ?? t.aWorkout)}${item.workout_scheduled_on ? ` · ${shortDate(item.workout_scheduled_on)}` : ''}`
+                        : t.notLinked}
                     </p>
                   </div>
                   <button
                     type="button"
                     className="icon-button"
                     onClick={() => void handleDelete(item.id)}
-                    aria-label="Remover atividade importada"
+                    aria-label={t.remove}
                   >
                     <Trash2 size={16} />
                   </button>
@@ -330,7 +405,7 @@ export default function ImportActivityPage() {
                 <div className="activity-link-row">
                   {item.workout_id ? (
                     <>
-                      <Link href={planLinkFor(item.workout_id, item)}>Abrir no plano</Link>
+                      <Link href={planLinkFor(item.workout_id, item)}>{t.openInPlan}</Link>
                       <button
                         type="button"
                         className="btn btn-outline btn-sm"
@@ -338,7 +413,7 @@ export default function ImportActivityPage() {
                         onClick={() => void linkActivity(item.id, null)}
                       >
                         {busyActivity === item.id ? <LoaderCircle className="spin" size={14} /> : <Link2Off size={14} />}
-                        Desvincular
+                        {t.unlink}
                       </button>
                     </>
                   ) : (
@@ -349,16 +424,16 @@ export default function ImportActivityPage() {
                       onClick={() => void togglePicker(item.id)}
                     >
                       <Link2 size={14} />
-                      Vincular a um treino
+                      {t.linkToWorkout}
                     </button>
                   )}
                 </div>
                 {pickerFor === item.id && (
                   <div className="link-picker" aria-live="polite">
                     {pickerCandidates === null ? (
-                      <p><LoaderCircle className="spin" size={14} /> Buscando treinos perto dessa data…</p>
+                      <p><LoaderCircle className="spin" size={14} /> {t.searching}</p>
                     ) : pickerCandidates.length === 0 ? (
-                      <p>Nenhum treino planejado perto dessa data. Você pode gerar ou ajustar o plano e voltar aqui.</p>
+                      <p>{t.noneNearby}</p>
                     ) : (
                       <ul className="link-candidates">
                         {pickerCandidates.map((candidate) => (
@@ -373,7 +448,7 @@ export default function ImportActivityPage() {
                               disabled={busyActivity === item.id}
                               onClick={() => void linkActivity(item.id, candidate.id)}
                             >
-                              Vincular
+                              {t.link}
                             </button>
                           </li>
                         ))}
@@ -383,7 +458,7 @@ export default function ImportActivityPage() {
                 )}
                 <div className="activity-metrics">
                   <span><Clock3 size={14} /><b>{formatDuration(item.moving_seconds)}</b></span>
-                  {item.distance_km > 0 && <span><MapPinned size={14} /><b>{item.distance_km.toFixed(1)} km</b></span>}
+                  {item.distance_km > 0 && <span><MapPinned size={14} /><b>{formatDecimal(item.distance_km, 1, locale)} km</b></span>}
                   {item.elevation_gain_m !== undefined && <span><MapPinned size={14} /><b>{item.elevation_gain_m} m+</b></span>}
                   {item.average_heart_rate !== undefined && <span><HeartPulse size={14} /><b>{item.average_heart_rate} bpm</b></span>}
                   {item.average_power_watts !== undefined && <span><Zap size={14} /><b>{item.average_power_watts} W</b></span>}

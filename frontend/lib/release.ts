@@ -1,4 +1,7 @@
-export const APP_VERSION = '0.37.0';
+import type { Locale } from './i18n';
+import { UPDATE_NOTES_EN } from './release.en';
+
+export const APP_VERSION = '0.38.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -7,6 +10,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.38.0',
+    title: 'O Cadência agora também fala inglês',
+    description:
+      'No topo de cada tela, e também em Configurações, você escolhe entre português e inglês. A escolha vale para as telas, os treinos e as explicações, os avisos e os e-mails. Os Termos de Uso e a Política de Privacidade também ganharam uma tradução; a versão em português continua sendo a que vale juridicamente. O idioma fica guardado no aparelho em que você escolheu.',
+  },
   {
     version: '0.37.0',
     title: 'Treinos que acompanham a sua recuperação',
@@ -236,3 +245,8 @@ export const UPDATE_NOTES: readonly UpdateNote[] = [
       'Cada sessão continua mostrando sua estrutura, o motivo da escolha e os cuidados importantes para executar o treino.',
   },
 ] as const;
+
+/** Notas de versão no idioma pedido (o inglês fica em release.en.ts, na mesma ordem). */
+export function updateNotes(locale: Locale): readonly UpdateNote[] {
+  return locale === 'en' ? UPDATE_NOTES_EN : UPDATE_NOTES;
+}

@@ -5,8 +5,10 @@ import { Activity, AlertTriangle, CalendarClock, CheckCircle2, Clock3, LoaderCir
 import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { AppHeader } from '@/components/app-header';
 import { ApiErrorState } from '@/components/api-error-state';
+import { useLocale, useMessages } from '@/components/locale-provider';
 import { ZoneHelp } from '@/components/zone-help';
-import { ZONES, zoneLabel } from '@/lib/zones';
+import { defineMessages, formatDecimal, INTL_LOCALE } from '@/lib/i18n';
+import { ZONES, zoneLabel, zoneName, zoneTalk } from '@/lib/zones';
 import {
   describeDrift,
   efficiencyChange,
@@ -18,7 +20,7 @@ import {
   numbersPayload,
   reassessmentDate,
   reassessmentStatus,
-  REASSESS_RANGE_TEXT,
+  reassessRangeText,
   type Assessment,
   type ImportedRide,
 } from '@/lib/assessment';
@@ -26,24 +28,144 @@ import {
 type User = { display_name: string };
 type ImportedActivity = ImportedRide & { id: string; started_at: string };
 
-const dayFormatter = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-const shortDayFormatter = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' });
-
-function formatDay(value?: string) {
-  return value ? dayFormatter.format(new Date(value)) : '';
-}
-
-function resultMessage(assessment: Assessment): string {
-  if (assessment.pain_reported) {
-    return 'Você relatou dor. O app não usará este resultado para progredir intensidade; priorize recuperação e orientação profissional se a dor persistir.';
-  }
-  if (assessment.eligible_for_progression) {
-    return 'Referência concluída sem sinal de alerta. Você está apto a receber treinos de qualidade quando o seu perfil e a sua meta pedirem, sempre com as regras de segurança.';
-  }
-  return 'Resultado salvo como referência. O motor continuará com progressão conservadora. Para ficar apto, faça o pedal de pelo menos 18 minutos, em Z2 ou Z3 e sem dor.';
-}
+const messages = defineMessages({
+  pt: {
+    resultPain: 'Você relatou dor. O app não usará este resultado para progredir intensidade; priorize recuperação e orientação profissional se a dor persistir.',
+    resultEligible: 'Referência concluída sem sinal de alerta. Você está apto a receber treinos de qualidade quando o seu perfil e a sua meta pedirem, sempre com as regras de segurança.',
+    resultNotEligible: 'Resultado salvo como referência. O motor continuará com progressão conservadora. Para ficar apto, faça o pedal de pelo menos 18 minutos, em Z2 ou Z3 e sem dor.',
+    loadFailed: 'Não foi possível carregar sua avaliação.',
+    saveFailed: 'Não foi possível registrar a avaliação.',
+    loading: 'Carregando sua avaliação…',
+    kicker: 'AVALIAÇÃO',
+    title: 'Seu pedal de referência.',
+    intro: 'Um pedal contínuo em Z2, com esforço controlado, para o app conhecer a sua base aeróbica e acompanhar a sua evolução. Não é exame médico nem teste máximo.',
+    purpose: 'Para que serve',
+    aptTitle: 'Apto a progredir:',
+    aptText: 'sem dor, com pelo menos 18 minutos e esforço até Z3, você fica apto. Isso libera os treinos de qualidade (intervalados e limiar) para quem é de nível avançado e tem meta de desempenho ou prova. Para os outros perfis o plano não muda.',
+    progressTitle: 'Sua evolução:',
+    progressText: 'se você informar frequência cardíaca, potência ou distância, o app calcula a eficiência aeróbica e compara com a avaliação anterior.',
+    redoTitle: 'Quando refazer:',
+    redoText: (range: string) => `a cada ${range}, nas mesmas condições (mesmo percurso, ou rolo, e descansado).`,
+    recorded: 'Avaliação registrada',
+    recordedOn: (date: string) => ` em ${date}`,
+    aptSuffix: ' · apto a progredir',
+    efficiency: 'Eficiência aeróbica:',
+    thanPrevious: 'que a anterior',
+    cannotCompare: 'sem como comparar com a anterior (dados diferentes)',
+    drift: 'Deriva da frequência cardíaca:',
+    redoNow: 'Já dá para refazer a avaliação e ver como você evoluiu.',
+    redoFrom: (date: string, days: number) => `Refaça a partir de ${date} (em ${days} dias).`,
+    howTo: 'Como realizar',
+    step1Title: 'Aqueça por 5 minutos',
+    step1Text: 'Pedale leve e confortável.',
+    step2Title: 'Pedale de forma contínua em Z2',
+    step2Text: 'Esforço em que dá para conversar em frases completas, de 15 a 30 minutos (20 é o ideal). Evite descidas longas e paradas.',
+    step3Title: 'Desaqueça',
+    step3Text: 'Reduza o ritmo por 5 minutos antes de registrar como se sentiu.',
+    tip: 'Para medir a deriva, anote (ou veja no aparelho) a frequência cardíaca média da primeira e da segunda metade do pedal.',
+    stopNow: 'Interrompa imediatamente',
+    stopText: ' se houver dor, tontura, falta de ar incomum, mal-estar ou outro sintoma preocupante.',
+    evidence: 'Base científica:',
+    evidenceText: ', sobre prescrição submáxima orientada por esforço percebido. A leitura da eficiência e da deriva é uma referência do Cadência, não um diagnóstico.',
+    formTitle: 'Registrar resultado',
+    formIntro: 'Faça o registro após o pedal. Não tente compensar ou alcançar um número específico.',
+    fillFromRide: 'Preencher com um pedal importado (opcional)',
+    chooseActivity: 'Escolher uma atividade…',
+    duration: 'Duração contínua (minutos)',
+    zoneQuestion: 'Em que zona você pedalou?',
+    zoneHint: 'O pedido era Z2. Responda o que você sentiu, mesmo que tenha sido outra zona.',
+    planned: 'pedido',
+    numbers: 'Números do pedal',
+    optional: 'opcionais',
+    averageHr: 'FC média (bpm)',
+    averagePower: 'Potência média (W)',
+    distance: 'Distância (km)',
+    firstHalf: 'FC média, 1ª metade',
+    secondHalf: 'FC média, 2ª metade',
+    example: (value: string) => `Ex.: ${value}`,
+    numbersHint: 'Com FC e potência (ou FC e distância) o app calcula a eficiência; com as duas metades, a deriva. Nada disso muda o "apto a progredir".',
+    pain: 'Relatei dor durante ou após o pedal',
+    notes: 'Observações opcionais',
+    confirm: 'Li as orientações e não realizei esforço máximo.',
+    saving: 'Salvando…',
+    save: 'Salvar avaliação',
+    history: 'Suas avaliações',
+    painReported: 'Dor relatada',
+    apt: 'Apto',
+    notApt: 'Não apto',
+    driftShort: 'deriva',
+  },
+  en: {
+    resultPain: 'You reported pain. The app will not use this result to progress intensity; prioritize recovery and see a professional if the pain persists.',
+    resultEligible: 'Reference completed with no warning signs. You are cleared to get quality workouts when your profile and goal call for them, always within the safety rules.',
+    resultNotEligible: 'Result saved as a reference. The engine will keep a conservative progression. To get cleared, ride for at least 18 minutes, in Z2 or Z3 and without pain.',
+    loadFailed: 'Your assessment could not be loaded.',
+    saveFailed: 'The assessment could not be saved.',
+    loading: 'Loading your assessment…',
+    kicker: 'ASSESSMENT',
+    title: 'Your reference ride.',
+    intro: 'A continuous Z2 ride, at a controlled effort, so the app can learn your aerobic base and follow your progress. It is not a medical exam or a maximal test.',
+    purpose: 'What it is for',
+    aptTitle: 'Cleared to progress:',
+    aptText: 'with no pain, at least 18 minutes and effort up to Z3, you are cleared. This unlocks quality workouts (intervals and threshold) for advanced riders with a performance or race goal. For other profiles the plan does not change.',
+    progressTitle: 'Your progress:',
+    progressText: 'if you enter heart rate, power or distance, the app calculates your aerobic efficiency and compares it with the previous assessment.',
+    redoTitle: 'When to redo it:',
+    redoText: (range: string) => `every ${range}, under the same conditions (same route, or the trainer, and well rested).`,
+    recorded: 'Assessment recorded',
+    recordedOn: (date: string) => ` on ${date}`,
+    aptSuffix: ' · cleared to progress',
+    efficiency: 'Aerobic efficiency:',
+    thanPrevious: 'than the previous one',
+    cannotCompare: 'cannot be compared with the previous one (different data)',
+    drift: 'Heart rate drift:',
+    redoNow: 'You can now redo the assessment and see how you have progressed.',
+    redoFrom: (date: string, days: number) => `Redo it from ${date} (in ${days} days).`,
+    howTo: 'How to do it',
+    step1Title: 'Warm up for 5 minutes',
+    step1Text: 'Ride easy and comfortably.',
+    step2Title: 'Ride continuously in Z2',
+    step2Text: 'An effort where you can talk in full sentences, for 15 to 30 minutes (20 is ideal). Avoid long descents and stops.',
+    step3Title: 'Cool down',
+    step3Text: 'Ease off for 5 minutes before logging how you felt.',
+    tip: 'To measure drift, write down (or check on your device) the average heart rate for the first and second halves of the ride.',
+    stopNow: 'Stop immediately',
+    stopText: ' if you have pain, dizziness, unusual shortness of breath, feel unwell or have any other worrying symptom.',
+    evidence: 'Scientific basis:',
+    evidenceText: ', on submaximal prescription guided by perceived effort. The efficiency and drift reading is a Cadência reference, not a diagnosis.',
+    formTitle: 'Log the result',
+    formIntro: "Log it after the ride. Don't try to make up for anything or hit a specific number.",
+    fillFromRide: 'Fill in from an imported ride (optional)',
+    chooseActivity: 'Choose an activity…',
+    duration: 'Continuous duration (minutes)',
+    zoneQuestion: 'Which zone did you ride in?',
+    zoneHint: 'The target was Z2. Answer what you felt, even if it was another zone.',
+    planned: 'target',
+    numbers: 'Ride numbers',
+    optional: 'optional',
+    averageHr: 'Average HR (bpm)',
+    averagePower: 'Average power (W)',
+    distance: 'Distance (km)',
+    firstHalf: 'Average HR, 1st half',
+    secondHalf: 'Average HR, 2nd half',
+    example: (value: string) => `E.g.: ${value}`,
+    numbersHint: 'With HR and power (or HR and distance) the app calculates efficiency; with both halves, drift. None of this changes "cleared to progress".',
+    pain: 'I had pain during or after the ride',
+    notes: 'Optional notes',
+    confirm: 'I read the guidance and did not make a maximal effort.',
+    saving: 'Saving…',
+    save: 'Save assessment',
+    history: 'Your assessments',
+    painReported: 'Pain reported',
+    apt: 'Cleared',
+    notApt: 'Not cleared',
+    driftShort: 'drift',
+  },
+});
 
 export default function AssessmentPage() {
+  const locale = useLocale();
+  const t = useMessages(messages);
   const [user, setUser] = useState<User | null>(null);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [rides, setRides] = useState<ImportedActivity[]>([]);
@@ -79,10 +201,10 @@ export default function AssessmentPage() {
           window.location.href = '/entrar';
           return;
         }
-        setError(apiErrorMessage(caught, 'Não foi possível carregar sua avaliação.'));
+        setError(apiErrorMessage(caught, t.loadFailed));
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   function fillFromRide(id: string) {
     const ride = rides.find((item) => item.id === id);
@@ -96,7 +218,7 @@ export default function AssessmentPage() {
 
   async function submit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    const halves = halvesError(firstHalf, secondHalf);
+    const halves = halvesError(firstHalf, secondHalf, locale);
     if (halves) {
       setError(halves);
       return;
@@ -124,7 +246,7 @@ export default function AssessmentPage() {
       setNotes('');
       setConfirmedSafe(false);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Não foi possível registrar a avaliação.');
+      setError(caught instanceof Error ? caught.message : t.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -134,11 +256,18 @@ export default function AssessmentPage() {
     return (
       <main className="profile-loading">
         <LoaderCircle className="spin" />
-        Carregando sua avaliação…
+        {t.loading}
       </main>
     );
   }
-  if (!user) return <ApiErrorState message={error || 'Não foi possível carregar sua avaliação.'} />;
+  if (!user) return <ApiErrorState message={error || t.loadFailed} />;
+
+  const dayFormatter = new Intl.DateTimeFormat(INTL_LOCALE[locale], { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const shortDayFormatter = new Intl.DateTimeFormat(INTL_LOCALE[locale], { day: '2-digit', month: '2-digit' });
+  const formatDay = (value?: string) => (value ? dayFormatter.format(new Date(value)) : '');
+  const signedPercent = (value: number) => `${value > 0 ? '+' : ''}${formatDecimal(value, 1, locale)}%`;
+  const resultMessage = (item: Assessment) =>
+    item.pain_reported ? t.resultPain : item.eligible_for_progression ? t.resultEligible : t.resultNotEligible;
 
   const assessment = assessments[0];
   const previous = assessments[1];
@@ -151,31 +280,24 @@ export default function AssessmentPage() {
       <AppHeader name={user.display_name} />
       <section className="assessment-content">
         <header className="assessment-heading">
-          <p>AVALIAÇÃO</p>
-          <h1>Seu pedal de referência.</h1>
-          <span>
-            Um pedal contínuo em Z2, com esforço controlado, para o app conhecer a sua base aeróbica e acompanhar a
-            sua evolução. Não é exame médico nem teste máximo.
-          </span>
+          <p>{t.kicker}</p>
+          <h1>{t.title}</h1>
+          <span>{t.intro}</span>
         </header>
 
         <section className="assessment-purpose">
           <h2>
-            <TrendingUp size={18} /> Para que serve
+            <TrendingUp size={18} /> {t.purpose}
           </h2>
           <ul>
             <li>
-              <strong>Apto a progredir:</strong> sem dor, com pelo menos 18 minutos e esforço até Z3, você fica
-              apto. Isso libera os treinos de qualidade (intervalados e limiar) para quem é de nível avançado e tem
-              meta de desempenho ou prova. Para os outros perfis o plano não muda.
+              <strong>{t.aptTitle}</strong> {t.aptText}
             </li>
             <li>
-              <strong>Sua evolução:</strong> se você informar frequência cardíaca, potência ou distância, o app
-              calcula a eficiência aeróbica e compara com a avaliação anterior.
+              <strong>{t.progressTitle}</strong> {t.progressText}
             </li>
             <li>
-              <strong>Quando refazer:</strong> a cada {REASSESS_RANGE_TEXT}, nas mesmas condições (mesmo percurso, ou
-              rolo, e descansado).
+              <strong>{t.redoTitle}</strong> {t.redoText(reassessRangeText(locale))}
             </li>
           </ul>
         </section>
@@ -185,29 +307,29 @@ export default function AssessmentPage() {
             <CheckCircle2 size={21} />
             <div>
               <strong>
-                Avaliação registrada{assessment.completed_at ? ` em ${formatDay(assessment.completed_at)}` : ''}
-                {assessment.eligible_for_progression && !assessment.pain_reported ? ' · apto a progredir' : ''}
+                {t.recorded}
+                {assessment.completed_at ? t.recordedOn(formatDay(assessment.completed_at)) : ''}
+                {assessment.eligible_for_progression && !assessment.pain_reported ? t.aptSuffix : ''}
               </strong>
               <p>{resultMessage(assessment)}</p>
               {assessment.efficiency && (
                 <p className="assessment-number">
-                  <b>Eficiência aeróbica:</b> {formatEfficiency(assessment.efficiency)}
-                  {change !== null && <> · {formatChange(change)} que a anterior</>}
-                  {change === null && previous && <> · sem como comparar com a anterior (dados diferentes)</>}
+                  <b>{t.efficiency}</b> {formatEfficiency(assessment.efficiency, locale)}
+                  {change !== null && <> · {formatChange(change, locale)} {t.thanPrevious}</>}
+                  {change === null && previous && <> · {t.cannotCompare}</>}
                 </p>
               )}
               {drift !== undefined && (
-                <p className={`assessment-number drift-${describeDrift(drift).tone}`}>
-                  <b>Deriva da frequência cardíaca:</b> {drift > 0 ? '+' : ''}
-                  {drift.toFixed(1).replace('.', ',')}%. {describeDrift(drift).text}
+                <p className={`assessment-number drift-${describeDrift(drift, locale).tone}`}>
+                  <b>{t.drift}</b> {signedPercent(drift)}. {describeDrift(drift, locale).text}
                 </p>
               )}
               {reassess && (
                 <p className="assessment-next">
                   <CalendarClock size={15} />
                   {reassess.due
-                    ? 'Já dá para refazer a avaliação e ver como você evoluiu.'
-                    : `Refaça a partir de ${shortDayFormatter.format(reassessmentDate(assessment.completed_at ?? ''))} (em ${reassess.daysLeft} dias).`}
+                    ? t.redoNow
+                    : t.redoFrom(shortDayFormatter.format(reassessmentDate(assessment.completed_at ?? '')), reassess.daysLeft)}
                 </p>
               )}
             </div>
@@ -219,63 +341,60 @@ export default function AssessmentPage() {
             <span className="assessment-icon">
               <Activity size={22} />
             </span>
-            <h2>Como realizar</h2>
+            <h2>{t.howTo}</h2>
             <ol>
               <li>
                 <b>1</b>
                 <span>
-                  <strong>Aqueça por 5 minutos</strong>Pedale leve e confortável.
+                  <strong>{t.step1Title}</strong>
+                  {t.step1Text}
                 </span>
               </li>
               <li>
                 <b>2</b>
                 <span>
-                  <strong>Pedale de forma contínua em Z2</strong>
-                  Esforço em que dá para conversar em frases completas, de 15 a 30 minutos (20 é o ideal). Evite
-                  descidas longas e paradas.
+                  <strong>{t.step2Title}</strong>
+                  {t.step2Text}
                 </span>
               </li>
               <li>
                 <b>3</b>
                 <span>
-                  <strong>Desaqueça</strong>Reduza o ritmo por 5 minutos antes de registrar como se sentiu.
+                  <strong>{t.step3Title}</strong>
+                  {t.step3Text}
                 </span>
               </li>
             </ol>
-            <p className="assessment-tip">
-              Para medir a deriva, anote (ou veja no aparelho) a frequência cardíaca média da primeira e da segunda
-              metade do pedal.
-            </p>
+            <p className="assessment-tip">{t.tip}</p>
             <div className="assessment-warning">
               <AlertTriangle size={17} />
               <p>
-                <strong>Interrompa imediatamente</strong> se houver dor, tontura, falta de ar incomum, mal-estar ou
-                outro sintoma preocupante.
+                <strong>{t.stopNow}</strong>
+                {t.stopText}
               </p>
             </div>
             <p className="assessment-evidence">
-              Base científica:{' '}
+              {t.evidence}{' '}
               <a href="https://pubmed.ncbi.nlm.nih.gov/8668467/" target="_blank" rel="noreferrer">
-                Dunbar, Kalinski e Robertson (1996)
+                Dunbar, Kalinski {locale === 'en' ? 'and' : 'e'} Robertson (1996)
               </a>
-              , sobre prescrição submáxima orientada por esforço percebido. A leitura da eficiência e da deriva é
-              uma referência do Cadência, não um diagnóstico.
+              {t.evidenceText}
             </p>
           </section>
 
           <form className="assessment-form" onSubmit={submit}>
-            <h2>Registrar resultado</h2>
-            <p>Faça o registro após o pedal. Não tente compensar ou alcançar um número específico.</p>
+            <h2>{t.formTitle}</h2>
+            <p>{t.formIntro}</p>
 
             {rides.length > 0 && (
               <label>
-                <span>Preencher com um pedal importado (opcional)</span>
+                <span>{t.fillFromRide}</span>
                 <select defaultValue="" onChange={(event) => fillFromRide(event.target.value)}>
-                  <option value="">Escolher uma atividade…</option>
+                  <option value="">{t.chooseActivity}</option>
                   {rides.map((ride) => (
                     <option value={ride.id} key={ride.id}>
                       {shortDayFormatter.format(new Date(ride.started_at))} · {Math.round(ride.moving_seconds / 60)} min
-                      {ride.distance_km > 0 ? ` · ${ride.distance_km.toFixed(1).replace('.', ',')} km` : ''}
+                      {ride.distance_km > 0 ? ` · ${formatDecimal(ride.distance_km, 1, locale)} km` : ''}
                     </option>
                   ))}
                 </select>
@@ -283,7 +402,7 @@ export default function AssessmentPage() {
             )}
 
             <label>
-              <span>Duração contínua (minutos)</span>
+              <span>{t.duration}</span>
               <input
                 type="number"
                 min="15"
@@ -298,9 +417,9 @@ export default function AssessmentPage() {
 
             <fieldset className="zone-choice">
               <legend>
-                Em que zona você pedalou? <ZoneHelp compact />
+                {t.zoneQuestion} <ZoneHelp compact />
               </legend>
-              <small>O pedido era Z2. Responda o que você sentiu, mesmo que tenha sido outra zona.</small>
+              <small>{t.zoneHint}</small>
               <div className="zone-cards">
                 {ZONES.map((zone) => (
                   <label key={zone.number} className={['zone-card', actualZone === zone.number ? 'selected' : ''].filter(Boolean).join(' ')}>
@@ -311,10 +430,10 @@ export default function AssessmentPage() {
                       onChange={() => setActualZone(zone.number)}
                     />
                     <strong>
-                      Z{zone.number} · {zone.name}
-                      {zone.number === 2 && <em className="zone-planned">pedido</em>}
+                      Z{zone.number} · {zoneName(zone, locale)}
+                      {zone.number === 2 && <em className="zone-planned">{t.planned}</em>}
                     </strong>
-                    <span>{zone.talk}</span>
+                    <span>{zoneTalk(zone, locale)}</span>
                   </label>
                 ))}
               </div>
@@ -322,48 +441,45 @@ export default function AssessmentPage() {
 
             <fieldset className="assessment-numbers">
               <legend>
-                Números do pedal <small>opcionais</small>
+                {t.numbers} <small>{t.optional}</small>
               </legend>
               <div className="assessment-numbers-grid">
                 <label>
-                  FC média (bpm)
-                  <input type="number" min="30" max="250" step="1" inputMode="numeric" value={averageHeartRate} onChange={(event) => setAverageHeartRate(event.target.value)} placeholder="Ex.: 140" />
+                  {t.averageHr}
+                  <input type="number" min="30" max="250" step="1" inputMode="numeric" value={averageHeartRate} onChange={(event) => setAverageHeartRate(event.target.value)} placeholder={t.example('140')} />
                 </label>
                 <label>
-                  Potência média (W)
-                  <input type="number" min="0" max="2000" step="1" inputMode="numeric" value={averagePower} onChange={(event) => setAveragePower(event.target.value)} placeholder="Ex.: 165" />
+                  {t.averagePower}
+                  <input type="number" min="0" max="2000" step="1" inputMode="numeric" value={averagePower} onChange={(event) => setAveragePower(event.target.value)} placeholder={t.example('165')} />
                 </label>
                 <label>
-                  Distância (km)
-                  <input type="number" min="0" max="500" step="0.01" inputMode="decimal" value={distanceKm} onChange={(event) => setDistanceKm(event.target.value)} placeholder="Ex.: 9,5" />
+                  {t.distance}
+                  <input type="number" min="0" max="500" step="0.01" inputMode="decimal" value={distanceKm} onChange={(event) => setDistanceKm(event.target.value)} placeholder={t.example(formatDecimal(9.5, 1, locale))} />
                 </label>
                 <span aria-hidden="true" />
                 <label>
-                  FC média, 1ª metade
-                  <input type="number" min="30" max="250" step="1" inputMode="numeric" value={firstHalf} onChange={(event) => setFirstHalf(event.target.value)} placeholder="Ex.: 135" />
+                  {t.firstHalf}
+                  <input type="number" min="30" max="250" step="1" inputMode="numeric" value={firstHalf} onChange={(event) => setFirstHalf(event.target.value)} placeholder={t.example('135')} />
                 </label>
                 <label>
-                  FC média, 2ª metade
-                  <input type="number" min="30" max="250" step="1" inputMode="numeric" value={secondHalf} onChange={(event) => setSecondHalf(event.target.value)} placeholder="Ex.: 144" />
+                  {t.secondHalf}
+                  <input type="number" min="30" max="250" step="1" inputMode="numeric" value={secondHalf} onChange={(event) => setSecondHalf(event.target.value)} placeholder={t.example('144')} />
                 </label>
               </div>
-              <small>
-                Com FC e potência (ou FC e distância) o app calcula a eficiência; com as duas metades, a deriva. Nada
-                disso muda o &quot;apto a progredir&quot;.
-              </small>
+              <small>{t.numbersHint}</small>
             </fieldset>
 
             <label className="assessment-check">
               <input type="checkbox" checked={painReported} onChange={(event) => setPainReported(event.target.checked)} />
-              <span>Relatei dor durante ou após o pedal</span>
+              <span>{t.pain}</span>
             </label>
             <label>
-              <span>Observações opcionais</span>
+              <span>{t.notes}</span>
               <textarea maxLength={1000} value={notes} onChange={(event) => setNotes(event.target.value)} />
             </label>
             <label className="assessment-check">
               <input type="checkbox" checked={confirmedSafe} onChange={(event) => setConfirmedSafe(event.target.checked)} required />
-              <span>Li as orientações e não realizei esforço máximo.</span>
+              <span>{t.confirm}</span>
             </label>
             {error && (
               <p className="form-error" role="alert">
@@ -372,14 +488,14 @@ export default function AssessmentPage() {
             )}
             <button type="submit" disabled={saving}>
               {saving ? <LoaderCircle className="spin" size={16} /> : <Clock3 size={16} />}
-              {saving ? 'Salvando…' : 'Salvar avaliação'}
+              {saving ? t.saving : t.save}
             </button>
           </form>
         </div>
 
         {assessments.length > 0 && (
           <section className="assessment-history">
-            <h2>Suas avaliações</h2>
+            <h2>{t.history}</h2>
             <ul>
               {assessments.map((item, index) => {
                 const older = assessments[index + 1];
@@ -388,21 +504,20 @@ export default function AssessmentPage() {
                   <li key={item.id}>
                     <strong>{formatDay(item.completed_at)}</strong>
                     <span>
-                      {zoneLabel(item.actual_rpe)} · {item.duration_minutes} min
+                      {zoneLabel(item.actual_rpe, locale)} · {item.duration_minutes} min
                     </span>
                     <span className={item.eligible_for_progression && !item.pain_reported ? 'assessment-apt' : 'assessment-notapt'}>
-                      {item.pain_reported ? 'Dor relatada' : item.eligible_for_progression ? 'Apto' : 'Não apto'}
+                      {item.pain_reported ? t.painReported : item.eligible_for_progression ? t.apt : t.notApt}
                     </span>
                     {item.efficiency && (
                       <span>
-                        {formatEfficiency(item.efficiency)}
-                        {itemChange !== null && ` (${formatChange(itemChange)})`}
+                        {formatEfficiency(item.efficiency, locale)}
+                        {itemChange !== null && ` (${formatChange(itemChange, locale)})`}
                       </span>
                     )}
                     {item.heart_rate_drift_percent !== undefined && (
                       <span>
-                        deriva {item.heart_rate_drift_percent > 0 ? '+' : ''}
-                        {item.heart_rate_drift_percent.toFixed(1).replace('.', ',')}%
+                        {t.driftShort} {signedPercent(item.heart_rate_drift_percent)}
                       </span>
                     )}
                   </li>

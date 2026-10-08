@@ -24,6 +24,9 @@ var (
 // ExplanationInput is deliberately narrower than a full athlete profile or
 // plan. The language model receives only facts already validated by rules-v1.
 type ExplanationInput struct {
+	// Language of the answer: "pt" (default) or "en". The facts arrive already
+	// in that language.
+	Language        string
 	WorkoutName     string
 	Objective       string
 	DurationMinutes int
@@ -58,6 +61,20 @@ func (s *Service) ProviderName() string {
 	return "unknown"
 }
 
+// Supports reports whether the provider can answer in the language. A provider
+// that does not say answers only in Portuguese (the Cloudflare Worker, whose
+// prompt lives outside this repository).
+func (s *Service) Supports(language string) bool {
+	if language == "" || language == "pt" {
+		return true
+	}
+	if !s.Enabled() {
+		return false
+	}
+	multilingual, ok := s.provider.(interface{ SupportsLanguage(string) bool })
+	return ok && multilingual.SupportsLanguage(language)
+}
+
 func (s *Service) Explain(ctx context.Context, input ExplanationInput) (string, error) {
 	if !s.Enabled() {
 		return "", ErrDisabled
@@ -89,6 +106,15 @@ func NewOllamaClient(baseURL, model string, timeout time.Duration, maxOutputToke
 		concurrency:     make(chan struct{}, maxConcurrent),
 	}, nil
 }
+
+func (c *OllamaClient) SupportsLanguage(language string) bool {
+	return language == "pt" || language == "en"
+}
+
+const (
+	ollamaSystemPrompt        = "Você é o assistente explicativo do Cadência. Explique somente a sessão apresentada com base nos fatos fornecidos. Nunca altere duração, RPE ou estrutura, não invente estudos ou referências, não faça diagnóstico e não prescreva tratamento. Responda em português do Brasil, em duas ou três frases curtas, com linguagem amigável. Se houver um aviso de segurança nas regras, destaque-o sem minimizar o aviso."
+	ollamaSystemPromptEnglish = "You are Cadência's explanation assistant. Explain only the session presented, based on the facts provided. Never change duration, RPE or structure, do not invent studies or references, do not diagnose and do not prescribe treatment. Answer in English, in two or three short sentences, in a friendly tone. If the rules contain a safety warning, highlight it without downplaying it."
+)
 
 type ollamaMessage struct {
 	Role    string `json:"role"`
@@ -127,7 +153,7 @@ func (c *OllamaClient) Explain(ctx context.Context, input ExplanationInput) (str
 	payload, err := json.Marshal(ollamaChatRequest{
 		Model: c.model,
 		Messages: []ollamaMessage{
-			{Role: "system", Content: "Você é o assistente explicativo do Cadência. Explique somente a sessão apresentada com base nos fatos fornecidos. Nunca altere duração, RPE ou estrutura, não invente estudos ou referências, não faça diagnóstico e não prescreva tratamento. Responda em português do Brasil, em duas ou três frases curtas, com linguagem amigável. Se houver um aviso de segurança nas regras, destaque-o sem minimizar o aviso."},
+			{Role: "system", Content: systemPromptFor(input.Language)},
 			{Role: "user", Content: explanationPrompt(input)},
 		},
 		Stream:  false,
@@ -216,10 +242,20 @@ func validateInput(input ExplanationInput) error {
 	return nil
 }
 
+func systemPromptFor(language string) string {
+	if language == "en" {
+		return ollamaSystemPromptEnglish
+	}
+	return ollamaSystemPrompt
+}
+
 func explanationPrompt(input ExplanationInput) string {
 	rules := make([]string, 0, len(input.Rules))
 	for _, rule := range input.Rules {
 		rules = append(rules, "- "+rule)
+	}
+	if input.Language == "en" {
+		return fmt.Sprintf("Explain why this session was chosen using only these validated facts:\nWorkout: %s\nGoal: %s\nDuration: %d minutes\nTarget RPE: %.1f\nRules:\n%s\nEvidence scope: %s", input.WorkoutName, input.Objective, input.DurationMinutes, input.TargetRPE, strings.Join(rules, "\n"), input.EvidenceScope)
 	}
 	return fmt.Sprintf("Explique a escolha desta sessão usando somente estes fatos validados:\nTreino: %s\nObjetivo: %s\nDuração: %d minutos\nRPE-alvo: %.1f\nRegras:\n%s\nEscopo das evidências: %s", input.WorkoutName, input.Objective, input.DurationMinutes, input.TargetRPE, strings.Join(rules, "\n"), input.EvidenceScope)
 }

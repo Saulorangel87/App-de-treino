@@ -46,20 +46,23 @@ describe('isFutureTrainingDate', () => {
 
 describe('formatTrainingDay', () => {
   it('mostra dia e mês', () => {
-    expect(formatTrainingDay('2026-10-03')).toBe('03/10');
-    expect(formatTrainingDay('invalida')).toBe('invalida');
+    expect(formatTrainingDay('2026-10-03', 'pt')).toBe('03/10');
+    expect(formatTrainingDay('2026-10-03', 'en')).toBe('10/03');
+    expect(formatTrainingDay('invalida', 'pt')).toBe('invalida');
   });
 });
 
 describe('undoConfirmation', () => {
   it('explica o que será revertido ao desfazer um treino concluído', () => {
-    const text = undoConfirmation('completed');
+    const text = undoConfirmation('completed', 'pt');
     expect(text).toContain('sessão e o feedback serão apagados');
     expect(text).toContain('ajustes');
+    expect(undoConfirmation('completed', 'en')).toContain('cannot be undone');
   });
 
   it('é mais simples ao reabrir um treino não realizado', () => {
-    expect(undoConfirmation('skipped')).toContain('Reabrir');
+    expect(undoConfirmation('skipped', 'pt')).toContain('Reabrir');
+    expect(undoConfirmation('skipped', 'en')).toContain('Reopen');
   });
 });
 
@@ -92,9 +95,11 @@ describe('loggableDateRange', () => {
 
 describe('durationSourceLabel', () => {
   it('diz de onde vem a duração', () => {
-    expect(durationSourceLabel('reported')).toBe('informada por você');
-    expect(durationSourceLabel('imported')).toBe('de um arquivo importado');
-    expect(durationSourceLabel('timer')).toBe('medida pelo cronômetro');
-    expect(durationSourceLabel(undefined)).toBe('medida pelo cronômetro');
+    expect(durationSourceLabel('reported', 'pt')).toBe('informada por você');
+    expect(durationSourceLabel('imported', 'pt')).toBe('de um arquivo importado');
+    expect(durationSourceLabel('timer', 'pt')).toBe('medida pelo cronômetro');
+    expect(durationSourceLabel(undefined, 'pt')).toBe('medida pelo cronômetro');
+    expect(durationSourceLabel('reported', 'en')).toBe('entered by you');
+    expect(durationSourceLabel(undefined, 'en')).toBe('measured by the timer');
   });
 });

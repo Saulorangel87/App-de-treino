@@ -1,7 +1,9 @@
 /* Acesso: entrar/criar conta e telas curtas de confirmação e redefinição de senha. */
 
 .account-shell {
-  min-height: 100dvh;
+  position: relative;
+  /* O rodapé do app (48px) fica abaixo: sem descontá-lo, a página rola à toa. */
+  min-height: calc(100dvh - 49px);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
 }
@@ -257,4 +259,78 @@
   font-weight: 700;
   text-decoration: none;
   box-shadow: 3px 3px 0 var(--ink);
+}
+
+/* Seletor de idioma no canto superior direito, sobre a apresentação no celular
+   e sobre o formulário no computador. */
+.account-language {
+  position: absolute;
+  top: 16px;
+  right: var(--gutter);
+  z-index: 2;
+}
+
+@media (min-width: 960px) {
+  .account-language {
+    top: 24px;
+    right: 32px;
+  }
+}
+
+/* Em telas baixas (notebooks), o login cabe sem rolagem: espaços e título menores. */
+@media (min-width: 960px) and (max-height: 820px) {
+  .account-story {
+    padding: 28px 48px;
+    gap: 16px;
+  }
+
+  .story-copy {
+    gap: 10px;
+  }
+
+  .story-copy h1 {
+    font-size: clamp(34px, 6.4vh, 52px);
+  }
+
+  .story-copy > p:not(.eyebrow-light) {
+    font-size: 16px;
+  }
+
+  .story-copy ul {
+    gap: 6px;
+  }
+
+  .privacy-note {
+    padding: 10px 14px;
+  }
+
+  .account-form-panel {
+    padding: 28px 48px 12px;
+  }
+
+  .account-form-wrap {
+    gap: 8px;
+  }
+
+  .account-form-wrap h2 {
+    font-size: 26px;
+  }
+
+  .mode-switch {
+    margin-bottom: 4px;
+  }
+
+  .mode-switch button {
+    min-height: 40px;
+  }
+
+  .account-form {
+    margin-top: 2px;
+    gap: 10px;
+  }
+
+  .form-legal {
+    margin-top: 2px;
+    font-size: 12px;
+  }
 }

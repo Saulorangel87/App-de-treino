@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"log/slog"
@@ -14,6 +15,7 @@ import (
 	"github.com/Saulorangel87/App-de-treino/backend/internal/email"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/evolution"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/feedback"
+	"github.com/Saulorangel87/App-de-treino/backend/internal/i18n"
 	"github.com/Saulorangel87/App-de-treino/backend/internal/planning"
 )
 
@@ -97,23 +99,43 @@ func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Ser
 	mux.HandleFunc("DELETE /v1/activities/imported/{activityID}", server.deleteImportedActivity)
 	mux.HandleFunc("PUT /v1/activities/imported/{activityID}/workout", server.linkImportedActivity)
 	mux.HandleFunc("GET /v1/activities/imported/{activityID}/candidates", server.importedActivityCandidates)
-	return securityHeaders(secureCookies, observability(slog.Default(), cors(allowedOrigin, csrfProtection(allowedOrigin, mux))))
+	return securityHeaders(secureCookies, withLanguage(observability(slog.Default(), cors(allowedOrigin, csrfProtection(allowedOrigin, mux)))))
 }
 
 func writeJSON(w http.ResponseWriter, status int, value any) {
+	if language := languageOf(w); language != i18n.Portuguese {
+		value = translatedJSON(language, value)
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(value)
+}
+
+// translatedJSON round-trips the payload through its JSON form so the
+// translation sees exactly what the client would (struct tags included).
+// Numbers keep their original text.
+func translatedJSON(language i18n.Language, value any) any {
+	encoded, err := json.Marshal(value)
+	if err != nil {
+		return value
+	}
+	decoder := json.NewDecoder(bytes.NewReader(encoded))
+	decoder.UseNumber()
+	var generic any
+	if err := decoder.Decode(&generic); err != nil {
+		return value
+	}
+	return i18n.Value(language, generic)
 }
 
 func cors(origin string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", origin)
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		w.Header().Set("Vary", "Origin")
+		w.Header().Add("Vary", "Origin")
 		if r.Method == http.MethodOptions {
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept-Language")
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}

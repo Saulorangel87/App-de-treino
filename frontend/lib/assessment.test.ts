@@ -28,26 +28,30 @@ describe('efficiencyChange', () => {
     expect(efficiencyChange(watts(1.2), watts(0))).toBeNull();
   });
 
-  it('escreve a variação em português', () => {
-    expect(formatChange(6.7)).toBe('6,7% melhor');
-    expect(formatChange(-2)).toBe('2,0% pior');
-    expect(formatChange(0)).toBe('igual');
+  it('escreve a variação em português e em inglês', () => {
+    expect(formatChange(6.7, 'pt')).toBe('6,7% melhor');
+    expect(formatChange(-2, 'pt')).toBe('2,0% pior');
+    expect(formatChange(0, 'pt')).toBe('igual');
+    expect(formatChange(6.7, 'en')).toBe('6.7% better');
+    expect(formatChange(-2, 'en')).toBe('2.0% worse');
   });
 
   it('escreve a eficiência com a unidade', () => {
-    expect(formatEfficiency(watts(1.2))).toBe('1,20 W por bpm');
-    expect(formatEfficiency(speed(20))).toBe('20,00 km/h a cada 100 bpm');
+    expect(formatEfficiency(watts(1.2), 'pt')).toBe('1,20 W por bpm');
+    expect(formatEfficiency(speed(20), 'pt')).toBe('20,00 km/h a cada 100 bpm');
+    expect(formatEfficiency(watts(1.2), 'en')).toBe('1.20 W per bpm');
   });
 });
 
 describe('describeDrift', () => {
   it('separa estável, subiu um pouco e subiu bastante', () => {
-    expect(describeDrift(0).tone).toBe('steady');
-    expect(describeDrift(-2).tone).toBe('steady');
-    expect(describeDrift(3).tone).toBe('steady');
-    expect(describeDrift(4.2).tone).toBe('rising');
-    expect(describeDrift(5).tone).toBe('rising');
-    expect(describeDrift(5.1).tone).toBe('high');
+    expect(describeDrift(0, 'pt').tone).toBe('steady');
+    expect(describeDrift(-2, 'pt').tone).toBe('steady');
+    expect(describeDrift(3, 'pt').tone).toBe('steady');
+    expect(describeDrift(4.2, 'pt').tone).toBe('rising');
+    expect(describeDrift(5, 'pt').tone).toBe('rising');
+    expect(describeDrift(5.1, 'pt').tone).toBe('high');
+    expect(describeDrift(5.1, 'en').text).toContain('too hard for Z2');
   });
 });
 
@@ -91,9 +95,9 @@ describe('numbersPayload e halvesError', () => {
   });
 
   it('exige as duas metades juntas', () => {
-    expect(halvesError('', '')).toBe('');
-    expect(halvesError('130', '140')).toBe('');
-    expect(halvesError('130', '')).not.toBe('');
-    expect(halvesError('', '140')).not.toBe('');
+    expect(halvesError('', '', 'pt')).toBe('');
+    expect(halvesError('130', '140', 'pt')).toBe('');
+    expect(halvesError('130', '', 'pt')).not.toBe('');
+    expect(halvesError('', '140', 'en')).toContain('both halves');
   });
 });
