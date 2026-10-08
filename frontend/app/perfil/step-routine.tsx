@@ -10,6 +10,7 @@ import {
   SESSION_PREFERENCE_VALUES,
   profileText,
   questionIsVisible,
+  todayIso,
   type TrainingStatus,
 } from './profile-model';
 
@@ -635,7 +636,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
               <Input
                 id="ftp_test_date"
                 type="date"
-                max={new Date().toISOString().slice(0, 10)}
+                max={todayIso()}
                 value={cyclingContext.ftp_test_date || ''}
                 onChange={(e) =>
                   setCyclingContext((c) => ({
@@ -692,7 +693,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
                 type="date"
                 required
                 value={cyclingContext.event_date || ''}
-                min={new Date().toISOString().slice(0, 10)}
+                min={todayIso()}
                 onChange={(e) =>
                   setCyclingContext((c) => ({
                     ...c,

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { defineMessages } from '@/lib/i18n';
 import { FormFeedback, GoalOptions } from './profile-fields';
+import { todayIso } from './profile-model';
 
 const messages = defineMessages({
   pt: {
@@ -78,7 +79,7 @@ export function ProfileStep3({ form }: { form: ProfileFormController }) {
               id="target_date"
               type="date"
               value={primaryGoal.target_date}
-              min={new Date().toISOString().slice(0, 10)}
+              min={todayIso()}
               onChange={(event) =>
                 setPrimaryGoal((current) => ({
                   ...current,

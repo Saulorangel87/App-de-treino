@@ -204,7 +204,7 @@ export default function HomePage() {
   useScrollLock(Boolean(selected));
 
   const activePlan = plan?.status === 'active' ? plan : null;
-  const today = useMemo(() => new Date(), []);
+  const [today] = useState(() => new Date());
   const todayKey = dateKey(today);
   const focusWorkout = useMemo(() => {
     if (!activePlan?.workouts.length) return null;
