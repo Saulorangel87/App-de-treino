@@ -962,8 +962,13 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - `WorkerClient` envia `language` só em inglês e `SupportsLanguage` aceita `pt` e `en` (PR #83). Ordem de publicação: Worker, depois backend.
 - Validação: explicação em inglês gerada pela IA em produção, pelo app.
 
-## Resumo semanal por regras (09/10/2026, versão 0.39.0, ainda não publicada)
+## Resumo semanal por regras (09/10/2026, versão 0.39.0, publicado em 4a1b58c)
 
 - Cartão "Sua semana" na Evolução, montado no frontend com `buildWeeklySummary` a partir dos dados que a tela já recebe. Escolhe a última semana completa; sem treino nela, não aparece. Regras: consistência, comparação de tempo (5% de tolerância), zona média, esforço acima do previsto (`rpe_delta >= 2`), fadiga média (treinos e check-ins; alta a partir de 4), dor e uma frase de próxima carga (cuidado se houve dor, fadiga alta ou esforço acima do previsto).
 - Testes cobrem semana vazia, cancelamentos, singular, dor, fadiga, janela de datas e inglês. Também saiu o rótulo "Explicação por IA" (PR #85).
 
+## Meus números e sugestões (09/10/2026, versão 0.40.0, publicado em a028f7f)
+
+- Fase B das zonas, passos 1 e 3. Cartão "Meus números" em Configurações com frequência máxima, limiar de frequência (LTHR, campo novo no contexto de ciclismo) e FTP. Com LTHR, as faixas em batimentos usam % do limiar (Z1 até 81%, Z2 82–89%, Z3 90–93%, Z4 94–99%, Z5 acima de 99%); as telas leem o contexto atual do atleta.
+- Importador `.fit`: melhor média de 20 minutos seguidos por atividade (`best_20min_power_watts`, migração `000038`). `GET /v1/activities/reference-suggestions` sugere FC máxima (maior batimento visto) e FTP (95% da melhor média), com mínimo de 3 atividades e sem gravar nada sozinho.
+- Deploy com backup `cadencia-20261009T235718Z.dump`, 1 migração e testes de fumaça públicos e autenticados. Fica de fora o passo 2 (testes guiados de esforço máximo), que pede avisos de segurança e decisão de produto.

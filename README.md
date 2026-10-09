@@ -2,7 +2,7 @@
 
 Aplicação de planejamento adaptativo de treinos de ciclismo.
 
-Versão publicada: `0.38.0` (app em português e inglês). A `0.37.0` trouxe a proteção do plano em níveis (leve, moderada, forte), com prazo e reavaliação a cada treino ou check-in, o aviso na tela do plano e o botão "Estou recuperado" (migração `000032`; ver [`docs/motor-protecao-cenarios.md`](docs/motor-protecao-cenarios.md)). A `0.36.0` permite vincular a atividade importada ao treino; a `0.35.0` trouxe a identidade visual "carta topográfica"; a `0.34.0`, a importação de atividades reais por arquivo `.fit`/`.gpx` ([`docs/proxima-fase-dados-reais.md`](docs/proxima-fase-dados-reais.md)).
+Versão publicada: `0.40.0` (Meus números, com sugestões de frequência máxima e FTP a partir das atividades importadas e zonas pelo limiar de frequência). A `0.39.0` trouxe o resumo semanal por regras na tela de Evolução e a `0.38.0`, o app em português e inglês. A `0.37.0` trouxe a proteção do plano em níveis (leve, moderada, forte), com prazo e reavaliação a cada treino ou check-in, o aviso na tela do plano e o botão "Estou recuperado" (migração `000032`; ver [`docs/motor-protecao-cenarios.md`](docs/motor-protecao-cenarios.md)). A `0.36.0` permite vincular a atividade importada ao treino; a `0.35.0` trouxe a identidade visual "carta topográfica"; a `0.34.0`, a importação de atividades reais por arquivo `.fit`/`.gpx` ([`docs/proxima-fase-dados-reais.md`](docs/proxima-fase-dados-reais.md)).
 
 O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Sprint/pista/BMX e downhill/enduro não fazem parte deste app e não são aceitos como modalidades de treino.
 
@@ -21,7 +21,7 @@ O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Spr
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000001`–`000037`; a produção está sincronizada até `000037`.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000001`–`000038`; a produção está sincronizada até `000038`.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 
@@ -104,8 +104,8 @@ O MVP de ciclismo está publicado e validado em produção:
 
 - Frontend: <https://cadencia.devsaulo.com.br>
 - API: <https://cadencia-api.devsaulo.com.br>
-- Código publicado na linha de versão `0.38.0` (português e inglês), incluindo a proteção graduada do motor (ligada em produção) e a importação de atividades por arquivo `.fit`/`.gpx` (desde a `0.34.0`).
-- Versão visível: `0.38.0`; migrações de banco aplicadas até `000037`.
+- Código publicado na linha de versão `0.40.0` (português e inglês, resumo semanal e Meus números), incluindo a proteção graduada do motor (ligada em produção) e a importação de atividades por arquivo `.fit`/`.gpx` (desde a `0.34.0`).
+- Versão visível: `0.40.0`; migrações de banco aplicadas até `000038`.
 - PostgreSQL permanece privado na rede Docker; o Cloudflare Tunnel expõe somente frontend e API.
 - Cadastro, onboarding, plano, treino, feedback, adaptação, atividades, evolução, configurações, importação de atividades, novidades e logout foram validados em produção.
 - `rules-v1` continua sendo a única fonte prescritiva. Os shadows permanecem observacionais.
