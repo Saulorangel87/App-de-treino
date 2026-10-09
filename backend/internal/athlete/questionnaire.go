@@ -85,6 +85,7 @@ func CyclingQuestionnaire() QuestionnaireDefinition {
 			{ID: "uses_smart_trainer", Step: 4, Prompt: "Uso rolo inteligente", Kind: "boolean"},
 			{ID: "uses_heart_rate", Step: 4, Prompt: "Uso frequência cardíaca", Kind: "boolean"},
 			{ID: "max_heart_rate", Step: 4, Prompt: "Frequência cardíaca máxima", Kind: "number", Condition: &QuestionCondition{QuestionID: "uses_heart_rate", Equals: true}},
+			{ID: "lthr", Step: 4, Prompt: "Limiar de frequência cardíaca", Kind: "number", Condition: &QuestionCondition{QuestionID: "uses_heart_rate", Equals: true}},
 			{ID: "uses_power", Step: 4, Prompt: "Uso medidor de potência", Kind: "boolean"},
 			{ID: "ftp", Step: 4, Prompt: "FTP", Kind: "number", Condition: &QuestionCondition{QuestionID: "uses_power", Equals: true}},
 			{ID: "ftp_test_date", Step: 4, Prompt: "Data do teste de FTP", Kind: "date", Condition: &QuestionCondition{QuestionID: "uses_power", Equals: true}},

@@ -4,6 +4,12 @@ import type { UpdateNote } from './release';
 // versão de cada posição). Ao publicar uma versão nova, escreva as duas.
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
   {
+    version: '0.40.0',
+    title: 'Zones that fit you better',
+    description:
+      'In Settings, the "My numbers" card brings together your maximum heart rate, threshold heart rate and FTP. With the threshold, the heart rate ranges of the zones get closer to your body. If you import .fit files, Cadência suggests your maximum heart rate and FTP from them; nothing is saved without your confirmation.',
+  },
+  {
     version: '0.39.0',
     title: 'Your weekly summary',
     description:

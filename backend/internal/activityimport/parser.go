@@ -42,6 +42,9 @@ type Parsed struct {
 	AveragePowerW     *int      `json:"average_power_watts,omitempty"`
 	NormalizedPowerW  *int      `json:"normalized_power_watts,omitempty"`
 	AverageCadenceRPM *int      `json:"average_cadence_rpm,omitempty"`
+	// Best20MinPowerW é a maior potência média em 20 minutos seguidos, calculada
+	// dos registros segundo a segundo. Serve só para sugerir o FTP ao atleta.
+	Best20MinPowerW *int `json:"best_20min_power_watts,omitempty"`
 	// LocalDateKnown is true when StartedAt's calendar date reflects the
 	// athlete's local time (the .fit file carried the device's timezone
 	// offset). Files are stored in UTC; without this, a ride close to

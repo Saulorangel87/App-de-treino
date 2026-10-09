@@ -55,6 +55,7 @@ func ParseFIT(r io.Reader) (Parsed, error) {
 	if err != nil {
 		return Parsed{}, err
 	}
+	parsed.Best20MinPowerW = bestAveragePower(powerSamplesOf(records), bestPowerWindow)
 
 	// O FIT grava tudo em UTC. Sem isso, uma pedalada perto da meia-noite no
 	// horário local pode "virar o dia" em UTC e deixar de bater com a data do
@@ -172,4 +173,16 @@ func parseFITFromRecords(records []*mesgdef.Record) (Parsed, error) {
 	parsed.AveragePowerW = avgInt(powerSamples)
 	parsed.AverageCadenceRPM = avgInt(cadenceSamples)
 	return parsed, nil
+}
+
+// powerSamplesOf extrai os registros que trazem potência, na ordem do arquivo.
+func powerSamplesOf(records []*mesgdef.Record) []powerSample {
+	samples := make([]powerSample, 0, len(records))
+	for _, rec := range records {
+		if rec.Power == basetype.Uint16Invalid || rec.Timestamp.IsZero() {
+			continue
+		}
+		samples = append(samples, powerSample{at: rec.Timestamp, watts: int(rec.Power)})
+	}
+	return samples
 }

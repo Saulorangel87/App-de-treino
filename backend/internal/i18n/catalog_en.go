@@ -13,6 +13,7 @@ var english = map[string]string{
 	"Não foi possível ler o arquivo enviado.":                                             "The uploaded file could not be read.",
 	`Envie um arquivo no campo "file".`:                                                   `Send a file in the "file" field.`,
 	"Não foi possível carregar as atividades importadas.":                                 "Imported activities could not be loaded.",
+	"Não foi possível carregar as sugestões.":                                             "Suggestions could not be loaded.",
 	`Informe o treino no campo "workout_id" (ou null para desvincular).`:                  `Send the workout in the "workout_id" field (or null to unlink).`,
 	"Envie um arquivo .fit ou .gpx.":                                                      "Upload a .fit or .gpx file.",
 	"Este arquivo não parece ser de uma atividade de ciclismo.":                           "This file does not look like a cycling activity.",

@@ -725,7 +725,7 @@ export function WorkoutSessionActions({
                     />
                     <strong>
                       Z{zone.number} · {zoneName(zone, locale)}
-                      {ranges.heartRate && <small>{formatHeartRateRange(ranges.heartRate)}</small>}
+                      {ranges.heartRate && <small>{formatHeartRateRange(ranges.heartRate, locale)}</small>}
                       {ranges.power && <small>{formatPowerRange(ranges.power, locale)}</small>}
                       {plannedZone === zone.number && <em className="zone-planned">{t.planned}</em>}
                     </strong>

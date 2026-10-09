@@ -31,12 +31,14 @@ func (s *Store) SaveActivity(ctx context.Context, userID, source, fileHash strin
 		INSERT INTO imported_activities (
 			user_id, source, file_hash, started_at, moving_seconds, distance_km,
 			elevation_gain_m, average_heart_rate, max_heart_rate,
-			average_power_watts, normalized_power_watts, average_cadence_rpm
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+			average_power_watts, normalized_power_watts, average_cadence_rpm,
+			best_20min_power_watts
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 		RETURNING id::text, imported_at`,
 		userID, source, fileHash, parsed.StartedAt, parsed.MovingSeconds, distanceKM,
 		parsed.ElevationGainM, parsed.AverageHeartRate, parsed.MaxHeartRate,
 		parsed.AveragePowerW, parsed.NormalizedPowerW, parsed.AverageCadenceRPM,
+		parsed.Best20MinPowerW,
 	).Scan(&activity.ID, &activity.ImportedAt)
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
@@ -54,7 +56,7 @@ const importedActivityColumns = `
 	ia.id::text, ia.workout_id::text, w.name, w.scheduled_on::text, ia.source, ia.started_at,
 	ia.moving_seconds, ia.distance_km, ia.elevation_gain_m, ia.average_heart_rate,
 	ia.max_heart_rate, ia.average_power_watts, ia.normalized_power_watts,
-	ia.average_cadence_rpm, ia.imported_at
+	ia.average_cadence_rpm, ia.best_20min_power_watts, ia.imported_at
 	FROM imported_activities ia
 	LEFT JOIN workouts w ON w.id = ia.workout_id`
 
@@ -67,7 +69,7 @@ func scanImportedActivity(row rowScanner, userID string) (activityimport.Activit
 		&activity.ID, &activity.WorkoutID, &activity.WorkoutName, &activity.WorkoutScheduledOn,
 		&activity.Source, &activity.StartedAt, &activity.MovingSeconds, &distanceKM,
 		&activity.ElevationGainM, &activity.AverageHeartRate, &activity.MaxHeartRate,
-		&activity.AveragePowerW, &activity.NormalizedPowerW, &activity.AverageCadenceRPM, &activity.ImportedAt,
+		&activity.AveragePowerW, &activity.NormalizedPowerW, &activity.AverageCadenceRPM, &activity.Best20MinPowerW, &activity.ImportedAt,
 	); err != nil {
 		return activityimport.Activity{}, err
 	}

@@ -73,7 +73,7 @@ export function ZoneSummary({ rpe, reference }: { rpe: number; reference: ZoneRe
         <strong>
           Z{zone.number} · {zoneName(zone, locale)}
         </strong>
-        {ranges.heartRate && <span>{formatHeartRateRange(ranges.heartRate)}</span>}
+        {ranges.heartRate && <span>{formatHeartRateRange(ranges.heartRate, locale)}</span>}
         {ranges.power && <span>{formatPowerRange(ranges.power, locale)}</span>}
       </div>
       <p>{zoneTalk(zone, locale)}</p>

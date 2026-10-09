@@ -64,9 +64,22 @@ describe('zoneRanges', () => {
     expect(ranges[1]).toEqual({ low: 112, high: 130 });
     expect(ranges[4].high).toBe(185);
     for (let i = 1; i < ranges.length; i++) {
-      expect(ranges[i].low).toBe(ranges[i - 1].high + 1);
+      expect(ranges[i].low).toBe(ranges[i - 1].high! + 1);
     }
     expect(formatHeartRateRange(ranges[1])).toBe('112–130 bpm');
+  });
+
+  it('usa o limiar de FC quando existe, com Z1 sem piso e Z5 sem teto', () => {
+    const lthr = 170;
+    const ranges = ZONES.map((zone) => zoneRanges(zone, { maxHeartRate: 190, lthr }).heartRate!);
+    expect(ranges[0]).toEqual({ low: undefined, high: 138 });
+    expect(ranges[1]).toEqual({ low: 139, high: 151 });
+    expect(ranges[2]).toEqual({ low: 152, high: 158 });
+    expect(ranges[3]).toEqual({ low: 159, high: 168 });
+    expect(ranges[4]).toEqual({ low: 169, high: undefined });
+    expect(formatHeartRateRange(ranges[0])).toBe('até 138 bpm');
+    expect(formatHeartRateRange(ranges[4], 'en')).toBe('above 168 bpm');
+    expect(formatHeartRateRange(ranges[3])).toBe('159–168 bpm');
   });
 
   it('calcula as faixas de potência, com a primeira e a última abertas', () => {
@@ -94,6 +107,7 @@ describe('zoneReferenceFrom', () => {
     });
     expect(zoneReferenceFrom({ max_heart_rate: 190, uses_heart_rate: true, ftp: 220, uses_power: true })).toEqual({
       maxHeartRate: 190,
+      lthr: undefined,
       ftp: 220,
     });
   });

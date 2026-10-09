@@ -77,7 +77,10 @@ type CyclingContext struct {
 	AveragePowerWatts      *int     `json:"average_power_watts,omitempty"`
 	// MaxHeartRate (bpm) is optional and only kept when the athlete uses a heart
 	// rate sensor; with it the app shows each zone as a range of beats.
-	MaxHeartRate    *int    `json:"max_heart_rate,omitempty"`
+	MaxHeartRate *int `json:"max_heart_rate,omitempty"`
+	// LTHR (bpm) é o limiar de frequência cardíaca, opcional, com as mesmas
+	// regras da frequência máxima e nunca acima dela.
+	LTHR            *int    `json:"lthr,omitempty"`
 	EventGoal       bool    `json:"event_goal"`
 	EventDistanceKM *int    `json:"event_distance_km,omitempty"`
 	EventDate       *string `json:"event_date,omitempty"`
@@ -122,8 +125,11 @@ func (s *OnboardingService) SaveCyclingContext(ctx context.Context, userID strin
 		seenPreferences[preference] = true
 	}
 	if !value.UsesHeartRate {
-		value.MaxHeartRate = nil
+		value.MaxHeartRate, value.LTHR = nil, nil
 	} else if value.MaxHeartRate != nil && (*value.MaxHeartRate < minMaxHeartRate || *value.MaxHeartRate > maxMaxHeartRate) {
+		return CyclingContext{}, ErrInvalidOnboarding
+	}
+	if value.LTHR != nil && (*value.LTHR < minMaxHeartRate || *value.LTHR > maxMaxHeartRate || (value.MaxHeartRate != nil && *value.LTHR > *value.MaxHeartRate)) {
 		return CyclingContext{}, ErrInvalidOnboarding
 	}
 	if !value.UsesPower {

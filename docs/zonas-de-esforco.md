@@ -42,8 +42,15 @@ Plano, Hoje, estrutura do treino, cartão de adaptação (só mostra a mudança 
 - A cópia completa dos dados, que guarda o valor bruto.
 - O banco da Avaliação (`actual_rpe`): a tela pergunta a zona, e a API guarda o RPE correspondente, como nos treinos.
 
+## Meus números e sugestões (Fase B, `0.40.0`)
+
+- **Onde:** Configurações → "Meus números". Frequência máxima, limiar de frequência (LTHR) e FTP, com a data do FTP. O valor é gravado no contexto de ciclismo do perfil (mesmo dado do perfil, sem duplicação). O LTHR só existe com "Uso frequência cardíaca" marcado, fica entre 100 e 230 bpm e nunca passa da frequência máxima.
+- **Zonas pelo limiar:** quando há LTHR, as faixas em batimentos usam % do limiar (Z1 até 81%, Z2 82–89%, Z3 90–93%, Z4 94–99%, Z5 acima de 99%, modelo de Friel/Coggan); sem LTHR, continuam em % da frequência máxima. As telas leem o contexto atual do atleta (`use-live-cycling-context.ts`), então a mudança vale na hora, sem gerar plano novo.
+- **Sugestões:** `GET /v1/activities/reference-suggestions`. Frequência máxima = maior batimento visto nas atividades importadas (100 a 230 bpm); FTP = 95% da melhor média de 20 minutos seguidos, que o importador `.fit` passou a calcular (`best_20min_power_watts`, migração `000038`; atividades já importadas precisam ser reenviadas). Só sugere com pelo menos 3 atividades com o dado, e nada é gravado sozinho: o valor vai para o campo e o atleta confirma. Um esforço de 20 minutos em treino leve pode subestimar o FTP.
+- **Não muda:** o motor segue em RPE; só o texto das zonas e as sugestões usam esses números.
+
 ## Próximas fases
 
-- **Fase B:** guardar frequência máxima, limiar de frequência e FTP em um só lugar, com testes guiados, na revisão da aba Avaliação.
+- **Fase B (passos 1 e 3 na `0.40.0`):** os três números ficam em um só lugar, o cartão "Meus números" em Configurações, e as sugestões vêm das atividades importadas. Detalhes na seção abaixo. Os testes guiados (passo 2) seguem para depois, com avisos de segurança e decisão de produto.
 - **Fase C:** ler as batidas do arquivo `.fit` importado e calcular o tempo em cada zona, para comparar o planejado com o pedalado. Só com arquivos do próprio atleta, sem dados do Strava.
 - **Mais adiante:** o motor falar em zonas nativamente, quando houver dados reais que sustentem.
