@@ -28,6 +28,7 @@ import { ApiError, apiErrorMessage, apiRequest } from '@/lib/api';
 import { ApiErrorState } from '@/components/api-error-state';
 import { useLocale, useMessages } from '@/components/locale-provider';
 import { currentLocale, defineMessages, formatDecimal, INTL_LOCALE } from '@/lib/i18n';
+import { useLiveCyclingContext } from '@/lib/use-live-cycling-context';
 import {
   activeProtection,
   parseTrainingDate,
@@ -279,6 +280,7 @@ function numberParam(params: URLSearchParams, key: string): number | undefined {
 export default function PlanPage() {
   const locale = useLocale();
   const t = useMessages(messages);
+  const liveCyclingContext = useLiveCyclingContext();
   const [user, setUser] = useState<User | null>(null);
   const [plan, setPlan] = useState<TrainingPlan | null>(null);
   const [selected, setSelected] = useState<Workout | null>(null);
@@ -792,7 +794,7 @@ export default function PlanPage() {
                   </div>
                   <ZoneSummary
                     rpe={selected.target_rpe}
-                    reference={zoneReferenceFrom(plan.prescription_snapshot.cycling_context)}
+                    reference={zoneReferenceFrom(liveCyclingContext ?? plan.prescription_snapshot.cycling_context)}
                   />
                   <AdaptationCard workout={selected} />
                   <WorkoutSessionActions
@@ -800,7 +802,7 @@ export default function PlanPage() {
                     planStatus={plan.status}
                     usesHeartRate={Boolean(plan.prescription_snapshot.cycling_context?.uses_heart_rate)}
                     usesPower={Boolean(plan.prescription_snapshot.cycling_context?.uses_power)}
-                    zoneReference={zoneReferenceFrom(plan.prescription_snapshot.cycling_context)}
+                    zoneReference={zoneReferenceFrom(liveCyclingContext ?? plan.prescription_snapshot.cycling_context)}
                     onPlanUpdated={updateSessionPlan}
                     prefillMetrics={prefillMetrics}
                   />

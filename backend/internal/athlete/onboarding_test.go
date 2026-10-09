@@ -308,3 +308,25 @@ func TestSaveCyclingContextRejectsImplausibleMaxHeartRate(t *testing.T) {
 		}
 	}
 }
+
+func TestSaveCyclingContextValidatesLTHR(t *testing.T) {
+	service := NewOnboardingService(onboardingStore{})
+	max, lthr := 190, 172
+
+	kept, err := service.SaveCyclingContext(context.Background(), "user-1", CyclingContext{UsesHeartRate: true, MaxHeartRate: &max, LTHR: &lthr})
+	if err != nil || kept.LTHR == nil || *kept.LTHR != 172 {
+		t.Fatalf("o limiar válido deve ser mantido, veio %#v, %v", kept, err)
+	}
+	cleared, err := service.SaveCyclingContext(context.Background(), "user-1", CyclingContext{UsesHeartRate: false, LTHR: &lthr})
+	if err != nil || cleared.LTHR != nil {
+		t.Fatalf("sem sensor o limiar some, veio %#v, %v", cleared, err)
+	}
+	above := 195
+	if _, err := service.SaveCyclingContext(context.Background(), "user-1", CyclingContext{UsesHeartRate: true, MaxHeartRate: &max, LTHR: &above}); err != ErrInvalidOnboarding {
+		t.Errorf("limiar acima da frequência máxima retornou %v", err)
+	}
+	low := 80
+	if _, err := service.SaveCyclingContext(context.Background(), "user-1", CyclingContext{UsesHeartRate: true, LTHR: &low}); err != ErrInvalidOnboarding {
+		t.Errorf("limiar implausível retornou %v", err)
+	}
+}

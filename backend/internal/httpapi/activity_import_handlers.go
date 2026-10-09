@@ -56,6 +56,19 @@ func (s *Server) listImportedActivities(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, http.StatusOK, map[string]any{"activities": activities})
 }
 
+func (s *Server) referenceSuggestions(w http.ResponseWriter, r *http.Request) {
+	user, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	suggestions, err := s.activityImport.ReferenceSuggestions(r.Context(), user.ID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "internal_error", "Não foi possível carregar as sugestões.")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"suggestions": suggestions})
+}
+
 func (s *Server) deleteImportedActivity(w http.ResponseWriter, r *http.Request) {
 	user, ok := s.requireUser(w, r)
 	if !ok {

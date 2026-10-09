@@ -69,6 +69,9 @@ const messages = defineMessages({
     usesTrainer: 'Uso rolo inteligente',
     usesTrainerHint: 'Tenho sessões indoor com carga controlada.',
     maxHeartRate: 'Frequência cardíaca máxima (bpm)',
+    lthr: 'Limiar de frequência cardíaca (bpm)',
+    lthrHint:
+      'Opcional. É o batimento que você sustenta por cerca de 30 a 60 minutos em esforço forte, abaixo da frequência máxima. Com ele, as faixas em batimentos ficam mais fiéis a você. Em Configurações, o Cadência pode sugerir valores a partir das suas atividades.',
     maxHeartRateHint:
       'Opcional. Com ela, mostramos cada zona de esforço em batimentos. Se você não sabe, deixe em branco: as zonas aparecem pela sensação (teste da conversa). A fórmula 220 menos a idade erra bastante; o melhor é o maior valor visto em um esforço máximo ou em um teste.',
     ftp: 'FTP (watts)',
@@ -170,6 +173,9 @@ const messages = defineMessages({
     usesTrainer: 'I use a smart trainer',
     usesTrainerHint: 'I do indoor sessions with controlled resistance.',
     maxHeartRate: 'Maximum heart rate (bpm)',
+    lthr: 'Lactate threshold heart rate (bpm)',
+    lthrHint:
+      'Optional. It is the heart rate you can hold for about 30 to 60 minutes of hard effort, below your maximum. With it, the heart rate ranges fit you better. In Settings, Cadência can suggest values from your activities.',
     maxHeartRateHint:
       "Optional. With it, we show each effort zone in beats per minute. If you don't know it, leave it blank: zones are shown by feel (the talk test). The 220-minus-age formula is often far off; the best value is the highest you have seen in a maximal effort or a test.",
     ftp: 'FTP (watts)',
@@ -475,6 +481,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
                   ...c,
                   uses_heart_rate: e.target.checked,
                   max_heart_rate: e.target.checked ? c.max_heart_rate : undefined,
+                  lthr: e.target.checked ? c.lthr : undefined,
                 }))
               }
             />
@@ -593,6 +600,28 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
                 }
               />
               <small>{t.maxHeartRateHint}</small>
+            </div>
+          )}
+        {cyclingContext.uses_heart_rate &&
+          questionIsVisible(questionnaire, 'lthr', {
+            uses_heart_rate: cyclingContext.uses_heart_rate,
+          }) && (
+            <div className="max-heart-rate-field">
+              <Label htmlFor="lthr">{t.lthr}</Label>
+              <Input
+                id="lthr"
+                type="number"
+                min="100"
+                max="230"
+                value={cyclingContext.lthr || ''}
+                onChange={(e) =>
+                  setCyclingContext((c) => ({
+                    ...c,
+                    lthr: Number(e.target.value) || undefined,
+                  }))
+                }
+              />
+              <small>{t.lthrHint}</small>
             </div>
           )}
         {questionIsVisible(questionnaire, 'ftp', {

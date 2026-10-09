@@ -17,6 +17,7 @@ import { RouteMap, RouteScale, stepsForWorkout } from '@/components/route-map';
 import { ZoneHelp, ZoneSummary } from '@/components/zone-help';
 import { zoneForRpe, zoneLabel, zoneName, zoneReferenceFrom } from '@/lib/zones';
 import { useScrollLock } from '@/components/use-scroll-lock';
+import { useLiveCyclingContext } from '@/lib/use-live-cycling-context';
 import { TrailLegend, TrailSymbol, intensityMessages, intensityOf } from '@/components/trail-symbol';
 import { useLocale, useMessages } from '@/components/locale-provider';
 import { WorkoutSessionActions } from '@/components/workout-session-actions';
@@ -172,6 +173,7 @@ export default function HomePage() {
   const locale = useLocale();
   const t = useMessages(messages);
   const intensityText = useMessages(intensityMessages);
+  const liveCyclingContext = useLiveCyclingContext();
   const [user, setUser] = useState<User | null>(null);
   const [plan, setPlan] = useState<TrainingPlan | null>(null);
   const [selected, setSelected] = useState<Workout | null>(null);
@@ -543,7 +545,7 @@ export default function HomePage() {
             <AdaptationCard workout={selected} />
             <ZoneSummary
               rpe={selected.target_rpe}
-              reference={zoneReferenceFrom(activePlan.prescription_snapshot.cycling_context)}
+              reference={zoneReferenceFrom(liveCyclingContext ?? activePlan.prescription_snapshot.cycling_context)}
             />
             <div className="workout-modal-map">
               <RouteMap
@@ -557,7 +559,7 @@ export default function HomePage() {
               planStatus={activePlan.status}
               usesHeartRate={Boolean(activePlan.prescription_snapshot.cycling_context?.uses_heart_rate)}
               usesPower={Boolean(activePlan.prescription_snapshot.cycling_context?.uses_power)}
-              zoneReference={zoneReferenceFrom(activePlan.prescription_snapshot.cycling_context)}
+              zoneReference={zoneReferenceFrom(liveCyclingContext ?? activePlan.prescription_snapshot.cycling_context)}
               onPlanUpdated={updateSessionPlan}
             />
             <Link className="modal-plan-link" href="/plano">

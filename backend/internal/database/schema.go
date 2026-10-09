@@ -53,6 +53,7 @@ var RequiredMigrations = []string{
 	"000035_legal_acceptances.up.sql",
 	"000036_task_mode.up.sql",
 	"000037_assessment_metrics.up.sql",
+	"000038_best_20min_power.up.sql",
 }
 
 // ErrSchemaBehind reports that the database is missing migrations this binary needs.

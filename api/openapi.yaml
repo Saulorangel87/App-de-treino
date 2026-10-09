@@ -434,6 +434,13 @@ paths:
       responses:
         '200': { description: Atividades importadas }
         '401': { description: Sessão ausente ou expirada }
+  /v1/activities/reference-suggestions:
+    get:
+      summary: Sugere frequência cardíaca máxima e FTP a partir das atividades importadas do atleta
+      description: Só sugere com pelo menos 3 atividades com o dado (maior batimento visto e 95% da melhor média de 20 minutos). Nada é gravado; o atleta aceita ou ignora.
+      responses:
+        '200': { description: Sugestões (campos ausentes quando não há dados suficientes) }
+        '401': { description: Sessão ausente ou expirada }
   /v1/activities/imported/{activityID}:
     delete:
       summary: Remove uma atividade importada (não afeta nenhum treino ou plano)
@@ -792,6 +799,11 @@ components:
           minimum: 100
           maximum: 230
           description: Frequência cardíaca máxima em bpm, opcional; só é mantida com uses_heart_rate. Com ela o app mostra cada zona de esforço em batimentos.
+        lthr:
+          type: integer
+          minimum: 100
+          maximum: 230
+          description: Limiar de frequência cardíaca em bpm, opcional; só é mantido com uses_heart_rate e nunca acima da frequência máxima.
         uses_power: { type: boolean }
         uses_gps: { type: boolean }
         uses_sports_watch: { type: boolean }
@@ -1593,6 +1605,7 @@ components:
             average_heart_rate: { type: integer }
             max_heart_rate: { type: integer }
             average_power_watts: { type: integer }
+            best_20min_power_watts: { type: integer }
             normalized_power_watts: { type: integer }
             average_cadence_rpm: { type: integer }
             missing_data: { type: array, items: { type: string } }

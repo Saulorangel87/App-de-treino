@@ -73,11 +73,14 @@ export function zoneTalk(zone: Zone, locale: Locale): string {
 
 export type ZoneReference = {
   maxHeartRate?: number;
+  /** Limiar de frequência cardíaca; quando existe, é a base das faixas em batimentos. */
+  lthr?: number;
   ftp?: number;
 };
 
 export type ZoneRanges = {
-  heartRate?: { low: number; high: number };
+  /** Z1 não tem piso e, com o limiar, Z5 não tem teto. */
+  heartRate?: { low?: number; high?: number };
   power?: { low?: number; high?: number };
 };
 
@@ -95,6 +98,9 @@ export function zoneLabel(rpe: number, locale: Locale): string {
   return `Z${zone.number} · ${zoneName(zone, locale)}`;
 }
 
+/** Limite superior de cada zona em % do limiar de FC (modelo de Friel/Coggan); Z5 fica aberta. */
+const LTHR_UPPER_PERCENT: readonly (number | null)[] = [81, 89, 93, 99, null];
+
 /**
  * Faixas da zona em batimentos e em watts, quando o atleta informou a frequência
  * cardíaca máxima e/ou o FTP. As zonas vizinhas não se sobrepõem: a faixa de uma
@@ -102,8 +108,16 @@ export function zoneLabel(rpe: number, locale: Locale): string {
  */
 export function zoneRanges(zone: Zone, reference: ZoneReference): ZoneRanges {
   const ranges: ZoneRanges = {};
-  const { maxHeartRate, ftp } = reference;
-  if (maxHeartRate && maxHeartRate > 0) {
+  const { maxHeartRate, lthr, ftp } = reference;
+  if (lthr && lthr > 0) {
+    const edge = (percent: number) => Math.round((lthr * percent) / 100);
+    const upper = LTHR_UPPER_PERCENT[zone.number - 1];
+    const below = zone.number === 1 ? null : LTHR_UPPER_PERCENT[zone.number - 2];
+    ranges.heartRate = {
+      low: below === null ? undefined : edge(below) + 1,
+      high: upper === null ? undefined : edge(upper),
+    };
+  } else if (maxHeartRate && maxHeartRate > 0) {
     const edge = (percent: number) => Math.round((maxHeartRate * percent) / 100);
     const [from, to] = zone.hrPercent;
     ranges.heartRate = { low: zone.number === 1 ? edge(from) : edge(from) + 1, high: edge(to) };
@@ -119,7 +133,10 @@ export function zoneRanges(zone: Zone, reference: ZoneReference): ZoneRanges {
   return ranges;
 }
 
-export function formatHeartRateRange(range: NonNullable<ZoneRanges['heartRate']>): string {
+export function formatHeartRateRange(range: NonNullable<ZoneRanges['heartRate']>, locale: Locale = 'pt'): string {
+  const [upTo, above] = locale === 'en' ? ['up to', 'above'] : ['até', 'acima de'];
+  if (range.low === undefined && range.high !== undefined) return `${upTo} ${range.high} bpm`;
+  if (range.high === undefined && range.low !== undefined) return `${above} ${range.low - 1} bpm`;
   return `${range.low}–${range.high} bpm`;
 }
 
@@ -133,6 +150,7 @@ export function formatPowerRange(range: NonNullable<ZoneRanges['power']>, locale
 /** Referências do atleta para as faixas, lidas do contexto de ciclismo do plano. */
 export function zoneReferenceFrom(cyclingContext?: {
   max_heart_rate?: number;
+  lthr?: number;
   ftp?: number;
   uses_heart_rate?: boolean;
   uses_power?: boolean;
@@ -140,6 +158,7 @@ export function zoneReferenceFrom(cyclingContext?: {
   if (!cyclingContext) return {};
   return {
     maxHeartRate: cyclingContext.uses_heart_rate ? cyclingContext.max_heart_rate : undefined,
+    lthr: cyclingContext.uses_heart_rate ? cyclingContext.lthr : undefined,
     ftp: cyclingContext.uses_power ? cyclingContext.ftp : undefined,
   };
 }

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { AppHeader } from '@/components/app-header';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { ReferenceNumbersCard } from '@/components/reference-numbers-card';
 import { useLocale, useMessages } from '@/components/locale-provider';
 import { ApiError, apiDownload, apiErrorMessage, apiRequest } from '@/lib/api';
 import { ApiErrorState } from '@/components/api-error-state';
@@ -302,6 +303,8 @@ export default function SettingsPage() {
               <p className="settings-card-intro">{t.languageIntro}</p>
               <LanguageSwitcher />
             </section>
+
+            <ReferenceNumbersCard />
 
             <section className="settings-card settings-security-card">
               <span className="settings-icon">

@@ -1,7 +1,7 @@
 import type { Locale } from './i18n';
 import { UPDATE_NOTES_EN } from './release.en';
 
-export const APP_VERSION = '0.39.0';
+export const APP_VERSION = '0.40.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -10,6 +10,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.40.0',
+    title: 'Zonas mais fiéis a você',
+    description:
+      'Em Configurações, o cartão "Meus números" reúne a frequência cardíaca máxima, o limiar de frequência e o FTP. Com o limiar, as faixas em batimentos das zonas ficam mais próximas do seu corpo. Se você importa arquivos .fit, o Cadência sugere a frequência máxima e o FTP a partir deles; nada é salvo sem a sua confirmação.',
+  },
   {
     version: '0.39.0',
     title: 'O resumo da sua semana',

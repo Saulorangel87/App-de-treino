@@ -410,3 +410,30 @@
   box-shadow: 3px 3px 0 var(--ink);
   cursor: pointer;
 }
+
+/* Meus números: sugestões tiradas das atividades importadas */
+.settings-numbers-hint {
+  margin-top: 4px;
+}
+
+.settings-numbers-empty {
+  color: var(--ink-2);
+  font-size: 15px;
+}
+
+.settings-numbers-suggestions {
+  margin-top: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: var(--hairline);
+  background: var(--paper);
+}
+
+.settings-numbers-suggestions p {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 15px;
+}
