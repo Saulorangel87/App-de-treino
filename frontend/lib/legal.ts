@@ -3,8 +3,8 @@
 // de dados (nova integração, novo provedor, novo dado coletado) deve atualizar
 // estes textos e LEGAL_VERSION no mesmo PR.
 
-export const LEGAL_VERSION = '2026-10-01';
-export const LEGAL_UPDATED_LABEL = '1 de outubro de 2026';
+export const LEGAL_VERSION = '2026-10-11';
+export const LEGAL_UPDATED_LABEL = '11 de outubro de 2026';
 export const LEGAL_CONTACT_EMAIL = 'sauloleonardo1987@gmail.com';
 
 export type LegalSection = {
@@ -90,7 +90,7 @@ export const PRIVACY_POLICY: LegalDocument = {
       items: [
         'Seus dados ficam guardados enquanto a conta existir.',
         'Ao encerrar a conta em Configurações, apagamos todos os seus dados do banco de dados na hora, sem intervenção de ninguém.',
-        'Cópias de segurança anteriores ao encerramento permanecem por um prazo limitado e são descartadas: no servidor, por até 14 dias, e na cópia externa criptografada, guardada em armazenamento da Oracle, por até 60 dias. Depois desses prazos, seus dados não existem mais em nenhuma cópia.',
+        'Cópias de segurança anteriores ao encerramento permanecem por um prazo limitado e são descartadas: no servidor, por até 14 dias, e na cópia externa criptografada, guardada em armazenamento da Oracle, por até 30 dias. Depois desses prazos, seus dados não existem mais em nenhuma cópia.',
         'Registros técnicos de acesso ficam pelo tempo necessário para segurança.',
       ],
     },

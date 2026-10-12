@@ -111,7 +111,7 @@ O MVP de ciclismo está publicado e validado em produção:
 - `rules-v1` continua sendo a única fonte prescritiva. Os shadows permanecem observacionais.
 - Dependabot está com 0 alertas abertos; `go test`, `go vet`, build e auditoria de dependências de produção passaram. `govulncheck` não está instalado.
 
-O estado atual e o checklist de publicação estão em [`docs/STATUS.md`](docs/STATUS.md). O planejamento vigente está em [`planejamento.md`](planejamento.md). As atividades restantes são manutenção operacional, feedback real, cópia externa de backups, monitoramento, hardening da VPS, limpeza gradual do lint histórico e calibração científica antes de ampliar a autoridade do motor. Corrida e musculação estão fora deste projeto.
+O estado atual e o checklist de publicação estão em [`docs/STATUS.md`](docs/STATUS.md). O planejamento vigente está em [`planejamento.md`](planejamento.md). As atividades restantes são manutenção operacional, feedback real, monitoramento, hardening da VPS, limpeza gradual do lint histórico e calibração científica antes de ampliar a autoridade do motor. Corrida e musculação estão fora deste projeto.
 
 A publicação oficial usa somente a composição Docker da VPS com os domínios oficiais e o Cloudflare Tunnel dedicado. O ambiente Sites não faz parte da produção do Cadência.
 
