@@ -332,6 +332,7 @@ Validações realizadas:
 
 - `cadencia-backup.timer` está habilitado na VPS e executa diariamente às 03:30 UTC.
 - Os dumps ficam em `/var/backups/cadencia`, com retenção de 14 dias.
+- Cópia externa criptografada (rclone `crypt`, conteúdo) no bucket `backups-vps` da Oracle, pasta `cadencia/`, com regra de ciclo de vida única de 30 dias para o bucket (desde 2026-10-12; antes, bucket `cadencia-backups` com 60 dias). A VPS só pode criar, listar e ler.
 - O script valida cada arquivo com `pg_restore --list`.
 - O backup preventivo do último deploy funcional é `cadencia-20260911T234851Z.dump` (UTC).
 - O backup anterior, `cadencia-20260902T104801Z.dump`, permanece registrado e validado.
@@ -360,7 +361,7 @@ O bloco é calculado somente para observação e mantém `used_for_prescription:
 3. Comparar os resultados shadow em cenários controlados, preservando `rules-v1` e sem alterar carga; essa validação já foi concluída no commit `64e554d` e deve ser mantida como regressão.
 4. Só então definir adaptação em ciclo fechado, progressão/carga e barreiras de integridade e segurança.
 5. Evoluir o catálogo de protocolos de ciclismo com elegibilidade e evidências próprias; o catálogo inicial e o piloto de estrada já estão em produção, enquanto novos protocolos permanecem condicionados à revisão.
-6. Definir cópia externa dos backups, monitoramento de falhas e alertas de saúde.
+6. Definir monitoramento de falhas e alertas de saúde (a cópia externa dos backups já existe).
 7. Escolher a política de firewall e a lista mínima de portas públicas da VPS, preservando Tailscale, Cloudflare e os demais aplicativos.
 
 ## Gate de distribuição dos estímulos em shadow — 13 de setembro de 2026

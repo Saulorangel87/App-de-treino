@@ -5,7 +5,7 @@ import { PRIVACY_POLICY_EN, TERMS_OF_USE_EN } from './legal.en';
 // Escolhe o texto jurídico pelo idioma. O português é o que vale; o inglês é
 // tradução de cortesia (legal.en.ts).
 
-const UPDATED_LABEL_EN = 'October 1, 2026';
+const UPDATED_LABEL_EN = 'October 11, 2026';
 
 export function legalUpdatedLabel(locale: Locale): string {
   return locale === 'en' ? UPDATED_LABEL_EN : LEGAL_UPDATED_LABEL;

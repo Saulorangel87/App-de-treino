@@ -6,6 +6,6 @@
 package legal
 
 const (
-	TermsVersion = "2026-10-01"
+	TermsVersion = "2026-10-11"
 	ContactEmail = "sauloleonardo1987@gmail.com"
 )
