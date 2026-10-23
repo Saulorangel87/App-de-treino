@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { gsap } from 'gsap';
 import Link from 'next/link';
 import { ArrowRight, Check, ShieldCheck } from 'lucide-react';
 import { Brand } from '@/components/brand';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { RideScene } from '@/components/ride-scene';
 import { useMessages } from '@/components/locale-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { apiRequest } from '@/lib/api';
 import { defineMessages } from '@/lib/i18n';
 import { LEGAL_VERSION } from '@/lib/legal';
+import { prefersReducedMotion } from '@/lib/motion';
 
 const messages = defineMessages({
   pt: {
@@ -23,6 +26,7 @@ const messages = defineMessages({
     points: ['Dados protegidos no seu próprio banco', 'Decisões explicáveis e baseadas em regras', 'Começamos apenas com ciclismo'],
     privacyTitle: 'Seus dados ficam protegidos',
     privacyText: 'A aplicação controla o acesso às suas informações com segurança.',
+    sceneLabel: 'Ilustração animada: um ciclista pedala sobre uma carta topográfica, seguindo a trilha vermelha.',
     modeLabel: 'Escolha a forma de acesso',
     register: 'Criar conta',
     login: 'Entrar',
@@ -59,6 +63,7 @@ const messages = defineMessages({
     points: ['Your data protected in your own database', 'Explainable, rule-based decisions', 'We start with cycling only'],
     privacyTitle: 'Your data stays protected',
     privacyText: 'The app controls access to your information securely.',
+    sceneLabel: 'Animated illustration: a cyclist rides across a topographic map, following the red trail.',
     modeLabel: 'Choose how to access',
     register: 'Create account',
     login: 'Sign in',
@@ -95,6 +100,23 @@ export default function SignInPage() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [developmentVerificationURL, setDevelopmentVerificationURL] = useState('');
+  const formRef = useRef<HTMLDivElement>(null);
+  const shownMode = useRef(mode);
+
+  // Ao trocar entre criar conta e entrar, o formulário se recompõe em sequência.
+  useEffect(() => {
+    if (shownMode.current === mode) return;
+    shownMode.current = mode;
+    const wrap = formRef.current;
+    if (!wrap || prefersReducedMotion()) return;
+    const tween = gsap.from(
+      wrap.querySelectorAll('.form-kicker, h2, .form-intro, .account-form > *, .form-link'),
+      { y: 10, opacity: 0, duration: 0.35, ease: 'power3.out', stagger: 0.03, clearProps: 'transform,opacity' },
+    );
+    return () => {
+      tween.revert();
+    };
+  }, [mode]);
 
   async function submit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -138,10 +160,11 @@ export default function SignInPage() {
             {t.points.map((point) => <li key={point}><Check size={15} /> {point}</li>)}
           </ul>
         </div>
+        <RideScene label={t.sceneLabel} />
         <div className="privacy-note"><ShieldCheck size={17} /><span><strong>{t.privacyTitle}</strong>{t.privacyText}</span></div>
       </section>
       <section className="account-form-panel">
-        <div className="account-form-wrap">
+        <div className="account-form-wrap" ref={formRef}>
           <div className="mode-switch" aria-label={t.modeLabel}>
             <button className={mode === 'register' ? 'active' : ''} onClick={() => { setMode('register'); setError(''); setNotice(''); }}>{t.register}</button>
             <button className={mode === 'login' ? 'active' : ''} onClick={() => { setMode('login'); setError(''); setNotice(''); }}>{t.login}</button>
