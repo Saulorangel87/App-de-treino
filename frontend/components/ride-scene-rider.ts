@@ -1,7 +1,9 @@
-// Ciclista e bicicleta da cena de acesso (components/ride-scene.tsx), em
-// estilo de ilustração: sombreamento em três faixas e contorno em tinta, como
-// numa carta impressa. Recebe o módulo do Three.js já carregado, para que o
-// pacote só seja baixado na tela de acesso.
+// Ciclista e bicicleta da cena de acesso (components/ride-scene.tsx), modelados
+// em código para o Cadência: bicicleta de estrada em carbono com a pintura da
+// marca e um ciclista de proporções reais (membros torneados por perfil de
+// revolução), com materiais físicos — verniz, tecido com brilho, borracha e
+// metal. Recebe o módulo do Three.js já carregado, para que o pacote só seja
+// baixado na tela de acesso.
 //
 // Eixos locais: +x é a frente da bicicleta, +y para cima, z para os lados.
 
@@ -14,17 +16,6 @@ type Material = import('three').Material;
 export const WHEEL_R = 0.34;
 export const CRANK_R = 0.17;
 
-const COLORS = {
-  ink: '#1f231c',
-  trail: '#c3321f',
-  trailDeep: '#9c2616',
-  sheet: '#f8f9f5',
-  skin: '#c69c76',
-  water: '#2f6f9e',
-};
-
-// Contorno: uma casca um pouco maior, só com as faces de trás, em tinta.
-const OUTLINE = 0.011;
 const THIGH = 0.45;
 const SHIN = 0.44;
 const UPPER_ARM = 0.29;
@@ -43,87 +34,78 @@ export function buildRider(THREE: Three): Rider {
     return item;
   };
 
-  const tones = new Uint8Array([110, 190, 255]);
-  const gradientMap = keep(new THREE.DataTexture(tones, tones.length, 1, THREE.RedFormat));
-  gradientMap.minFilter = THREE.NearestFilter;
-  gradientMap.magFilter = THREE.NearestFilter;
-  gradientMap.needsUpdate = true;
-  const toon = (color: string) => keep(new THREE.MeshToonMaterial({ color, gradientMap }));
-  const ink = toon(COLORS.ink);
-  const red = toon(COLORS.trail);
-  const redDeep = toon(COLORS.trailDeep);
-  const sheet = toon(COLORS.sheet);
-  const skin = toon(COLORS.skin);
-  const outline = keep(new THREE.MeshBasicMaterial({ color: COLORS.ink, side: THREE.BackSide }));
-  const lineInk = keep(new THREE.LineBasicMaterial({ color: COLORS.ink }));
+  // ---------- Materiais ----------
+  const physical = (params: ConstructorParameters<typeof THREE.MeshPhysicalMaterial>[0]) =>
+    keep(new THREE.MeshPhysicalMaterial(params));
+  const carbon = physical({ color: '#16191c', roughness: 0.34, metalness: 0.2, clearcoat: 1, clearcoatRoughness: 0.06 });
+  const paint = physical({ color: '#c3321f', roughness: 0.3, metalness: 0.35, clearcoat: 1, clearcoatRoughness: 0.04 });
+  const alloy = physical({ color: '#b8bcc0', roughness: 0.26, metalness: 1 });
+  const darkAlloy = physical({ color: '#3a3e42', roughness: 0.35, metalness: 1 });
+  const rubber = physical({ color: '#1c1c1c', roughness: 0.9 });
+  const tape = physical({ color: '#202326', roughness: 0.75 });
+  const jersey = physical({ color: '#c3321f', roughness: 0.62, sheen: 1, sheenColor: '#ff9a80', sheenRoughness: 0.45 });
+  const jerseyLight = physical({ color: '#f4f5f2', roughness: 0.6, sheen: 1, sheenColor: '#ffffff', sheenRoughness: 0.4 });
+  const bib = physical({ color: '#15171a', roughness: 0.42, sheen: 0.9, sheenColor: '#6d7884', sheenRoughness: 0.35 });
+  const skin = physical({ color: '#b98762', roughness: 0.55, sheen: 0.35, sheenColor: '#ffd4b5', sheenRoughness: 0.6 });
+  const sock = physical({ color: '#f1f2ef', roughness: 0.85 });
+  const shell = physical({ color: '#f4f5f2', roughness: 0.25, clearcoat: 1, clearcoatRoughness: 0.08 });
+  const lens = physical({ color: '#1a1d22', roughness: 0.04, metalness: 0.9, iridescence: 1, iridescenceIOR: 1.7 });
+  const bottleBlue = physical({ color: '#2f6f9e', roughness: 0.4, clearcoat: 0.6 });
 
   const v = (x: number, y: number, z = 0) => new THREE.Vector3(x, y, z);
   const up = v(0, 1, 0);
 
-  // Peça com contorno: a malha e a casca usam geometrias do mesmo formato.
-  function inked(geometry: Geometry, shell: Geometry | null, material: Material) {
-    const group = new THREE.Group();
-    if (shell) group.add(new THREE.Mesh(keep(shell), outline));
-    group.add(new THREE.Mesh(keep(geometry), material));
-    return group;
+  function mesh(geometry: Geometry, material: Material) {
+    const m = new THREE.Mesh(keep(geometry), material);
+    m.castShadow = true;
+    m.receiveShadow = true;
+    return m;
   }
-  const capsule = (radius: number, length: number, material: Material, line = OUTLINE) =>
-    inked(
-      new THREE.CapsuleGeometry(radius, length, 4, 12),
-      line ? new THREE.CapsuleGeometry(radius + line, length, 4, 12) : null,
-      material,
-    );
-  const ball = (radius: number, material: Material, line = OUTLINE) =>
-    inked(
-      new THREE.SphereGeometry(radius, 18, 12),
-      line ? new THREE.SphereGeometry(radius + line, 18, 12) : null,
-      material,
-    );
-
-  // Coloca uma peça alongada (eixo y) entre dois pontos.
-  function between(part: Obj3D, a: Vec3, b: Vec3) {
-    const dir = new THREE.Vector3().subVectors(b, a);
-    part.position.copy(a).addScaledVector(dir, 0.5);
-    part.quaternion.setFromUnitVectors(up, dir.normalize());
-    return part;
-  }
-  function tube(parent: Obj3D, a: Vec3, b: Vec3, radius: number, material: Material, line = OUTLINE * 0.6) {
-    const part = between(capsule(radius, a.distanceTo(b), material, line), a, b);
+  function add<T extends Obj3D>(parent: Obj3D, part: T) {
     parent.add(part);
     return part;
   }
-  function add(parent: Obj3D, part: Obj3D) {
-    parent.add(part);
-    return part;
-  }
-  function at(parent: Obj3D, part: Obj3D, point: Vec3) {
+  function placeAt<T extends Obj3D>(parent: Obj3D, part: T, point: Vec3) {
     part.position.copy(point);
     parent.add(part);
     return part;
   }
+  // Peça que nasce em y = 0 e cresce em +y: orienta de a para b.
+  function aim(part: Obj3D, a: Vec3, b: Vec3) {
+    part.position.copy(a);
+    part.quaternion.setFromUnitVectors(up, new THREE.Vector3().subVectors(b, a).normalize());
+    return part;
+  }
+  // Tubo cônico entre dois pontos, achatado para o perfil aerodinâmico.
+  function rod(parent: Obj3D, a: Vec3, b: Vec3, r1: number, r2: number, material: Material, aero = 1) {
+    const length = a.distanceTo(b);
+    const geometry = new THREE.CylinderGeometry(r2, r1, length, 20);
+    geometry.translate(0, length / 2, 0);
+    const part = mesh(geometry, material);
+    part.scale.set(aero, 1, 1);
+    const holder = new THREE.Group();
+    holder.add(part);
+    parent.add(aim(holder, a, b));
+    return holder;
+  }
+  function ellipsoid(parent: Obj3D, at: Vec3, sx: number, sy: number, sz: number, material: Material) {
+    const part = placeAt(parent, mesh(new THREE.SphereGeometry(1, 28, 20), material), at);
+    part.scale.set(sx, sy, sz);
+    return part;
+  }
+  // Membro torneado: perfil [raio, fração do comprimento], girado em torno de y.
+  function lathe(profile: Array<[number, number]>, length: number, material: Material, squash = 1) {
+    const points = profile.map(([r, t]) => new THREE.Vector2(r, t * length));
+    const part = mesh(new THREE.LatheGeometry(points, 28), material);
+    part.scale.set(squash, 1, 1);
+    const holder = new THREE.Group();
+    holder.add(part);
+    return holder;
+  }
 
   const root = new THREE.Group();
+  const bike = add(root, new THREE.Group());
 
-  // Sombra macia no chão, sob a bicicleta.
-  const shadowMaterial = keep(
-    new THREE.ShaderMaterial({
-      transparent: true,
-      depthWrite: false,
-      uniforms: { uColor: { value: new THREE.Color(COLORS.ink) } },
-      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-      fragmentShader:
-        'uniform vec3 uColor; varying vec2 vUv; void main() { float d = length((vUv - 0.5) * 2.0); gl_FragColor = vec4(uColor, (1.0 - smoothstep(0.2, 1.0, d)) * 0.28); }',
-    }),
-  );
-  const shadow = new THREE.Mesh(keep(new THREE.PlaneGeometry(1.7, 0.62)), shadowMaterial);
-  shadow.rotation.x = -Math.PI / 2;
-  shadow.position.set(0.02, 0.015, 0);
-  shadow.renderOrder = -1;
-  root.add(shadow);
-
-  // ---------- Bicicleta ----------
-  const bike = new THREE.Group();
-  root.add(bike);
   const rear = v(-0.5, WHEEL_R);
   const front = v(0.53, WHEEL_R);
   const bb = v(0, 0.29);
@@ -132,131 +114,215 @@ export function buildRider(THREE: Three): Rider {
   const headLow = v(0.43, 0.69);
   const bar = v(0.46, 0.92);
 
-  // Rodas de perfil alto: pneu, aro largo, raios e cubo.
-  const spokeVertices: number[] = [];
-  const SPOKES = 18;
-  for (let i = 0; i < SPOKES; i += 1) {
-    const angle = (i / SPOKES) * Math.PI * 2;
-    const z = i % 2 ? 0.025 : -0.025;
-    spokeVertices.push(0, 0, z, Math.cos(angle) * (WHEEL_R - 0.07), Math.sin(angle) * (WHEEL_R - 0.07), 0);
-  }
-  const spokes = keep(new THREE.BufferGeometry());
-  spokes.setAttribute('position', new THREE.Float32BufferAttribute(spokeVertices, 3));
-  const wheels = [rear, front].map((center) => {
-    const wheel = new THREE.Group();
-    wheel.position.copy(center);
-    wheel.add(inked(new THREE.TorusGeometry(WHEEL_R, 0.027, 10, 64), null, ink));
-    const rim = inked(
-      new THREE.TorusGeometry(WHEEL_R - 0.05, 0.03, 8, 64),
-      new THREE.TorusGeometry(WHEEL_R - 0.05, 0.03 + 0.006, 8, 64),
-      sheet,
-    );
-    rim.scale.z = 0.45;
+  // ---------- Rodas: carbono de perfil alto, raios e pneu ----------
+  const SPOKES = 20;
+  const spokeLength = WHEEL_R - 0.085;
+  const spokeGeometry = keep(new THREE.CylinderGeometry(0.0035, 0.0035, spokeLength, 5));
+  spokeGeometry.translate(0, spokeLength / 2, 0);
+  const wheels = [rear, front].map((center, wheelIndex) => {
+    const wheel = placeAt(bike, new THREE.Group(), center);
+    wheel.add(mesh(new THREE.TorusGeometry(WHEEL_R - 0.012, 0.024, 16, 96), rubber));
+    const rim = mesh(new THREE.TorusGeometry(WHEEL_R - 0.06, 0.042, 12, 96), carbon);
+    rim.scale.z = 0.42;
     wheel.add(rim);
-    wheel.add(new THREE.LineSegments(spokes, lineInk));
-    const hub = inked(new THREE.CylinderGeometry(0.028, 0.028, 0.09, 12), null, sheet);
+    // Faixa vermelha no aro: a marca do Cadência nas rodas.
+    const stripe = mesh(new THREE.TorusGeometry(WHEEL_R - 0.058, 0.0435, 8, 96, Math.PI * 0.5), paint);
+    stripe.scale.z = 0.43;
+    stripe.rotation.z = wheelIndex * 1.3;
+    wheel.add(stripe);
+    const spokes = new THREE.InstancedMesh(spokeGeometry, darkAlloy, SPOKES);
+    const matrix = new THREE.Matrix4();
+    const q = new THREE.Quaternion();
+    for (let i = 0; i < SPOKES; i += 1) {
+      const angle = (i / SPOKES) * Math.PI * 2;
+      q.setFromAxisAngle(v(0, 0, 1), angle);
+      matrix.compose(v(0, 0, i % 2 ? 0.022 : -0.022), q, v(1, 1, 1));
+      spokes.setMatrixAt(i, matrix);
+    }
+    spokes.castShadow = true;
+    wheel.add(spokes);
+    const hub = mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.1, 20), alloy);
     hub.rotation.x = Math.PI / 2;
     wheel.add(hub);
-    bike.add(wheel);
+    // Disco de freio.
+    const rotor = mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.004, 32), alloy);
+    rotor.rotation.x = Math.PI / 2;
+    rotor.position.z = -0.045;
+    wheel.add(rotor);
     return wheel;
   });
 
-  // Quadro vermelho com contorno, garfo e canote em tinta.
-  tube(bike, bb, seatCluster, 0.022, red);
-  tube(bike, seatCluster, headTop, 0.02, red);
-  tube(bike, bb, headLow, 0.027, red);
-  tube(bike, headLow, headTop, 0.029, redDeep);
-  for (const side of [-0.055, 0.055]) {
-    tube(bike, v(rear.x, rear.y, side), v(seatCluster.x - 0.01, seatCluster.y - 0.04, side * 0.3), 0.012, red);
-    tube(bike, v(rear.x, rear.y, side), v(bb.x - 0.02, bb.y, side * 0.5), 0.014, red);
-    tube(bike, v(headLow.x, headLow.y, side * 0.4), v(front.x, front.y, side), 0.013, ink, 0);
+  // Cassete atrás (fica parado em relação ao quadro, gira com a roda visualmente).
+  for (let i = 0; i < 6; i += 1) {
+    const cog = mesh(new THREE.CylinderGeometry(0.06 - i * 0.006, 0.06 - i * 0.006, 0.004, 24), alloy);
+    cog.rotation.x = Math.PI / 2;
+    cog.position.set(rear.x, rear.y, 0.05 + i * 0.006);
+    bike.add(cog);
   }
-  const seatTop = v(-0.16, 0.9);
-  tube(bike, seatCluster, seatTop, 0.013, ink, 0);
-  const saddle = at(bike, ball(1, ink, 0), v(-0.17, 0.915));
-  saddle.scale.set(0.14, 0.022, 0.055);
 
-  // Guidão drop: mesa, barra e as curvas de cada lado, com manetes.
-  tube(bike, headTop, bar, 0.016, ink, 0);
-  tube(bike, v(bar.x, bar.y, -0.2), v(bar.x, bar.y, 0.2), 0.013, ink, 0);
+  // ---------- Quadro: carbono com a parte de cima pintada ----------
+  rod(bike, bb, seatCluster, 0.026, 0.021, carbon, 0.8);
+  rod(bike, seatCluster, headTop, 0.022, 0.024, paint, 0.75);
+  rod(bike, bb, headLow, 0.032, 0.028, carbon, 0.7);
+  rod(bike, headLow, headTop, 0.03, 0.028, paint);
+  for (const side of [-0.055, 0.055]) {
+    rod(bike, v(rear.x, rear.y, side), v(seatCluster.x - 0.01, seatCluster.y - 0.05, side * 0.3), 0.011, 0.014, carbon);
+    rod(bike, v(rear.x, rear.y, side), v(bb.x - 0.03, bb.y, side * 0.5), 0.012, 0.016, carbon);
+    rod(bike, v(headLow.x, headLow.y, side * 0.45), v(front.x, front.y, side), 0.017, 0.011, carbon, 0.7);
+  }
+  const bbShell = mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.09, 24), carbon);
+  bbShell.rotation.x = Math.PI / 2;
+  placeAt(bike, bbShell, bb);
+
+  // Canote e selim esculpido.
+  const seatTop = v(-0.16, 0.9);
+  rod(bike, seatCluster, seatTop, 0.014, 0.014, carbon);
+  const saddleShape = new THREE.Shape();
+  saddleShape.moveTo(-0.13, 0);
+  saddleShape.bezierCurveTo(-0.13, 0.075, -0.05, 0.07, 0.0, 0.04);
+  saddleShape.bezierCurveTo(0.05, 0.025, 0.12, 0.022, 0.135, 0);
+  saddleShape.bezierCurveTo(0.12, -0.022, 0.05, -0.025, 0.0, -0.04);
+  saddleShape.bezierCurveTo(-0.05, -0.07, -0.13, -0.075, -0.13, 0);
+  const saddleGeometry = new THREE.ExtrudeGeometry(saddleShape, {
+    depth: 0.018,
+    bevelEnabled: true,
+    bevelThickness: 0.012,
+    bevelSize: 0.012,
+    bevelSegments: 4,
+    curveSegments: 24,
+  });
+  saddleGeometry.rotateX(Math.PI / 2);
+  const saddle = placeAt(bike, mesh(saddleGeometry, tape), v(-0.165, 0.935));
+  saddle.rotation.z = 0.03;
+
+  // ---------- Cockpit: mesa, guidão drop com fita e manetes ----------
+  rod(bike, headTop, bar, 0.017, 0.016, carbon);
+  rod(bike, v(bar.x, bar.y, -0.2), v(bar.x, bar.y, 0.2), 0.014, 0.014, carbon);
   for (const side of [-0.2, 0.2]) {
     const curve = new THREE.CatmullRomCurve3([
       v(bar.x, bar.y, side),
-      v(bar.x + 0.11, bar.y - 0.01, side),
-      v(bar.x + 0.13, bar.y - 0.09, side),
-      v(bar.x + 0.07, bar.y - 0.15, side),
-      v(bar.x - 0.02, bar.y - 0.15, side),
+      v(bar.x + 0.1, bar.y - 0.005, side),
+      v(bar.x + 0.135, bar.y - 0.08, side),
+      v(bar.x + 0.08, bar.y - 0.15, side),
+      v(bar.x - 0.02, bar.y - 0.155, side),
     ]);
-    bike.add(inked(new THREE.TubeGeometry(curve, 24, 0.012, 8), null, ink));
-    const hood = at(bike, ball(1, ink, 0), v(bar.x + 0.115, bar.y + 0.02, side));
-    hood.scale.set(0.04, 0.03, 0.02);
+    bike.add(mesh(new THREE.TubeGeometry(curve, 40, 0.0135, 12), tape));
+    const hood = ellipsoid(bike, v(bar.x + 0.115, bar.y + 0.022, side), 0.045, 0.03, 0.02, rubber);
+    hood.rotation.z = -0.35;
+    rod(bike, v(bar.x + 0.13, bar.y + 0.01, side), v(bar.x + 0.15, bar.y - 0.11, side), 0.008, 0.006, darkAlloy);
   }
 
   // Caramanhola no tubo inferior.
-  const bottleAt = v(0.17, 0.52, 0);
-  const bottle = at(bike, capsule(0.032, 0.12, toon(COLORS.water), OUTLINE * 0.6), bottleAt);
+  const bottle = placeAt(bike, lathe([[0, 0], [0.034, 0.02], [0.034, 0.8], [0.02, 0.92], [0.012, 1], [0, 1]], 0.2, bottleBlue), v(0.08, 0.42, 0));
   bottle.rotation.z = -0.95;
-  bottle.position.add(v(-0.03, 0.045));
 
-  // Transmissão: coroa, corrente, pedivela e pedais.
-  const ringGroup = inked(new THREE.TorusGeometry(0.1, 0.012, 6, 36), null, ink);
-  ringGroup.position.set(bb.x, bb.y, 0.07);
-  bike.add(ringGroup);
-  const chainPoints = [
-    v(bb.x, bb.y + 0.1, 0.07),
-    v(rear.x, rear.y + 0.045, 0.07),
-    v(rear.x - 0.03, rear.y, 0.07),
-    v(rear.x, rear.y - 0.045, 0.07),
-    v(bb.x, bb.y - 0.1, 0.07),
-  ];
-  bike.add(new THREE.Line(keep(new THREE.BufferGeometry().setFromPoints(chainPoints)), lineInk));
-  const crank = new THREE.Group();
-  crank.position.copy(bb);
-  bike.add(crank);
+  // ---------- Transmissão ----------
+  const ring = mesh(new THREE.TorusGeometry(0.1, 0.008, 8, 64), darkAlloy);
+  ring.position.set(bb.x, bb.y, 0.075);
+  bike.add(ring);
+  const ring2 = mesh(new THREE.TorusGeometry(0.08, 0.006, 8, 64), darkAlloy);
+  ring2.position.set(bb.x, bb.y, 0.067);
+  bike.add(ring2);
+  const chain = new THREE.CatmullRomCurve3(
+    [
+      v(bb.x + 0.02, bb.y + 0.1, 0.075),
+      v(rear.x, rear.y + 0.055, 0.065),
+      v(rear.x - 0.05, rear.y, 0.065),
+      v(rear.x, rear.y - 0.055, 0.065),
+      v(rear.x + 0.2, rear.y - 0.09, 0.07),
+      v(bb.x, bb.y - 0.1, 0.075),
+      v(bb.x + 0.1, bb.y, 0.075),
+    ],
+    true,
+  );
+  bike.add(mesh(new THREE.TubeGeometry(chain, 120, 0.005, 6, true), darkAlloy));
+  const crank = placeAt(bike, new THREE.Group(), bb);
   [0.09, -0.09].forEach((z, index) => {
     const arm = new THREE.Group();
     arm.position.z = z;
     arm.rotation.z = index * Math.PI;
-    tube(arm, v(0, 0), v(CRANK_R, 0), 0.014, sheet, 0);
+    rod(arm, v(0, 0), v(CRANK_R, 0), 0.016, 0.012, carbon, 0.6);
     crank.add(arm);
   });
 
   // ---------- Ciclista ----------
-  const rider = new THREE.Group();
-  bike.add(rider);
-  const hip = v(-0.17, 0.97);
+  const rider = add(bike, new THREE.Group());
+  const hip = v(-0.17, 0.98);
   const shoulder = v(0.19, 1.27);
-  tube(rider, hip, shoulder, 0.1, red, OUTLINE);
-  at(rider, ball(0.1, ink), hip).scale.set(1.1, 0.95, 1.25);
-  // Faixa branca nas costas da camisa.
-  tube(rider, v(-0.12, 1.07, 0), v(0.12, 1.25, 0), 0.103, sheet, 0).scale.set(1, 0.25, 1);
-  const head = v(0.33, 1.39);
-  tube(rider, v(shoulder.x + 0.04, shoulder.y + 0.03), v(head.x - 0.03, head.y - 0.05), 0.035, skin, OUTLINE * 0.7);
-  at(rider, ball(0.075, skin), head);
-  const helmet = at(rider, ball(0.08, sheet), v(head.x - 0.025, head.y + 0.035));
-  helmet.scale.set(1.45, 0.82, 1.1);
-  helmet.rotation.z = 0.25;
-  const glasses = at(rider, ball(1, ink, 0), v(head.x + 0.07, head.y + 0.005));
-  glasses.scale.set(0.012, 0.02, 0.075);
 
-  const legs = [0.1, -0.1].map((z) => ({
-    z,
-    thigh: add(rider, capsule(0.056, THIGH, ink)),
-    shin: add(rider, capsule(0.041, SHIN, skin)),
-    shoe: at(rider, ball(1, ink, 0), v(0, 0)),
-  }));
-  legs.forEach((leg) => leg.shoe.scale.set(0.085, 0.034, 0.042));
+  // Tronco: perfil de revolução achatado (mais largo nos ombros).
+  const torso = add(
+    rider,
+    lathe(
+      [
+        [0, 0],
+        [0.1, 0.02],
+        [0.118, 0.14],
+        [0.104, 0.36],
+        [0.122, 0.62],
+        [0.132, 0.82],
+        [0.1, 0.97],
+        [0, 1],
+      ],
+      hip.distanceTo(shoulder) + 0.05,
+      jersey,
+      0.78,
+    ),
+  );
+  aim(torso, hip.clone().add(v(-0.02, -0.03)), shoulder);
+  torso.children[0].scale.z = 1.32;
+  // Faixa branca no peito e a bermuda (bib) até a cintura.
+  const band = add(rider, lathe([[0.125, 0], [0.127, 0.5], [0.125, 1]], 0.06, jerseyLight, 0.79));
+  aim(band, hip.clone().lerp(shoulder, 0.62), shoulder);
+  band.children[0].scale.z = 1.34;
+  const shorts = ellipsoid(rider, hip.clone().add(v(0.01, -0.01)), 0.12, 0.1, 0.15, bib);
+  shorts.rotation.z = -0.5;
+
+  // Cabeça, pescoço, capacete aero e óculos.
+  const head = v(0.34, 1.385);
+  rod(rider, v(shoulder.x + 0.03, shoulder.y), v(head.x - 0.04, head.y - 0.06), 0.042, 0.036, skin);
+  ellipsoid(rider, head, 0.075, 0.088, 0.07, skin);
+  const helmet = ellipsoid(rider, v(head.x - 0.035, head.y + 0.045), 0.135, 0.075, 0.098, shell);
+  helmet.rotation.z = 0.22;
+  const vent = ellipsoid(rider, v(head.x - 0.02, head.y + 0.105), 0.09, 0.012, 0.03, paint);
+  vent.rotation.z = 0.22;
+  const glasses = ellipsoid(rider, v(head.x + 0.066, head.y + 0.01), 0.018, 0.026, 0.085, lens);
+  glasses.rotation.y = 0.02;
+
+  // Pernas: coxa na bermuda, panturrilha torneada, meia e sapatilha.
+  const legs = [0.1, -0.1].map((z) => {
+    const thigh = add(rider, lathe([[0, 0], [0.072, 0.04], [0.078, 0.3], [0.064, 0.75], [0.05, 0.97], [0, 1]], THIGH + 0.03, bib));
+    const shin = add(
+      rider,
+      lathe([[0, 0], [0.046, 0.03], [0.056, 0.28], [0.046, 0.6], [0.031, 0.86], [0.03, 1], [0, 1]], SHIN, skin),
+    );
+    const cuff = add(rider, lathe([[0.033, 0], [0.034, 1]], 0.1, sock));
+    const kneeCap = ellipsoid(rider, v(0, 0), 0.05, 0.05, 0.05, skin);
+    const shoe = add(rider, new THREE.Group());
+    const sole = ellipsoid(shoe, v(0.03, -0.006), 0.1, 0.032, 0.044, shell);
+    sole.rotation.z = 0.05;
+    ellipsoid(shoe, v(0.0, 0.012), 0.07, 0.03, 0.04, carbon);
+    return { z, thigh, shin, cuff, kneeCap, shoe };
+  });
   const pedals = legs.map(() => {
-    const pedal = at(bike, ball(1, sheet, 0), v(0, 0));
-    pedal.scale.set(0.05, 0.012, 0.04);
+    const pedal = mesh(new THREE.BoxGeometry(0.1, 0.012, 0.06), carbon);
+    bike.add(pedal);
     return pedal;
   });
+
+  // Braços: manga vermelha, antebraço, luva.
   const arms = [0.16, -0.16].map((z) => ({
     z,
-    upper: add(rider, capsule(0.04, UPPER_ARM, red)),
-    fore: add(rider, capsule(0.032, FOREARM, skin)),
-    glove: at(rider, ball(0.035, ink, 0), v(0, 0)),
+    upper: add(rider, lathe([[0, 0], [0.05, 0.05], [0.048, 0.45], [0.04, 1], [0, 1]], UPPER_ARM + 0.02, jersey)),
+    cuff: add(rider, lathe([[0.041, 0], [0.042, 1]], 0.03, jerseyLight)),
+    fore: add(rider, lathe([[0, 0], [0.038, 0.06], [0.04, 0.3], [0.028, 0.92], [0, 1]], FOREARM, skin)),
+    glove: ellipsoid(rider, v(0, 0), 0.042, 0.032, 0.035, carbon),
   }));
+  // Deltoides: unem a manga ao tronco sem formar uma bola.
+  for (const side of [0.14, -0.14]) {
+    const deltoid = ellipsoid(rider, shoulder.clone().add(v(-0.01, -0.03, side)), 0.065, 0.05, 0.05, jersey);
+    deltoid.rotation.z = -0.6;
+  }
 
   // Dois segmentos entre a e b, com a articulação para o lado indicado
   // (joelho para a frente, cotovelo para baixo), no plano xy.
@@ -276,27 +342,31 @@ export function buildRider(THREE: Three): Rider {
       wheel.rotation.z = -wheelAngle;
     });
     crank.rotation.z = -crankAngle;
-    // O corpo acompanha a pedalada: quadril balança e o tronco sobe e desce de leve.
+    // O corpo acompanha a pedalada: quadril balança e o tronco respira.
     const rock = Math.sin(crankAngle * 2);
-    rider.rotation.x = rock * 0.025;
+    rider.rotation.x = rock * 0.022;
     legs.forEach((leg, index) => {
       const angle = -crankAngle + index * Math.PI;
       const foot = v(bb.x + Math.cos(angle) * CRANK_R, bb.y + Math.sin(angle) * CRANK_R, leg.z);
       pedals[index].position.copy(foot);
       const hipPoint = v(hip.x, hip.y + rock * 0.006, leg.z * 0.85);
-      const knee = solve(hipPoint, foot, THIGH, SHIN, 1).clone();
-      between(leg.thigh, hipPoint, knee);
-      between(leg.shin, knee, foot);
-      leg.shoe.position.copy(foot).add(v(0.015, 0.03));
-      leg.shoe.rotation.z = Math.sin(angle) * 0.25;
+      const ankle = foot.clone().add(v(-0.03, 0.05));
+      const knee = solve(hipPoint, ankle, THIGH, SHIN, 1).clone();
+      aim(leg.thigh, hipPoint.clone().add(v(0, 0.02)), knee);
+      aim(leg.shin, knee, ankle);
+      aim(leg.cuff, ankle, knee);
+      leg.kneeCap.position.copy(knee);
+      leg.shoe.position.copy(foot).add(v(0.0, 0.03));
+      leg.shoe.rotation.z = Math.sin(angle) * 0.18 - 0.05;
     });
     arms.forEach((arm) => {
-      const from = v(shoulder.x, shoulder.y + rock * 0.004, arm.z * 0.75);
+      const from = v(shoulder.x, shoulder.y - 0.02 + rock * 0.004, arm.z);
       const hand = v(bar.x + 0.11, bar.y + 0.035, arm.z * 1.25);
       const elbow = solve(from, hand, UPPER_ARM, FOREARM, -1).clone();
-      elbow.z = arm.z * 1.15;
-      between(arm.upper, from, elbow);
-      between(arm.fore, elbow, hand);
+      elbow.z = arm.z * 1.18;
+      aim(arm.upper, from, elbow);
+      aim(arm.cuff, from.clone().lerp(elbow, 0.92), elbow);
+      aim(arm.fore, elbow, hand);
       arm.glove.position.copy(hand);
     });
   }
