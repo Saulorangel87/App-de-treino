@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { gsap } from 'gsap';
 import Link from 'next/link';
 import { ArrowRight, Check, ShieldCheck } from 'lucide-react';
 import { Brand } from '@/components/brand';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { RideIllustration } from '@/components/ride-illustration';
 import { RideScene } from '@/components/ride-scene';
 import { useMessages } from '@/components/locale-provider';
 import { Button } from '@/components/ui/button';
@@ -96,6 +97,12 @@ const messages = defineMessages({
 export default function SignInPage() {
   const t = useMessages(messages);
   const [mode, setMode] = useState<'login' | 'register'>('register');
+  // Comparação temporária entre a cena 3D e a ilustração SVG: /entrar?cena=svg.
+  const sceneKind = useSyncExternalStore(
+    () => () => {},
+    () => (new URLSearchParams(window.location.search).get('cena') === 'svg' ? 'svg' : '3d'),
+    () => '3d',
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -160,7 +167,7 @@ export default function SignInPage() {
             {t.points.map((point) => <li key={point}><Check size={15} /> {point}</li>)}
           </ul>
         </div>
-        <RideScene label={t.sceneLabel} />
+        {sceneKind === 'svg' ? <RideIllustration label={t.sceneLabel} /> : <RideScene label={t.sceneLabel} />}
         <div className="privacy-note"><ShieldCheck size={17} /><span><strong>{t.privacyTitle}</strong>{t.privacyText}</span></div>
       </section>
       <section className="account-form-panel">

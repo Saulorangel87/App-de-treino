@@ -379,3 +379,43 @@
     display: none;
   }
 }
+
+/* ---------- Ilustração em SVG do acesso (components/ride-illustration.tsx) ---------- */
+.ride-illustration {
+  --ride-sky-top: #c9dbe0;
+  --ride-sky-low: #f1efe4;
+  --ride-sun: #f2d49b;
+  --ride-cloud: #ffffff;
+  --ride-far: #c5d2bd;
+  --ride-far-line: #a9b9a0;
+  --ride-mid: #a3b98a;
+  --ride-mid-line: #869e6e;
+  --ride-near: #7f9a5c;
+  --ride-near-line: #6a8549;
+  --ride-road: #2b2e2c;
+  --ride-road-shade: #1d1f1c;
+  --ride-grass: #4f6b34;
+  --ride-ink: #1d1f1c;
+  --ride-red: #c3321f;
+  --ride-red-dark: #8f2316;
+  --ride-white: #f4f3ee;
+  --ride-skin: #c99a74;
+  --ride-bib: #17191b;
+  --ride-metal: #a9adb0;
+  --ride-metal-dark: #5b5f62;
+  --ride-spoke: #8d9194;
+  --ride-bottle: #2f6f9e;
+}
+
+.ride-illustration svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Perna e braço do lado de lá ficam mais escuros, como na sombra do corpo. */
+.ride-illustration .ride-shade {
+  filter: brightness(0.62);
+}
