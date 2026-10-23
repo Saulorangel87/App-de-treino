@@ -55,8 +55,8 @@ function ground(x: number, z: number) {
   return natural + (roadY(x) - natural) * road;
 }
 
-const SPEED = 1.6; // unidades por segundo
-const GEAR = 2.6; // voltas da roda por volta do pedal
+const SPEED = 2.6; // unidades por segundo
+const GEAR = 1.5; // voltas da roda por volta do pedal
 const REAR_X = -0.5; // contato das rodas com o chão, no eixo da bicicleta
 const FRONT_X = 0.53;
 const WIDTH = 26;
@@ -437,7 +437,7 @@ export function RideScene({ label }: { label: string }) {
             bike.position.y + 0.85 - pointer.y * 0.2,
             z + Math.cos(orbit) * distance,
           );
-          lookAt.set(narrow ? 0.35 : 0.05, bike.position.y + 0.7, z);
+          lookAt.set(narrow ? 0.35 : 0.05, bike.position.y + 0.8, z);
           camera.lookAt(lookAt);
           if (bokeh) (bokeh.uniforms as { focus: { value: number } }).focus.value = camera.position.distanceTo(lookAt);
           composer.render(dt);
