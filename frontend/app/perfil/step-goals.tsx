@@ -54,7 +54,7 @@ export function ProfileStep3({ form }: { form: ProfileFormController }) {
   } = form;
 
   return (
-    <form onSubmit={saveGoals} className="profile-form">
+    <form onSubmit={saveGoals} className="profile-form" data-motion="rise">
       <fieldset>
         <legend>{t.primary}</legend>
         <div className="form-grid">

@@ -276,14 +276,14 @@ export default function HomePage() {
       <main className="dashboard-shell">
         <AppHeader name={user.display_name} />
         <section className="workspace">
-          <header className="topbar">
+          <header className="topbar" data-motion="rise">
             <div>
               <p className="kicker">{t.yourPace}</p>
               <h1>{t.hello(firstName)}</h1>
             </div>
             {recoveryLink}
           </header>
-          <section className="dashboard-empty sheet topo-surface">
+          <section className="dashboard-empty sheet topo-surface" data-motion="rise">
             <span className="dashboard-empty-icon">
               <CalendarDays size={24} aria-hidden="true" />
             </span>
@@ -335,7 +335,7 @@ export default function HomePage() {
     <main className="dashboard-shell">
       <AppHeader name={user.display_name} />
       <section className="workspace">
-        <header className="topbar">
+        <header className="topbar" data-motion="rise">
           <div>
             <p className="kicker">{headerFormatter.format(today)}</p>
             <h1>{t.hello(firstName)}</h1>
@@ -343,7 +343,7 @@ export default function HomePage() {
           {recoveryLink}
         </header>
 
-        <div className="dashboard-grid">
+        <div className="dashboard-grid" data-motion="stagger">
           <section className="today-card sheet" aria-labelledby="today-title">
             <p className="section-label">
               <span>{isToday ? t.today : t.nextSession}</span>
@@ -422,7 +422,7 @@ export default function HomePage() {
                 {t.sessionsDone}
               </p>
             </div>
-            <ol className="week-days">
+            <ol className="week-days" data-motion="cascade">
               {displayedWeek.map((item) => {
                 const workout = item.workout;
                 const done = workout?.status === 'completed';
@@ -461,7 +461,7 @@ export default function HomePage() {
             </ol>
             <div className="load-summary">
               <span className="kicker">{t.plannedVolume}</span>
-              <div className="load-track" aria-hidden="true">
+              <div className="load-track" aria-hidden="true" data-motion="bars-x">
                 <i style={{ width: `${Math.min(100, (weekMinutes / 360) * 100)}%` }} />
               </div>
               <strong>{formatMinutes(weekMinutes)}</strong>
@@ -472,7 +472,7 @@ export default function HomePage() {
           <aside className="plan-summary-card panel" aria-labelledby="cycle-title">
             <p className="kicker">{t.activePlan}</p>
             <h3 id="cycle-title">{t.currentCycle}</h3>
-            <ol className="cycle-track" aria-label={t.weekLabel(weekIndex + 1)}>
+            <ol className="cycle-track" data-motion="cascade" aria-label={t.weekLabel(weekIndex + 1)}>
               {t.weekPhases.map((phase, index) => (
                 <li
                   key={index}
@@ -527,8 +527,8 @@ export default function HomePage() {
       </section>
 
       {selected && (
-        <dialog open className="modal-backdrop" aria-labelledby="workout-title">
-          <section className="workout-modal">
+        <dialog open className="modal-backdrop" aria-labelledby="workout-title" data-motion="fade">
+          <section className="workout-modal" data-motion="sheet">
             <button
               type="button"
               className="modal-close"

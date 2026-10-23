@@ -1,7 +1,7 @@
 import type { Locale } from './i18n';
 import { UPDATE_NOTES_EN } from './release.en';
 
-export const APP_VERSION = '0.40.0';
+export const APP_VERSION = '0.41.0';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -10,6 +10,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.41.0',
+    title: 'Telas com movimento',
+    description:
+      'As telas agora entram com movimento suave: o mapa do treino se desenha trecho a trecho, os gráficos de Evolução crescem a partir da base, os dias da semana e os cartões aparecem em sequência e o painel do treino sobe ao abrir. Nada muda no plano nem nos seus dados. Se o seu aparelho está configurado para reduzir o movimento, o Cadência respeita e mostra tudo parado.',
+  },
   {
     version: '0.40.0',
     title: 'Zonas mais fiéis a você',

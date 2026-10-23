@@ -130,7 +130,7 @@ export default function ActivitiesPage() {
   return (
     <main className="activities-shell">
       <AppHeader name={user?.display_name} />
-      <section className="activities-content">
+      <section className="activities-content" data-motion="stagger">
         <header className="activities-heading">
           <p>{t.kicker}</p>
           <h1>{t.title}</h1>
@@ -148,7 +148,7 @@ export default function ActivitiesPage() {
             <Link href="/plano">{t.seePlan}</Link>
           </section>
         )}
-        <div className="activities-list">
+        <div className="activities-list" data-motion="cascade">
           {activities.map((item) => {
             const completed = item.status === 'completed';
             const terminalAt = item.completed_at || item.cancelled_at;

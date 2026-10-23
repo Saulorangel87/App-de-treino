@@ -510,7 +510,7 @@ export default function PlanPage() {
   return (
     <main className="plan-shell">
       <AppHeader name={user?.display_name} />
-      <section className="plan-content">
+      <section className="plan-content" data-motion="stagger">
         {!plan ? (
           <section className="plan-empty">
             <span>
@@ -670,7 +670,7 @@ export default function PlanPage() {
               </div>
             </div>
             <div className="plan-layout">
-              <div className="plan-weeks">
+              <div className="plan-weeks" data-motion="cascade">
                 {weeks.map((workouts, index) => (
                   <section className="plan-week" key={index}>
                     <header>
@@ -734,7 +734,7 @@ export default function PlanPage() {
                     aria-label={t.closeDetail}
                     onClick={() => setMobileDetailOpen(false)}
                   />
-                  <aside className="workout-detail">
+                  <aside className="workout-detail" key={selected.id} data-motion="rise">
                   <button
                     type="button"
                     className="workout-detail-close"

@@ -87,6 +87,16 @@ button {
   }
 }
 
+/* Na impressão, nada fica preso no estado inicial de uma animação (lib/motion.ts). */
+@media print {
+  [data-motion],
+  [data-motion] > *,
+  [data-motion] i {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -264,7 +264,7 @@ export default function SettingsPage() {
   return (
     <main className="settings-shell">
       <AppHeader name={user.display_name} />
-      <section className="settings-content">
+      <section className="settings-content" data-motion="stagger">
         <header className="settings-heading">
           <p>{t.kicker}</p>
           <h1>{t.title}</h1>

@@ -124,6 +124,7 @@ export function AppHeader({ name }: { name?: string }) {
               href={href}
               className={isActive(pathname, href) ? 'active' : undefined}
               aria-current={isActive(pathname, href) ? 'page' : undefined}
+              data-motion={isActive(pathname, href) ? 'tab' : undefined}
             >
               {t.links[key]}
             </Link>
@@ -147,7 +148,7 @@ export function AppHeader({ name }: { name?: string }) {
             <span className="sr-only">{t.openMenu}</span>
           </button>
           {menuOpen && (
-            <div className="app-menu-panel" id="app-menu-panel">
+            <div className="app-menu-panel" id="app-menu-panel" data-motion="sheet">
               {name && (
                 <p className="app-menu-identity">
                   <small>{t.athlete}</small>
@@ -182,6 +183,7 @@ export function AppHeader({ name }: { name?: string }) {
             href={href}
             className={isActive(pathname, href) ? 'active' : undefined}
             aria-current={isActive(pathname, href) ? 'page' : undefined}
+            data-motion={isActive(pathname, href) ? 'tab' : undefined}
           >
             <Icon size={20} aria-hidden="true" />
             <span>{t.links[key]}</span>

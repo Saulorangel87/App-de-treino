@@ -113,7 +113,7 @@ export function ProfileStep2({ form }: { form: ProfileFormController }) {
   } = form;
 
   return (
-    <form onSubmit={saveLimitations} className="profile-form">
+    <form onSubmit={saveLimitations} className="profile-form" data-motion="rise">
       <fieldset>
         <legend>{t.current}</legend>
         <div className="binary-choice">

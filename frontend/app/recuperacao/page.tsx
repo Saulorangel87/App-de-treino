@@ -158,7 +158,7 @@ export default function RecoveryPage() {
   const resultCopy = recovery ? t.readiness[recovery.readiness] : null;
   return <main className="recovery-shell">
     <AppHeader name={user.display_name} />
-    <section className="recovery-content">
+    <section className="recovery-content" data-motion="stagger">
       <header className="recovery-heading"><p>{t.kicker}</p><h1>{t.title}</h1><span>{t.intro}</span></header>
       {recovery && resultCopy && <section className={`recovery-result ${recovery.readiness}`}><CheckCircle2 size={22} /><div><strong>{resultCopy[0]}</strong><p>{resultCopy[1]}</p>{recovery.adapted_workout && <p className="adapted-recovery-workout"><b>{recovery.adapted_workout.name}</b>: {recovery.adapted_workout.duration_minutes} min · {zoneLabel(recovery.adapted_workout.target_rpe, locale)}. {t.adaptedNote}</p>}</div></section>}
       <div className="recovery-layout">

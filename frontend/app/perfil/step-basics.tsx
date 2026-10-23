@@ -97,7 +97,7 @@ export function ProfileStep1({ form }: { form: ProfileFormController }) {
   const { error, message, profile, saveProfile, saving, updateProfile } = form;
 
   return (
-    <form onSubmit={saveProfile} className="profile-form">
+    <form onSubmit={saveProfile} className="profile-form" data-motion="rise">
       <fieldset>
         <legend>{t.basics}</legend>
         <div className="form-grid">

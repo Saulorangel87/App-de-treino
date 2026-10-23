@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Anybody, Schibsted_Grotesk } from 'next/font/google';
 import { AppFooter } from '@/components/app-footer';
 import { LocaleProvider } from '@/components/locale-provider';
+import { MotionRoot } from '@/components/motion-root';
 import { TermsGate } from '@/components/terms-gate';
 import { UpdateNotice } from '@/components/update-notice';
 import { HTML_LANG, type Locale } from '@/lib/i18n';
@@ -127,6 +128,7 @@ export default async function RootLayout({
           <UpdateNotice />
           <TermsGate />
           <AppFooter />
+          <MotionRoot />
         </LocaleProvider>
       </body>
     </html>
