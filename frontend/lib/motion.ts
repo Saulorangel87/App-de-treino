@@ -158,10 +158,11 @@ function tab(el: Element) {
   );
 }
 
-export function animateMotion(el: Element) {
-  if (seen.has(el)) return;
+// Devolve true só quando o elemento é novo e foi animado agora.
+export function animateMotion(el: Element): boolean {
+  if (seen.has(el)) return false;
   seen.add(el);
-  if (prefersReducedMotion()) return;
+  if (prefersReducedMotion()) return false;
   setup();
   const kind = el.getAttribute('data-motion') as MotionKind | null;
   switch (kind) {
@@ -193,6 +194,7 @@ export function animateMotion(el: Element) {
       tab(el);
       break;
   }
+  return true;
 }
 
 // Repete a entrada de um elemento que já estava no DOM e só passou a aparecer

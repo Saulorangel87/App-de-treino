@@ -20,8 +20,10 @@ export function MotionRoot() {
         });
       }
       if (removed) cleanupMotion();
-      found.forEach(animateMotion);
-      if (found.length || removed) refreshMotion();
+      // Só recalcula quando algo novo foi animado: o próprio refresh mexe no
+      // DOM e, chamado a cada mutação, reabria este callback sem fim.
+      const animated = found.filter(animateMotion);
+      if (animated.length) refreshMotion();
     });
     observer.observe(document.body, { childList: true, subtree: true });
     return () => {
