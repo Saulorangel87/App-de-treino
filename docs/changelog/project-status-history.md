@@ -973,7 +973,7 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - Importador `.fit`: melhor média de 20 minutos seguidos por atividade (`best_20min_power_watts`, migração `000038`). `GET /v1/activities/reference-suggestions` sugere FC máxima (maior batimento visto) e FTP (95% da melhor média), com mínimo de 3 atividades e sem gravar nada sozinho.
 - Deploy com backup `cadencia-20261009T235718Z.dump`, 1 migração e testes de fumaça públicos e autenticados. Fica de fora o passo 2 (testes guiados de esforço máximo), que pede avisos de segurança e decisão de produto.
 
-## Telas com movimento e nova tela de acesso (23/10/2026, versão 0.41.0)
+## Telas com movimento e nova tela de acesso (23/10/2026, versão 0.41.0, publicado em 4b758ce)
 
 - Animações com GSAP 3.15 em todas as telas, por um sistema único: as telas marcam elementos com `data-motion` (`stagger`, `cascade`, `rise`, `fade`, `sheet`, `bars-y`, `bars-x`, `route`, `tab`) e o `MotionRoot` (`components/motion-root.tsx`, montado no layout) anima cada um quando entra no DOM. Regras em `frontend/lib/motion.ts`: o que está abaixo da dobra anima ao rolar (`ScrollTrigger`), o mapa do treino se desenha trecho a trecho (`DrawSVGPlugin`), estilos inline saem ao terminar (`clearProps`), impressão força tudo visível e `prefers-reduced-motion` desliga o movimento.
 - Correção durante o desenvolvimento: o `MutationObserver` chamava `ScrollTrigger.refresh()` a cada mutação, e o próprio refresh mexia no DOM, travando a página; agora só recalcula quando algum elemento novo foi animado.
@@ -981,4 +981,5 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - Campos de senha (acesso, redefinição e Configurações) ganharam o botão de mostrar/ocultar (`components/ui/password-input.tsx`), com rótulo acessível em português e inglês; a senha volta a ficar oculta ao enviar o formulário.
 - Removido o `<script>` inline de desenvolvimento do `<head>` (a limpeza do service worker já era feita no `AppFooter`). O erro de hidratação visto no console local vem do Kaspersky Password Manager, que injeta `<kpm-field-badge>` nos formulários antes do React carregar; não é do app.
 - Sem mudança de API, banco ou motor; sem migração. Validação local: `tsc`, `oxlint`, 68 testes do frontend e `npm run build`; verificação visual no navegador.
+- Deploy em 23/10/2026 (PR #96): fast-forward `682af4a` → `4b758ce`, backup `cadencia-20261024T002349Z.dump`, 0 migração, smoke test público e autenticado = 200; vídeos servidos em produção (1,2 MB e 0,5 MB). Levou junto as dependências dos PRs #90 a #95.
 
