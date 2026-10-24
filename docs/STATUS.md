@@ -108,3 +108,9 @@ Publicada em 23/10/2026 pelo `deploy.sh` (fast-forward `682af4a` → `4b758ce`, 
 - Sem mudança de API, banco ou motor; sem migração. Detalhes em [`changelog/project-status-history.md`](changelog/project-status-history.md).
 - **Pendente:** conferir a tela de acesso num celular real (vídeo de 480p) e o botão de senha nas telas de redefinição e Configurações.
 
+## Bloqueio de login por senha errada — a publicar (migração `000039`)
+
+- 5 senhas erradas por IP bloqueiam esse IP por 10 minutos; na 4ª o app avisa que resta 1 tentativa. A conta nunca é bloqueada (só fica mais lenta sob ataque de muitos IPs), para ninguém conseguir trancar o dono.
+- A contagem fica no Postgres (`login_failures`, chaves em SHA-256) e sobrevive a deploys. Detalhes em [`changelog/project-status-history.md`](changelog/project-status-history.md).
+- **No deploy:** há 1 migração (`000039`); o `deploy.sh` aplica com backup antes.
+

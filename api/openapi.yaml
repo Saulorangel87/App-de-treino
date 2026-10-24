@@ -50,8 +50,8 @@ paths:
             schema: { $ref: '#/components/schemas/LoginRequest' }
       responses:
         '200': { description: Sessão iniciada }
-        '401': { description: Credenciais inválidas }
-        '429': { description: Muitas tentativas por IP ou para a mesma conta; consulte Retry-After }
+        '401': { description: 'Credenciais inválidas; na 4ª senha errada seguida do mesmo IP, a mensagem avisa que resta 1 tentativa' }
+        '429': { description: 'login_blocked: 5 senhas erradas do mesmo IP bloqueiam esse IP por 10 minutos (Retry-After em segundos); ou excesso de requisições do IP' }
   /v1/auth/logout:
     post:
       summary: Encerra a sessão atual

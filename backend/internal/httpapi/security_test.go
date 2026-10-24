@@ -45,6 +45,20 @@ func TestRequestRateLimiterBlocksAndExpires(t *testing.T) {
 	}
 }
 
+func TestRequestRateLimiterDropsTheOldestWindowWhenFull(t *testing.T) {
+	current := time.Date(2026, time.October, 23, 21, 0, 0, 0, time.UTC)
+	limiter := &requestRateLimiter{entries: make(map[string]rateLimitEntry), now: func() time.Time { return current }, maxEntries: 2}
+	limiter.allow("first", 5, time.Minute)
+	current = current.Add(time.Second)
+	limiter.allow("second", 5, time.Minute)
+	if allowed, _ := limiter.allow("third", 5, time.Minute); !allowed {
+		t.Fatal("a full limiter must not refuse a new address")
+	}
+	if _, ok := limiter.entries["first"]; ok || len(limiter.entries) != 2 {
+		t.Fatalf("entries = %v, want the window that ends first dropped", limiter.entries)
+	}
+}
+
 func TestRequestRateLimiterPrefersCloudflareClientIP(t *testing.T) {
 	request := httptest.NewRequest(http.MethodPost, "/", nil)
 	request.RemoteAddr = "192.0.2.10:1234"

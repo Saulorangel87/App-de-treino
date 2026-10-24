@@ -21,7 +21,7 @@ O escopo do Cadência é ciclismo de estrada, MTB XCO, XCM, gravel e indoor. Spr
 
 1. Copie `.env.example` para `.env` e use somente credenciais locais.
 2. Inicie o PostgreSQL com `docker compose up -d postgres`.
-3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000001`–`000038`; a produção está sincronizada até `000038`.
+3. Aplique os arquivos `database/migrations/*.up.sql` ainda pendentes, em ordem numérica. O esquema versionado inclui as migrações `000001`–`000039`; a produção está sincronizada até `000038`.
 4. Execute a API com `pwsh -NoProfile -File scripts/run-api.ps1`.
 5. Execute o frontend a partir de `frontend/` com `npm run dev`.
 

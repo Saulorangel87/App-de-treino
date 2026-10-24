@@ -65,36 +65,20 @@ func (l *requestRateLimiter) allow(key string, max int, window time.Duration) (b
 				delete(l.entries, entryKey)
 			}
 		}
+		// Still full: drop the window that ends first instead of refusing
+		// everyone, which would let a flood of addresses lock all users out.
 		if len(l.entries) >= l.maxEntries {
-			return false, time.Minute
+			oldestKey, oldest := "", time.Time{}
+			for entryKey, entry := range l.entries {
+				if oldestKey == "" || entry.resetAt.Before(oldest) {
+					oldestKey, oldest = entryKey, entry.resetAt
+				}
+			}
+			delete(l.entries, oldestKey)
 		}
 	}
 	l.entries[key] = rateLimitEntry{count: 1, resetAt: now.Add(window)}
 	return true, 0
-}
-
-// exceeded reports whether key already used up its allowance in the current
-// window, without consuming any of it.
-func (l *requestRateLimiter) exceeded(key string, max int) (bool, time.Duration) {
-	now := l.now()
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	if entry, ok := l.entries[key]; ok && now.Before(entry.resetAt) && entry.count >= max {
-		return true, entry.resetAt.Sub(now)
-	}
-	return false, 0
-}
-
-// hit records one occurrence for key (for example a failed login).
-func (l *requestRateLimiter) hit(key string, window time.Duration) {
-	l.allow(key, int(^uint(0)>>1), window)
-}
-
-// reset forgets key, for example after a successful login.
-func (l *requestRateLimiter) reset(key string) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	delete(l.entries, key)
 }
 
 // clientAddress prefers CF-Connecting-IP. That header is only trustworthy
