@@ -1,7 +1,7 @@
 import type { Locale } from './i18n';
 import { UPDATE_NOTES_EN } from './release.en';
 
-export const APP_VERSION = '0.41.0';
+export const APP_VERSION = '0.41.1';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -10,6 +10,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.41.1',
+    title: 'Acesso mais protegido',
+    description:
+      'Depois de 5 senhas erradas seguidas, o acesso por aquele aparelho fica bloqueado por 10 minutos, e na 4ª o Cadência avisa que resta só uma tentativa. Sua conta nunca é trancada: mesmo durante um bloqueio, você entra normalmente de outra rede. Com a senha visível, o teclado do celular não coloca mais maiúscula nem corrige o que você digita.',
+  },
   {
     version: '0.41.0',
     title: 'Telas com movimento',

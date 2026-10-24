@@ -4,6 +4,12 @@ import type { UpdateNote } from './release';
 // versão de cada posição). Ao publicar uma versão nova, escreva as duas.
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
   {
+    version: '0.41.1',
+    title: 'Better protected sign-in',
+    description:
+      "After 5 wrong passwords in a row, sign-in from that device is blocked for 10 minutes, and on the 4th Cadência warns that only one attempt is left. Your account is never locked: even during a block, you can sign in normally from another network. With the password visible, the phone keyboard no longer capitalizes or corrects what you type.",
+  },
+  {
     version: '0.41.0',
     title: 'Screens in motion',
     description:
