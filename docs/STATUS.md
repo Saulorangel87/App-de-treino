@@ -1,6 +1,6 @@
 # Estado atual do Cadência
 
-Última atualização: 9 de outubro de 2026.
+Última atualização: 12 de outubro de 2026.
 
 Este é o documento de continuidade: curto e sempre atual. O diário cronológico das fatias de trabalho (com datas, validações e decisões) está em [`changelog/project-status-history.md`](changelog/project-status-history.md). Não inclua senhas, tokens, chaves de API nem conteúdo de `.env`.
 
@@ -10,10 +10,10 @@ Este é o documento de continuidade: curto e sempre atual. O diário cronológic
 | --- | --- |
 | Frontend | <https://cadencia.devsaulo.com.br> |
 | API | <https://cadencia-api.devsaulo.com.br> |
-| Versão publicada | `0.40.0`, commit `a028f7f` (09/10/2026: Meus números e sugestões de FC máxima e FTP; antes, `0.39.0`, `4a1b58c`: resumo semanal por regras; `0.38.0`, `ef1dc4c`: app em português e inglês e atualização de dependências; e antes, deploys de 30/09 a 02/10/2026: `8786881`, proteção graduada do motor e "Estou recuperado"; `0ba6efa`, correção das referências; `6b9134d`, auditoria das 27 referências, comparação com a atividade importada, Política de Privacidade e Termos de Uso; `2a64b4f`, planilha de dados e registro do aceite dos termos; `395ea86`, comando administrativo da cópia completa; `40898f8`, rodapé compacto no celular; `6b2ffc9`, treino futuro bloqueado e desfazer registro; `e64effb`, zonas de esforço, modo tarefa e plano sem dia repetido; `05a7a5c`, Avaliação com zona e números; a versão visível não mudou desde a `0.37.0`) |
+| Versão publicada | `0.40.0`, commit `682af4a` (12/10/2026: texto de Privacidade com a cópia externa por até 30 dias e termos na versão `2026-10-11`, sem migração; antes, `a028f7f`, 09/10/2026: Meus números e sugestões de FC máxima e FTP; antes, `0.39.0`, `4a1b58c`: resumo semanal por regras; `0.38.0`, `ef1dc4c`: app em português e inglês e atualização de dependências; e antes, deploys de 30/09 a 02/10/2026: `8786881`, proteção graduada do motor e "Estou recuperado"; `0ba6efa`, correção das referências; `6b9134d`, auditoria das 27 referências, comparação com a atividade importada, Política de Privacidade e Termos de Uso; `2a64b4f`, planilha de dados e registro do aceite dos termos; `395ea86`, comando administrativo da cópia completa; `40898f8`, rodapé compacto no celular; `6b2ffc9`, treino futuro bloqueado e desfazer registro; `e64effb`, zonas de esforço, modo tarefa e plano sem dia repetido; `05a7a5c`, Avaliação com zona e números; a versão visível não mudou desde a `0.37.0`) |
 | Migrações aplicadas | `000001` a `000038` (a `0.40.0` trouxe a `000038`; as `0.38.0` e `0.39.0` não trazem migração) |
 | Motor prescritivo | `rules-v1` (único); `rules-v2` e demais shadows são somente observacionais. Proteção graduada ligada (`PROTECTION_LEVELS_ENABLED=true` no `.env.production` da VPS) |
-| Último backup preventivo | `cadencia-20261002T102850Z.dump` (cópia externa criptografada no bucket da Oracle, com regra "excluir após 60 dias"; no servidor, 14 dias) |
+| Último backup preventivo | `cadencia-20261012T013814Z.dump` (12/10/2026, no servidor, 14 dias). A cópia externa criptografada diária vai para o bucket `backups-vps` da Oracle, pasta `cadencia/`, com regra única "excluir após 30 dias"; o dump preventivo do deploy fica só no servidor |
 | Validação pós-deploy | `/health`, `/ready`, frontend e `GET /v1/plans/current` autenticado = 200 com a conta de smoke test; `/ready` verifica o schema; `recovery_self_reports` criada; chave `true` confirmada dentro do contêiner da API; `POST /v1/protection/recovered` sem sessão = 401 |
 
 Escopo: somente ciclismo (estrada, MTB XCO/XCM, gravel e indoor). Corrida e musculação são produtos separados.

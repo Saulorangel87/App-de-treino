@@ -73,7 +73,7 @@ export const PRIVACY_POLICY_EN: LegalDocument = {
       items: [
         'Your data is kept while the account exists.',
         'When you delete your account in Settings, we erase all of your data from the database immediately, without anyone stepping in.',
-        'Backups made before the deletion remain for a limited time and are then discarded: on the server, for up to 14 days, and in the encrypted external copy, kept in Oracle storage, for up to 60 days. After those periods, your data no longer exists in any copy.',
+        'Backups made before the deletion remain for a limited time and are then discarded: on the server, for up to 14 days, and in the encrypted external copy, kept in Oracle storage, for up to 30 days. After those periods, your data no longer exists in any copy.',
         'Technical access logs are kept for as long as needed for security.',
       ],
     },
