@@ -414,6 +414,10 @@
 
 /* No celular a faixa é quase 16:9: o vídeo cobre tudo, sem as laterais. */
 @media (max-width: 959px) {
+  .ride-video .ride-video-fill {
+    display: none;
+  }
+
   .ride-video .ride-video-main {
     left: 0;
     width: 100%;

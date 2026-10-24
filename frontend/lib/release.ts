@@ -14,7 +14,7 @@ export const UPDATE_NOTES: readonly UpdateNote[] = [
     version: '0.41.0',
     title: 'Telas com movimento',
     description:
-      'As telas agora entram com movimento suave: o mapa do treino se desenha trecho a trecho, os gráficos de Evolução crescem a partir da base, os dias da semana e os cartões aparecem em sequência e o painel do treino sobe ao abrir. Na tela de entrada, um vídeo original de um ciclista na estrada ganha as curvas de nível e a trilha vermelha do Cadência. Nada muda no plano nem nos seus dados. Se o seu aparelho está configurado para reduzir o movimento, o Cadência respeita e mostra tudo parado.',
+      'As telas agora entram com movimento suave: o mapa do treino se desenha trecho a trecho, os gráficos de Evolução crescem a partir da base, os dias da semana e os cartões aparecem em sequência e o painel do treino sobe ao abrir. Na tela de entrada, um vídeo original de um ciclista na estrada ganha as curvas de nível do Cadência. Nada muda no plano nem nos seus dados. Se o seu aparelho está configurado para reduzir o movimento, o Cadência respeita e mostra tudo parado.',
   },
   {
     version: '0.40.0',
