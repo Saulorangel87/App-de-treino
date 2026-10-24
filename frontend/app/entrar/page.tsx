@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import Link from 'next/link';
 import { ArrowRight, Check, ShieldCheck } from 'lucide-react';
 import { Brand } from '@/components/brand';
 import { LanguageSwitcher } from '@/components/language-switcher';
-import { RideIllustration } from '@/components/ride-illustration';
-import { RideScene } from '@/components/ride-scene';
+import { RideVideo } from '@/components/ride-video';
 import { useMessages } from '@/components/locale-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,7 +26,7 @@ const messages = defineMessages({
     points: ['Dados protegidos no seu próprio banco', 'Decisões explicáveis e baseadas em regras', 'Começamos apenas com ciclismo'],
     privacyTitle: 'Seus dados ficam protegidos',
     privacyText: 'A aplicação controla o acesso às suas informações com segurança.',
-    sceneLabel: 'Ilustração animada: um ciclista pedala sobre uma carta topográfica, seguindo a trilha vermelha.',
+    sceneLabel: 'Vídeo ilustrativo: um ciclista pedala numa estrada entre colinas, com as curvas de nível e a trilha vermelha do Cadência.',
     modeLabel: 'Escolha a forma de acesso',
     register: 'Criar conta',
     login: 'Entrar',
@@ -64,7 +63,7 @@ const messages = defineMessages({
     points: ['Your data protected in your own database', 'Explainable, rule-based decisions', 'We start with cycling only'],
     privacyTitle: 'Your data stays protected',
     privacyText: 'The app controls access to your information securely.',
-    sceneLabel: 'Animated illustration: a cyclist rides across a topographic map, following the red trail.',
+    sceneLabel: 'Illustrative video: a cyclist rides a road through rolling hills, with Cadência contour lines and red trail.',
     modeLabel: 'Choose how to access',
     register: 'Create account',
     login: 'Sign in',
@@ -97,12 +96,6 @@ const messages = defineMessages({
 export default function SignInPage() {
   const t = useMessages(messages);
   const [mode, setMode] = useState<'login' | 'register'>('register');
-  // Comparação temporária entre a cena 3D e a ilustração SVG: /entrar?cena=svg.
-  const sceneKind = useSyncExternalStore(
-    () => () => {},
-    () => (new URLSearchParams(window.location.search).get('cena') === 'svg' ? 'svg' : '3d'),
-    () => '3d',
-  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -167,7 +160,7 @@ export default function SignInPage() {
             {t.points.map((point) => <li key={point}><Check size={15} /> {point}</li>)}
           </ul>
         </div>
-        {sceneKind === 'svg' ? <RideIllustration label={t.sceneLabel} /> : <RideScene label={t.sceneLabel} />}
+        <RideVideo label={t.sceneLabel} />
         <div className="privacy-note"><ShieldCheck size={17} /><span><strong>{t.privacyTitle}</strong>{t.privacyText}</span></div>
       </section>
       <section className="account-form-panel">

@@ -335,7 +335,7 @@
   }
 }
 
-/* ---------- Cena 3D do acesso (components/ride-scene.tsx) ---------- */
+/* ---------- Moldura da cena do acesso (components/ride-video.tsx) ---------- */
 .ride-scene {
   position: relative;
   flex: none;
@@ -344,20 +344,6 @@
   border: var(--stroke);
   background: var(--paper);
   box-shadow: var(--shadow);
-}
-
-.ride-scene canvas {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  transition: opacity 0.6s ease;
-}
-
-.ride-scene.ready canvas {
-  opacity: 1;
 }
 
 @media (min-width: 960px) {
@@ -380,42 +366,62 @@
   }
 }
 
-/* ---------- Ilustração em SVG do acesso (components/ride-illustration.tsx) ---------- */
-.ride-illustration {
-  --ride-sky-top: #c9dbe0;
-  --ride-sky-low: #f1efe4;
-  --ride-sun: #f2d49b;
-  --ride-cloud: #ffffff;
-  --ride-far: #c5d2bd;
-  --ride-far-line: #a9b9a0;
-  --ride-mid: #a3b98a;
-  --ride-mid-line: #869e6e;
-  --ride-near: #7f9a5c;
-  --ride-near-line: #6a8549;
-  --ride-road: #2b2e2c;
-  --ride-road-shade: #1d1f1c;
-  --ride-grass: #4f6b34;
-  --ride-ink: #1d1f1c;
-  --ride-red: #c3321f;
-  --ride-red-dark: #8f2316;
-  --ride-white: #f4f3ee;
-  --ride-skin: #c99a74;
-  --ride-bib: #17191b;
-  --ride-metal: #a9adb0;
-  --ride-metal-dark: #5b5f62;
-  --ride-spoke: #8d9194;
-  --ride-bottle: #2f6f9e;
+/* ---------- Vídeo do acesso (components/ride-video.tsx) ---------- */
+.ride-video {
+  background: #9fb3b8;
+  isolation: isolate;
 }
 
-.ride-illustration svg {
+.ride-video video,
+.ride-video-overlay {
   position: absolute;
   inset: 0;
-  display: block;
   width: 100%;
   height: 100%;
 }
 
-/* Perna e braço do lado de lá ficam mais escuros, como na sombra do corpo. */
-.ride-illustration .ride-shade {
-  filter: brightness(0.62);
+/* Fundo: o mesmo vídeo ampliado e desfocado preenche as laterais. */
+.ride-video-fill {
+  object-fit: cover;
+  filter: blur(14px) saturate(1.05);
+  transform: scale(1.15);
+}
+
+/* Quadro inteiro no centro, com as bordas fundidas ao fundo. */
+.ride-video .ride-video-main {
+  left: 50%;
+  width: auto;
+  max-width: none;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  transform: translateX(-50%);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+}
+
+.ride-video video {
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.ride-video.ready video {
+  opacity: 1;
+}
+
+.ride-video-overlay {
+  pointer-events: none;
+}
+
+/* No celular a faixa é quase 16:9: o vídeo cobre tudo, sem as laterais. */
+@media (max-width: 959px) {
+  .ride-video .ride-video-main {
+    left: 0;
+    width: 100%;
+    aspect-ratio: auto;
+    transform: none;
+    object-fit: cover;
+    object-position: 45% 50%;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
 }
