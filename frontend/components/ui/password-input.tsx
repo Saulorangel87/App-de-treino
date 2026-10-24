@@ -29,7 +29,17 @@ function PasswordInput({ className, ...props }: Omit<React.ComponentProps<'input
 
   return (
     <span className="password-field">
-      <input ref={ref} type={visible ? 'text' : 'password'} className={cn(className)} {...props} />
+      {/* Visível, o campo vira texto e o teclado do celular passaria a pôr
+          maiúscula, corrigir e sugerir palavras, alterando a senha digitada. */}
+      <input
+        ref={ref}
+        type={visible ? 'text' : 'password'}
+        className={cn(className)}
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+        {...props}
+      />
       <button
         type="button"
         className="password-toggle"
