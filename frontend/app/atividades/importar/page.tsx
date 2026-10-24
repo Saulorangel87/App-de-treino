@@ -287,7 +287,7 @@ export default function ImportActivityPage() {
   return (
     <main className="activities-shell">
       <AppHeader name={user?.display_name} />
-      <section className="activities-content">
+      <section className="activities-content" data-motion="stagger">
         <Link href="/atividades" className="back-link"><ArrowLeft size={15} />{t.back}</Link>
         <header className="activities-heading">
           <p>{t.kicker}</p>

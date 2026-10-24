@@ -20,6 +20,7 @@ import { ReferenceNumbersCard } from '@/components/reference-numbers-card';
 import { useLocale, useMessages } from '@/components/locale-provider';
 import { ApiError, apiDownload, apiErrorMessage, apiRequest } from '@/lib/api';
 import { ApiErrorState } from '@/components/api-error-state';
+import { PasswordInput } from '@/components/ui/password-input';
 import { defineMessages } from '@/lib/i18n';
 import { LEGAL_CONTACT_EMAIL } from '@/lib/legal';
 
@@ -264,7 +265,7 @@ export default function SettingsPage() {
   return (
     <main className="settings-shell">
       <AppHeader name={user.display_name} />
-      <section className="settings-content">
+      <section className="settings-content" data-motion="stagger">
         <header className="settings-heading">
           <p>{t.kicker}</p>
           <h1>{t.title}</h1>
@@ -314,18 +315,16 @@ export default function SettingsPage() {
               <p className="settings-card-intro">{t.securityIntro}</p>
               <form method="post" className="settings-form" onSubmit={changePassword}>
                 <label htmlFor="current-password">{t.currentPassword}</label>
-                <input
+                <PasswordInput
                   id="current-password"
-                  type="password"
                   value={currentPassword}
                   onChange={(event) => setCurrentPassword(event.target.value)}
                   autoComplete="current-password"
                   required
                 />
                 <label htmlFor="new-password">{t.newPassword}</label>
-                <input
+                <PasswordInput
                   id="new-password"
-                  type="password"
                   value={newPassword}
                   onChange={(event) => setNewPassword(event.target.value)}
                   autoComplete="new-password"
@@ -334,9 +333,8 @@ export default function SettingsPage() {
                   required
                 />
                 <label htmlFor="new-password-confirmation">{t.confirmPassword}</label>
-                <input
+                <PasswordInput
                   id="new-password-confirmation"
-                  type="password"
                   value={newPasswordConfirmation}
                   onChange={(event) => setNewPasswordConfirmation(event.target.value)}
                   autoComplete="new-password"
@@ -423,9 +421,8 @@ export default function SettingsPage() {
               <p className="settings-card-intro">{t.deleteIntro}</p>
               <form method="post" className="settings-delete-form" onSubmit={deleteAccount}>
                 <label htmlFor="account-delete-password">{t.currentPassword}</label>
-                <input
+                <PasswordInput
                   id="account-delete-password"
-                  type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   autoComplete="current-password"

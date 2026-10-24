@@ -117,6 +117,7 @@ export function RouteMap({ steps, label }: { steps: WorkoutStep[]; label: string
   return (
     <svg
       className="route-map"
+      data-motion="route"
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       role="img"
       aria-label={label}

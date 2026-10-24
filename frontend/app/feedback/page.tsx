@@ -137,7 +137,7 @@ export default function FeedbackPage() {
   return (
     <main className="feedback-shell">
       <AppHeader name={user.display_name} />
-      <section className="feedback-content">
+      <section className="feedback-content" data-motion="stagger">
         <header className="feedback-heading">
           <p>{t.kicker}</p>
           <h1>{t.title}</h1>

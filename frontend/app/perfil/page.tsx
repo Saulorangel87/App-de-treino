@@ -61,7 +61,7 @@ export default function ProfilePage() {
   return (
     <main className="profile-shell">
       <AppHeader name={user?.display_name} />
-      <section className="profile-content">
+      <section className="profile-content" data-motion="stagger">
         {user && !user.email_verified && (
           <section className="email-verification-banner">
             <MailCheck size={19} />

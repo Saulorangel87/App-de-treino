@@ -93,7 +93,7 @@ export default function NoveltiesPage() {
   return (
     <main className="updates-shell">
       <AppHeader name={user.display_name} />
-      <section className="updates-content">
+      <section className="updates-content" data-motion="stagger">
         <header className="updates-heading">
           <p>{t.kicker}</p>
           <h1>{t.title}</h1>

@@ -278,7 +278,7 @@ export default function AssessmentPage() {
   return (
     <main className="assessment-shell">
       <AppHeader name={user.display_name} />
-      <section className="assessment-content">
+      <section className="assessment-content" data-motion="stagger">
         <header className="assessment-heading">
           <p>{t.kicker}</p>
           <h1>{t.title}</h1>

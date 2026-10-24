@@ -4,6 +4,12 @@ import type { UpdateNote } from './release';
 // versão de cada posição). Ao publicar uma versão nova, escreva as duas.
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
   {
+    version: '0.41.0',
+    title: 'Screens in motion',
+    description:
+      "Screens now come in with gentle motion: the workout map draws itself section by section, the Progress charts grow from the base, the days of the week and the cards appear in sequence, and the workout panel slides up when it opens. On the sign-in screen, an original video of a cyclist on the road picks up Cadência's contour lines. Nothing changes in your plan or your data. If your device is set to reduce motion, Cadência respects it and shows everything still.",
+  },
+  {
     version: '0.40.0',
     title: 'Zones that fit you better',
     description:

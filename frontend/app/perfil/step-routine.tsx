@@ -249,6 +249,7 @@ export function ProfileStep4({ form }: { form: ProfileFormController }) {
     <form
       onSubmit={saveAvailability}
       className="profile-form availability-form"
+      data-motion="rise"
     >
       <fieldset>
         <legend>{t.cycling}</legend>

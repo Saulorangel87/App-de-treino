@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Anybody, Schibsted_Grotesk } from 'next/font/google';
 import { AppFooter } from '@/components/app-footer';
 import { LocaleProvider } from '@/components/locale-provider';
+import { MotionRoot } from '@/components/motion-root';
 import { TermsGate } from '@/components/terms-gate';
 import { UpdateNotice } from '@/components/update-notice';
 import { HTML_LANG, type Locale } from '@/lib/i18n';
@@ -93,40 +94,19 @@ export const viewport: Viewport = {
   colorScheme: 'light',
 };
 
-const devPwaResetScript = `
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations()
-      .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
-      .catch(() => undefined);
-  }
-  if ('caches' in window) {
-    caches.keys()
-      .then((keys) => Promise.all(
-        keys
-          .filter((key) => key.startsWith('cadencia-static-'))
-          .map((key) => caches.delete(key)),
-      ))
-      .catch(() => undefined);
-  }
-`;
-
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const locale = await requestLocale();
   return (
     <html lang={HTML_LANG[locale]}>
-      {!import.meta.env.PROD && (
-        <head>
-          <script dangerouslySetInnerHTML={{ __html: devPwaResetScript }} />
-        </head>
-      )}
       <body className={`${display.variable} ${body.variable}`}>
         <LocaleProvider locale={locale}>
           {children}
           <UpdateNotice />
           <TermsGate />
           <AppFooter />
+          <MotionRoot />
         </LocaleProvider>
       </body>
     </html>

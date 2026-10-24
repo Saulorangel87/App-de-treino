@@ -334,3 +334,98 @@
     font-size: 12px;
   }
 }
+
+/* ---------- Moldura da cena do acesso (components/ride-video.tsx) ---------- */
+.ride-scene {
+  position: relative;
+  flex: none;
+  height: 200px;
+  overflow: hidden;
+  border: var(--stroke);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+@media (min-width: 960px) {
+  /* No computador a cena ocupa o espaço que sobra na coluna da apresentação. */
+  .ride-scene {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 240px;
+    max-height: 520px;
+  }
+}
+
+@media (min-width: 960px) and (max-height: 820px) {
+  .ride-scene {
+    min-height: 180px;
+  }
+
+  .story-copy ul {
+    display: none;
+  }
+}
+
+/* ---------- Vídeo do acesso (components/ride-video.tsx) ---------- */
+.ride-video {
+  background: #9fb3b8;
+  isolation: isolate;
+}
+
+.ride-video video,
+.ride-video-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Fundo: o mesmo vídeo ampliado e desfocado preenche as laterais. */
+.ride-video-fill {
+  object-fit: cover;
+  filter: blur(14px) saturate(1.05);
+  transform: scale(1.15);
+}
+
+/* Quadro inteiro no centro, com as bordas fundidas ao fundo. */
+.ride-video .ride-video-main {
+  left: 50%;
+  width: auto;
+  max-width: none;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  transform: translateX(-50%);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+}
+
+.ride-video video {
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.ride-video.ready video {
+  opacity: 1;
+}
+
+.ride-video-overlay {
+  pointer-events: none;
+}
+
+/* No celular a faixa é quase 16:9: o vídeo cobre tudo, sem as laterais. */
+@media (max-width: 959px) {
+  .ride-video .ride-video-fill {
+    display: none;
+  }
+
+  .ride-video .ride-video-main {
+    left: 0;
+    width: 100%;
+    aspect-ratio: auto;
+    transform: none;
+    object-fit: cover;
+    object-position: 45% 50%;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
