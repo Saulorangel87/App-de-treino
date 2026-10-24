@@ -94,34 +94,12 @@ export const viewport: Viewport = {
   colorScheme: 'light',
 };
 
-const devPwaResetScript = `
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations()
-      .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
-      .catch(() => undefined);
-  }
-  if ('caches' in window) {
-    caches.keys()
-      .then((keys) => Promise.all(
-        keys
-          .filter((key) => key.startsWith('cadencia-static-'))
-          .map((key) => caches.delete(key)),
-      ))
-      .catch(() => undefined);
-  }
-`;
-
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const locale = await requestLocale();
   return (
     <html lang={HTML_LANG[locale]}>
-      {!import.meta.env.PROD && (
-        <head>
-          <script dangerouslySetInnerHTML={{ __html: devPwaResetScript }} />
-        </head>
-      )}
       <body className={`${display.variable} ${body.variable}`}>
         <LocaleProvider locale={locale}>
           {children}

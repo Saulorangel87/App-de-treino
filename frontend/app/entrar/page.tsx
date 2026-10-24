@@ -11,6 +11,7 @@ import { useMessages } from '@/components/locale-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import { apiRequest } from '@/lib/api';
 import { defineMessages } from '@/lib/i18n';
 import { LEGAL_VERSION } from '@/lib/legal';
@@ -175,7 +176,7 @@ export default function SignInPage() {
           <form method="post" onSubmit={submit} className="account-form">
             {mode === 'register' && <div><Label htmlFor="display_name">{t.name}</Label><Input id="display_name" name="display_name" minLength={2} maxLength={100} required placeholder={t.namePlaceholder} autoComplete="name" /></div>}
             <div><Label htmlFor="email">{t.email}</Label><Input id="email" name="email" type="email" required placeholder={t.emailPlaceholder} autoComplete="email" /></div>
-            <div><Label htmlFor="password">{t.password}</Label><Input id="password" name="password" type="password" minLength={10} maxLength={72} required placeholder={t.passwordPlaceholder} autoComplete={mode === 'register' ? 'new-password' : 'current-password'} /></div>
+            <div><Label htmlFor="password">{t.password}</Label><PasswordInput id="password" name="password" minLength={10} maxLength={72} required placeholder={t.passwordPlaceholder} autoComplete={mode === 'register' ? 'new-password' : 'current-password'} /></div>
             {mode === 'register' && <label className="terms-check"><input type="checkbox" name="accept_terms" required /><span>{t.acceptBefore}<Link href="/termos" target="_blank">{t.terms}</Link>{t.acceptMiddle}<Link href="/privacidade" target="_blank">{t.privacy}</Link>{t.acceptAfter}</span></label>}
             {error && <p className="form-error" role="alert">{error}</p>}
             {notice && <p className="form-notice" role="status">{notice}</p>}

@@ -330,6 +330,42 @@ textarea::placeholder {
   color: #7d8674;
 }
 
+/* Campo de senha com o botão de olho (components/ui/password-input.tsx). */
+.password-field {
+  position: relative;
+  display: block;
+}
+
+.password-field input {
+  padding-right: 48px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.password-toggle:hover {
+  color: var(--ink);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--water);
+  outline-offset: -2px;
+  color: var(--ink);
+}
+
 input[type='checkbox'],
 input[type='radio'] {
   width: 20px;
