@@ -1,6 +1,6 @@
 # Estado atual do Cadência
 
-Última atualização: 12 de outubro de 2026.
+Última atualização: 23 de outubro de 2026.
 
 Este é o documento de continuidade: curto e sempre atual. O diário cronológico das fatias de trabalho (com datas, validações e decisões) está em [`changelog/project-status-history.md`](changelog/project-status-history.md). Não inclua senhas, tokens, chaves de API nem conteúdo de `.env`.
 
@@ -10,10 +10,10 @@ Este é o documento de continuidade: curto e sempre atual. O diário cronológic
 | --- | --- |
 | Frontend | <https://cadencia.devsaulo.com.br> |
 | API | <https://cadencia-api.devsaulo.com.br> |
-| Versão publicada | `0.40.0`, commit `682af4a` (12/10/2026: texto de Privacidade com a cópia externa por até 30 dias e termos na versão `2026-10-11`, sem migração; antes, `a028f7f`, 09/10/2026: Meus números e sugestões de FC máxima e FTP; antes, `0.39.0`, `4a1b58c`: resumo semanal por regras; `0.38.0`, `ef1dc4c`: app em português e inglês e atualização de dependências; e antes, deploys de 30/09 a 02/10/2026: `8786881`, proteção graduada do motor e "Estou recuperado"; `0ba6efa`, correção das referências; `6b9134d`, auditoria das 27 referências, comparação com a atividade importada, Política de Privacidade e Termos de Uso; `2a64b4f`, planilha de dados e registro do aceite dos termos; `395ea86`, comando administrativo da cópia completa; `40898f8`, rodapé compacto no celular; `6b2ffc9`, treino futuro bloqueado e desfazer registro; `e64effb`, zonas de esforço, modo tarefa e plano sem dia repetido; `05a7a5c`, Avaliação com zona e números; a versão visível não mudou desde a `0.37.0`) |
+| Versão publicada | `0.41.0`, commit `4b758ce` (23/10/2026: telas com movimento, vídeo na tela de acesso e mostrar senha, com as dependências dos PRs #90 a #95, sem migração; antes, `0.40.0`, `682af4a`, 12/10/2026: texto de Privacidade com a cópia externa por até 30 dias e termos na versão `2026-10-11`, sem migração; antes, `a028f7f`, 09/10/2026: Meus números e sugestões de FC máxima e FTP; antes, `0.39.0`, `4a1b58c`: resumo semanal por regras; `0.38.0`, `ef1dc4c`: app em português e inglês e atualização de dependências; e antes, deploys de 30/09 a 02/10/2026: `8786881`, proteção graduada do motor e "Estou recuperado"; `0ba6efa`, correção das referências; `6b9134d`, auditoria das 27 referências, comparação com a atividade importada, Política de Privacidade e Termos de Uso; `2a64b4f`, planilha de dados e registro do aceite dos termos; `395ea86`, comando administrativo da cópia completa; `40898f8`, rodapé compacto no celular; `6b2ffc9`, treino futuro bloqueado e desfazer registro; `e64effb`, zonas de esforço, modo tarefa e plano sem dia repetido; `05a7a5c`, Avaliação com zona e números; a versão visível não mudou desde a `0.37.0`) |
 | Migrações aplicadas | `000001` a `000038` (a `0.40.0` trouxe a `000038`; as `0.38.0` e `0.39.0` não trazem migração) |
 | Motor prescritivo | `rules-v1` (único); `rules-v2` e demais shadows são somente observacionais. Proteção graduada ligada (`PROTECTION_LEVELS_ENABLED=true` no `.env.production` da VPS) |
-| Último backup preventivo | `cadencia-20261012T013814Z.dump` (12/10/2026, no servidor, 14 dias). A cópia externa criptografada diária vai para o bucket `backups-vps` da Oracle, pasta `cadencia/`, com regra única "excluir após 30 dias"; o dump preventivo do deploy fica só no servidor |
+| Último backup preventivo | `cadencia-20261024T002349Z.dump` (23/10/2026, no servidor, 14 dias). A cópia externa criptografada diária vai para o bucket `backups-vps` da Oracle, pasta `cadencia/`, com regra única "excluir após 30 dias"; o dump preventivo do deploy fica só no servidor |
 | Validação pós-deploy | `/health`, `/ready`, frontend e `GET /v1/plans/current` autenticado = 200 com a conta de smoke test; `/ready` verifica o schema; `recovery_self_reports` criada; chave `true` confirmada dentro do contêiner da API; `POST /v1/protection/recovered` sem sessão = 401 |
 
 Escopo: somente ciclismo (estrada, MTB XCO/XCM, gravel e indoor). Corrida e musculação são produtos separados.
@@ -97,7 +97,10 @@ Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o cicl
 - **Meus números e sugestões (`0.40.0`, publicado em 09/10/2026, commit `a028f7f`, backup `cadencia-20261009T235718Z.dump`, migração `000038`):** cartão em Configurações com frequência máxima, limiar de frequência e FTP; zonas em batimentos pelo limiar quando ele existe; sugestões de frequência máxima e FTP a partir das atividades `.fit` importadas (migração `000038`, melhor média de 20 minutos). Ver [`zonas-de-esforco.md`](zonas-de-esforco.md).
 - **Pendências:** testes guiados de FC máxima, limiar e FTP (passo 2 da Fase B); resumo semanal com IA; Strava adiado (a equipe do Strava não responde dúvidas de API por e-mail e pediu que se releia a documentação, ver `strava-conformidade.md`).
 
-## Telas com movimento e nova tela de acesso — versão `0.41.0`
+## Telas com movimento e nova tela de acesso — publicada na `0.41.0` (commit `4b758ce`)
+
+Publicada em 23/10/2026 pelo `deploy.sh` (fast-forward `682af4a` → `4b758ce`, backup `cadencia-20261024T002349Z.dump`, nenhuma migração; smoke test público e autenticado `GET /v1/plans/current` = 200). O mesmo deploy levou as atualizações de dependências dos PRs #90 a #95. Release [v0.41.0](https://github.com/Saulorangel87/App-de-treino/releases/tag/v0.41.0).
+
 
 - Animações com GSAP em todas as telas pelo atributo `data-motion` e o `MotionRoot` (regras em `frontend/lib/motion.ts`); respeita `prefers-reduced-motion` e a impressão.
 - Tela de acesso com vídeo original gerado por IA (ciclista fictício, sem marcas) e curvas de nível animadas; versão de 480p no celular. Arquivos em `frontend/public/media/`.
