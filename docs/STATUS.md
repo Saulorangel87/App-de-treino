@@ -96,3 +96,12 @@ Substitui a trava de 28 dias (qualquer dor ou fadiga média alta protegia o cicl
 - **Decisão de provedor para a IA do resumo (pendente):** reaproveitar o Worker/Groq exige atualizar a política de privacidade e pedir consentimento, porque o resumo leva dados de saúde; o Ollama em lote noturno na VPS mantém os dados na VPS; uma API paga tem melhor qualidade e custo por uso. Nunca com dados do Strava.
 - **Meus números e sugestões (`0.40.0`, publicado em 09/10/2026, commit `a028f7f`, backup `cadencia-20261009T235718Z.dump`, migração `000038`):** cartão em Configurações com frequência máxima, limiar de frequência e FTP; zonas em batimentos pelo limiar quando ele existe; sugestões de frequência máxima e FTP a partir das atividades `.fit` importadas (migração `000038`, melhor média de 20 minutos). Ver [`zonas-de-esforco.md`](zonas-de-esforco.md).
 - **Pendências:** testes guiados de FC máxima, limiar e FTP (passo 2 da Fase B); resumo semanal com IA; Strava adiado (a equipe do Strava não responde dúvidas de API por e-mail e pediu que se releia a documentação, ver `strava-conformidade.md`).
+
+## Telas com movimento e nova tela de acesso — versão `0.41.0`
+
+- Animações com GSAP em todas as telas pelo atributo `data-motion` e o `MotionRoot` (regras em `frontend/lib/motion.ts`); respeita `prefers-reduced-motion` e a impressão.
+- Tela de acesso com vídeo original gerado por IA (ciclista fictício, sem marcas) e curvas de nível animadas; versão de 480p no celular. Arquivos em `frontend/public/media/`.
+- Botão de mostrar/ocultar a senha em todos os campos de senha.
+- Sem mudança de API, banco ou motor; sem migração. Detalhes em [`changelog/project-status-history.md`](changelog/project-status-history.md).
+- **Pendente:** conferir a tela de acesso num celular real (vídeo de 480p) e o botão de senha nas telas de redefinição e Configurações.
+
