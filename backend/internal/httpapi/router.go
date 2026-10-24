@@ -29,7 +29,9 @@ type SchemaChecker interface{ Check(context.Context) error }
 func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Service, onboardingService *athlete.OnboardingService, assessmentService *athlete.AssessmentService, recoveryService *athlete.RecoveryService, evolutionService *evolution.Service, feedbackService *feedback.Service, planningService *planning.Service, activityImportService *activityimport.Service, aiService *ai.Service, emailSender email.Sender, appBaseURL, allowedOrigin string, secureCookies, development bool, sessionTTL, emailTokenTTL time.Duration, options ...RouterOption) http.Handler {
 	mux := http.NewServeMux()
 	server := &Server{auth: authService, athlete: athleteService, onboarding: onboardingService, assessments: assessmentService, recovery: recoveryService, evolution: evolutionService, feedback: feedbackService, planning: planningService, activityImport: activityImportService, ai: aiService, emailSender: emailSender, appBaseURL: appBaseURL, secureCookies: secureCookies, development: development, sessionTTL: sessionTTL, emailTokenTTL: emailTokenTTL}
-	server.loginFailures = newRequestRateLimiter()
+	server.loginAttempts = newMemoryLoginAttempts()
+	server.now = time.Now
+	server.wait = waitFor
 	for _, option := range options {
 		option(server)
 	}
@@ -54,7 +56,7 @@ func NewRouter(db Pinger, authService *auth.Service, athleteService *athlete.Ser
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ready"})
 	})
 	mux.HandleFunc("POST /v1/auth/register", authLimiter.limit("register", 5, time.Hour, server.register))
-	mux.HandleFunc("POST /v1/auth/login", authLimiter.limit("login", 10, 15*time.Minute, server.login))
+	mux.HandleFunc("POST /v1/auth/login", authLimiter.limit("login", 30, 15*time.Minute, server.login))
 	mux.HandleFunc("POST /v1/auth/logout", server.logout)
 	mux.HandleFunc("DELETE /v1/auth/account", server.deleteAccount)
 	mux.HandleFunc("GET /v1/auth/account/export", authLimiter.limit("account-export", 10, time.Hour, server.exportAccountData))

@@ -46,15 +46,12 @@ type Server struct {
 	development      bool
 	exporter         DataExporter
 	legalAcceptances LegalAcceptanceStore
-	// loginFailures counts failed logins per e-mail address, complementing the
-	// per-IP limit against distributed guessing of a single account.
-	loginFailures *requestRateLimiter
+	// loginAttempts counts wrong passwords per IP and per account (see
+	// login_attempts.go). now and wait are replaced in tests.
+	loginAttempts LoginAttemptStore
+	now           func() time.Time
+	wait          func(context.Context, time.Duration)
 }
-
-const (
-	maxLoginFailuresPerAccount = 10
-	loginFailureWindow         = 15 * time.Minute
-)
 
 type changePasswordRequest struct {
 	CurrentPassword string `json:"current_password"`
@@ -140,27 +137,57 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 	if !decodeJSON(w, r, &input) {
 		return
 	}
-	accountKey := "login-account:" + strings.ToLower(strings.TrimSpace(input.Email))
-	if s.loginFailures != nil {
-		if blocked, retryAfter := s.loginFailures.exceeded(accountKey, maxLoginFailuresPerAccount); blocked {
-			w.Header().Set("Retry-After", strconv.Itoa(max(1, int(retryAfter.Seconds()))))
-			writeError(w, http.StatusTooManyRequests, "rate_limited", "Muitas tentativas. Tente novamente mais tarde.")
-			return
-		}
+	ctx := r.Context()
+	now := s.now()
+	ipKey := loginKey("ip", clientAddress(r))
+	accountKey := loginKey("account", input.Email)
+	if blocked := s.loginFailuresOf(ctx, ipKey).BlockedUntil.Sub(now); blocked > 0 {
+		w.Header().Set("Retry-After", strconv.Itoa(max(1, int(blocked.Seconds()))))
+		writeError(w, http.StatusTooManyRequests, "login_blocked", "Acesso bloqueado por excesso de tentativas com senha errada. Tente novamente em até 10 minutos.")
+		return
 	}
-	user, token, err := s.auth.Login(r.Context(), input.Email, input.Password)
+	if delay := accountSlowdown(s.loginFailuresOf(ctx, accountKey), now); delay > 0 {
+		s.wait(ctx, delay)
+	}
+	user, token, err := s.auth.Login(ctx, input.Email, input.Password)
 	if err != nil {
-		if s.loginFailures != nil && errors.Is(err, auth.ErrInvalidCredentials) {
-			s.loginFailures.hit(accountKey, loginFailureWindow)
+		if errors.Is(err, auth.ErrInvalidCredentials) {
+			s.countLoginFailure(ctx, w, ipKey, accountKey, now)
+			return
 		}
 		writeError(w, http.StatusUnauthorized, "invalid_credentials", "E-mail ou senha inválidos.")
 		return
 	}
-	if s.loginFailures != nil {
-		s.loginFailures.reset(accountKey)
+	if err := s.loginAttempts.ClearLoginFailures(ctx, accountKey); err != nil {
+		slog.Default().Error("clearing login failures failed", "error", err)
 	}
 	s.setSessionCookie(w, token)
 	writeJSON(w, http.StatusOK, map[string]any{"user": user})
+}
+
+// countLoginFailure records a wrong password and answers it: the plain error,
+// the warning that one attempt is left, or the block.
+func (s *Server) countLoginFailure(ctx context.Context, w http.ResponseWriter, ipKey, accountKey string, now time.Time) {
+	if _, err := s.loginAttempts.UpdateLoginFailures(ctx, accountKey, func(state auth.LoginFailures) auth.LoginFailures {
+		return countFailure(state, now, 0, accountFailureWindow, 0)
+	}); err != nil {
+		slog.Default().Error("counting account login failure failed", "error", err)
+	}
+	state, err := s.loginAttempts.UpdateLoginFailures(ctx, ipKey, func(state auth.LoginFailures) auth.LoginFailures {
+		return countFailure(state, now, maxLoginFailuresPerIP, loginFailureWindow, loginBlockDuration)
+	})
+	switch {
+	case err != nil:
+		slog.Default().Error("counting login failure failed", "error", err)
+	case state.BlockedUntil.After(now):
+		w.Header().Set("Retry-After", strconv.Itoa(int(loginBlockDuration.Seconds())))
+		writeError(w, http.StatusTooManyRequests, "login_blocked", "Você errou a senha 5 vezes. Por segurança, o acesso foi bloqueado por 10 minutos.")
+		return
+	case state.Failures == maxLoginFailuresPerIP-1:
+		writeError(w, http.StatusUnauthorized, "invalid_credentials", "E-mail ou senha inválidos. Atenção: resta 1 tentativa. Se errar de novo, o acesso será bloqueado por 10 minutos.")
+		return
+	}
+	writeError(w, http.StatusUnauthorized, "invalid_credentials", "E-mail ou senha inválidos.")
 }
 
 func (s *Server) logout(w http.ResponseWriter, r *http.Request) {

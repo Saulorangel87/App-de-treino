@@ -983,3 +983,11 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - Sem mudança de API, banco ou motor; sem migração. Validação local: `tsc`, `oxlint`, 68 testes do frontend e `npm run build`; verificação visual no navegador.
 - Deploy em 23/10/2026 (PR #96): fast-forward `682af4a` → `4b758ce`, backup `cadencia-20261024T002349Z.dump`, 0 migração, smoke test público e autenticado = 200; vídeos servidos em produção (1,2 MB e 0,5 MB). Levou junto as dependências dos PRs #90 a #95.
 
+## Bloqueio de login por senha errada (23/10/2026, a publicar)
+
+- Regra pedida pelo dono do produto: 5 senhas erradas por IP. Na 4ª, a resposta avisa que resta 1 tentativa e que errar de novo bloqueia por 10 minutos; na 5ª, `429 login_blocked` com `Retry-After: 600`, e o IP fica bloqueado mesmo com a senha certa. Erros espaçados por mais de 10 minutos não se somam; acertar a senha não zera a contagem do IP (senão quem tem conta própria intercalaria logins certos para tentar sem limite).
+- Fragilidades corrigidas, achadas na revisão de 23/10: (1) a contagem ficava só na memória e zerava a cada deploy, agora fica na tabela `login_failures` (migração `000039`), com chave SHA-256 do IP ou do e-mail, sem gravar nenhum dos dois em claro, e limpeza automática depois de um dia sem erro; (2) 10 erros num e-mail trancavam o dono por 15 minutos, agora a conta nunca é bloqueada e só fica mais lenta (0,5 s por erro acima de 5 na última hora, até 5 s), zerando quando o dono entra; (3) o limitador em memória, cheio (10 mil endereços), recusava o login de todos, agora descarta a janela mais antiga.
+- O limite geral por IP no login subiu de 10 para 30 requisições em 15 minutos (proteção contra rajadas; conta também logins certos). A regra da Cloudflare (10 por 10 s em `/v1/auth/`) continua.
+- Falha ao ler ou gravar a contagem não bloqueia ninguém: o erro vai para o log e o login segue.
+- Validação: testes do pacote `httpapi` (aviso, bloqueio, fim do bloqueio, outro IP entra, erros espaçados, login certo não zera o IP, conta lenta sem bloqueio, chaves em resumo, limitadores cheios), fixture `000039_login_failures.sql`, e a API local com Postgres: 401, 401, 401, aviso, 429 com 600 s, 429 com 599 s, mensagens em inglês com `Accept-Language: en`.
+
