@@ -1,6 +1,6 @@
 # Estado atual do Cadência
 
-Última atualização: 23 de outubro de 2026.
+Última atualização: 25 de outubro de 2026.
 
 Este é o documento de continuidade: curto e sempre atual. O diário cronológico das fatias de trabalho (com datas, validações e decisões) está em [`changelog/project-status-history.md`](changelog/project-status-history.md). Não inclua senhas, tokens, chaves de API nem conteúdo de `.env`.
 
@@ -11,6 +11,7 @@ Este é o documento de continuidade: curto e sempre atual. O diário cronológic
 | Frontend | <https://cadencia.devsaulo.com.br> |
 | API | <https://cadencia-api.devsaulo.com.br> |
 | Versão publicada | `0.41.1`, commit `97848e0` (23/10/2026: só documentação e a versão visível `0.41.1`, sem migração; antes, `f988711`, 23/10/2026: bloqueio de login após 5 senhas erradas, migração `000039`, e senha visível sem autocorreção; antes, `0.41.0`, `4b758ce`, 23/10/2026: telas com movimento, vídeo na tela de acesso e mostrar senha, com as dependências dos PRs #90 a #95, sem migração; antes, `0.40.0`, `682af4a`, 12/10/2026: texto de Privacidade com a cópia externa por até 30 dias e termos na versão `2026-10-11`, sem migração; antes, `a028f7f`, 09/10/2026: Meus números e sugestões de FC máxima e FTP; antes, `0.39.0`, `4a1b58c`: resumo semanal por regras; `0.38.0`, `ef1dc4c`: app em português e inglês e atualização de dependências; e antes, deploys de 30/09 a 02/10/2026: `8786881`, proteção graduada do motor e "Estou recuperado"; `0ba6efa`, correção das referências; `6b9134d`, auditoria das 27 referências, comparação com a atividade importada, Política de Privacidade e Termos de Uso; `2a64b4f`, planilha de dados e registro do aceite dos termos; `395ea86`, comando administrativo da cópia completa; `40898f8`, rodapé compacto no celular; `6b2ffc9`, treino futuro bloqueado e desfazer registro; `e64effb`, zonas de esforço, modo tarefa e plano sem dia repetido; `05a7a5c`, Avaliação com zona e números; a versão visível não mudou desde a `0.37.0`) |
+| Túnel Cloudflare | `cloudflared 2026.10.3` (digest `sha256:faa8e0a1…`), só o túnel recriado em 25/10/2026 (PR #103). O checkout da VPS está em `c30dec2`, mas API e frontend seguem com as imagens da `97848e0`: o `4cb874c` (npm audit do frontend) entra no próximo `deploy.sh` |
 | Migrações aplicadas | `000001` a `000039` (a `0.41.1` trouxe a `000039`; a `0.41.0` não traz migração; a `0.40.0` trouxe a `000038`) |
 | Motor prescritivo | `rules-v1` (único); `rules-v2` e demais shadows são somente observacionais. Proteção graduada ligada (`PROTECTION_LEVELS_ENABLED=true` no `.env.production` da VPS) |
 | Último backup preventivo | `cadencia-20261024T011038Z.dump` (23/10/2026, no servidor, 14 dias). A cópia externa criptografada diária vai para o bucket `backups-vps` da Oracle, pasta `cadencia/`, com regra única "excluir após 30 dias"; o dump preventivo do deploy fica só no servidor |
