@@ -993,3 +993,10 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - Deploy em 23/10/2026 (PRs #98 e #99): fast-forward `4b758ce` → `f988711`, backup `cadencia-20261024T010230Z.dump`, migração `000039` aplicada, smoke test público e autenticado = 200. Em produção, uma senha errada de verificação gravou só as chaves em resumo; os registros foram apagados. Junto foi a correção do #98: com a senha visível, o campo não recebe maiúscula automática, autocorreção nem corretor ortográfico do teclado. Versão visível `0.41.1`.
 - Deploy em 23/10/2026 (PR #100, docs e versão visível `0.41.1`): fast-forward `f988711` → `97848e0`, backup `cadencia-20261024T011038Z.dump`, 0 migração, smoke test público e autenticado = 200.
 - Teste em produção no 4G pelo dono do produto: aviso na 4ª senha errada e bloqueio de 10 minutos na 5ª, como previsto; o Wi-Fi de casa (outro IP) continuou entrando.
+
+## Túnel com cloudflared 2026.10.3 (25/10/2026, publicado em c30dec2)
+
+- Motivo: a auditoria de segurança da VPS de 25/10 atualizou o outro túnel da VPS (`cloudflared-tunnel`) para o `cloudflared 2026.10.3`; o túnel do Cadência continuava fixo no `2026.7.3`.
+- PR #103: o serviço `tunnel` passa a usar `sha256:faa8e0a1475f137c910be6025f43c8e4092fdd35461b31e19fd1390657a1ff39`, o índice multiplataforma do `2026.10.3`, conferido na VPS com `docker buildx imagetools inspect` (é o mesmo digest do `cloudflared-tunnel`).
+- Aplicado em 25/10/2026: fast-forward `97848e0` → `c30dec2` e `up -d --no-deps tunnel`. Só o túnel foi recriado; API, frontend e PostgreSQL não reiniciaram. Sem backup nem migração, porque o banco não mudou. O túnel registrou 4 conexões (gru13, gru20, gru21); frontend e `/ready` = 200.
+- A versão visível continua `0.41.1`. O checkout da VPS já inclui o `4cb874c` (PR #102, alertas do npm audit no frontend), mas a imagem do frontend não foi reconstruída: ele entra no próximo deploy pelo `deploy.sh`.
