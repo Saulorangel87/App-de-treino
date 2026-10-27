@@ -12,7 +12,7 @@ Internet
 
 Nenhum serviço desta composição publica portas no host. O Cloudflare Tunnel é o único componente que encaminha tráfego público para o Cadência. O PostgreSQL não recebe hostname, rota pública ou porta exposta.
 
-O serviço `tunnel` usa o digest fixo `cloudflare/cloudflared@sha256:faa8e0a1475f137c910be6025f43c8e4092fdd35461b31e19fd1390657a1ff39`, o índice multiplataforma do `cloudflared 2026.10.3` (inclui `linux/arm64`). É o mesmo digest que o container `cloudflared-tunnel` da VPS roda desde 25 de outubro de 2026. Ele substitui o pin do `cloudflared 2026.7.3` (`sha256:e39ee8…`, commit `61d7939`, deploy de 11 de setembro de 2026). Foi aplicado na VPS em 25 de outubro de 2026, no commit `c30dec2`, recriando só o túnel.
+O serviço `tunnel` usa o digest fixo `cloudflare/cloudflared@sha256:1b1d34d0a9c0bfca9de72db8460d328db3f19edd2b96169114e3e893a97bbe53`, o índice multiplataforma do `cloudflared 2026.10.5` (inclui `linux/arm64`), conferido com `docker buildx imagetools inspect`. É a mesma versão que o container `cloudflared-tunnel` da VPS roda desde 27 de outubro de 2026. Substitui o pin do `cloudflared 2026.10.3` (`sha256:faa8e0…`, commit `c30dec2`, aplicado em 25 de outubro de 2026), que já tinha a correção dos certificados intermediários eMudhra exigida pela Cloudflare (2026.10.2 ou posterior); a 2026.10.5 é a versão recomendada pelo painel. Antes disso, o pin era o `cloudflared 2026.7.3` (`sha256:e39ee8…`, commit `61d7939`).
 
 URLs em produção:
 
