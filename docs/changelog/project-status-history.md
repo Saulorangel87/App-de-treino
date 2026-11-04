@@ -1023,9 +1023,10 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - Alertas que continuam abertos: #69 (`minimatch 10.2.6`, GHSA-g3hv-75wg-m249, moderado) e #68 (`deepmerge 4.3.1`, GHSA-gcqx-w48m-w2h4, baixo, sem versão corrigida). Ambos são transitivos de desenvolvimento e as versões já estavam no lockfile antes destes PRs. `npm audit --omit=dev` = 0.
 - Deploy em 04/11/2026 pelo `deploy.sh`: fast-forward `aa960f1` → `78981e2`, backup `cadencia-20261104T204116Z.dump`, 0 migração pendente, API e frontend recriados (túnel e PostgreSQL não reiniciaram). Smoke test público (`/health`, `/ready`, frontend) e autenticado (`GET /v1/plans/current`) = 200.
 
-## Alerta do minimatch corrigido (04/11/2026, sem deploy)
+## Alerta do minimatch corrigido (04/11/2026, publicado em 42fdc56)
 
 - Alerta #69 do Dependabot (GHSA-g3hv-75wg-m249, moderado): um padrão glob malicioso faz o `minimatch` consumir CPU e memória em excesso. Chega só por `shadcn` → `@ts-morph/common`, que pede `^10.0.1`, e a correção só existe na `11.0.1`, por isso o bot não abriu PR.
 - Override `minimatch: 11.0.4` no `frontend/package.json`. Lockfile gerado com npm 12. `typecheck`, `lint`, `test` (68) e `build` passaram, e o `shadcn` continua carregando.
-- Sem deploy: é dependência só de desenvolvimento e a versão visível continua `0.41.2`. Quando o `@ts-morph/common` aceitar o `minimatch` 11, o override pode sair.
+- É dependência só de desenvolvimento, fora da imagem final do frontend, e a versão visível continua `0.41.2`. Quando o `@ts-morph/common` aceitar o `minimatch` 11, o override pode sair.
 - Continua aberto o alerta #68 (`deepmerge 4.3.1`, baixo), sem versão corrigida. `npm audit --omit=dev` = 0.
+- Deploy em 04/11/2026 pelo `deploy.sh`: fast-forward `78981e2` → `42fdc56`, backup `cadencia-20261104T210055Z.dump`, 0 migração pendente. Só o frontend foi recriado (a imagem da API não mudou); smoke test público e autenticado = 200.
