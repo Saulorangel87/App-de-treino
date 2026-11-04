@@ -1,7 +1,7 @@
 import type { Locale } from './i18n';
 import { UPDATE_NOTES_EN } from './release.en';
 
-export const APP_VERSION = '0.41.1';
+export const APP_VERSION = '0.41.2';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -10,6 +10,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.41.2',
+    title: 'Componentes internos atualizados',
+    description:
+      'Atualizamos componentes internos do Cadência, incluindo a biblioteca que conversa com o banco de dados, que recebeu correções de segurança. Foi uma atualização preventiva. Nada muda no seu plano, nas telas nem nos seus dados.',
+  },
   {
     version: '0.41.1',
     title: 'Acesso mais protegido',
