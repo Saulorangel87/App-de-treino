@@ -97,7 +97,7 @@ Cuidados, porque o arquivo tem dados de saúde:
 
 Se o app crescer, o próximo passo é um fluxo automatizado com verificação de identidade; hoje, com poucos atletas, o procedimento manual é suficiente.
 
-O esquema versionado vai até `000035` e a produção está sincronizada com ele (deploy de 1 de outubro de 2026, commit `40898f8`). A versão visível ao usuário é `0.37.0`. O histórico de cada deploy fica em [`docs/STATUS.md`](../../docs/STATUS.md) e em [`docs/changelog/project-status-history.md`](../../docs/changelog/project-status-history.md).
+O esquema versionado vai até `000039` e a produção está sincronizada com ele (último deploy em 4 de novembro de 2026, commit `78981e2`). A versão visível ao usuário é `0.41.2`. O histórico de cada deploy fica em [`docs/STATUS.md`](../../docs/STATUS.md) e em [`docs/changelog/project-status-history.md`](../../docs/changelog/project-status-history.md).
 
 O Ollama é opcional e não é iniciado pelo comando acima. Ele foi instalado na VPS e permanece parado após o teste de capacidade; a produção usa temporariamente o Worker remoto para evitar sobrecarga. O padrão seguro continua sendo `AI_ENABLED=false`. Para preparar o serviço somente na rede interna do Cadência:
 
