@@ -4,6 +4,12 @@ import type { UpdateNote } from './release';
 // versão de cada posição). Ao publicar uma versão nova, escreva as duas.
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
   {
+    version: '0.41.2',
+    title: 'Internal components updated',
+    description:
+      'We updated internal components of Cadência, including the library that talks to the database, which received security fixes. This was a preventive update. Nothing changes in your plan, your screens or your data.',
+  },
+  {
     version: '0.41.1',
     title: 'Better protected sign-in',
     description:
