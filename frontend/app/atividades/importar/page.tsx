@@ -184,25 +184,6 @@ export default function ImportActivityPage() {
       .finally(() => setLoading(false));
   }, [t]);
 
-  // Valores espelhados de public/sw.js (SHARE_CACHE_NAME / SHARED_FILE_URL):
-  // o service worker intercepta o POST do menu "Compartilhar" do Android,
-  // guarda o arquivo aqui e redireciona para esta página com ?compartilhado=1.
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('compartilhado') !== '1') return;
-    if (!('caches' in window)) return;
-    caches
-      .open('cadencia-shared-file')
-      .then((cache) => cache.match('/__shared-activity').then((response) => ({ cache, response })))
-      .then(async ({ cache, response }) => {
-        if (!response) return;
-        const blob = await response.blob();
-        const filename = decodeURIComponent(response.headers.get('X-Shared-Filename') || 'atividade.fit');
-        await cache.delete('/__shared-activity');
-        await handleFileChosen(new File([blob], filename, { type: blob.type }));
-      })
-      .catch(() => undefined);
-  }, []);
-
   async function handleFileChosen(file: File) {
     setUploadError('');
     setLastImported(null);
@@ -225,6 +206,25 @@ export default function ImportActivityPage() {
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   }
+
+  // Valores espelhados de public/sw.js (SHARE_CACHE_NAME / SHARED_FILE_URL):
+  // o service worker intercepta o POST do menu "Compartilhar" do Android,
+  // guarda o arquivo aqui e redireciona para esta página com ?compartilhado=1.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('compartilhado') !== '1') return;
+    if (!('caches' in window)) return;
+    caches
+      .open('cadencia-shared-file')
+      .then((cache) => cache.match('/__shared-activity').then((response) => ({ cache, response })))
+      .then(async ({ cache, response }) => {
+        if (!response) return;
+        const blob = await response.blob();
+        const filename = decodeURIComponent(response.headers.get('X-Shared-Filename') || 'atividade.fit');
+        await cache.delete('/__shared-activity');
+        await handleFileChosen(new File([blob], filename, { type: blob.type }));
+      })
+      .catch(() => undefined);
+  }, []);
 
   // Grava (ou remove, com workoutID nulo) só a associação entre a atividade e o
   // treino; nada é copiado para o treino nem muda no plano.
