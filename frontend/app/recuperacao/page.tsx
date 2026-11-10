@@ -148,9 +148,13 @@ export default function RecoveryPage() {
         method: 'PUT', body: JSON.stringify({ recorded_on: today, sleep_minutes: sleepMinutes, sleep_quality: sleepQuality, stress_level: stressLevel, fatigue_level: fatigueLevel, notes }),
       });
       setRecovery(result.recovery);
+      // Salvo (ou atualizado): volta para a tela principal, que já mostra o novo check-in.
+      // `saving` fica ligado até a página trocar, para não permitir um segundo envio.
+      window.location.href = '/';
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : t.saveFailed);
-    } finally { setSaving(false); }
+      setSaving(false);
+    }
   }
 
   if (loading) return <main className="profile-loading"><LoaderCircle className="spin" />{t.loading}</main>;
