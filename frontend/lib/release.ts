@@ -1,7 +1,7 @@
 import type { Locale } from './i18n';
 import { UPDATE_NOTES_EN } from './release.en';
 
-export const APP_VERSION = '0.41.2';
+export const APP_VERSION = '0.41.3';
 
 export type UpdateNote = Readonly<{
   version: string;
@@ -10,6 +10,12 @@ export type UpdateNote = Readonly<{
 }>;
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
+  {
+    version: '0.41.3',
+    title: 'Check-in mais rápido e componentes atualizados',
+    description:
+      'Ao salvar ou atualizar o check-in, o app agora volta direto para a tela principal. Também atualizamos componentes internos do Cadência, incluindo a biblioteca que conversa com o banco de dados. Nada muda no seu plano nem nos seus dados.',
+  },
   {
     version: '0.41.2',
     title: 'Componentes internos atualizados',
