@@ -1030,3 +1030,11 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - É dependência só de desenvolvimento, fora da imagem final do frontend, e a versão visível continua `0.41.2`. Quando o `@ts-morph/common` aceitar o `minimatch` 11, o override pode sair.
 - Continua aberto o alerta #68 (`deepmerge 4.3.1`, baixo), sem versão corrigida. `npm audit --omit=dev` = 0.
 - Deploy em 04/11/2026 pelo `deploy.sh`: fast-forward `78981e2` → `42fdc56`, backup `cadencia-20261104T210055Z.dump`, 0 migração pendente. Só o frontend foi recriado (a imagem da API não mudou); smoke test público e autenticado = 200.
+
+## Versão 0.41.3: dependências e check-in (22/11/2026, publicada em b4bdd9e)
+
+- PRs do Dependabot #129 (`golang.org/x/crypto 0.59.0`, com `x/sync 0.25.0` e `x/text 0.44.0`), #130 (`alpine:3.24` em novo digest), #131 (`pgx 5.13.0`), #132 (`node:22-bookworm-slim` em novo digest) e #133 (10 pacotes do frontend: vite 8.3.8, wrangler 4.162.0, oxlint 1.93.0, lucide-react 1.73.0, entre outros).
+- Os 5 PRs estavam vermelhos desde 17/11 só pela auditoria do frontend: o alerta GHSA-fc5q-39xc-vjpf (`picomatch` <= 4.0.7, ReDoS) foi **retirado pelo GitHub em 18/11/2026**. Bastou rodar o CI de novo; nenhum override foi necessário. `npm run audit` = 0.
+- Mesclados com squash; o CI do master passou em `ff41ee5` com tudo junto (#129 e #131 mexem no mesmo `go.mod`).
+- Deploy em 22/11/2026 pelo `deploy.sh`: fast-forward `aad107a` → `ff41ee5`, backup `cadencia-20261122T152621Z.dump`, 0 migração pendente, API e frontend recriados. Smoke test público e autenticado = 200.
+- PR #134: versão visível `0.41.3`, cobrindo também o que tinha ido ao ar sem versão desde a `0.41.2` (#121 a #123, #125 e o check-in que volta para a tela principal, #127). Deploy pelo `deploy.sh`: `ff41ee5` → `b4bdd9e`, backup `cadencia-20261122T153120Z.dump`, só o frontend recriado, smoke test público e autenticado = 200, `0.41.3` no HTML público. Release `v0.41.3` publicada no GitHub.
