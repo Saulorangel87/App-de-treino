@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/jackc/pgx/v5 v5.13.0
-	github.com/muktihari/fit v0.28.6
+	github.com/muktihari/fit v0.28.7
 	golang.org/x/crypto v0.59.0
 )
 
