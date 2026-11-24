@@ -1038,3 +1038,9 @@ Motivo: o visual anterior (sidebar verde-escura, verde-limão, títulos em serif
 - Mesclados com squash; o CI do master passou em `ff41ee5` com tudo junto (#129 e #131 mexem no mesmo `go.mod`).
 - Deploy em 22/11/2026 pelo `deploy.sh`: fast-forward `aad107a` → `ff41ee5`, backup `cadencia-20261122T152621Z.dump`, 0 migração pendente, API e frontend recriados. Smoke test público e autenticado = 200.
 - PR #134: versão visível `0.41.3`, cobrindo também o que tinha ido ao ar sem versão desde a `0.41.2` (#121 a #123, #125 e o check-in que volta para a tela principal, #127). Deploy pelo `deploy.sh`: `ff41ee5` → `b4bdd9e`, backup `cadencia-20261122T153120Z.dump`, só o frontend recriado, smoke test público e autenticado = 200, `0.41.3` no HTML público. Release `v0.41.3` publicada no GitHub.
+
+## Versão 0.41.4: dependências (24/11/2026, publicada em 14c7632)
+
+- PRs do Dependabot #136 (`golang:1.26-alpine` em novo digest, build da API), #137 (`muktihari/fit 0.28.7`, leitor de `.fit`) e #138 (9 pacotes do frontend: lucide-react 1.77.0, tailwind-merge 3.7.1, @cloudflare/vite-plugin 1.70.1, @cloudflare/workers-types, oxfmt 0.79.0, oxlint 1.94.0, oxlint-tsgolint, vitest 5.1.1 e wrangler 4.166.0). Todos com CI verde; mesclados com squash; o CI do master passou em `9294e6b`.
+- Deploy em 24/11/2026 pelo `deploy.sh`: fast-forward `d2b9361` → `9294e6b`, backup `cadencia-20261124T210024Z.dump`, 0 migração pendente, API e frontend recriados. Smoke test público e autenticado = 200.
+- PR #139: versão visível `0.41.4`, com nota em português e inglês. Deploy pelo `deploy.sh`: `9294e6b` → `14c7632`, backup `cadencia-20261124T210819Z.dump`, só o frontend recriado, smoke test público e autenticado = 200, `0.41.4` no HTML público. Release `v0.41.4` publicada no GitHub.
